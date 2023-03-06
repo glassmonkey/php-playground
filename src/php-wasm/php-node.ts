@@ -3,8 +3,8 @@
  * and re-exports everything from the main PHP module.
  */
 
-const { TextEncoder, TextDecoder } = require('util');
+const { TextEncoder, TextDecoder } = require("util");
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 
-export * from './php';
+export * from "./php";

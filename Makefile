@@ -93,3 +93,12 @@ public/index.js:
 
 debug: build-image
 	docker run -it --rm -v $(DIST_DIR):/output $(PHP_IMAGE) bash
+
+.PHONY: lint
+lint:
+	npm run lint:js
+	npm run build:types
+
+style-fix:
+	npm run lint:js:fix
+	npm run format
