@@ -4,6 +4,7 @@ let options = {
     entryPoints: ['src/index.tsx'],
     bundle: true,
     outdir: 'public',
+    tsconfig: "./tsconfig.json"
 }
 
 const context = await esbuild.context(options)
