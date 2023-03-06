@@ -2,6 +2,7 @@ import * as React from "react";
 import { PHP, startPHP } from "./php-wasm";
 import { useEffect, useState } from "react";
 import Select from "react-select";
+import { Spinner, Textarea, Flex, Box, Divider, Center } from '@chakra-ui/react'
 
 const versions = [
   "5.6",
@@ -74,12 +75,12 @@ export default function () {
   );
 
   if (php == null) {
-    return <> loading ... </>;
+    return <Spinner />;
   }
 
-  return (
-    <div>
-      <main>
+  // @ts-ignore
+    return (
+      <main style={{margin: '16px'}}>
         <label>PHP's Version:</label>
         <Select
           styles={{
@@ -96,8 +97,20 @@ export default function () {
             setSelectedValue(option ?? options[options.length - 1]);
           }}
         />
-        <PhpInfo php={php} />
+        <Flex mt="16px">
+          <Box width="45%" height="50vh">
+            <Textarea height="100%"/>
+          </Box>
+            <Box width="10%" >
+                <Center height='50vh'>
+                    <Divider orientation='vertical' />
+                </Center>
+            </Box>
+          <iframe
+            width="45%"
+            src="https://glassmonkey.dev"
+          />
+        </Flex>
       </main>
-    </div>
   );
 }
