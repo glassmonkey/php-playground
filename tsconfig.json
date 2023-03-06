@@ -11,11 +11,6 @@
     "src/**/*"
   ],
   "exclude": [
-    "src/php-wasm-browser/service-worker/worker-library.ts",
-    "src/php-wasm-browser/worker-thread/worker-library.ts",
-    "src/wordpress-playground/service-worker.ts",
-    "src/wordpress-playground/worker-thread.ts",
-    "src/wordpress-playground/wordpress/**/*",
     "src/php-wasm/wasm/**/*",
     "src/php-wasm/__tests__/*.ts",
     "build/**/*",
