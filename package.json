@@ -1,0 +1,58 @@
+{
+  "name": "php-wasm-demo",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "@types/jest": "^27.5.2",
+    "@types/node": "^16.18.14",
+    "@types/react": "^18.0.28",
+    "@types/react-dom": "^18.0.11",
+    "exbuild": "^0.2.2",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.8.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "react-select": "^5.7.0",
+    "typescript": "^4.9.5",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "WATCH=true node build.mjs",
+    "build": "node build.mjs",
+    "build:types": "npm run clean:types; npm-run-all --parallel build:types:*",
+    "build:types:general": "tsc -p ./tsconfig.json",
+    "build:types:workers": "tsc -p ./tsconfig.worker.json",
+    "clean": "npm-run-all --parallel clean:*",
+    "clean:all": "rm -rf build/* ./build-*/*",
+    "clean:types": "rm -rf build-types/* *.tsbuildinfo",
+    "format": "prettier --write src",
+    "lint:js": "eslint \"./src/**/*.{js,mjs,ts}\"",
+    "lint:js:fix": "npm run lint:js -- --fix",
+    "test": "jest"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "esbuild": "^0.17.11"
+  }
+}
