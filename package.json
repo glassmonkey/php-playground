@@ -1,5 +1,5 @@
 {
-  "name": "php-wasm-demo",
+  "name": "php-playground",
   "version": "0.1.0",
   "private": true,
   "dependencies": {

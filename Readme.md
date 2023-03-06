@@ -1,8 +1,8 @@
-# php-wasm-demo
+# php-playground
 
-`php-wasm-demo` is a demonstration of PHP's WebAssembly Build.
+`php-playground` is a demonstration of PHP's WebAssembly Build.
 
-https://glassmonkey.github.io/php-wasm-demo/
+https://glassmonkey.github.io/php-playground/
 
 
 # usage
