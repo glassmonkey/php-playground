@@ -2,6 +2,16 @@ import * as React from "react";
 import { PHP, startPHP } from "./php-wasm";
 import { useEffect, useState } from "react";
 import Select from "react-select";
+import { Spinner, Flex, Box, Spacer } from "@chakra-ui/react";
+import { php as lnagPhp } from "@codemirror/lang-php";
+import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
+import { useSandpack } from "@codesandbox/sandpack-react";
+
+import {
+  SandpackProvider,
+  SandpackLayout,
+  SandpackCodeEditor,
+} from "@codesandbox/sandpack-react";
 
 const versions = [
   "5.6",
@@ -37,25 +47,23 @@ async function runPHP(php: PHP, code: string) {
   return new TextDecoder().decode(output.body);
 }
 
-function PhpInfo(params: { php: PHP }) {
+function PhpPreview(params: { php: PHP }) {
+  const { sandpack } = useSandpack();
+  const { files, activeFile } = sandpack;
+  const code = files[activeFile].code;
+
   const [result, setResult] = useState("");
   useEffect(
     function () {
       (async function () {
-        const info = await runPHP(params.php, "<?php phpinfo();");
+        const info = await runPHP(params.php, code);
         setResult(info);
       })();
     },
-    [params.php]
+    [params.php, code]
   );
 
-  return (
-    <div
-      dangerouslySetInnerHTML={{
-        __html: result,
-      }}
-    ></div>
-  );
+  return <iframe srcDoc={result} height="100%" width="100%" />;
 }
 
 export default function () {
@@ -74,13 +82,30 @@ export default function () {
   );
 
   if (php == null) {
-    return <> loading ... </>;
+    return <Spinner />;
   }
 
+  // @ts-ignore
   return (
-    <div>
-      <main>
-        <label>PHP's Version:</label>
+    <main style={{ margin: "16px" }}>
+      <Flex marginTop="8px" marginBottom="8px">
+        <Box width="32px" height="32px" margin-left="16px">
+          <a
+            href="https://github.com/glassmonkey/php-playground"
+            target="_blank"
+          >
+            <img src="octocat.png" />
+          </a>
+        </Box>
+        <Spacer />
+        <label
+          style={{
+            marginTop: "auto",
+            marginBottom: "auto",
+          }}
+        >
+          PHP's Version:
+        </label>
         <Select
           styles={{
             option: (baseStyles, state) => ({
@@ -96,8 +121,68 @@ export default function () {
             setSelectedValue(option ?? options[options.length - 1]);
           }}
         />
-        <PhpInfo php={php} />
-      </main>
-    </div>
+      </Flex>
+      <SandpackProvider
+        template="react"
+        files={{ "/app.php": `<?php phpinfo();` }}
+        options={{
+          activeFile: "/app.php", // used to be activePath
+          visibleFiles: ["/app.php"], // used to be openPaths
+        }}
+      >
+        <Flex direction="column" padding="3" bg="gray.800" height="$100vh">
+          <Flex justify="space-between" align="center" mb="2" py="1">
+            <Box
+              as={SandpackLayout}
+              flexDirection={{ base: "column", md: "row" }}
+              height="100vh"
+              width="100%"
+            >
+              <Box
+                as="span"
+                flex="1"
+                height="100%"
+                maxWidth={{ base: "100%", md: "50%" }}
+                position="relative"
+                className="group"
+                sx={{
+                  ".cm-scroller": {
+                    "&::-webkit-scrollbar": {
+                      height: "8px",
+                      width: "8px",
+                    },
+                    "&::-webkit-scrollbar-track": {
+                      background: "rgba(0,0,0,0.3)",
+                    },
+                    "&::-webkit-scrollbar-thumb": {
+                      background: "whiteAlpha.300",
+                    },
+                  },
+                }}
+              >
+                <SandpackCodeEditor
+                  showRunButton={false}
+                  showLineNumbers
+                  showTabs={false}
+                  style={{ height: "100%" }}
+                  extensions={[autocompletion()]}
+                  extensionsKeymap={[completionKeymap]}
+                  additionalLanguages={[
+                    {
+                      name: "php",
+                      extensions: ["php"],
+                      language: lnagPhp(),
+                    },
+                  ]}
+                />
+              </Box>
+              <Box width="100%" maxWidth={{ base: "100%", md: "50%" }}>
+                <PhpPreview php={php} />
+              </Box>
+            </Box>
+          </Flex>
+        </Flex>
+      </SandpackProvider>
+    </main>
   );
 }

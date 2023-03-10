@@ -4,9 +4,6 @@ module.exports = {
 		es2021: true,
 	},
 	settings: {
-		react: {
-			version: '999.99.99', // Prevent eslint from complaining (we don't use react).
-		},
 		jsdoc: {
 			tagNamePreference: {
 				return: 'returns',
@@ -16,7 +13,6 @@ module.exports = {
 	},
 	extends: [
 		'eslint:recommended',
-		'plugin:@wordpress/eslint-plugin/recommended',
 		'plugin:react/recommended',
 	],
 	overrides: [],
