@@ -1,8 +1,8 @@
 import * as React from "react";
 import { PHP, startPHP } from "./php-wasm";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import Select from "react-select";
-import { Spinner, Flex, Box, Divider, Center } from "@chakra-ui/react";
+import { Spinner, Flex, Box } from "@chakra-ui/react";
 import { php as lnagPhp } from "@codemirror/lang-php";
 import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
 import { useSandpack } from "@codesandbox/sandpack-react";
@@ -11,8 +11,6 @@ import {
   SandpackProvider,
   SandpackLayout,
   SandpackCodeEditor,
-  SandpackPreview,
-  Sandpack,
 } from "@codesandbox/sandpack-react";
 
 const versions = [
@@ -47,21 +45,6 @@ async function runPHP(php: PHP, code: string) {
     code: code,
   });
   return new TextDecoder().decode(output.body);
-}
-
-function PhpInfo(params: { php: PHP }) {
-  const [result, setResult] = useState("");
-  useEffect(
-    function () {
-      (async function () {
-        const info = await runPHP(params.php, "<?php phpinfo();");
-        setResult(info);
-      })();
-    },
-    [params.php]
-  );
-
-  return <iframe srcDoc={result} height="100%" width="100%" />;
 }
 
 function PhpPreview(params: { php: PHP }) {
