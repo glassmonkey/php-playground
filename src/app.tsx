@@ -2,7 +2,7 @@ import * as React from "react";
 import { PHP, startPHP } from "./php-wasm";
 import { useEffect, useState } from "react";
 import Select from "react-select";
-import { Spinner, Flex, Box } from "@chakra-ui/react";
+import { Spinner, Flex, Box, Spacer } from "@chakra-ui/react";
 import { php as lnagPhp } from "@codemirror/lang-php";
 import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
 import { useSandpack } from "@codesandbox/sandpack-react";
@@ -10,7 +10,7 @@ import { useSandpack } from "@codesandbox/sandpack-react";
 import {
   SandpackProvider,
   SandpackLayout,
-  SandpackCodeEditor,
+  SandpackCodeEditor
 } from "@codesandbox/sandpack-react";
 
 const versions = [
@@ -22,14 +22,14 @@ const versions = [
   "7.4",
   "8.0",
   "8.1",
-  "8.2",
+  "8.2"
 ] as const;
 
 type Version = (typeof versions)[number];
 
 const options = versions.map((v) => ({
   value: v,
-  label: v,
+  label: v
 }));
 
 type Option = (typeof options)[number];
@@ -42,7 +42,7 @@ async function initPHP(v: Version) {
 
 async function runPHP(php: PHP, code: string) {
   const output = php.run({
-    code: code,
+    code: code
   });
   return new TextDecoder().decode(output.body);
 }
@@ -54,8 +54,8 @@ function PhpPreview(params: { php: PHP }) {
 
   const [result, setResult] = useState("");
   useEffect(
-    function () {
-      (async function () {
+    function() {
+      (async function() {
         const info = await runPHP(params.php, code);
         setResult(info);
       })();
@@ -66,15 +66,15 @@ function PhpPreview(params: { php: PHP }) {
   return <iframe srcDoc={result} height="100%" width="100%" />;
 }
 
-export default function () {
+export default function() {
   const [php, setPHP] = useState<PHP | null>(null);
   const [selectedValue, setSelectedValue] = useState<Option>(
     options[options.length - 1]
   );
 
   useEffect(
-    function () {
-      (async function () {
+    function() {
+      (async function() {
         setPHP(await initPHP(selectedValue.value));
       })();
     },
@@ -88,25 +88,38 @@ export default function () {
   // @ts-ignore
   return (
     <main style={{ margin: "16px" }}>
-      <label>PHP's Version:</label>
-      <Select
-        styles={{
-          option: (baseStyles, state) => ({
-            ...baseStyles,
-            color: "black",
-          }),
-        }}
-        options={options}
-        defaultValue={selectedValue}
-        onChange={(option) => {
-          // null means loading.
-          setPHP(null);
-          setSelectedValue(option ?? options[options.length - 1]);
-        }}
-      />
+      <Flex marginTop="8px" marginBottom="8px">
+        <Box width="32px" height="32px" margin-left="16px">
+          <a href="https://github.com/glassmonkey/php-playground" target="_blank"><img src="octocat.png" /></a>
+        </Box>
+        <Spacer />
+        <label style={{
+          marginTop: "auto",
+          marginBottom: "auto"
+        }}>PHP's Version:</label>
+        <Select
+          styles={{
+            option: (baseStyles, state) => ({
+              ...baseStyles,
+              color: "black"
+            })
+          }}
+          options={options}
+          defaultValue={selectedValue}
+          onChange={(option) => {
+            // null means loading.
+            setPHP(null);
+            setSelectedValue(option ?? options[options.length - 1]);
+          }}
+        />
+      </Flex>
       <SandpackProvider
         template="react"
-        files={{ "/App.js": `<?php phpinfo();` }}
+        files={{ "/app.php": `<?php phpinfo();` }}
+        options={{
+          activeFile: "/app.php", // used to be activePath
+          visibleFiles: ["/app.php"], // used to be openPaths
+        }}
       >
         <Flex direction="column" padding="3" bg="gray.800" height="$100vh">
           <Flex justify="space-between" align="center" mb="2" py="1">
@@ -127,15 +140,15 @@ export default function () {
                   ".cm-scroller": {
                     "&::-webkit-scrollbar": {
                       height: "8px",
-                      width: "8px",
+                      width: "8px"
                     },
                     "&::-webkit-scrollbar-track": {
-                      background: "rgba(0,0,0,0.3)",
+                      background: "rgba(0,0,0,0.3)"
                     },
                     "&::-webkit-scrollbar-thumb": {
-                      background: "whiteAlpha.300",
-                    },
-                  },
+                      background: "whiteAlpha.300"
+                    }
+                  }
                 }}
               >
                 <SandpackCodeEditor
@@ -149,8 +162,8 @@ export default function () {
                     {
                       name: "php",
                       extensions: ["php"],
-                      language: lnagPhp(),
-                    },
+                      language: lnagPhp()
+                    }
                   ]}
                 />
               </Box>
