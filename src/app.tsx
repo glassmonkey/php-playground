@@ -1,16 +1,20 @@
 import * as React from "react";
 import { PHP, startPHP } from "./php-wasm";
-import { useEffect, useState } from "react";
+import { ReactElement, useEffect, useState } from "react";
 import Select from "react-select";
 import { Spinner, Flex, Box, Spacer } from "@chakra-ui/react";
 import { php as lnagPhp } from "@codemirror/lang-php";
 import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
 import { useSandpack } from "@codesandbox/sandpack-react";
+import { useSearchParams } from "react-router-dom";
+import * as lzstring from 'lz-string';
+
+
 
 import {
   SandpackProvider,
   SandpackLayout,
-  SandpackCodeEditor,
+  SandpackCodeEditor
 } from "@codesandbox/sandpack-react";
 
 const versions = [
@@ -22,14 +26,22 @@ const versions = [
   "7.4",
   "8.0",
   "8.1",
-  "8.2",
+  "8.2"
 ] as const;
+
+function asVersion(s: string|null): Version | null {
+  const r = versions.filter((v) => v == s).pop();
+  if (!r) {
+    return null;
+  }
+  return r;
+}
 
 type Version = (typeof versions)[number];
 
 const options = versions.map((v) => ({
   value: v,
-  label: v,
+  label: v
 }));
 
 type Option = (typeof options)[number];
@@ -42,22 +54,23 @@ async function initPHP(v: Version) {
 
 async function runPHP(php: PHP, code: string) {
   const output = php.run({
-    code: code,
+    code: code
   });
   return new TextDecoder().decode(output.body);
 }
 
-function PhpPreview(params: { php: PHP }) {
+function PhpPreview(params: { php: PHP, onChangeCode: (code: string) => void}) {
   const { sandpack } = useSandpack();
+
   const { files, activeFile } = sandpack;
   const code = files[activeFile].code;
-
   const [result, setResult] = useState("");
   useEffect(
-    function () {
-      (async function () {
+    function() {
+      (async function() {
         const info = await runPHP(params.php, code);
         setResult(info);
+        params.onChangeCode(code);
       })();
     },
     [params.php, code]
@@ -66,26 +79,118 @@ function PhpPreview(params: { php: PHP }) {
   return <iframe srcDoc={result} height="100%" width="100%" />;
 }
 
-export default function () {
+function EditorLayout(params: { Editor: ReactElement, Preview: ReactElement }) {
+  return (
+    <Flex direction="column" padding="3" bg="gray.800" height="100%">
+      <Flex
+        justify="space-between"
+        direction={{ base: "column", lg: "row"}}
+        align="center"
+        gap="8px"
+        height="75vh"
+      >
+        <Box
+          as={SandpackLayout}
+          flexDirection={{ base: "column", lg: "row" }}
+          height={{ base: "50%", lg: "100%"}}
+          width="100%"
+        >
+          <Box
+            as="span"
+            flex="1"
+            height="100%"
+            maxWidth={{ base: "100%" }}
+            position="relative"
+            className="group"
+          >
+            {params.Editor}
+          </Box>
+        </Box>
+        <Box
+          width="100%"
+          height={{ base: "50%", lg: "100%"}}
+          style={{
+          backgroundColor: "white"
+        }}>
+          {params.Preview}
+        </Box>
+      </Flex>
+    </Flex>);
+}
+
+function Editor(params: { initCode: string, php: PHP, onChangeCode: (code: string) => void }) {
+  return (<SandpackProvider
+    template="react"
+    files={{ "/app.php": params.initCode }}
+    options={{
+      activeFile: "/app.php", // used to be activePath
+      visibleFiles: ["/app.php"] // used to be openPaths
+    }}
+  >
+    <EditorLayout
+      Editor={
+        <SandpackCodeEditor
+          showRunButton={false}
+          showLineNumbers
+          showTabs={false}
+          style={{ height: "100%" }}
+          extensions={[autocompletion()]}
+          extensionsKeymap={[completionKeymap]}
+          additionalLanguages={[
+            {
+              name: "php",
+              extensions: ["php"],
+              language: lnagPhp()
+            }
+          ]}
+        />
+      }
+      Preview={
+        <PhpPreview php={params.php} onChangeCode={params.onChangeCode} />
+      }
+    />
+  </SandpackProvider>);
+}
+
+export default function() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const defaultOption = options[options.length - 1]
+
+  const c = lzstring.decompressFromEncodedURIComponent(searchParams.get('c') ?? '');
+  const [initCode, setCode] = useState<string>(c != null ?  c : '<?php phpinfo();')
   const [php, setPHP] = useState<PHP | null>(null);
-  const [selectedValue, setSelectedValue] = useState<Option>(
-    options[options.length - 1]
-  );
+  const [selectedVersion, selectVersion] = useState<Option>(
+    defaultOption
+  )
+  const version = asVersion(searchParams.get('v')) ?? selectedVersion.value
+
+  function updateVersion(o: Option) {
+    // null means loading.
+    setPHP(null);
+    selectVersion(o);
+    setSearchParams({
+      "c": lzstring.compressToEncodedURIComponent(initCode),
+      'v': o.value
+    })
+  }
+
 
   useEffect(
-    function () {
-      (async function () {
-        setPHP(await initPHP(selectedValue.value));
+    function() {
+      const versionIndex = versions.findIndex((v) => v == version)
+      updateVersion(options[versionIndex]);
+
+      (async function() {
+        setPHP(await initPHP(version));
       })();
     },
-    [selectedValue]
+    [selectedVersion, version]
   );
 
   if (php == null) {
     return <Spinner />;
   }
 
-  // @ts-ignore
   return (
     <main style={{ margin: "16px" }}>
       <Flex marginTop="8px" marginBottom="8px">
@@ -101,7 +206,7 @@ export default function () {
         <label
           style={{
             marginTop: "auto",
-            marginBottom: "auto",
+            marginBottom: "auto"
           }}
         >
           PHP's Version:
@@ -110,79 +215,25 @@ export default function () {
           styles={{
             option: (baseStyles, state) => ({
               ...baseStyles,
-              color: "black",
-            }),
+              color: "black"
+            })
           }}
           options={options}
-          defaultValue={selectedValue}
+          defaultValue={selectedVersion}
           onChange={(option) => {
-            // null means loading.
-            setPHP(null);
-            setSelectedValue(option ?? options[options.length - 1]);
+            updateVersion(option ?? defaultOption);
           }}
         />
       </Flex>
-      <SandpackProvider
-        template="react"
-        files={{ "/app.php": `<?php phpinfo();` }}
-        options={{
-          activeFile: "/app.php", // used to be activePath
-          visibleFiles: ["/app.php"], // used to be openPaths
-        }}
-      >
-        <Flex direction="column" padding="3" bg="gray.800" height="$100vh">
-          <Flex justify="space-between" align="center" mb="2" py="1">
-            <Box
-              as={SandpackLayout}
-              flexDirection={{ base: "column", md: "row" }}
-              height="100vh"
-              width="100%"
-            >
-              <Box
-                as="span"
-                flex="1"
-                height="100%"
-                maxWidth={{ base: "100%", md: "50%" }}
-                position="relative"
-                className="group"
-                sx={{
-                  ".cm-scroller": {
-                    "&::-webkit-scrollbar": {
-                      height: "8px",
-                      width: "8px",
-                    },
-                    "&::-webkit-scrollbar-track": {
-                      background: "rgba(0,0,0,0.3)",
-                    },
-                    "&::-webkit-scrollbar-thumb": {
-                      background: "whiteAlpha.300",
-                    },
-                  },
-                }}
-              >
-                <SandpackCodeEditor
-                  showRunButton={false}
-                  showLineNumbers
-                  showTabs={false}
-                  style={{ height: "100%" }}
-                  extensions={[autocompletion()]}
-                  extensionsKeymap={[completionKeymap]}
-                  additionalLanguages={[
-                    {
-                      name: "php",
-                      extensions: ["php"],
-                      language: lnagPhp(),
-                    },
-                  ]}
-                />
-              </Box>
-              <Box width="100%" maxWidth={{ base: "100%", md: "50%" }}>
-                <PhpPreview php={php} />
-              </Box>
-            </Box>
-          </Flex>
-        </Flex>
-      </SandpackProvider>
+      <Editor initCode={initCode} php={php} onChangeCode={
+        function(code: string) {
+          setCode(code)
+          setSearchParams({
+            "c": lzstring.compressToEncodedURIComponent(code),
+            "v": version,
+          });
+        }
+      } />
     </main>
   );
 }
