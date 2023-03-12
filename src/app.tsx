@@ -1,6 +1,6 @@
 import * as React from "react";
 import { PHP, startPHP } from "./php-wasm";
-import { useEffect, useState } from "react";
+import { ReactElement, useEffect, useState } from "react";
 import Select from "react-select";
 import { Spinner, Flex, Box, Spacer } from "@chakra-ui/react";
 import { php as lnagPhp } from "@codemirror/lang-php";
@@ -66,6 +66,79 @@ function PhpPreview(params: { php: PHP }) {
   return <iframe srcDoc={result} height="100%" width="100%" />;
 }
 
+function EditorLayout(params: { Editor: ReactElement, Preview: ReactElement }) {
+  return (
+    <Flex direction="column" padding="3" bg="gray.800" height="100%">
+      <Flex
+        justify="space-between"
+        direction={{ base: "column", lg: "row"}}
+        align="center"
+        gap="8px"
+        height="75vh"
+      >
+        <Box
+          as={SandpackLayout}
+          flexDirection={{ base: "column", lg: "row" }}
+          height={{ base: "50%", lg: "100%"}}
+          width="100%"
+        >
+          <Box
+            as="span"
+            flex="1"
+            height="100%"
+            maxWidth={{ base: "100%" }}
+            position="relative"
+            className="group"
+          >
+            {params.Editor}
+          </Box>
+        </Box>
+        <Box
+          width="100%"
+          height={{ base: "50%", lg: "100%"}}
+          style={{
+          backgroundColor: "white"
+        }}>
+          {params.Preview}
+        </Box>
+      </Flex>
+    </Flex>);
+}
+
+function Editor(params: { initCode: string, php: PHP }) {
+  return (<SandpackProvider
+    template="react"
+    files={{ "/app.php": params.initCode }}
+    options={{
+      activeFile: "/app.php", // used to be activePath
+      visibleFiles: ["/app.php"] // used to be openPaths
+    }}
+  >
+    <EditorLayout
+      Editor={
+        <SandpackCodeEditor
+          showRunButton={false}
+          showLineNumbers
+          showTabs={false}
+          style={{ height: "100%" }}
+          extensions={[autocompletion()]}
+          extensionsKeymap={[completionKeymap]}
+          additionalLanguages={[
+            {
+              name: "php",
+              extensions: ["php"],
+              language: lnagPhp()
+            }
+          ]}
+        />
+      }
+      Preview={
+        <PhpPreview php={params.php} />
+      }
+    />
+  </SandpackProvider>);
+}
+
 export default function() {
   const [php, setPHP] = useState<PHP | null>(null);
   const [selectedValue, setSelectedValue] = useState<Option>(
@@ -85,7 +158,6 @@ export default function() {
     return <Spinner />;
   }
 
-  // @ts-ignore
   return (
     <main style={{ margin: "16px" }}>
       <Flex marginTop="8px" marginBottom="8px">
@@ -122,55 +194,7 @@ export default function() {
           }}
         />
       </Flex>
-      <SandpackProvider
-        template="react"
-        files={{ "/app.php": `<?php phpinfo();` }}
-        options={{
-          activeFile: "/app.php", // used to be activePath
-          visibleFiles: ["/app.php"] // used to be openPaths
-        }}
-      >
-        <Flex direction="column" padding="3" bg="gray.800" height="$75vh">
-          <Flex justify="space-between" align="center" gap="8px">
-            <Box
-              as={SandpackLayout}
-              flexDirection={{ base: "column", md: "row" }}
-              height="75vh"
-              width="100%"
-            >
-              <Box
-                as="span"
-                flex="1"
-                height="100%"
-                maxWidth={{ base: "100%"}}
-                position="relative"
-                className="group"
-              >
-                <SandpackCodeEditor
-                  showRunButton={false}
-                  showLineNumbers
-                  showTabs={false}
-                  style={{ height: "100%" }}
-                  extensions={[autocompletion()]}
-                  extensionsKeymap={[completionKeymap]}
-                  additionalLanguages={[
-                    {
-                      name: "php",
-                      extensions: ["php"],
-                      language: lnagPhp()
-                    }
-                  ]}
-                />
-              </Box>
-            </Box>
-            <Box width="100%" height="75vh" style={{
-              backgroundColor: "white"
-            }}>
-              <PhpPreview php={php} />
-            </Box>
-          </Flex>
-        </Flex>
-      </SandpackProvider>
+      <Editor initCode="<?php phpinfo();" php={php} />
     </main>
   );
 }
