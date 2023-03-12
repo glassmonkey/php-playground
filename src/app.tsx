@@ -58,12 +58,16 @@ async function runPHP(php: PHP, code: string) {
 
 function PhpPreview(params: { php: PHP, setCode: (string) => void }) {
   const { sandpack } = useSandpack();
+  const [_, setSearchParams] = useSearchParams();
+
   const { files, activeFile } = sandpack;
   const code = files[activeFile].code;
-
   const [result, setResult] = useState("");
   useEffect(
     function() {
+      setSearchParams({
+        "c": code
+      });
       (async function() {
         const info = await runPHP(params.php, code);
         setResult(info);
@@ -150,26 +154,29 @@ function Editor(params: { initCode: string, php: PHP, setCode: (string) => void 
 }
 
 export default function() {
-  const defaultOption = options[options.length - 1]
-  const [code, setCode] = useState<string>('<?php phpinfo();')
-  const [php, setPHP] = useState<PHP | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
+  const defaultOption = options[options.length - 1]
+  const initCode = searchParams.get('c') ?? '<?php phpinfo();'
+
+  const [code, setCode] = useState<string>(initCode)
+  const [php, setPHP] = useState<PHP | null>(null);
   const [selectedVersion, selectVersion] = useState<Option>(
     defaultOption
   )
+  const version = asVersion(searchParams.get('v')) ?? selectedVersion.value
 
-  function updateVersion(v: Option) {
+  function updateVersion(o: Option) {
     // null means loading.
     setPHP(null);
-    selectVersion(v);
+    selectVersion(o);
     setSearchParams({
-      'v': v.value
+      'v': o.value
     })
   }
 
+
   useEffect(
     function() {
-      const version = asVersion(searchParams.get('v')) ?? selectedVersion.value
       const versionIndex = versions.findIndex((v) => v == version)
       updateVersion(options[versionIndex]);
 
@@ -177,7 +184,7 @@ export default function() {
         setPHP(await initPHP(version));
       })();
     },
-    [selectedVersion, searchParams]
+    [selectedVersion, version]
   );
 
   if (php == null) {
