@@ -47,7 +47,7 @@ async function runPHP(php: PHP, code: string) {
   return new TextDecoder().decode(output.body);
 }
 
-function PhpPreview(params: { php: PHP }) {
+function PhpPreview(params: { php: PHP, setCode: (string) => void }) {
   const { sandpack } = useSandpack();
   const { files, activeFile } = sandpack;
   const code = files[activeFile].code;
@@ -58,6 +58,7 @@ function PhpPreview(params: { php: PHP }) {
       (async function() {
         const info = await runPHP(params.php, code);
         setResult(info);
+        params.setCode(code);
       })();
     },
     [params.php, code]
@@ -105,7 +106,7 @@ function EditorLayout(params: { Editor: ReactElement, Preview: ReactElement }) {
     </Flex>);
 }
 
-function Editor(params: { initCode: string, php: PHP }) {
+function Editor(params: { initCode: string, php: PHP, setCode: (string) => void }) {
   return (<SandpackProvider
     template="react"
     files={{ "/app.php": params.initCode }}
@@ -133,13 +134,14 @@ function Editor(params: { initCode: string, php: PHP }) {
         />
       }
       Preview={
-        <PhpPreview php={params.php} />
+        <PhpPreview php={params.php} setCode={params.setCode} />
       }
     />
   </SandpackProvider>);
 }
 
 export default function() {
+  const [code, setCode] = useState<string>('<?php phpinfo();')
   const [php, setPHP] = useState<PHP | null>(null);
   const [selectedValue, setSelectedValue] = useState<Option>(
     options[options.length - 1]
@@ -194,7 +196,7 @@ export default function() {
           }}
         />
       </Flex>
-      <Editor initCode="<?php phpinfo();" php={php} />
+      <Editor initCode={code} php={php} setCode={setCode} />
     </main>
   );
 }
