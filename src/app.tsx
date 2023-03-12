@@ -6,6 +6,7 @@ import { Spinner, Flex, Box, Spacer } from "@chakra-ui/react";
 import { php as lnagPhp } from "@codemirror/lang-php";
 import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
 import { useSandpack } from "@codesandbox/sandpack-react";
+import { useSearchParams } from "react-router-dom";
 
 import {
   SandpackProvider,
@@ -24,6 +25,14 @@ const versions = [
   "8.1",
   "8.2"
 ] as const;
+
+function asVersion(s: string|null): Version | null {
+  const r = versions.filter((v) => v == s).pop();
+  if (!r) {
+    return null;
+  }
+  return r;
+}
 
 type Version = (typeof versions)[number];
 
@@ -141,19 +150,34 @@ function Editor(params: { initCode: string, php: PHP, setCode: (string) => void 
 }
 
 export default function() {
+  const defaultOption = options[options.length - 1]
   const [code, setCode] = useState<string>('<?php phpinfo();')
   const [php, setPHP] = useState<PHP | null>(null);
-  const [selectedValue, setSelectedValue] = useState<Option>(
-    options[options.length - 1]
-  );
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [selectedVersion, selectVersion] = useState<Option>(
+    defaultOption
+  )
+
+  function updateVersion(v: Option) {
+    // null means loading.
+    setPHP(null);
+    selectVersion(v);
+    setSearchParams({
+      'v': v.value
+    })
+  }
 
   useEffect(
     function() {
+      const version = asVersion(searchParams.get('v')) ?? selectedVersion.value
+      const versionIndex = versions.findIndex((v) => v == version)
+      updateVersion(options[versionIndex]);
+
       (async function() {
-        setPHP(await initPHP(selectedValue.value));
+        setPHP(await initPHP(version));
       })();
     },
-    [selectedValue]
+    [selectedVersion, searchParams]
   );
 
   if (php == null) {
@@ -178,7 +202,7 @@ export default function() {
             marginBottom: "auto"
           }}
         >
-          PHP's Version:
+          PHP's Version({}):
         </label>
         <Select
           styles={{
@@ -188,11 +212,9 @@ export default function() {
             })
           }}
           options={options}
-          defaultValue={selectedValue}
+          defaultValue={selectedVersion}
           onChange={(option) => {
-            // null means loading.
-            setPHP(null);
-            setSelectedValue(option ?? options[options.length - 1]);
+            updateVersion(option ?? defaultOption);
           }}
         />
       </Flex>
