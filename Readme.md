@@ -2,7 +2,7 @@
 
 `php-playground` is a demonstration of PHP's WebAssembly Build.
 
-https://glassmonkey.github.io/php-playground/
+https://php-play.dev
 
 
 # usage
