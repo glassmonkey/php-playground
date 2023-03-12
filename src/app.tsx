@@ -7,6 +7,9 @@ import { php as lnagPhp } from "@codemirror/lang-php";
 import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
 import { useSandpack } from "@codesandbox/sandpack-react";
 import { useSearchParams } from "react-router-dom";
+import * as lzstring from 'lz-string';
+
+
 
 import {
   SandpackProvider,
@@ -56,22 +59,18 @@ async function runPHP(php: PHP, code: string) {
   return new TextDecoder().decode(output.body);
 }
 
-function PhpPreview(params: { php: PHP, setCode: (string) => void }) {
+function PhpPreview(params: { php: PHP, onChangeCode: (code: string) => void}) {
   const { sandpack } = useSandpack();
-  const [_, setSearchParams] = useSearchParams();
 
   const { files, activeFile } = sandpack;
   const code = files[activeFile].code;
   const [result, setResult] = useState("");
   useEffect(
     function() {
-      setSearchParams({
-        "c": code
-      });
       (async function() {
         const info = await runPHP(params.php, code);
         setResult(info);
-        params.setCode(code);
+        params.onChangeCode(code);
       })();
     },
     [params.php, code]
@@ -119,7 +118,7 @@ function EditorLayout(params: { Editor: ReactElement, Preview: ReactElement }) {
     </Flex>);
 }
 
-function Editor(params: { initCode: string, php: PHP, setCode: (string) => void }) {
+function Editor(params: { initCode: string, php: PHP, onChangeCode: (code: string) => void }) {
   return (<SandpackProvider
     template="react"
     files={{ "/app.php": params.initCode }}
@@ -147,7 +146,7 @@ function Editor(params: { initCode: string, php: PHP, setCode: (string) => void 
         />
       }
       Preview={
-        <PhpPreview php={params.php} setCode={params.setCode} />
+        <PhpPreview php={params.php} onChangeCode={params.onChangeCode} />
       }
     />
   </SandpackProvider>);
@@ -156,9 +155,9 @@ function Editor(params: { initCode: string, php: PHP, setCode: (string) => void 
 export default function() {
   const [searchParams, setSearchParams] = useSearchParams();
   const defaultOption = options[options.length - 1]
-  const initCode = searchParams.get('c') ?? '<?php phpinfo();'
 
-  const [code, setCode] = useState<string>(initCode)
+  const c = lzstring.decompressFromEncodedURIComponent(searchParams.get('c') ?? '');
+  const [initCode, setCode] = useState<string>(c != null ?  c : '<?php phpinfo();')
   const [php, setPHP] = useState<PHP | null>(null);
   const [selectedVersion, selectVersion] = useState<Option>(
     defaultOption
@@ -170,6 +169,7 @@ export default function() {
     setPHP(null);
     selectVersion(o);
     setSearchParams({
+      "c": lzstring.compressToEncodedURIComponent(initCode),
       'v': o.value
     })
   }
@@ -225,7 +225,15 @@ export default function() {
           }}
         />
       </Flex>
-      <Editor initCode={code} php={php} setCode={setCode} />
+      <Editor initCode={initCode} php={php} onChangeCode={
+        function(code: string) {
+          setCode(code)
+          setSearchParams({
+            "c": lzstring.compressToEncodedURIComponent(code),
+            "v": version,
+          });
+        }
+      } />
     </main>
   );
 }
