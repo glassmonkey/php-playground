@@ -10,7 +10,7 @@ import { useSandpack } from "@codesandbox/sandpack-react";
 import {
   SandpackProvider,
   SandpackLayout,
-  SandpackCodeEditor,
+  SandpackCodeEditor
 } from "@codesandbox/sandpack-react";
 
 const versions = [
@@ -22,14 +22,14 @@ const versions = [
   "7.4",
   "8.0",
   "8.1",
-  "8.2",
+  "8.2"
 ] as const;
 
 type Version = (typeof versions)[number];
 
 const options = versions.map((v) => ({
   value: v,
-  label: v,
+  label: v
 }));
 
 type Option = (typeof options)[number];
@@ -42,7 +42,7 @@ async function initPHP(v: Version) {
 
 async function runPHP(php: PHP, code: string) {
   const output = php.run({
-    code: code,
+    code: code
   });
   return new TextDecoder().decode(output.body);
 }
@@ -54,8 +54,8 @@ function PhpPreview(params: { php: PHP }) {
 
   const [result, setResult] = useState("");
   useEffect(
-    function () {
-      (async function () {
+    function() {
+      (async function() {
         const info = await runPHP(params.php, code);
         setResult(info);
       })();
@@ -66,15 +66,15 @@ function PhpPreview(params: { php: PHP }) {
   return <iframe srcDoc={result} height="100%" width="100%" />;
 }
 
-export default function () {
+export default function() {
   const [php, setPHP] = useState<PHP | null>(null);
   const [selectedValue, setSelectedValue] = useState<Option>(
     options[options.length - 1]
   );
 
   useEffect(
-    function () {
-      (async function () {
+    function() {
+      (async function() {
         setPHP(await initPHP(selectedValue.value));
       })();
     },
@@ -101,7 +101,7 @@ export default function () {
         <label
           style={{
             marginTop: "auto",
-            marginBottom: "auto",
+            marginBottom: "auto"
           }}
         >
           PHP's Version:
@@ -110,8 +110,8 @@ export default function () {
           styles={{
             option: (baseStyles, state) => ({
               ...baseStyles,
-              color: "black",
-            }),
+              color: "black"
+            })
           }}
           options={options}
           defaultValue={selectedValue}
@@ -127,38 +127,24 @@ export default function () {
         files={{ "/app.php": `<?php phpinfo();` }}
         options={{
           activeFile: "/app.php", // used to be activePath
-          visibleFiles: ["/app.php"], // used to be openPaths
+          visibleFiles: ["/app.php"] // used to be openPaths
         }}
       >
-        <Flex direction="column" padding="3" bg="gray.800" height="$100vh">
-          <Flex justify="space-between" align="center" mb="2" py="1">
+        <Flex direction="column" padding="3" bg="gray.800" height="$75vh">
+          <Flex justify="space-between" align="center" gap="8px">
             <Box
               as={SandpackLayout}
               flexDirection={{ base: "column", md: "row" }}
-              height="100vh"
+              height="75vh"
               width="100%"
             >
               <Box
                 as="span"
                 flex="1"
                 height="100%"
-                maxWidth={{ base: "100%", md: "50%" }}
+                maxWidth={{ base: "100%"}}
                 position="relative"
                 className="group"
-                sx={{
-                  ".cm-scroller": {
-                    "&::-webkit-scrollbar": {
-                      height: "8px",
-                      width: "8px",
-                    },
-                    "&::-webkit-scrollbar-track": {
-                      background: "rgba(0,0,0,0.3)",
-                    },
-                    "&::-webkit-scrollbar-thumb": {
-                      background: "whiteAlpha.300",
-                    },
-                  },
-                }}
               >
                 <SandpackCodeEditor
                   showRunButton={false}
@@ -171,14 +157,16 @@ export default function () {
                     {
                       name: "php",
                       extensions: ["php"],
-                      language: lnagPhp(),
-                    },
+                      language: lnagPhp()
+                    }
                   ]}
                 />
               </Box>
-              <Box width="100%" maxWidth={{ base: "100%", md: "50%" }}>
-                <PhpPreview php={php} />
-              </Box>
+            </Box>
+            <Box width="100%" height="75vh" style={{
+              backgroundColor: "white"
+            }}>
+              <PhpPreview php={php} />
             </Box>
           </Flex>
         </Flex>

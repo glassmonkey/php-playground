@@ -1,6 +1,6 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom/client";
-import { ChakraProvider, Heading, Center, Text, Box } from "@chakra-ui/react";
+import { ChakraProvider, Heading, Center, Text } from "@chakra-ui/react";
 import App from "./app";
 
 const root = ReactDOM.createRoot(document.getElementById("app")!);
