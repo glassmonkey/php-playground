@@ -209,7 +209,7 @@ export default function() {
             marginBottom: "auto"
           }}
         >
-          PHP's Version({}):
+          PHP's Version:
         </label>
         <Select
           styles={{
