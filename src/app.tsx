@@ -76,7 +76,8 @@ function PhpPreview(params: { php: PHP, onChangeCode: (code: string) => void}) {
     [params.php, code]
   );
 
-  return <iframe srcDoc={result} height="100%" width="100%" />;
+
+  return <iframe srcDoc={result} height="100%" width="100%" sandbox=""/>;
 }
 
 function EditorLayout(params: { Editor: ReactElement, Preview: ReactElement }) {
