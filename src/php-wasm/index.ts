@@ -1,17 +1,17 @@
-export { PHP, startPHP } from "./php";
+export { PHP, startPHP } from './php';
 export type {
-  PHPOutput,
-  PHPRequest,
-  PHPResponse,
-  JavascriptRuntime,
-  ErrnoError,
-} from "./php";
+	PHPOutput,
+	PHPRequest,
+	PHPResponse,
+	JavascriptRuntime,
+	ErrnoError,
+} from './php';
 
-import PHPServer from "./php-server";
+import PHPServer from './php-server';
 export { PHPServer };
-export type { PHPServerConfigation, PHPServerRequest } from "./php-server";
+export type { PHPServerConfigation, PHPServerRequest } from './php-server';
 
-import PHPBrowser from "./php-browser";
+import PHPBrowser from './php-browser';
 export { PHPBrowser };
 
-export { DEFAULT_BASE_URL, getPathQueryFragment } from "../php-wasm/utils";
+export { DEFAULT_BASE_URL, getPathQueryFragment } from '../php-wasm/utils';
