@@ -209,18 +209,22 @@ export async function startPHP(
 		resolvePhpReady = resolve;
 	});
 
-	const loadPHPRuntime = phpLoaderModule.default;
-	const PHPRuntime = loadPHPRuntime(runtime, {
+	// @ts-ignore
+  const loadPHPRuntime = phpLoaderModule.default;
+  const PHPRuntime = loadPHPRuntime(runtime, {
 		onAbort(reason) {
 			console.error('WASM aborted: ');
 			console.error(reason);
 		},
 		ENV: {},
+    // @ts-ignore
 		...phpModuleArgs,
 		noInitialRun: true,
 		onRuntimeInitialized() {
-			if (phpModuleArgs.onRuntimeInitialized) {
-				phpModuleArgs.onRuntimeInitialized();
+			// @ts-ignore
+      if (phpModuleArgs.onRuntimeInitialized) {
+				// @ts-ignore
+        phpModuleArgs.onRuntimeInitialized();
 			}
 			resolvePhpReady();
 		},
@@ -231,7 +235,8 @@ export async function startPHP(
 			}
 		},
 	});
-	for (const { default: loadDataModule } of dataDependenciesModules) {
+	// @ts-ignore
+  for (const { default: loadDataModule } of dataDependenciesModules) {
 		loadDataModule(PHPRuntime);
 	}
 	if (!dataDependenciesModules.length) {
