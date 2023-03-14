@@ -196,10 +196,10 @@ export interface PHPResponse {
  * @returns PHP instance.
  */
 export async function startPHP(
-  phpLoaderModule: any,
+  phpLoaderModule: unknown,
   runtime: JavascriptRuntime,
-  phpModuleArgs: any = {},
-  dataDependenciesModules: any[] = []
+  phpModuleArgs: unknown = {},
+  dataDependenciesModules: unknown[] = []
 ): Promise<PHP> {
   let resolvePhpReady, resolveDepsReady;
   const depsReady = new Promise((resolve) => {
@@ -265,7 +265,7 @@ export class PHP {
    * @internal
    * @param PHPRuntime - PHP Runtime as initialized by startPHP.
    */
-  constructor(PHPRuntime: any) {
+  constructor(PHPRuntime: unknown) {
     this.#Runtime = PHPRuntime;
   }
 
@@ -536,7 +536,7 @@ export class PHP {
    * @param path     - The path to mount the filesystem to.
    * @see {@link https://emscripten.org/docs/api_reference/Filesystem-API.html#FS.mount}
    */
-  mount(settings: any, path: string) {
+  mount(settings: unknown, path: string) {
     this.#Runtime.FS.mount(this.#Runtime.FS.filesystems.NODEFS, settings, path);
   }
 
@@ -660,4 +660,4 @@ export interface PHPOutput {
  * @see https://emscripten.org/docs/api_reference/Filesystem-API.html
  * @see https://github.com/emscripten-core/emscripten/blob/main/system/lib/libc/musl/arch/emscripten/bits/errno.h
  */
-export interface ErrnoError extends Error {}
+export type ErrnoError = Error
