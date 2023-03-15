@@ -179,7 +179,7 @@ export default function () {
 		searchParams.get('c') ?? ''
 	);
 	const [initCode, setCode] = useState<string>(
-		c != null ? c : '<?php phpinfo();'
+		c != null ? c : '<?php\n// example code\nphpinfo();'
 	);
 	const [php, setPHP] = useState<PHP | null>(null);
 	const [selectedVersion, selectVersion] = useState<Option>(defaultOption);
@@ -209,13 +209,15 @@ export default function () {
 
 	return (
 		<main style={{ margin: '16px' }}>
-			<Flex marginTop="8px" marginBottom="8px">
-				<Box width="32px" height="32px" margin-left="16px">
+			<Flex marginTop="8px" marginBottom="8px" height="40px">
+				<Box margin-left="16px" margin-top="auto" margin-bottom="auto">
 					<a
-						href="https://github.com/glassmonkey/php-playground"
+						href="https://github.com/glassmonkey/php-playground/issues"
 						target="_blank"
 					>
-						<img src="octocat.png" />
+						<Flex>
+							<img src="octocat.png" width="40px" height="40px"/> <span style={{marginTop: 'auto', marginBottom: 'auto'}}>&lt; Feature Request and Bug Report</span>
+						</Flex>
 					</a>
 				</Box>
 				<Spacer />
