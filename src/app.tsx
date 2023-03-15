@@ -3,7 +3,7 @@ import { PHP, startPHP } from './php-wasm';
 import { ReactElement, useEffect, useState } from 'react';
 import Select from 'react-select';
 import { Spinner, Flex, Box, Spacer } from '@chakra-ui/react';
-import { php, php as lnagPhp } from '@codemirror/lang-php';
+import { php as lnagPhp } from '@codemirror/lang-php';
 import { autocompletion, completionKeymap } from '@codemirror/autocomplete';
 import { useSandpack } from '@codesandbox/sandpack-react';
 import { useSearchParams } from 'react-router-dom';
