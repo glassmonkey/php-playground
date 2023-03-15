@@ -3,7 +3,7 @@ import { PHP, startPHP } from './php-wasm';
 import { ReactElement, useEffect, useState } from 'react';
 import Select from 'react-select';
 import { Spinner, Flex, Box, Spacer } from '@chakra-ui/react';
-import { php as lnagPhp } from '@codemirror/lang-php';
+import { php, php as lnagPhp } from '@codemirror/lang-php';
 import { autocompletion, completionKeymap } from '@codemirror/autocomplete';
 import { useSandpack } from '@codesandbox/sandpack-react';
 import { useSearchParams } from 'react-router-dom';
@@ -58,7 +58,7 @@ async function runPHP(php: PHP, code: string) {
 }
 
 function PhpPreview(params: {
-	php: PHP;
+	php: PHP | null;
 	onChangeCode: (code: string) => void;
 }) {
 	const { sandpack } = useSandpack();
@@ -66,9 +66,13 @@ function PhpPreview(params: {
 	const { files, activeFile } = sandpack;
 	const code = files[activeFile].code;
 	const [result, setResult] = useState('');
+
 	useEffect(
 		function () {
 			(async function () {
+				if (params.php == null) {
+					return;
+				}
 				const info = await runPHP(params.php, code);
 				setResult(info);
 				params.onChangeCode(code);
@@ -76,6 +80,9 @@ function PhpPreview(params: {
 		},
 		[params.php, code]
 	);
+	if (params.php == null) {
+		return <Spinner />;
+	}
 
 	return <iframe srcDoc={result} height="100%" width="100%" sandbox="" />;
 }
@@ -123,7 +130,7 @@ function EditorLayout(params: { Editor: ReactElement; Preview: ReactElement }) {
 
 function Editor(params: {
 	initCode: string;
-	php: PHP;
+	php: PHP | null;
 	onChangeCode: (code: string) => void;
 }) {
 	return (
@@ -199,10 +206,6 @@ export default function () {
 		},
 		[selectedVersion, version]
 	);
-
-	if (php == null) {
-		return <Spinner />;
-	}
 
 	return (
 		<main style={{ margin: '16px' }}>
