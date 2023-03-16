@@ -2,7 +2,7 @@ import * as React from 'react';
 import { PHP, startPHP } from './php-wasm';
 import { ReactElement, useEffect, useState } from 'react';
 import Select from 'react-select';
-import { Spinner, Flex, Box, Spacer } from '@chakra-ui/react';
+import { Spinner, Flex, Box, Spacer, Text } from '@chakra-ui/react';
 import { php as lnagPhp } from '@codemirror/lang-php';
 import { autocompletion, completionKeymap } from '@codemirror/autocomplete';
 import { useSandpack } from '@codesandbox/sandpack-react';
@@ -209,39 +209,64 @@ export default function () {
 
 	return (
 		<main style={{ margin: '16px' }}>
-			<Flex marginTop="8px" marginBottom="8px" height="40px">
-				<Box margin-left="16px" margin-top="auto" margin-bottom="auto">
+			<Flex marginTop="8px" marginBottom="8px" gap="16px">
+				<Box marginLeft="16px" marginTop="auto" marginBottom="auto">
 					<a
 						href="https://github.com/glassmonkey/php-playground/issues"
 						target="_blank"
 					>
 						<Flex>
-							<img src="octocat.png" width="40px" height="40px"/> <span style={{marginTop: 'auto', marginBottom: 'auto'}}>&lt; Feature Request and Bug Report</span>
+							<img
+								src="octocat.png"
+								width="40px"
+								height="40px"
+								style={{
+									marginTop: 'auto',
+									marginBottom: 'auto',
+								}}
+							/>
+							<Text
+								fontSize="sm"
+								style={{
+									marginTop: 'auto',
+									marginBottom: 'auto',
+								}}
+							>
+								&lt; Feature Request and Bug Report
+							</Text>
 						</Flex>
 					</a>
 				</Box>
 				<Spacer />
-				<label
-					style={{
-						marginTop: 'auto',
-						marginBottom: 'auto',
-					}}
-				>
-					PHP's Version:
-				</label>
-				<Select
-					styles={{
-						option: (baseStyles, state) => ({
-							...baseStyles,
-							color: 'black',
-						}),
-					}}
-					options={options}
-					defaultValue={selectedVersion}
-					onChange={(option) => {
-						updateVersion(option ?? defaultOption);
-					}}
-				/>
+				<Flex direction={{ base: 'column', lg: 'row' }} gap="8px">
+					<label
+						style={{
+							marginTop: 'auto',
+							marginBottom: 'auto',
+						}}
+					>
+						<Text fontSize="xs">Version:</Text>
+					</label>
+					<Select
+						styles={{
+							option: (baseStyles, state) => ({
+								...baseStyles,
+								color: 'black',
+								fontSize: '14px',
+							}),
+							control: (baseStyles, state) => ({
+								...baseStyles,
+								color: 'black',
+								fontSize: '14px',
+							}),
+						}}
+						options={options}
+						defaultValue={selectedVersion}
+						onChange={(option) => {
+							updateVersion(option ?? defaultOption);
+						}}
+					/>
+				</Flex>
 			</Flex>
 			<Editor
 				initCode={initCode}
