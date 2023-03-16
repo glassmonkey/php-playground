@@ -210,7 +210,7 @@ export default function () {
 	return (
 		<main style={{ margin: '16px' }}>
 			<Flex marginTop="8px" marginBottom="8px" gap="16px">
-				<Box marginLeft="16px" marginTop="auto" marginBottom="auto">
+				<Box marginTop="auto" marginBottom="auto">
 					<a
 						href="https://github.com/glassmonkey/php-playground/issues"
 						target="_blank"
@@ -232,7 +232,7 @@ export default function () {
 									marginBottom: 'auto',
 								}}
 							>
-								&lt; Feature Request and Bug Report
+								&lt; Request and Report
 							</Text>
 						</Flex>
 					</a>
