@@ -184,6 +184,8 @@ export default function () {
 	const [php, setPHP] = useState<PHP | null>(null);
 	const [selectedVersion, selectVersion] = useState<Option>(defaultOption);
 	const version = asVersion(searchParams.get('v')) ?? selectedVersion.value;
+	const versionIndex = versions.findIndex((v) => v == version);
+	const versionOption = options[versionIndex];
 
 	function updateVersion(o: Option) {
 		// null means loading.
@@ -197,14 +199,13 @@ export default function () {
 
 	useEffect(
 		function () {
-			const versionIndex = versions.findIndex((v) => v == version);
-			updateVersion(options[versionIndex]);
+			updateVersion(versionOption);
 
 			(async function () {
 				setPHP(await initPHP(version));
 			})();
 		},
-		[selectedVersion, version]
+		[selectedVersion, versionOption]
 	);
 
 	return (
@@ -263,7 +264,9 @@ export default function () {
 						options={options}
 						defaultValue={selectedVersion}
 						onChange={(option) => {
-							updateVersion(option ?? defaultOption);
+							if (option != versionOption) {
+								updateVersion(option ?? defaultOption);
+							}
 						}}
 					/>
 				</Flex>
