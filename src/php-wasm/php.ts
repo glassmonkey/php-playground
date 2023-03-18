@@ -588,6 +588,10 @@ export class PHP {
 		return this.#Runtime.FS.readFile(path);
 	}
 
+	abortPHP() {
+		this.#Runtime.ccall('wasm_sapi_abort_request', null, [], []);
+	}
+
 	/**
 	 * Overwrites data in a file in the PHP filesystem.
 	 * Creates a new file if one doesn't exist yet.

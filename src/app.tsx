@@ -2,7 +2,7 @@ import * as React from 'react';
 import { PHP, startPHP } from './php-wasm';
 import { ReactElement, useEffect, useState } from 'react';
 import Select from 'react-select';
-import { Spinner, Flex, Box, Spacer, Text } from '@chakra-ui/react';
+import { Spinner, Flex, Box, Spacer, Text, Button } from '@chakra-ui/react';
 import { php as lnagPhp } from '@codemirror/lang-php';
 import { autocompletion, completionKeymap } from '@codemirror/autocomplete';
 import { useSandpack } from '@codesandbox/sandpack-react';
@@ -86,11 +86,15 @@ function usePHP(
 			if (!loading) {
 				return;
 			}
-			setTimeout(async function() {
-				const info = await runPHP(php, internalCode);
-				setResult(info);
-				setLoading(false);
-				onChangeCode(internalCode);
+			setTimeout( function() {
+				queueMicrotask(
+					async function() {
+						const info = await runPHP(php, internalCode);
+						setResult(info);
+						setLoading(false);
+						onChangeCode(internalCode);
+					}
+				)
 			}, 16); // delay execute for heavy code.
 		},
 		[php, code, internalCode, loading]
@@ -115,7 +119,7 @@ function PhpPreview(params: {
 	return <iframe srcDoc={result} height="100%" width="100%" sandbox="" />;
 }
 
-function EditorLayout(params: { Editor: ReactElement; Preview: ReactElement }) {
+function EditorLayout(params: { Editor: ReactElement; Preview: ReactElement, AbortButton }) {
 	return (
 		<Flex direction="column" padding="3" bg="gray.800" height="100%">
 			<Flex
@@ -200,13 +204,13 @@ function Editor(params: {
 }
 
 export default function () {
-	const [searchParams] = useSearchParams();
+	const [searchParams, setSearchParams] = useSearchParams();
 	const defaultOption = options[options.length - 1];
 
 	const c = lzstring.decompressFromEncodedURIComponent(
 		searchParams.get('c') ?? ''
 	);
-	const [initCode] = useState<string>(
+	const [initCode, setInitCode] = useState<string>(
 		c != null ? c : '<?php\n// example code\nphpinfo();'
 	);
 	const [php, setPHP] = useState<PHP | null>(null);
@@ -214,11 +218,19 @@ export default function () {
 	const version = asVersion(searchParams.get('v')) ?? selectedVersion.value;
 	const versionIndex = versions.findIndex((v) => v == version);
 	const versionOption = options[versionIndex];
+	console.log(versionOption)
 
 	function updateVersion(o: Option) {
+		console.log("update", o);
 		// null means loading.
 		setPHP(null);
 		selectVersion(o);
+		setSearchParams(
+			{
+				c: lzstring.compressToEncodedURIComponent(initCode),
+				v: o.value,
+			}
+		)
 	}
 
 	function setHistory(code: string, version: Version) {
@@ -298,7 +310,8 @@ export default function () {
 						options={options}
 						defaultValue={selectedVersion}
 						onChange={(option) => {
-							if (option != versionOption) {
+							console.log("set", option, versionOption)
+							if (option !== versionOption) {
 								updateVersion(option ?? defaultOption);
 							}
 						}}
@@ -309,7 +322,8 @@ export default function () {
 				initCode={initCode}
 				php={php}
 				onChangeCode={function (code: string) {
-					setHistory(code, versionOption.value);
+					setInitCode(code);
+					setHistory(code, version);
 				}}
 			/>
 		</main>
