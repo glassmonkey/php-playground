@@ -57,30 +57,55 @@ async function runPHP(php: PHP, code: string) {
 	return new TextDecoder().decode(output.body);
 }
 
+function usePHP(
+	php: PHP | null,
+	code: string,
+	onChangeCode: (code: string) => void
+): [boolean, string] {
+
+	const [loading, setLoading] = useState<boolean>(false);
+	const [internalCode, setInternalCode] = useState<string>('');
+	const [result, setResult] = useState<string>('');
+
+	useEffect(
+		function () {
+			if (internalCode != code) {
+				setLoading(true);
+				setInternalCode(code);
+				return;
+			}
+			queueMicrotask(async function () {
+				if (php == null) {
+					return;
+				}
+				if(internalCode == '') {
+					setResult('<h1>empty</h1>');
+					onChangeCode(internalCode);
+					setLoading(false);
+					return;
+				}
+				const info = await runPHP(php, internalCode);
+				setResult(info);
+				onChangeCode(internalCode);
+				setLoading(false);
+			});
+		},
+		[php, code, internalCode, loading]
+	);
+
+	return [loading, result];
+}
+
 function PhpPreview(params: {
 	php: PHP | null;
 	onChangeCode: (code: string) => void;
 }) {
 	const { sandpack } = useSandpack();
-
 	const { files, activeFile } = sandpack;
 	const code = files[activeFile].code;
-	const [result, setResult] = useState('');
+	const [loading, result] = usePHP(params.php, code, params.onChangeCode);
 
-	useEffect(
-		function () {
-			(async function () {
-				if (params.php == null) {
-					return;
-				}
-				const info = await runPHP(params.php, code);
-				setResult(info);
-				params.onChangeCode(code);
-			})();
-		},
-		[params.php, code]
-	);
-	if (params.php == null) {
+	if (params.php == null || loading) {
 		return <Spinner />;
 	}
 
@@ -172,13 +197,13 @@ function Editor(params: {
 }
 
 export default function () {
-	const [searchParams, setSearchParams] = useSearchParams();
+	const [searchParams] = useSearchParams();
 	const defaultOption = options[options.length - 1];
 
 	const c = lzstring.decompressFromEncodedURIComponent(
 		searchParams.get('c') ?? ''
 	);
-	const [initCode, setCode] = useState<string>(
+	const [initCode] = useState<string>(
 		c != null ? c : '<?php\n// example code\nphpinfo();'
 	);
 	const [php, setPHP] = useState<PHP | null>(null);
@@ -191,21 +216,27 @@ export default function () {
 		// null means loading.
 		setPHP(null);
 		selectVersion(o);
-		setSearchParams({
-			c: lzstring.compressToEncodedURIComponent(initCode),
-			v: o.value,
-		});
+	}
+
+	function setHistory(code: string, version: Version) {
+		const state = {
+			c: lzstring.compressToEncodedURIComponent(code),
+			v: version,
+		};
+		const urlSearchParam = new URLSearchParams(state).toString();
+
+		history.pushState(state, '', `?${urlSearchParam}`);
 	}
 
 	useEffect(
 		function () {
 			updateVersion(versionOption);
-
+			setHistory(initCode, versionOption.value);
 			(async function () {
-				setPHP(await initPHP(version));
+				setPHP(await initPHP(versionOption.value));
 			})();
 		},
-		[selectedVersion, versionOption]
+		[initCode, selectedVersion, versionOption]
 	);
 
 	return (
@@ -275,11 +306,7 @@ export default function () {
 				initCode={initCode}
 				php={php}
 				onChangeCode={function (code: string) {
-					setCode(code);
-					setSearchParams({
-						c: lzstring.compressToEncodedURIComponent(code),
-						v: version,
-					});
+					setHistory(code, versionOption.value);
 				}}
 			/>
 		</main>
