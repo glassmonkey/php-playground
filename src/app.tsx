@@ -2,7 +2,7 @@ import * as React from 'react';
 import { PHP, startPHP } from './php-wasm';
 import { ReactElement, useEffect, useState } from 'react';
 import Select from 'react-select';
-import { Spinner, Flex, Box, Spacer, Text, Button } from '@chakra-ui/react';
+import { Spinner, Flex, Box, Spacer, Text } from '@chakra-ui/react';
 import { php as lnagPhp } from '@codemirror/lang-php';
 import { autocompletion, completionKeymap } from '@codemirror/autocomplete';
 import { useSandpack } from '@codesandbox/sandpack-react';
@@ -14,18 +14,7 @@ import {
 	SandpackLayout,
 	SandpackCodeEditor,
 } from '@codesandbox/sandpack-react';
-
-const versions = [
-	'5.6',
-	'7.0',
-	'7.1',
-	'7.2',
-	'7.3',
-	'7.4',
-	'8.0',
-	'8.1',
-	'8.2',
-] as const;
+import { Version, versions } from "./php-wasm/php";
 
 function asVersion(s: string | null): Version | null {
 	const r = versions.filter((v) => v == s).pop();
@@ -34,8 +23,6 @@ function asVersion(s: string | null): Version | null {
 	}
 	return r;
 }
-
-type Version = (typeof versions)[number];
 
 const options = versions.map((v) => ({
 	value: v,
@@ -47,7 +34,7 @@ type Option = (typeof options)[number];
 async function initPHP(v: Version) {
 	// todo handling when load failed
 	const PHPLoaderModule = await import(`./php-${v}.js`);
-	return startPHP(PHPLoaderModule, 'WEB', {});
+	return startPHP(v, PHPLoaderModule, 'WEB', {});
 }
 
 async function runPHP(php: PHP, code: string) {
@@ -58,68 +45,80 @@ async function runPHP(php: PHP, code: string) {
 }
 
 function usePHP(
-	php: PHP | null,
-	code: string,
-	onChangeCode: (code: string) => void
+	version: Version,
+	code: string
 ): [boolean, string] {
-
+	const [php, setPHP] = useState<PHP|null>(null)
 	const [loading, setLoading] = useState<boolean>(false);
 	const [internalCode, setInternalCode] = useState<string>('');
 	const [result, setResult] = useState<string>('');
 
 	useEffect(
 		function () {
+			if(php?.version != version) {
+				setLoading(true);
+				queueMicrotask(
+					async function(){
+						setPHP(await initPHP(version));
+					}
+				);
+				return;
+			}
+
 			if (internalCode != code) {
 				setLoading(true);
 				setInternalCode(code);
 				return;
 			}
-			if (php == null) {
-				return;
-			}
-			if (internalCode == "") {
-				setResult("empty data");
-				onChangeCode(internalCode);
-				setLoading(false);
-				return;
-			}
 			if (!loading) {
 				return;
 			}
-			setTimeout( function() {
-				queueMicrotask(
-					async function() {
-						const info = await runPHP(php, internalCode);
-						setResult(info);
-						setLoading(false);
-						onChangeCode(internalCode);
-					}
-				)
-			}, 16); // delay execute for heavy code.
+
+			if (internalCode == "") {
+				setResult("empty data");
+				setLoading(false);
+				return;
+			}
+
+			setTimeout(
+				async function() {
+					const info = await runPHP(php, internalCode);
+					setResult(info);
+					setLoading(false);
+				}, 15
+			);
+
 		},
-		[php, code, internalCode, loading]
+		[php, code, internalCode, loading, version]
 	);
 
 	return [loading, result];
 }
 
 function PhpPreview(params: {
-	php: PHP | null;
-	onChangeCode: (code: string) => void;
+	version: Version
 }) {
 	const { sandpack } = useSandpack();
 	const { files, activeFile } = sandpack;
 	const code = files[activeFile].code;
-	const [loading, result] = usePHP(params.php, code, params.onChangeCode);
+	const [loading, result] = usePHP(params.version, code);
 
-	if (params.php == null || loading) {
+	if (loading) {
 		return <Spinner />;
 	}
 
 	return <iframe srcDoc={result} height="100%" width="100%" sandbox="" />;
 }
 
-function EditorLayout(params: { Editor: ReactElement; Preview: ReactElement, AbortButton }) {
+function PhpCodeCallback(params: {onChangeCode: (code: string) => void}) {
+	const { sandpack } = useSandpack();
+	const { files, activeFile } = sandpack;
+	const code = files[activeFile].code;
+	params.onChangeCode(code);
+	return <></>
+}
+
+function EditorLayout(params: { Editor: ReactElement; Preview: ReactElement }) {
 	return (
 		<Flex direction="column" padding="3" bg="gray.800" height="100%">
 			<Flex
@@ -161,9 +160,9 @@ function EditorLayout(params: { Editor: ReactElement; Preview: ReactElement, Abo
 }
 
 function Editor(params: {
-	initCode: string;
-	php: PHP | null;
-	onChangeCode: (code: string) => void;
+	initCode: string
+	version: Version
+	onChangeCode: (code: string) => void
 }) {
 	return (
 		<SandpackProvider
@@ -194,11 +193,11 @@ function Editor(params: {
 				}
 				Preview={
 					<PhpPreview
-						php={params.php}
-						onChangeCode={params.onChangeCode}
+						version={params.version}
 					/>
 				}
 			/>
+			<PhpCodeCallback onChangeCode={params.onChangeCode}/>
 		</SandpackProvider>
 	);
 }
@@ -210,24 +209,16 @@ export default function () {
 	const c = lzstring.decompressFromEncodedURIComponent(
 		searchParams.get('c') ?? ''
 	);
-	const [initCode, setInitCode] = useState<string>(
+	const [initCode] = useState<string>(
 		c != null ? c : '<?php\n// example code\nphpinfo();'
 	);
-	const [php, setPHP] = useState<PHP | null>(null);
-	const [selectedVersion, selectVersion] = useState<Option>(defaultOption);
-	const version = asVersion(searchParams.get('v')) ?? selectedVersion.value;
+	const version = asVersion(searchParams.get('v')) ?? defaultOption.value;
 	const versionIndex = versions.findIndex((v) => v == version);
 	const versionOption = options[versionIndex];
-	console.log(versionOption)
 
 	function updateVersion(o: Option) {
-		console.log("update", o);
-		// null means loading.
-		setPHP(null);
-		selectVersion(o);
 		setSearchParams(
 			{
-				c: lzstring.compressToEncodedURIComponent(initCode),
 				v: o.value,
 			}
 		)
@@ -239,19 +230,16 @@ export default function () {
 			v: version,
 		};
 		const urlSearchParam = new URLSearchParams(state).toString();
-
+		// Only push to history.
+		// I don't want to have it re-render with a URL change when the code changes.
 		history.pushState(state, '', `?${urlSearchParam}`);
 	}
 
 	useEffect(
 		function () {
 			updateVersion(versionOption);
-			setHistory(initCode, versionOption.value);
-			(async function () {
-				setPHP(await initPHP(versionOption.value));
-			})();
 		},
-		[initCode, selectedVersion, versionOption]
+		[initCode, versionOption]
 	);
 
 	return (
@@ -308,11 +296,10 @@ export default function () {
 							}),
 						}}
 						options={options}
-						defaultValue={selectedVersion}
+						defaultValue={versionOption}
 						onChange={(option) => {
-							console.log("set", option, versionOption)
 							if (option !== versionOption) {
-								updateVersion(option ?? defaultOption);
+								updateVersion(option ?? versionOption)
 							}
 						}}
 					/>
@@ -320,9 +307,8 @@ export default function () {
 			</Flex>
 			<Editor
 				initCode={initCode}
-				php={php}
+				version={version}
 				onChangeCode={function (code: string) {
-					setInitCode(code);
 					setHistory(code, version);
 				}}
 			/>

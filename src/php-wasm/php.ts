@@ -3,6 +3,20 @@ const NUM = 'number';
 
 export type JavascriptRuntime = 'NODE' | 'WEB' | 'WEBWORKER';
 
+export const versions = [
+	'5.6',
+	'7.0',
+	'7.1',
+	'7.2',
+	'7.3',
+	'7.4',
+	'8.0',
+	'8.1',
+	'8.2',
+] as const;
+
+export type Version = (typeof versions)[number];
+
 type PHPHeaders = Record<string, string>;
 export interface FileInfo {
 	key: string;
@@ -196,6 +210,7 @@ export interface PHPResponse {
  * @returns PHP instance.
  */
 export async function startPHP(
+	version: Version,
 	phpLoaderModule: unknown,
 	runtime: JavascriptRuntime,
 	phpModuleArgs: unknown = {},
@@ -245,7 +260,7 @@ export async function startPHP(
 
 	await depsReady;
 	await phpReady;
-	return new PHP(PHPRuntime);
+	return new PHP(version, PHPRuntime);
 }
 
 /**
@@ -260,6 +275,7 @@ export async function startPHP(
  * @see {startPHP} This class is not meant to be used directly. Use `startPHP` instead.
  */
 export class PHP {
+	version: Version
 	#Runtime;
 	#phpIniOverrides: [string, string][] = [];
 	#webSapiInitialized = false;
@@ -270,7 +286,8 @@ export class PHP {
 	 * @internal
 	 * @param PHPRuntime - PHP Runtime as initialized by startPHP.
 	 */
-	constructor(PHPRuntime: unknown) {
+	constructor(version: Version, PHPRuntime: unknown) {
+		this.version = version;
 		this.#Runtime = PHPRuntime;
 	}
 
