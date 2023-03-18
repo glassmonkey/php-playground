@@ -202,30 +202,37 @@ function Editor(params: {
 	);
 }
 
+type UrlState =  {
+	v: Version;
+	c: string;
+}
+
 export default function () {
 	const [searchParams, setSearchParams] = useSearchParams();
 	const defaultOption = options[options.length - 1];
 
-	const c = lzstring.decompressFromEncodedURIComponent(
+	const initCode = lzstring.decompressFromEncodedURIComponent(
 		searchParams.get('c') ?? ''
-	);
-	const [initCode] = useState<string>(
-		c != null ? c : '<?php\n// example code\nphpinfo();'
-	);
+	) ?? '<?php\n// example code\nphpinfo();';
+
 	const version = asVersion(searchParams.get('v')) ?? defaultOption.value;
 	const versionIndex = versions.findIndex((v) => v == version);
 	const versionOption = options[versionIndex];
 
 	function updateVersion(o: Option) {
+		const currentState = history.state as (UrlState|null)
+		const code = lzstring.decompressFromEncodedURIComponent(currentState?.c ?? initCode);
 		setSearchParams(
 			{
 				v: o.value,
+				c: lzstring.compressToEncodedURIComponent(code)
 			}
 		)
+		setHistory(code, o.value);
 	}
 
 	function setHistory(code: string, version: Version) {
-		const state = {
+		const state: UrlState = {
 			c: lzstring.compressToEncodedURIComponent(code),
 			v: version,
 		};
