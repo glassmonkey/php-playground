@@ -74,21 +74,24 @@ function usePHP(
 				setInternalCode(code);
 				return;
 			}
-			queueMicrotask(async function () {
-				if (php == null) {
-					return;
-				}
-				if(internalCode == '') {
-					setResult('<h1>empty</h1>');
-					onChangeCode(internalCode);
-					setLoading(false);
-					return;
-				}
-				const info = await runPHP(php, internalCode);
-				setResult(info);
+			if (php == null) {
+				return;
+			}
+			if (internalCode == "") {
+				setResult("empty data");
 				onChangeCode(internalCode);
 				setLoading(false);
-			});
+				return;
+			}
+			if (!loading) {
+				return;
+			}
+			setTimeout(async function() {
+				const info = await runPHP(php, internalCode);
+				setResult(info);
+				setLoading(false);
+				onChangeCode(internalCode);
+			}, 16); // delay execute for heavy code.
 		},
 		[php, code, internalCode, loading]
 	);
