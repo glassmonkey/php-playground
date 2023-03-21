@@ -7,6 +7,7 @@ import {
 	Text,
 	HStack,
 	Flex,
+	CSSReset,
 } from '@chakra-ui/react';
 import App from './app';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
@@ -21,6 +22,7 @@ const router = createBrowserRouter([
 const root = ReactDOM.createRoot(document.getElementById('app')!);
 root.render(
 	<ChakraProvider>
+		<CSSReset />
 		<Heading as="h1" style={{ margin: '16px' }}>
 			PHP Playground
 		</Heading>
