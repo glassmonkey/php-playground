@@ -1,11 +1,12 @@
 # php-playground
 
-`php-playground` is a demonstration of PHP's WebAssembly Build.
+PHP Playground let you to execute basic PHP code in real time.
 
 https://php-play.dev
 
+![demo](doc/demo.gif)
 
-# usage
+# usage build
 build web assembly
 ```
 make build
