@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { ReactElement, useEffect } from 'react';
-import Select from 'react-select';
 import { Spinner, Flex, Box, Spacer, Text } from '@chakra-ui/react';
 import { php as lnagPhp } from '@codemirror/lang-php';
 import { autocompletion, completionKeymap } from '@codemirror/autocomplete';
@@ -13,19 +12,11 @@ import {
 	SandpackLayout,
 	SandpackCodeEditor,
 } from '@codesandbox/sandpack-react';
-import { Version, versions, asVersion } from "./php-wasm/php";
-import { usePHP } from "./php";
+import { Version, versions, asVersion } from './php-wasm/php';
+import { usePHP } from './php';
+import SelectPHP from './select';
 
-const phpOptions = versions.map((v) => ({
-	value: v,
-	label: v,
-}));
-
-type PhpOption = (typeof phpOptions)[number];
-
-function PhpPreview(params: {
-	version: Version
-}) {
+function PhpPreview(params: { version: Version }) {
 	const { sandpack } = useSandpack();
 	const { files, activeFile } = sandpack;
 	const code = files[activeFile].code;
@@ -38,12 +29,12 @@ function PhpPreview(params: {
 	return <iframe srcDoc={result} height="100%" width="100%" sandbox="" />;
 }
 
-function PhpCodeCallback(params: {onChangeCode: (code: string) => void}) {
+function PhpCodeCallback(params: { onChangeCode: (code: string) => void }) {
 	const { sandpack } = useSandpack();
 	const { files, activeFile } = sandpack;
 	const code = files[activeFile].code;
 	params.onChangeCode(code);
-	return <></>
+	return <></>;
 }
 
 function EditorLayout(params: { Editor: ReactElement; Preview: ReactElement }) {
@@ -88,9 +79,9 @@ function EditorLayout(params: { Editor: ReactElement; Preview: ReactElement }) {
 }
 
 function Editor(params: {
-	initCode: string
-	version: Version
-	onChangeCode: (code: string) => void
+	initCode: string;
+	version: Version;
+	onChangeCode: (code: string) => void;
 }) {
 	return (
 		<SandpackProvider
@@ -119,44 +110,38 @@ function Editor(params: {
 						]}
 					/>
 				}
-				Preview={
-					<PhpPreview
-						version={params.version}
-					/>
-				}
+				Preview={<PhpPreview version={params.version} />}
 			/>
-			<PhpCodeCallback onChangeCode={params.onChangeCode}/>
+			<PhpCodeCallback onChangeCode={params.onChangeCode} />
 		</SandpackProvider>
 	);
 }
 
-type UrlState =  {
+type UrlState = {
 	v: Version;
 	c: string;
-}
+};
 
-export default function () {
+export default function App() {
 	const [searchParams, setSearchParams] = useSearchParams();
-	const defaultOption = phpOptions[phpOptions.length - 1];
+	const initCode =
+		lzstring.decompressFromEncodedURIComponent(
+			searchParams.get('c') ?? ''
+		) ?? '<?php\n// example code\nphpinfo();';
 
-	const initCode = lzstring.decompressFromEncodedURIComponent(
-		searchParams.get('c') ?? ''
-	) ?? '<?php\n// example code\nphpinfo();';
+	const currentVersion =
+		asVersion(searchParams.get('v')) ?? versions[versions.length - 1];
 
-	const version = asVersion(searchParams.get('v')) ?? defaultOption.value;
-	const versionIndex = versions.findIndex((v) => v == version);
-	const currentPhpOption = phpOptions[versionIndex];
-
-	function updateVersion(o: PhpOption) {
-		const currentState = history.state as (UrlState|null)
-		const code = lzstring.decompressFromEncodedURIComponent(currentState?.c ?? initCode);
-		setSearchParams(
-			{
-				v: o.value,
-				c: lzstring.compressToEncodedURIComponent(code)
-			}
-		)
-		setHistory(code, o.value);
+	function updateVersion(v: Version) {
+		const currentState = history.state as UrlState | null;
+		const code = lzstring.decompressFromEncodedURIComponent(
+			currentState?.c ?? initCode
+		);
+		setSearchParams({
+			v: v,
+			c: lzstring.compressToEncodedURIComponent(code),
+		});
+		setHistory(code, v);
 	}
 
 	function setHistory(code: string, version: Version) {
@@ -172,9 +157,9 @@ export default function () {
 
 	useEffect(
 		function () {
-			updateVersion(currentPhpOption);
+			updateVersion(currentVersion);
 		},
-		[initCode, currentPhpOption]
+		[currentVersion]
 	);
 
 	return (
@@ -217,34 +202,17 @@ export default function () {
 					>
 						<Text fontSize="xs">Version:</Text>
 					</label>
-					<Select
-						styles={{
-							option: (baseStyles, state) => ({
-								...baseStyles,
-								color: 'black',
-								fontSize: '14px',
-							}),
-							control: (baseStyles, state) => ({
-								...baseStyles,
-								color: 'black',
-								fontSize: '14px',
-							}),
-						}}
-						options={phpOptions}
-						defaultValue={currentPhpOption}
-						onChange={(option) => {
-							if (option !== currentPhpOption) {
-								updateVersion(option ?? currentPhpOption)
-							}
-						}}
+					<SelectPHP
+						onChange={updateVersion}
+						version={currentVersion}
 					/>
 				</Flex>
 			</Flex>
 			<Editor
 				initCode={initCode}
-				version={version}
+				version={currentVersion}
 				onChangeCode={function (code: string) {
-					setHistory(code, version);
+					setHistory(code, currentVersion);
 				}}
 			/>
 		</main>

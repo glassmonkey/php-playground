@@ -283,7 +283,7 @@ export async function startPHP(
  * @see {startPHP} This class is not meant to be used directly. Use `startPHP` instead.
  */
 export class PHP {
-	version: Version
+	version: Version;
 	#Runtime;
 	#phpIniOverrides: [string, string][] = [];
 	#webSapiInitialized = false;
