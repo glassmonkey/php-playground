@@ -4,8 +4,6 @@
   "private": true,
   "dependencies": {
     "@chakra-ui/react": "^2.5.1",
-    "@codemirror/autocomplete": "^6.4.2",
-    "@codemirror/lang-php": "^6.0.1",
     "@codemirror/language": "^6.6.0",
     "@codesandbox/sandpack-react": "^2.1.2",
     "@emotion/react": "^11.10.6",
