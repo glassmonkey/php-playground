@@ -1,38 +1,51 @@
 import type { Version } from './php-wasm/php';
 import {
-	SandpackCodeEditor,
 	SandpackLayout,
 	SandpackProvider,
+	useActiveCode,
 	useSandpack,
 } from '@codesandbox/sandpack-react';
 import { usePHP } from './php';
 import { Box, Center, Flex, Spinner } from '@chakra-ui/react';
 import type { ReactElement } from 'react';
-import { autocompletion, completionKeymap } from '@codemirror/autocomplete';
-import { php as langPhp } from '@codemirror/lang-php';
 import * as React from 'react';
+import MonacoEditor, { useMonaco } from '@monaco-editor/react';
+import { useEffect } from 'react';
+import * as php from 'monaco-languages/release/esm/php/php';
+
+function LoadSpinner() {
+	return (
+		<Center height="100%">
+			<Spinner size="xl" />
+		</Center>
+	);
+}
 
 function PhpEditor() {
+	const { code, updateCode } = useActiveCode();
+	const { sandpack } = useSandpack();
+	const monaco = useMonaco();
+
+	useEffect(() => {
+		if (monaco) {
+			monaco.languages.register({ id: 'php' });
+			monaco.languages.setMonarchTokensProvider('php', php.language);
+			monaco.languages.setLanguageConfiguration('php', php.conf);
+		}
+	}, [monaco]);
+
 	return (
-		<SandpackCodeEditor
-			showRunButton={false}
-			showLineNumbers
-			showTabs={false}
-			style={{ height: '100%' }}
-			extensions={[autocompletion()]}
-			extensionsKeymap={[completionKeymap]}
-			additionalLanguages={[
-				{
-					name: 'php',
-					extensions: ['php'],
-					language: langPhp({
-							plain: true
-						}
-					),
-				},
-			]}
+		<MonacoEditor
+			width="100%"
+			height="100%"
+			language="php"
+			theme="light"
+			key={sandpack.activeFile}
+			defaultValue={code}
+			onChange={(value) => updateCode(value || '')}
+			loading={<LoadSpinner />}
 		/>
-	)
+	);
 }
 
 function PhpPreview(params: { version: Version }) {
@@ -42,11 +55,7 @@ function PhpPreview(params: { version: Version }) {
 	const [loading, result] = usePHP(params.version, code);
 
 	if (loading) {
-		return (
-			<Center height="100%">
-				<Spinner size="xl" />
-			</Center>
-		);
+		return <LoadSpinner />;
 	}
 
 	return <iframe srcDoc={result} height="100%" width="100%" sandbox="" />;

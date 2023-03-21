@@ -10,6 +10,7 @@
     "@codesandbox/sandpack-react": "^2.1.2",
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",
+    "@monaco-editor/react": "^4.4.6",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",

@@ -7,8 +7,8 @@ import {
 	Text,
 	HStack,
 	Flex,
-	Box
-} from "@chakra-ui/react";
+	Box,
+} from '@chakra-ui/react';
 import App from './app';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
