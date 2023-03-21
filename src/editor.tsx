@@ -11,7 +11,6 @@ import type { ReactElement } from 'react';
 import * as React from 'react';
 import MonacoEditor, { useMonaco } from '@monaco-editor/react';
 import { useEffect } from 'react';
-import * as php from 'monaco-languages/release/esm/php/php';
 
 function LoadSpinner() {
 	return (
@@ -24,16 +23,6 @@ function LoadSpinner() {
 function PhpEditor() {
 	const { code, updateCode } = useActiveCode();
 	const { sandpack } = useSandpack();
-	const monaco = useMonaco();
-
-	useEffect(() => {
-		if (monaco) {
-			monaco.languages.register({ id: 'php' });
-			monaco.languages.setMonarchTokensProvider('php', php.language);
-			monaco.languages.setLanguageConfiguration('php', php.conf);
-		}
-	}, [monaco]);
-
 	return (
 		<MonacoEditor
 			width="100%"
@@ -42,10 +31,14 @@ function PhpEditor() {
 			theme="light"
 			key={sandpack.activeFile}
 			defaultValue={code}
-			onChange={(value) => updateCode(value || '')}
+			onChange={(value) => updateCode(value || "")}
 			loading={<LoadSpinner />}
-		/>
-	);
+			options={{
+				minimap: {
+					enabled: false
+				}
+			}}
+		/>);
 }
 
 function PhpPreview(params: { version: Version }) {
