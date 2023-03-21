@@ -38,8 +38,6 @@ async function loadPHPLoaderModule(v: Version) {
 async function initPHP(v: Version) {
 	// todo handling when load failed
 	const PHPLoaderModule = await loadPHPLoaderModule(v);
-	// @ts-ignore
-	import(PHPLoaderModule.dependencyFilename);
 	return startPHP(v, PHPLoaderModule, 'WEB', {});
 }
 
