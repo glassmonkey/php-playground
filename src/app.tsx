@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { PHP, startPHP } from './php-wasm';
-import { ReactElement, useEffect, useState } from 'react';
+import { ReactElement, useEffect } from 'react';
 import Select from 'react-select';
 import { Spinner, Flex, Box, Spacer, Text } from '@chakra-ui/react';
 import { php as lnagPhp } from '@codemirror/lang-php';
@@ -14,86 +13,15 @@ import {
 	SandpackLayout,
 	SandpackCodeEditor,
 } from '@codesandbox/sandpack-react';
-import { Version, versions } from "./php-wasm/php";
+import { Version, versions, asVersion } from "./php-wasm/php";
+import { usePHP } from "./php";
 
-function asVersion(s: string | null): Version | null {
-	const r = versions.filter((v) => v == s).pop();
-	if (!r) {
-		return null;
-	}
-	return r;
-}
-
-const options = versions.map((v) => ({
+const phpOptions = versions.map((v) => ({
 	value: v,
 	label: v,
 }));
 
-type Option = (typeof options)[number];
-
-async function initPHP(v: Version) {
-	// todo handling when load failed
-	const PHPLoaderModule = await import(`./php-${v}.js`);
-	return startPHP(v, PHPLoaderModule, 'WEB', {});
-}
-
-async function runPHP(php: PHP, code: string) {
-	const output = php.run({
-		code: code,
-	});
-	return new TextDecoder().decode(output.body);
-}
-
-function usePHP(
-	version: Version,
-	code: string
-): [boolean, string] {
-	const [php, setPHP] = useState<PHP|null>(null)
-	const [loading, setLoading] = useState<boolean>(false);
-	const [internalCode, setInternalCode] = useState<string>('');
-	const [result, setResult] = useState<string>('');
-
-	useEffect(
-		function () {
-			if(php?.version != version) {
-				setLoading(true);
-				queueMicrotask(
-					async function(){
-						setPHP(await initPHP(version));
-					}
-				);
-				return;
-			}
-
-			if (internalCode != code) {
-				setLoading(true);
-				setInternalCode(code);
-				return;
-			}
-			if (!loading) {
-				return;
-			}
-
-			if (internalCode == "") {
-				setResult("empty data");
-				setLoading(false);
-				return;
-			}
-
-			setTimeout(
-				async function() {
-					const info = await runPHP(php, internalCode);
-					setResult(info);
-					setLoading(false);
-				}, 15
-			);
-
-		},
-		[php, code, internalCode, loading, version]
-	);
-
-	return [loading, result];
-}
+type PhpOption = (typeof phpOptions)[number];
 
 function PhpPreview(params: {
 	version: Version
@@ -209,7 +137,7 @@ type UrlState =  {
 
 export default function () {
 	const [searchParams, setSearchParams] = useSearchParams();
-	const defaultOption = options[options.length - 1];
+	const defaultOption = phpOptions[phpOptions.length - 1];
 
 	const initCode = lzstring.decompressFromEncodedURIComponent(
 		searchParams.get('c') ?? ''
@@ -217,9 +145,9 @@ export default function () {
 
 	const version = asVersion(searchParams.get('v')) ?? defaultOption.value;
 	const versionIndex = versions.findIndex((v) => v == version);
-	const versionOption = options[versionIndex];
+	const currentPhpOption = phpOptions[versionIndex];
 
-	function updateVersion(o: Option) {
+	function updateVersion(o: PhpOption) {
 		const currentState = history.state as (UrlState|null)
 		const code = lzstring.decompressFromEncodedURIComponent(currentState?.c ?? initCode);
 		setSearchParams(
@@ -244,9 +172,9 @@ export default function () {
 
 	useEffect(
 		function () {
-			updateVersion(versionOption);
+			updateVersion(currentPhpOption);
 		},
-		[initCode, versionOption]
+		[initCode, currentPhpOption]
 	);
 
 	return (
@@ -302,11 +230,11 @@ export default function () {
 								fontSize: '14px',
 							}),
 						}}
-						options={options}
-						defaultValue={versionOption}
+						options={phpOptions}
+						defaultValue={currentPhpOption}
 						onChange={(option) => {
-							if (option !== versionOption) {
-								updateVersion(option ?? versionOption)
+							if (option !== currentPhpOption) {
+								updateVersion(option ?? currentPhpOption)
 							}
 						}}
 					/>

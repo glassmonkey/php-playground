@@ -17,6 +17,14 @@ export const versions = [
 
 export type Version = (typeof versions)[number];
 
+export function asVersion(s: string | null): Version | null {
+	const r = versions.filter((v) => v == s).pop();
+	if (!r) {
+		return null;
+	}
+	return r;
+}
+
 type PHPHeaders = Record<string, string>;
 export interface FileInfo {
 	key: string;
