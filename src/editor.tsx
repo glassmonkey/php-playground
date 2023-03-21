@@ -9,7 +9,7 @@ import { usePHP } from './php';
 import { Box, Center, Flex, Spinner } from '@chakra-ui/react';
 import type { ReactElement } from 'react';
 import * as React from 'react';
-import MonacoEditor, { useMonaco } from '@monaco-editor/react';
+import MonacoEditor from '@monaco-editor/react';
 
 function LoadSpinner() {
 	return (
