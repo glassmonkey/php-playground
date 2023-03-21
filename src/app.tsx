@@ -6,7 +6,7 @@ import * as lzstring from 'lz-string';
 
 import { Version, versions, asVersion } from './php-wasm/php';
 import SelectPHP from './select';
-import { Editor } from "./editor";
+import { Editor } from './editor';
 
 type UrlState = {
 	v: Version;
