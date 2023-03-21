@@ -35,13 +35,13 @@ async function loadPHPLoaderModule(v: Version) {
 	}
 }
 
-async function initPHP(v: Version) {
+export async function initPHP(v: Version) {
 	// todo handling when load failed
 	const PHPLoaderModule = await loadPHPLoaderModule(v);
 	return startPHP(v, PHPLoaderModule, 'WEB', {});
 }
 
-async function runPHP(php: PHP, code: string) {
+export async function runPHP(php: PHP, code: string) {
 	const output = php.run({
 		code: code,
 	});
