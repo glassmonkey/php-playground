@@ -6,7 +6,8 @@ import {
 	Center,
 	Text,
 	HStack,
-	Flex
+	Flex,
+	Box
 } from "@chakra-ui/react";
 import App from './app';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
@@ -21,9 +22,14 @@ const router = createBrowserRouter([
 const root = ReactDOM.createRoot(document.getElementById('app')!);
 root.render(
 	<ChakraProvider>
-		<Heading as="h1" style={{ margin: '16px' }}>
-			PHP Playground
-		</Heading>
+		<Box style={{ margin: '16px' }}>
+			<Heading as="h1" marginBottom="8px">
+				PHP Playground
+			</Heading>
+			<Text as="p">
+				PHP Playground let you to execute basic PHP code in real time.
+			</Text>
+		</Box>
 		<RouterProvider router={router} />
 		<Center>
 			<Flex direction="column" gap="8px">

@@ -9,7 +9,7 @@ import { usePHP } from './php';
 import { Box, Center, Flex, Spinner } from '@chakra-ui/react';
 import type { ReactElement } from 'react';
 import { autocompletion, completionKeymap } from '@codemirror/autocomplete';
-import { php as lnagPhp } from '@codemirror/lang-php';
+import { php as langPhp } from '@codemirror/lang-php';
 import * as React from 'react';
 
 function PhpPreview(params: { version: Version }) {
@@ -105,7 +105,10 @@ export function Editor(params: {
 							{
 								name: 'php',
 								extensions: ['php'],
-								language: lnagPhp(),
+								language: langPhp({
+										plain: true
+									}
+								),
 							},
 						]}
 					/>
