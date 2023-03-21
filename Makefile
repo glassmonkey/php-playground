@@ -46,8 +46,8 @@ endif
 build-wasm: build-image
 	docker run --rm -v $(DIST_DIR):/output $(PHP_IMAGE) \
 		sh -c $(CMD_DIST);
-	mv $(DIST_DIR)/php-$(PHP_VERSION).js public/;
-	mv $(DIST_DIR)/php-$(PHP_VERSION).wasm public/;
+	mv $(DIST_DIR)/php-$(PHP_VERSION).js src/wasm-assets/;
+	mv $(DIST_DIR)/php-$(PHP_VERSION).wasm assets/;
 
 JOBS := $(call add $(shell grep cpu.cores /proc/cpuinfo | sort -u | sed 's/[^0-9]//g'), 1)
 ifeq  ($(shell uname), Darwin)
