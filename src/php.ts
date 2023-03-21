@@ -1,9 +1,45 @@
 import { PHP, startPHP, Version } from './php-wasm/php';
 import { useEffect, useState } from 'react';
 
+async function loadPHPLoaderModule(v: Version) {
+	switch (v) {
+		case "5.6":
+			// @ts-ignore
+			return import('./wasm-assets/php-5.6.js')
+		case "7.0":
+			// @ts-ignore
+			return import('./wasm-assets/php-7.0.js')
+		case "7.1":
+			// @ts-ignore
+			return import('./wasm-assets/php-7.1.js')
+		case "7.2":
+			// @ts-ignore
+			return import('./wasm-assets/php-7.2.js')
+		case "7.3":
+			// @ts-ignore
+			return import('./wasm-assets/php-7.3.js')
+		case "7.4":
+			// @ts-ignore
+			return import('./wasm-assets/php-7.4.js')
+		case "8.0":
+			// @ts-ignore
+			return import('./wasm-assets/php-8.0.js')
+		case "8.1":
+			// @ts-ignore
+			return import('./wasm-assets/php-8.1.js')
+		case "8.2":
+			// @ts-ignore
+			return import('./wasm-assets/php-8.2.js')
+		default:
+			return Error('not defined version');
+	}
+}
+
 async function initPHP(v: Version) {
 	// todo handling when load failed
-	const PHPLoaderModule = await import(`./php-${v}.js`);
+	const PHPLoaderModule = await loadPHPLoaderModule(v);
+	// @ts-ignore
+	import(PHPLoaderModule.dependencyFilename);
 	return startPHP(v, PHPLoaderModule, 'WEB', {});
 }
 

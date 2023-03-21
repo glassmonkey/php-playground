@@ -31,8 +31,8 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "WATCH=true node build.mjs",
-    "build": "node build.mjs",
+    "build": "vite build",
+    "preview": "vite preview --port 8888",
     "build:types": "npm run clean:types; npm-run-all --parallel build:types:*",
     "build:types:general": "tsc -p ./tsconfig.json",
     "build:types:workers": "tsc -p ./tsconfig.worker.json",
@@ -63,6 +63,8 @@
     ]
   },
   "devDependencies": {
-    "esbuild": "^0.17.11"
+    "@vitejs/plugin-react": "^3.1.0",
+    "esbuild": "^0.17.12",
+    "vite": "^4.2.1"
   }
 }

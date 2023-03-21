@@ -211,6 +211,7 @@ export interface PHPResponse {
  * ```
  *
  * @public
+ * @param version
  * @param phpLoaderModule         - The ESM-wrapped Emscripten module. Consult the Dockerfile for the build process.
  * @param runtime                 - The current JavaScript environment. One of: NODE, WEB, or WEBWORKER.
  * @param phpModuleArgs           - The Emscripten module arguments, see https://emscripten.org/docs/api_reference/module.html#affecting-execution.
