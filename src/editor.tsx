@@ -12,6 +12,29 @@ import { autocompletion, completionKeymap } from '@codemirror/autocomplete';
 import { php as langPhp } from '@codemirror/lang-php';
 import * as React from 'react';
 
+function PhpEditor() {
+	return (
+		<SandpackCodeEditor
+			showRunButton={false}
+			showLineNumbers
+			showTabs={false}
+			style={{ height: '100%' }}
+			extensions={[autocompletion()]}
+			extensionsKeymap={[completionKeymap]}
+			additionalLanguages={[
+				{
+					name: 'php',
+					extensions: ['php'],
+					language: langPhp({
+							plain: true
+						}
+					),
+				},
+			]}
+		/>
+	)
+}
+
 function PhpPreview(params: { version: Version }) {
 	const { sandpack } = useSandpack();
 	const { files, activeFile } = sandpack;
@@ -93,26 +116,7 @@ export function Editor(params: {
 			}}
 		>
 			<EditorLayout
-				Editor={
-					<SandpackCodeEditor
-						showRunButton={false}
-						showLineNumbers
-						showTabs={false}
-						style={{ height: '100%' }}
-						extensions={[autocompletion()]}
-						extensionsKeymap={[completionKeymap]}
-						additionalLanguages={[
-							{
-								name: 'php',
-								extensions: ['php'],
-								language: langPhp({
-										plain: true
-									}
-								),
-							},
-						]}
-					/>
-				}
+				Editor={<PhpEditor />}
 				Preview={<PhpPreview version={params.version} />}
 			/>
 			<PhpCodeCallback onChangeCode={params.onChangeCode} />
