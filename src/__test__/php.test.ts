@@ -1,6 +1,7 @@
 import { expect, it, describe } from 'vitest'
 import { initPHP, runPHP } from "../php";
-import { mockFetch } from 'vi-fetch';
+// @ts-ignore
+import { mockFetch } from "vi-fetch";
 import 'vi-fetch/setup';
 import * as fs from 'fs'
 import { versions } from "../php-wasm/php";
@@ -16,7 +17,7 @@ describe("load wasm files", async function() {
         const data = fs.readFileSync(`assets/php-${v}.wasm`);
         const pattern = `php-${v}.wasm?.+`;
         mockFetch("GET", new RegExp(pattern)).willResolve(data.buffer);
-
+        // Runtime error occurs, but you can ignore it because it is a problem with the way wasm is loaded.
         const sut = await initPHP(v);
         expect(sut.version).toBe(v);
         const actual = await runPHP(sut, "<? echo(1);")
