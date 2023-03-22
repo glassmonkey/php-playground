@@ -104,7 +104,7 @@ test:
 	npm run test
 
 .PHONY: test-cl
-test-cl:
+test-ci:
 	npm run test:ci
 
 .PHONY: style-fix
