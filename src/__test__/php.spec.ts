@@ -1,14 +1,11 @@
-import { expect, it, describe } from 'vitest'
+import { expect, it } from 'vitest'
 import { usePHP } from "../php";
 // @ts-ignore
 import { mockFetch } from "vi-fetch";
+// @ts-ignore
 import 'vi-fetch/setup';
 import * as fs from 'fs'
-import { renderHook, waitFor } from '@testing-library/react'
-
-const sleepFunc = (m) => {
-  return new Promise((resolve) => setTimeout(resolve, m));
-};
+import { renderHook } from '@testing-library/react'
 
 mockFetch.setOptions({
   baseUrl: '',
@@ -23,7 +20,7 @@ it.skip('should increment counter', async () => {
   // When running on jsdom, it does not work well because it depends on the dom.
   // Runtime error occurs.
   const { result } = renderHook(() => usePHP(v, code))
-  let [loading, value] = result.current
+  const [loading, value] = result.current
   expect(loading).toBe(true);
   expect(value).toBe("");
 })

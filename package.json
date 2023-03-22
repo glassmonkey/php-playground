@@ -34,7 +34,6 @@
     "preview": "vite && vite preview --port 8888",
     "build:types": "npm run clean:types; npm-run-all --parallel build:types:*",
     "build:types:general": "tsc -p ./tsconfig.json",
-    "build:types:workers": "tsc -p ./tsconfig.worker.json",
     "clean": "npm-run-all --parallel clean:*",
     "clean:all": "rm -rf build/* ./build-*/*",
     "clean:types": "rm -rf build-types/* *.tsbuildinfo",

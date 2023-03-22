@@ -2,6 +2,7 @@ import { expect, it, describe } from 'vitest'
 import { initPHP, runPHP } from "../php";
 // @ts-ignore
 import { mockFetch } from "vi-fetch";
+// @ts-ignore
 import 'vi-fetch/setup';
 import * as fs from 'fs'
 import { versions } from "../php-wasm/php";
