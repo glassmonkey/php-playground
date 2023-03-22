@@ -10,7 +10,6 @@
     "@emotion/styled": "^11.10.6",
     "@monaco-editor/react": "^4.4.6",
     "@testing-library/jest-dom": "^5.16.5",
-    "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "@types/jest": "^27.5.2",
     "@types/lz-string": "^1.3.34",
@@ -31,18 +30,18 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "WATCH=true node build.mjs",
-    "build": "node build.mjs",
+    "build": "vite build",
+    "preview": "vite && vite preview --port 8888",
     "build:types": "npm run clean:types; npm-run-all --parallel build:types:*",
     "build:types:general": "tsc -p ./tsconfig.json",
-    "build:types:workers": "tsc -p ./tsconfig.worker.json",
     "clean": "npm-run-all --parallel clean:*",
     "clean:all": "rm -rf build/* ./build-*/*",
     "clean:types": "rm -rf build-types/* *.tsbuildinfo",
     "format": "prettier --write src",
     "lint:js": "eslint \"./src/**/*.{js,mjs,ts}\"",
     "lint:js:fix": "npm run lint:js -- --fix",
-    "test": "jest"
+    "test": "vitest",
+    "test:ci": "vitest run"
   },
   "eslintConfig": {
     "extends": [
@@ -63,6 +62,12 @@
     ]
   },
   "devDependencies": {
-    "esbuild": "^0.17.11"
+    "@testing-library/react": "^14.0.0",
+    "@vitejs/plugin-react": "^3.1.0",
+    "esbuild": "^0.17.12",
+    "node-fetch": "^3.3.1",
+    "vi-fetch": "^0.8.0",
+    "vite": "^4.2.1",
+    "vitest": "^0.29.7"
   }
 }

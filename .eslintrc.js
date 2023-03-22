@@ -24,7 +24,8 @@ module.exports = {
 	root: true,
 	ignorePatterns: [
 		"src/php-wasm/__tests__/*.ts",
-		"src/wasm/build-assets/*.js"
+		"src/wasm/build-assets/*.js",
+		"src/wasm-assets/*.js"
 	],
 	plugins: ['react', '@typescript-eslint'],
 	rules: {
