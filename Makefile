@@ -99,6 +99,15 @@ lint:
 	npm run lint:js
 	npm run build:types
 
+.PHONY: test
+test:
+	npm run test
+
+.PHONY: test-cl
+test-cl:
+	npm run test:ci
+
+.PHONY: style-fix
 style-fix:
 	npm run lint:js:fix
 	npm run format
