@@ -12,9 +12,19 @@ build web assembly
 make build
 ```
 
+build JavaScript with watching
+```
+npm run dev
+```
+
 build JavaScript
 ```
-make public/index.js
+npm run build
+```
+
+build JavaScript and preview
+```
+npm run preview
 ```
 
 # PHP to WebAssembly build pipeline

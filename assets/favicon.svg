@@ -1,0 +1,16 @@
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+    <style>
+        path {
+            fill: black;
+        }
+        @media (prefers-color-scheme: dark) {
+            path {
+                fill: white;
+            }
+        }
+    </style>
+    <path d="m26 11v-4a1 1 0 0 0 -.29-.71l-6-6a1 1 0 0 0 -.71-.29h-16a3 3 0 0 0 -3 3v26a3 3 0 0 0 3 3h7v-2h-7a1 1 0 0 1 -1-1v-26a1 1 0 0 1 1-1h15v4a2 2 0 0 0 2 2h4v3z"/>
+    <path d="m13 16h-4a1 1 0 0 0 -1 1v9h2v-3h3a2 2 0 0 0 2-2v-3a2 2 0 0 0 -2-2zm0 5h-3v-3h3z"/>
+    <path d="m30 16h-4a1 1 0 0 0 -1 1v9h2v-3h3a2 2 0 0 0 2-2v-3a2 2 0 0 0 -2-2zm0 5h-3v-3h3z"/>
+    <path d="m22 20h-4v-4h-2v10h2v-4h4v4h2v-10h-2z"/>
+</svg>
