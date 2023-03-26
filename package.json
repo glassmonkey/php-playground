@@ -30,8 +30,9 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "dev": "vite",
     "build": "vite build",
-    "preview": "vite && vite preview --port 8888",
+    "preview": "vite build && vite preview --port 8888",
     "build:types": "npm run clean:types; npm-run-all --parallel build:types:*",
     "build:types:general": "tsc -p ./tsconfig.json",
     "clean": "npm-run-all --parallel clean:*",
