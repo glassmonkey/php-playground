@@ -11,7 +11,7 @@ export default function Footer() {
 					</a>
 				</Text>
 				<Text as="small" size="xs">
-					<a href="https://twitter.com/glassmonekey" target="_blank">
+					<a href="https://twitter.com/glassmonekey" target="_blank" rel="noreferrer">
 						Contact
 					</a>
 				</Text>
