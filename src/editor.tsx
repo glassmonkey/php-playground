@@ -30,14 +30,15 @@ function PhpEditor() {
 			theme="light"
 			key={sandpack.activeFile}
 			defaultValue={code}
-			onChange={(value) => updateCode(value || "")}
+			onChange={(value) => updateCode(value || '')}
 			loading={<LoadSpinner />}
 			options={{
 				minimap: {
-					enabled: false
-				}
+					enabled: false,
+				},
 			}}
-		/>);
+		/>
+	);
 }
 
 function PhpPreview(params: { version: Version }) {

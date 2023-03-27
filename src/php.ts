@@ -3,33 +3,33 @@ import { useEffect, useState } from 'react';
 
 async function loadPHPLoaderModule(v: Version) {
 	switch (v) {
-		case "5.6":
+		case '5.6':
 			// @ts-ignore
-			return import('./wasm-assets/php-5.6.js')
-		case "7.0":
+			return import('./wasm-assets/php-5.6.js');
+		case '7.0':
 			// @ts-ignore
-			return import('./wasm-assets/php-7.0.js')
-		case "7.1":
+			return import('./wasm-assets/php-7.0.js');
+		case '7.1':
 			// @ts-ignore
-			return import('./wasm-assets/php-7.1.js')
-		case "7.2":
+			return import('./wasm-assets/php-7.1.js');
+		case '7.2':
 			// @ts-ignore
-			return import('./wasm-assets/php-7.2.js')
-		case "7.3":
+			return import('./wasm-assets/php-7.2.js');
+		case '7.3':
 			// @ts-ignore
-			return import('./wasm-assets/php-7.3.js')
-		case "7.4":
+			return import('./wasm-assets/php-7.3.js');
+		case '7.4':
 			// @ts-ignore
-			return import('./wasm-assets/php-7.4.js')
-		case "8.0":
+			return import('./wasm-assets/php-7.4.js');
+		case '8.0':
 			// @ts-ignore
-			return import('./wasm-assets/php-8.0.js')
-		case "8.1":
+			return import('./wasm-assets/php-8.0.js');
+		case '8.1':
 			// @ts-ignore
-			return import('./wasm-assets/php-8.1.js')
-		case "8.2":
+			return import('./wasm-assets/php-8.1.js');
+		case '8.2':
 			// @ts-ignore
-			return import('./wasm-assets/php-8.2.js')
+			return import('./wasm-assets/php-8.2.js');
 		default:
 			return Error('not defined version');
 	}
