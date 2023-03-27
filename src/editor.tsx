@@ -30,14 +30,15 @@ function PhpEditor() {
 			theme="light"
 			key={sandpack.activeFile}
 			defaultValue={code}
-			onChange={(value) => updateCode(value || "")}
+			onChange={(value) => updateCode(value || '')}
 			loading={<LoadSpinner />}
 			options={{
 				minimap: {
-					enabled: false
-				}
+					enabled: false,
+				},
 			}}
-		/>);
+		/>
+	);
 }
 
 function PhpPreview(params: { version: Version }) {
@@ -69,7 +70,7 @@ function EditorLayout(params: { Editor: ReactElement; Preview: ReactElement }) {
 				direction={{ base: 'column', lg: 'row' }}
 				align="center"
 				gap="8px"
-				height="75vh"
+				height="80vh"
 			>
 				<Box
 					as={SandpackLayout}
