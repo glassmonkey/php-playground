@@ -18,7 +18,7 @@ export default function Footer() {
 			</HStack>
 			<Text as="small" size="xs">
 				&copy; 2023{' '}
-				<a href="https://twitter.com/glassmonekey" target="_blank">
+				<a href="https://twitter.com/glassmonekey" target="_blank" rel="noreferrer">
 					@glassmonekey
 				</a>
 			</Text>
