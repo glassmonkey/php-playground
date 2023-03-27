@@ -70,7 +70,7 @@ function EditorLayout(params: { Editor: ReactElement; Preview: ReactElement }) {
 				direction={{ base: 'column', lg: 'row' }}
 				align="center"
 				gap="8px"
-				height="75vh"
+				height="80vh"
 			>
 				<Box
 					as={SandpackLayout}

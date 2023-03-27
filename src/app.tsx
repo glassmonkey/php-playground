@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useEffect } from 'react';
-import { Flex, Box, Spacer, Text } from '@chakra-ui/react';
+import { Flex, Box, Spacer, Text, Link } from '@chakra-ui/react';
 import { useSearchParams } from 'react-router-dom';
 import * as lzstring from 'lz-string';
 
@@ -57,9 +57,9 @@ export default function App() {
 		<main style={{ margin: '16px' }}>
 			<Flex marginTop="8px" marginBottom="8px" gap="16px">
 				<Box marginTop="auto" marginBottom="auto">
-					<a
+					<Link
 						href="https://github.com/glassmonkey/php-playground/issues"
-						target="_blank"
+						isExternal
 					>
 						<Flex>
 							<img
@@ -81,7 +81,7 @@ export default function App() {
 								&lt; Request and Report
 							</Text>
 						</Flex>
-					</a>
+					</Link>
 				</Box>
 				<Spacer />
 				<Flex direction={{ base: 'column', lg: 'row' }} gap="8px">

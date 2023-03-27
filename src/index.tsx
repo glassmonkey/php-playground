@@ -5,6 +5,7 @@ import App from './app';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Header from './header';
 import Footer from './footer';
+import Manual from './manual';
 
 const router = createBrowserRouter([
 	{
@@ -20,6 +21,9 @@ root.render(
 			<Header />
 		</Box>
 		<RouterProvider router={router} />
+		<Box style={{ margin: '16px' }}>
+			<Manual />
+		</Box>
 		<Center>
 			<Footer />
 		</Center>
