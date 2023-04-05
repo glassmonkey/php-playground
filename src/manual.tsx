@@ -73,7 +73,7 @@ export default function Manual() {
 
       <Flex as="section" direction="column" gap="8px">
         <Heading as="h3">
-          Request & Reoprt
+          Request & Report
         </Heading>
         <Box>
           <Text as="p">
