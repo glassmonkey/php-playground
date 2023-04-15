@@ -87,6 +87,9 @@ build-8.1:
 build-8.2:
 	$(MAKE) build-wasm PHP_VERSION=8.2
 
+# not working
+build-8.3:
+	$(MAKE) build-wasm PHP_VERSION=8.3
 
 public/index.js:
 	npm run build
