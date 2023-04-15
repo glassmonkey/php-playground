@@ -327,8 +327,8 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend&nbsp;Eng
 <tr><td class=\\"e\\">_SERVER[\\"SERVER_NAME\\"]</td><td class=\\"v\\">example.com:443</td></tr>
 <tr><td class=\\"e\\">_SERVER[\\"HTTP_HOST\\"]</td><td class=\\"v\\">example.com:443</td></tr>
 <tr><td class=\\"e\\">_SERVER[\\"REQUEST_METHOD\\"]</td><td class=\\"v\\">GET</td></tr>
-<tr><td class=\\"e\\">_SERVER[\\"REQUEST_TIME_FLOAT\\"]</td><td class=\\"v\\">1680614944.67</td></tr>
-<tr><td class=\\"e\\">_SERVER[\\"REQUEST_TIME\\"]</td><td class=\\"v\\">1680614944</td></tr>
+<tr><td class=\\"e\\">_SERVER[\\"REQUEST_TIME_FLOAT\\"]</td><td class=\\"v\\">--</td></tr>
+<tr><td class=\\"e\\">_SERVER[\\"REQUEST_TIME\\"]</td><td class=\\"v\\">--</td></tr>
 <tr><td class=\\"e\\">_SERVER[\\"argv\\"]</td><td class=\\"v\\"><pre>Array
 (
 )
@@ -825,8 +825,8 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend&nbsp;Eng
 <tr><td class=\\"e\\">$_SERVER['SERVER_NAME']</td><td class=\\"v\\">example.com:443</td></tr>
 <tr><td class=\\"e\\">$_SERVER['HTTP_HOST']</td><td class=\\"v\\">example.com:443</td></tr>
 <tr><td class=\\"e\\">$_SERVER['REQUEST_METHOD']</td><td class=\\"v\\">GET</td></tr>
-<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME_FLOAT']</td><td class=\\"v\\">1680614944.872</td></tr>
-<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME']</td><td class=\\"v\\">1680614944</td></tr>
+<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME_FLOAT']</td><td class=\\"v\\">--</td></tr>
+<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME']</td><td class=\\"v\\">--</td></tr>
 <tr><td class=\\"e\\">$_SERVER['argv']</td><td class=\\"v\\"><pre>Array
 (
 )
@@ -1309,8 +1309,8 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend&nbsp;Eng
 <tr><td class=\\"e\\">$_SERVER['SERVER_NAME']</td><td class=\\"v\\">example.com:443</td></tr>
 <tr><td class=\\"e\\">$_SERVER['HTTP_HOST']</td><td class=\\"v\\">example.com:443</td></tr>
 <tr><td class=\\"e\\">$_SERVER['REQUEST_METHOD']</td><td class=\\"v\\">GET</td></tr>
-<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME_FLOAT']</td><td class=\\"v\\">1680614945.066</td></tr>
-<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME']</td><td class=\\"v\\">1680614945</td></tr>
+<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME_FLOAT']</td><td class=\\"v\\">--</td></tr>
+<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME']</td><td class=\\"v\\">--</td></tr>
 <tr><td class=\\"e\\">$_SERVER['argv']</td><td class=\\"v\\"><pre>Array
 (
 )
@@ -1792,8 +1792,8 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend&nbsp;Eng
 <tr><td class=\\"e\\">$_SERVER['SERVER_NAME']</td><td class=\\"v\\">example.com:443</td></tr>
 <tr><td class=\\"e\\">$_SERVER['HTTP_HOST']</td><td class=\\"v\\">example.com:443</td></tr>
 <tr><td class=\\"e\\">$_SERVER['REQUEST_METHOD']</td><td class=\\"v\\">GET</td></tr>
-<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME_FLOAT']</td><td class=\\"v\\">1680614945.237</td></tr>
-<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME']</td><td class=\\"v\\">1680614945</td></tr>
+<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME_FLOAT']</td><td class=\\"v\\">--</td></tr>
+<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME']</td><td class=\\"v\\">--</td></tr>
 <tr><td class=\\"e\\">$_SERVER['argv']</td><td class=\\"v\\"><pre>Array
 (
 )
@@ -2278,8 +2278,8 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend&nbsp;Eng
 <tr><td class=\\"e\\">$_SERVER['SERVER_NAME']</td><td class=\\"v\\">example.com:443</td></tr>
 <tr><td class=\\"e\\">$_SERVER['HTTP_HOST']</td><td class=\\"v\\">example.com:443</td></tr>
 <tr><td class=\\"e\\">$_SERVER['REQUEST_METHOD']</td><td class=\\"v\\">GET</td></tr>
-<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME_FLOAT']</td><td class=\\"v\\">1680614945.416</td></tr>
-<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME']</td><td class=\\"v\\">1680614945</td></tr>
+<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME_FLOAT']</td><td class=\\"v\\">--</td></tr>
+<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME']</td><td class=\\"v\\">--</td></tr>
 <tr><td class=\\"e\\">$_SERVER['argv']</td><td class=\\"v\\"><pre>Array
 (
 )
@@ -2771,8 +2771,8 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend&nbsp;Eng
 <tr><td class=\\"e\\">$_SERVER['SERVER_NAME']</td><td class=\\"v\\">example.com:443</td></tr>
 <tr><td class=\\"e\\">$_SERVER['HTTP_HOST']</td><td class=\\"v\\">example.com:443</td></tr>
 <tr><td class=\\"e\\">$_SERVER['REQUEST_METHOD']</td><td class=\\"v\\">GET</td></tr>
-<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME_FLOAT']</td><td class=\\"v\\">1680614945.606</td></tr>
-<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME']</td><td class=\\"v\\">1680614945</td></tr>
+<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME_FLOAT']</td><td class=\\"v\\">--</td></tr>
+<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME']</td><td class=\\"v\\">--</td></tr>
 <tr><td class=\\"e\\">$_SERVER['argv']</td><td class=\\"v\\"><pre>Array
 (
 )
@@ -3263,8 +3263,8 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend&nbsp;Eng
 <tr><td class=\\"e\\">$_SERVER['SERVER_NAME']</td><td class=\\"v\\">example.com:443</td></tr>
 <tr><td class=\\"e\\">$_SERVER['HTTP_HOST']</td><td class=\\"v\\">example.com:443</td></tr>
 <tr><td class=\\"e\\">$_SERVER['REQUEST_METHOD']</td><td class=\\"v\\">GET</td></tr>
-<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME_FLOAT']</td><td class=\\"v\\">1680614945.773</td></tr>
-<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME']</td><td class=\\"v\\">1680614945</td></tr>
+<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME_FLOAT']</td><td class=\\"v\\">--</td></tr>
+<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME']</td><td class=\\"v\\">--</td></tr>
 <tr><td class=\\"e\\">$_SERVER['argv']</td><td class=\\"v\\"><pre>Array
 (
 )
@@ -3755,8 +3755,8 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend&nbsp;Eng
 <tr><td class=\\"e\\">$_SERVER['SERVER_NAME']</td><td class=\\"v\\">example.com:443</td></tr>
 <tr><td class=\\"e\\">$_SERVER['HTTP_HOST']</td><td class=\\"v\\">example.com:443</td></tr>
 <tr><td class=\\"e\\">$_SERVER['REQUEST_METHOD']</td><td class=\\"v\\">GET</td></tr>
-<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME_FLOAT']</td><td class=\\"v\\">1680614945.952</td></tr>
-<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME']</td><td class=\\"v\\">1680614945</td></tr>
+<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME_FLOAT']</td><td class=\\"v\\">--</td></tr>
+<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME']</td><td class=\\"v\\">--</td></tr>
 <tr><td class=\\"e\\">$_SERVER['argv']</td><td class=\\"v\\"><pre>Array
 (
 )
@@ -4263,8 +4263,8 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend&nbsp;Eng
 <tr><td class=\\"e\\">$_SERVER['SERVER_NAME']</td><td class=\\"v\\">example.com:443</td></tr>
 <tr><td class=\\"e\\">$_SERVER['HTTP_HOST']</td><td class=\\"v\\">example.com:443</td></tr>
 <tr><td class=\\"e\\">$_SERVER['REQUEST_METHOD']</td><td class=\\"v\\">GET</td></tr>
-<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME_FLOAT']</td><td class=\\"v\\">1680614946.12</td></tr>
-<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME']</td><td class=\\"v\\">1680614946</td></tr>
+<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME_FLOAT']</td><td class=\\"v\\">--</td></tr>
+<tr><td class=\\"e\\">$_SERVER['REQUEST_TIME']</td><td class=\\"v\\">--</td></tr>
 <tr><td class=\\"e\\">$_SERVER['argv']</td><td class=\\"v\\"><pre>Array
 (
 )

@@ -36,9 +36,12 @@ describe("show phpinfo()", async function() {
         // Runtime error occurs, but you can ignore it because it is a problem with the way wasm is loaded.
         const sut = await initPHP(v);
         expect(sut.version).toBe(v);
-        const actual = await runPHP(sut, "<? phpinfo();")
+        let actual = await runPHP(sut, "<? phpinfo();")
+        // Shrink the request time
+        actual = actual.replace(/(<tr>.+?_SERVER\['REQUEST_TIME_FLOAT'].+?<td.+?>)([\d\.]+)(<\/td><\/tr>)/g, '$1--$3')
+        actual = actual.replace(/(<tr>.+?_SERVER\['REQUEST_TIME'].+?<td.+?>)([\d\.]+)(<\/td><\/tr>)/g, '$1--$3')
         expect(actual).toMatchSnapshot()
-      });
+      })
     }
   );
 })
