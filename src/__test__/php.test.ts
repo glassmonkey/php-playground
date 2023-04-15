@@ -38,8 +38,8 @@ describe("show phpinfo()", async function() {
         expect(sut.version).toBe(v);
         let actual = await runPHP(sut, "<? phpinfo();")
         // Shrink the request time
-        actual = actual.replace(/(<tr>.+?REQUEST_TIME_FLOAT.+?<td.+?>)([\d\.]+)(<\/td><\/tr>)/g, '$1--$3')
-        actual = actual.replace(/(<tr>.+?REQUEST_TIME.+?<td.+?>)([\d\.]+)(<\/td><\/tr>)/g, '$1--$3')
+        actual = actual.replace(/(<tr>.+?REQUEST_TIME_FLOAT.+?<td.+?>)([\d.]+)(<\/td><\/tr>)/g, '$1--$3')
+        actual = actual.replace(/(<tr>.+?REQUEST_TIME.+?<td.+?>)([\d.]+)(<\/td><\/tr>)/g, '$1--$3')
         expect(actual).toMatchSnapshot()
       })
     }
