@@ -284,6 +284,7 @@ ARG PHP_VERSION
 # The PHP extensions to build:
 ARG WITH_VRZNO
 ARG WITH_LIBXML
+ARG WITH_CURL
 ARG WITH_LIBZIP
 ARG WITH_LIBPNG
 ARG WITH_MBSTRING
@@ -384,6 +385,13 @@ RUN if [ "$WITH_SQLITE" = "yes" ]; \
         if [[ "${PHP_VERSION:0:1}" -eq "7" && "${PHP_VERSION:2:1}" -ge "4" ]] || [ "${PHP_VERSION:0:1}" -eq "8" ]; then \
             echo -n ' -lsqlite3 ' >> /root/.emcc-php-wasm-flags; \
         fi; \
+    fi;
+
+RUN if [ "$WITH_CURL" = "yes" ]; \
+    then \
+       bash /root/copy-lib.sh lib-curl && \
+       echo -n ' --with-curl=/root/lib ' >> /root/.php-configure-flags  && \
+       echo -n ' -I /root/curl ' >> /root/.emcc-php-wasm-flags; \
     fi;
 
 # Add libpng if needed
