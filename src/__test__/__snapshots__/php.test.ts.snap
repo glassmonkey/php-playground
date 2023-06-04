@@ -3442,7 +3442,7 @@ h2 {font-size: 125%;}
 img {float: right; border: 0;}
 hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </style>
-<title>PHP 8.1.18-dev - phpinfo()</title><meta name=\\"ROBOTS\\" content=\\"NOINDEX,NOFOLLOW,NOARCHIVE\\" /></head>
+<title>PHP 8.1.21-dev - phpinfo()</title><meta name=\\"ROBOTS\\" content=\\"NOINDEX,NOFOLLOW,NOARCHIVE\\" /></head>
 <body><div class=\\"center\\">
 <table>
 <tr class=\\"h\\"><td>
@@ -3944,7 +3944,7 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
   hr {background-color: #505153}
 }
 </style>
-<title>PHP 8.2.5-dev - phpinfo()</title><meta name=\\"ROBOTS\\" content=\\"NOINDEX,NOFOLLOW,NOARCHIVE\\" /></head>
+<title>PHP 8.2.8-dev - phpinfo()</title><meta name=\\"ROBOTS\\" content=\\"NOINDEX,NOFOLLOW,NOARCHIVE\\" /></head>
 <body><div class=\\"center\\">
 <table>
 <tr class=\\"h\\"><td>
