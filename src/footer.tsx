@@ -11,14 +11,22 @@ export default function Footer() {
 					</a>
 				</Text>
 				<Text as="small" size="xs">
-					<a href="https://twitter.com/glassmonekey" target="_blank" rel="noreferrer">
+					<a
+						href="https://twitter.com/glassmonekey"
+						target="_blank"
+						rel="noreferrer"
+					>
 						Contact
 					</a>
 				</Text>
 			</HStack>
 			<Text as="small" size="xs">
 				&copy; 2023{' '}
-				<a href="https://twitter.com/glassmonekey" target="_blank" rel="noreferrer">
+				<a
+					href="https://twitter.com/glassmonekey"
+					target="_blank"
+					rel="noreferrer"
+				>
 					@glassmonekey
 				</a>
 			</Text>
