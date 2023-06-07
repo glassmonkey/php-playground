@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@chakra-ui/icons": "^2.0.19",
     "@chakra-ui/react": "^2.5.1",
     "@codemirror/language": "^6.6.0",
     "@codesandbox/sandpack-react": "^2.1.2",
