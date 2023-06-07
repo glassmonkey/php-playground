@@ -1,5 +1,6 @@
-import { Heading, Link, Text, Flex } from '@chakra-ui/react';
+import {Heading, Link, Text, Flex, Button, Center} from '@chakra-ui/react';
 import * as React from 'react';
+import {SunIcon} from "@chakra-ui/icons";
 
 export default function Header() {
 	return (
@@ -9,9 +10,11 @@ export default function Header() {
 				PHP Playground let you to execute basic PHP code in real time
 				using WebAssembly technology.
 			</Text>
-			<Text as="p">
-				<Link href="#about">About PHP Playground?</Link>
-			</Text>
+			<Flex gap="24px" direction="row">
+				<Center>
+					<Text as="p" fontStyle="italic" href="#about" as="a">About PHP Playground?</Text>
+				</Center>
+			</Flex>
 		</Flex>
 	);
 }
