@@ -1,6 +1,5 @@
-import {Heading, Link, Text, Flex, Button, Center} from '@chakra-ui/react';
+import {Heading, Text, Flex, Center} from '@chakra-ui/react';
 import * as React from 'react';
-import {SunIcon} from "@chakra-ui/icons";
 
 export default function Header() {
 	return (
@@ -12,7 +11,7 @@ export default function Header() {
 			</Text>
 			<Flex gap="24px" direction="row">
 				<Center>
-					<Text as="p" fontStyle="italic" href="#about" as="a">About PHP Playground?</Text>
+					<Text fontStyle="italic" href="#about" as="a">About PHP Playground?</Text>
 				</Center>
 			</Flex>
 		</Flex>
