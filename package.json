@@ -65,7 +65,7 @@
   },
   "devDependencies": {
     "@testing-library/react": "^14.0.0",
-    "@vitejs/plugin-react": "^3.1.0",
+    "@vitejs/plugin-react": "^4.0.3",
     "esbuild": "^0.17.12",
     "node-fetch": "^3.3.1",
     "vi-fetch": "^0.8.0",
