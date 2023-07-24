@@ -21,7 +21,7 @@
     "framer-motion": "^10.1.0",
     "lz-string": "^1.5.0",
     "npm-run-all": "^4.1.5",
-    "prettier": "^2.8.4",
+    "prettier": "^3.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.9.0",
