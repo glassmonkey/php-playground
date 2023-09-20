@@ -37,7 +37,7 @@ async function loadPHPLoaderModule(v: Version) {
 			/* eslint no-case-declarations: 0 */
 			/* eslint @typescript-eslint/no-unused-vars: 0 */
 			const x: never = v
-			return Error('not defined version');
+			throw Error('not defined version');
 	}
 }
 
