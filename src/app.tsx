@@ -12,7 +12,7 @@ import {
 import { useSearchParams } from 'react-router-dom';
 import * as lzstring from 'lz-string';
 
-import { Version, versions, asVersion } from './php-wasm/php';
+import { Version, asVersion } from './php-wasm/php';
 import SelectPHP from './select';
 import { Editor } from './editor';
 import { SunIcon } from '@chakra-ui/icons';
