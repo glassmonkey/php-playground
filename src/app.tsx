@@ -30,13 +30,16 @@ export default function App() {
 		) ?? '<?php\n// example code\nphpinfo();';
 
 	const currentVersion =
-		asVersion(searchParams.get('v')) ?? versions[versions.length - 1];
+		asVersion(searchParams.get('v')) ?? '8.2';
 
 	function updateVersion(v: Version) {
 		const currentState = history.state as UrlState | null;
 		const code = lzstring.decompressFromEncodedURIComponent(
 			currentState?.c ?? initCode
 		);
+		if (code == null) {
+			return;
+		}
 		setSearchParams({
 			v: v,
 			c: lzstring.compressToEncodedURIComponent(code),
