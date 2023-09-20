@@ -1,13 +1,21 @@
 import * as React from 'react';
 import { useEffect } from 'react';
-import {Flex, Box, Spacer, Text, Link, Center, Button} from '@chakra-ui/react';
+import {
+	Flex,
+	Box,
+	Spacer,
+	Text,
+	Link,
+	Center,
+	Button,
+} from '@chakra-ui/react';
 import { useSearchParams } from 'react-router-dom';
 import * as lzstring from 'lz-string';
 
 import { Version, versions, asVersion } from './php-wasm/php';
 import SelectPHP from './select';
 import { Editor } from './editor';
-import {SunIcon} from "@chakra-ui/icons";
+import { SunIcon } from '@chakra-ui/icons';
 
 type UrlState = {
 	v: Version;
@@ -87,7 +95,12 @@ export default function App() {
 				<Spacer />
 				<Flex direction={{ base: 'column', lg: 'row' }} gap="16px">
 					<Center>
-						<Button　leftIcon={<SunIcon />} href="https://github.com/sponsors/glassmonkey" as="a" colorScheme="green">
+						<Button
+							leftIcon={<SunIcon />}
+							href="https://github.com/sponsors/glassmonkey"
+							as="a"
+							colorScheme="green"
+						>
 							Donate
 						</Button>
 					</Center>
