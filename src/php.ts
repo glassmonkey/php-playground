@@ -59,6 +59,8 @@ export function usePHP(version: Version, code: string): [boolean, string] {
 	const [loading, setLoading] = useState<boolean>(false);
 	const [internalCode, setInternalCode] = useState<string>('');
 	const [result, setResult] = useState<string>('');
+	// for declare(strict_types=1), remove <?php
+	const phpCode = code.replace(/^<\?(php)?/g, '');
 
 	useEffect(
 		function () {
@@ -70,9 +72,10 @@ export function usePHP(version: Version, code: string): [boolean, string] {
 				return;
 			}
 
-			if (internalCode != code) {
+			if (internalCode != phpCode) {
 				setLoading(true);
-				setInternalCode(code);
+
+				setInternalCode(phpCode);
 				return;
 			}
 			if (!loading) {

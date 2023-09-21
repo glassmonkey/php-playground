@@ -359,7 +359,7 @@ export class PHP {
 			}
 		}
 		if (request.code) {
-			this.#setPHPCode(' ?>' + request.code);
+			this.#setPHPCode(request.code);
 		}
 		return this.#handleRequest();
 	}
