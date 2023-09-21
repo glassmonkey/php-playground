@@ -20,7 +20,7 @@ describe('load wasm files', async function () {
 			// Runtime error occurs, but you can ignore it because it is a problem with the way wasm is loaded.
 			const sut = await initPHP(v);
 			expect(sut.version).toBe(v);
-			const actual = await runPHP(sut, '<? echo(1);');
+			const actual = await runPHP(sut, 'echo(1);');
 			expect(actual).toBe('1');
 		});
 	});
@@ -35,7 +35,7 @@ describe('show phpinfo()', async function () {
 			// Runtime error occurs, but you can ignore it because it is a problem with the way wasm is loaded.
 			const sut = await initPHP(v);
 			expect(sut.version).toBe(v);
-			let actual = await runPHP(sut, '<? phpinfo();');
+			let actual = await runPHP(sut, 'phpinfo();');
 			// Shrink the request time
 			actual = actual.replace(
 				/(<tr>.+?REQUEST_TIME_FLOAT.+?<td.+?>)([\d.]+)(<\/td><\/tr>)/g,
