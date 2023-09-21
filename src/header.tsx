@@ -1,4 +1,4 @@
-import {Heading, Text, Flex, Center} from '@chakra-ui/react';
+import { Heading, Text, Flex, Center } from '@chakra-ui/react';
 import * as React from 'react';
 
 export default function Header() {
@@ -11,7 +11,9 @@ export default function Header() {
 			</Text>
 			<Flex gap="24px" direction="row">
 				<Center>
-					<Text fontStyle="italic" href="#about" as="a">About PHP Playground?</Text>
+					<Text fontStyle="italic" href="#about" as="a">
+						About PHP Playground?
+					</Text>
 				</Center>
 			</Flex>
 		</Flex>

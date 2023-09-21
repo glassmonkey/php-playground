@@ -30,8 +30,14 @@ async function loadPHPLoaderModule(v: Version) {
 		case '8.2':
 			// @ts-ignore
 			return import('./wasm-assets/php-8.2.js');
+		case '8.3':
+			// @ts-ignore
+			return import('./wasm-assets/php-8.3.js');
 		default:
-			return Error('not defined version');
+			/* eslint no-case-declarations: 0 */
+			/* eslint @typescript-eslint/no-unused-vars: 0 */
+			const x: never = v
+			throw Error('not defined version');
 	}
 }
 

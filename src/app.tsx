@@ -1,13 +1,21 @@
 import * as React from 'react';
 import { useEffect } from 'react';
-import {Flex, Box, Spacer, Text, Link, Center, Button} from '@chakra-ui/react';
+import {
+	Flex,
+	Box,
+	Spacer,
+	Text,
+	Link,
+	Center,
+	Button,
+} from '@chakra-ui/react';
 import { useSearchParams } from 'react-router-dom';
 import * as lzstring from 'lz-string';
 
-import { Version, versions, asVersion } from './php-wasm/php';
+import { Version, asVersion } from './php-wasm/php';
 import SelectPHP from './select';
 import { Editor } from './editor';
-import {SunIcon} from "@chakra-ui/icons";
+import { SunIcon } from '@chakra-ui/icons';
 
 type UrlState = {
 	v: Version;
@@ -22,13 +30,16 @@ export default function App() {
 		) ?? '<?php\n// example code\nphpinfo();';
 
 	const currentVersion =
-		asVersion(searchParams.get('v')) ?? versions[versions.length - 1];
+		asVersion(searchParams.get('v')) ?? '8.2';
 
 	function updateVersion(v: Version) {
 		const currentState = history.state as UrlState | null;
 		const code = lzstring.decompressFromEncodedURIComponent(
 			currentState?.c ?? initCode
 		);
+		if (code == null) {
+			return;
+		}
 		setSearchParams({
 			v: v,
 			c: lzstring.compressToEncodedURIComponent(code),
@@ -87,7 +98,12 @@ export default function App() {
 				<Spacer />
 				<Flex direction={{ base: 'column', lg: 'row' }} gap="16px">
 					<Center>
-						<Button　leftIcon={<SunIcon />} href="https://github.com/sponsors/glassmonkey" as="a" colorScheme="green">
+						<Button
+							leftIcon={<SunIcon />}
+							href="https://github.com/sponsors/glassmonkey"
+							as="a"
+							colorScheme="green"
+						>
 							Donate
 						</Button>
 					</Center>
