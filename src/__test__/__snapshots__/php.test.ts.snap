@@ -32,8 +32,8 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </table>
 <table>
 <tr><td class=\\"e\\">System </td><td class=\\"v\\">Emscripten emscripten 3.1.45 #1 wasm32 </td></tr>
-<tr><td class=\\"e\\">Build Date </td><td class=\\"v\\">Sep 20 2023 05:15:04 </td></tr>
-<tr><td class=\\"e\\">Configure Command </td><td class=\\"v\\"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--disable-mbstring&#039; &#039;--enable-vrzno&#039; &#039;CC=/root/emsdk/upstream/emscripten/emcc&#039; &#039;CXX=/root/emsdk/upstream/emscripten/em++&#039; </td></tr>
+<tr><td class=\\"e\\">Build Date </td><td class=\\"v\\">Sep 22 2023 14:20:16 </td></tr>
+<tr><td class=\\"e\\">Configure Command </td><td class=\\"v\\"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--enable-mbstring&#039; &#039;--enable-vrzno&#039; &#039;CC=/root/emsdk/upstream/emscripten/emcc&#039; &#039;CXX=/root/emsdk/upstream/emscripten/em++&#039; </td></tr>
 <tr><td class=\\"e\\">Server API </td><td class=\\"v\\">PHP WASM SAPI </td></tr>
 <tr><td class=\\"e\\">Virtual Directory Support </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Configuration File (php.ini) Path </td><td class=\\"v\\">/usr/local/etc </td></tr>
@@ -49,7 +49,7 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 <tr><td class=\\"e\\">Thread Safety </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Zend Signal Handling </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Zend Memory Manager </td><td class=\\"v\\">enabled </td></tr>
-<tr><td class=\\"e\\">Zend Multibyte Support </td><td class=\\"v\\">disabled </td></tr>
+<tr><td class=\\"e\\">Zend Multibyte Support </td><td class=\\"v\\">provided by mbstring </td></tr>
 <tr><td class=\\"e\\">IPv6 Support </td><td class=\\"v\\">enabled </td></tr>
 <tr><td class=\\"e\\">DTrace Support </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Registered PHP Streams</td><td class=\\"v\\">php, file, glob, data, http, ftp</td></tr>
@@ -208,6 +208,29 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend&nbsp;Eng
 <table>
 <tr><td class=\\"e\\">json support </td><td class=\\"v\\">enabled </td></tr>
 <tr><td class=\\"e\\">json version </td><td class=\\"v\\">1.2.1 </td></tr>
+</table>
+<h2><a name=\\"module_mbstring\\">mbstring</a></h2>
+<table>
+<tr><td class=\\"e\\">Multibyte Support </td><td class=\\"v\\">enabled </td></tr>
+<tr><td class=\\"e\\">Multibyte string engine </td><td class=\\"v\\">libmbfl </td></tr>
+<tr><td class=\\"e\\">HTTP input encoding translation </td><td class=\\"v\\">disabled </td></tr>
+<tr><td class=\\"e\\">libmbfl version </td><td class=\\"v\\">1.3.2 </td></tr>
+</table>
+<table>
+<tr class=\\"h\\"><th>mbstring extension makes use of \\"streamable kanji code filter and converter\\", which is distributed under the GNU Lesser General Public License version 2.1.</th></tr>
+</table>
+<table>
+<tr class=\\"h\\"><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+<tr><td class=\\"e\\">mbstring.detect_order</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.encoding_translation</td><td class=\\"v\\">Off</td><td class=\\"v\\">Off</td></tr>
+<tr><td class=\\"e\\">mbstring.func_overload</td><td class=\\"v\\">0</td><td class=\\"v\\">0</td></tr>
+<tr><td class=\\"e\\">mbstring.http_input</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.http_output</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.http_output_conv_mimetypes</td><td class=\\"v\\">^(text/|application/xhtml\\\\+xml)</td><td class=\\"v\\">^(text/|application/xhtml\\\\+xml)</td></tr>
+<tr><td class=\\"e\\">mbstring.internal_encoding</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.language</td><td class=\\"v\\">neutral</td><td class=\\"v\\">neutral</td></tr>
+<tr><td class=\\"e\\">mbstring.strict_detection</td><td class=\\"v\\">Off</td><td class=\\"v\\">Off</td></tr>
+<tr><td class=\\"e\\">mbstring.substitute_character</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
 </table>
 <h2><a name=\\"module_pcre\\">pcre</a></h2>
 <table>
@@ -533,8 +556,8 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </table>
 <table>
 <tr><td class=\\"e\\">System </td><td class=\\"v\\">Emscripten emscripten 3.1.45 #1 wasm32 </td></tr>
-<tr><td class=\\"e\\">Build Date </td><td class=\\"v\\">Sep 20 2023 05:17:04 </td></tr>
-<tr><td class=\\"e\\">Configure Command </td><td class=\\"v\\"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--disable-mbstring&#039; &#039;--enable-vrzno&#039; </td></tr>
+<tr><td class=\\"e\\">Build Date </td><td class=\\"v\\">Sep 22 2023 14:20:43 </td></tr>
+<tr><td class=\\"e\\">Configure Command </td><td class=\\"v\\"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--enable-mbstring&#039; &#039;--enable-vrzno&#039; </td></tr>
 <tr><td class=\\"e\\">Server API </td><td class=\\"v\\">PHP WASM SAPI </td></tr>
 <tr><td class=\\"e\\">Virtual Directory Support </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Configuration File (php.ini) Path </td><td class=\\"v\\">/usr/local/etc </td></tr>
@@ -550,7 +573,7 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 <tr><td class=\\"e\\">Thread Safety </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Zend Signal Handling </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Zend Memory Manager </td><td class=\\"v\\">enabled </td></tr>
-<tr><td class=\\"e\\">Zend Multibyte Support </td><td class=\\"v\\">disabled </td></tr>
+<tr><td class=\\"e\\">Zend Multibyte Support </td><td class=\\"v\\">provided by mbstring </td></tr>
 <tr><td class=\\"e\\">IPv6 Support </td><td class=\\"v\\">enabled </td></tr>
 <tr><td class=\\"e\\">DTrace Support </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Registered PHP Streams</td><td class=\\"v\\">php, file, glob, data, http, ftp</td></tr>
@@ -703,6 +726,29 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend&nbsp;Eng
 <table>
 <tr><td class=\\"e\\">json support </td><td class=\\"v\\">enabled </td></tr>
 <tr><td class=\\"e\\">json version </td><td class=\\"v\\">1.4.0 </td></tr>
+</table>
+<h2><a name=\\"module_mbstring\\">mbstring</a></h2>
+<table>
+<tr><td class=\\"e\\">Multibyte Support </td><td class=\\"v\\">enabled </td></tr>
+<tr><td class=\\"e\\">Multibyte string engine </td><td class=\\"v\\">libmbfl </td></tr>
+<tr><td class=\\"e\\">HTTP input encoding translation </td><td class=\\"v\\">disabled </td></tr>
+<tr><td class=\\"e\\">libmbfl version </td><td class=\\"v\\">1.3.2 </td></tr>
+</table>
+<table>
+<tr class=\\"h\\"><th>mbstring extension makes use of \\"streamable kanji code filter and converter\\", which is distributed under the GNU Lesser General Public License version 2.1.</th></tr>
+</table>
+<table>
+<tr class=\\"h\\"><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+<tr><td class=\\"e\\">mbstring.detect_order</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.encoding_translation</td><td class=\\"v\\">Off</td><td class=\\"v\\">Off</td></tr>
+<tr><td class=\\"e\\">mbstring.func_overload</td><td class=\\"v\\">0</td><td class=\\"v\\">0</td></tr>
+<tr><td class=\\"e\\">mbstring.http_input</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.http_output</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.http_output_conv_mimetypes</td><td class=\\"v\\">^(text/|application/xhtml\\\\+xml)</td><td class=\\"v\\">^(text/|application/xhtml\\\\+xml)</td></tr>
+<tr><td class=\\"e\\">mbstring.internal_encoding</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.language</td><td class=\\"v\\">neutral</td><td class=\\"v\\">neutral</td></tr>
+<tr><td class=\\"e\\">mbstring.strict_detection</td><td class=\\"v\\">Off</td><td class=\\"v\\">Off</td></tr>
+<tr><td class=\\"e\\">mbstring.substitute_character</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
 </table>
 <h2><a name=\\"module_pcre\\">pcre</a></h2>
 <table>
@@ -1015,8 +1061,8 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </table>
 <table>
 <tr><td class=\\"e\\">System </td><td class=\\"v\\">Emscripten emscripten 3.1.45 #1 wasm32 </td></tr>
-<tr><td class=\\"e\\">Build Date </td><td class=\\"v\\">Sep 20 2023 05:19:08 </td></tr>
-<tr><td class=\\"e\\">Configure Command </td><td class=\\"v\\"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--disable-mbstring&#039; &#039;--enable-vrzno&#039; </td></tr>
+<tr><td class=\\"e\\">Build Date </td><td class=\\"v\\">Sep 22 2023 14:21:02 </td></tr>
+<tr><td class=\\"e\\">Configure Command </td><td class=\\"v\\"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--enable-mbstring&#039; &#039;--enable-vrzno&#039; </td></tr>
 <tr><td class=\\"e\\">Server API </td><td class=\\"v\\">PHP WASM SAPI </td></tr>
 <tr><td class=\\"e\\">Virtual Directory Support </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Configuration File (php.ini) Path </td><td class=\\"v\\">/usr/local/etc </td></tr>
@@ -1032,7 +1078,7 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 <tr><td class=\\"e\\">Thread Safety </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Zend Signal Handling </td><td class=\\"v\\">enabled </td></tr>
 <tr><td class=\\"e\\">Zend Memory Manager </td><td class=\\"v\\">enabled </td></tr>
-<tr><td class=\\"e\\">Zend Multibyte Support </td><td class=\\"v\\">disabled </td></tr>
+<tr><td class=\\"e\\">Zend Multibyte Support </td><td class=\\"v\\">provided by mbstring </td></tr>
 <tr><td class=\\"e\\">IPv6 Support </td><td class=\\"v\\">enabled </td></tr>
 <tr><td class=\\"e\\">DTrace Support </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Registered PHP Streams</td><td class=\\"v\\">php, file, glob, data, http, ftp</td></tr>
@@ -1186,6 +1232,29 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend&nbsp;Eng
 <table>
 <tr><td class=\\"e\\">json support </td><td class=\\"v\\">enabled </td></tr>
 <tr><td class=\\"e\\">json version </td><td class=\\"v\\">1.5.0 </td></tr>
+</table>
+<h2><a name=\\"module_mbstring\\">mbstring</a></h2>
+<table>
+<tr><td class=\\"e\\">Multibyte Support </td><td class=\\"v\\">enabled </td></tr>
+<tr><td class=\\"e\\">Multibyte string engine </td><td class=\\"v\\">libmbfl </td></tr>
+<tr><td class=\\"e\\">HTTP input encoding translation </td><td class=\\"v\\">disabled </td></tr>
+<tr><td class=\\"e\\">libmbfl version </td><td class=\\"v\\">1.3.2 </td></tr>
+</table>
+<table>
+<tr class=\\"h\\"><th>mbstring extension makes use of \\"streamable kanji code filter and converter\\", which is distributed under the GNU Lesser General Public License version 2.1.</th></tr>
+</table>
+<table>
+<tr class=\\"h\\"><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+<tr><td class=\\"e\\">mbstring.detect_order</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.encoding_translation</td><td class=\\"v\\">Off</td><td class=\\"v\\">Off</td></tr>
+<tr><td class=\\"e\\">mbstring.func_overload</td><td class=\\"v\\">0</td><td class=\\"v\\">0</td></tr>
+<tr><td class=\\"e\\">mbstring.http_input</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.http_output</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.http_output_conv_mimetypes</td><td class=\\"v\\">^(text/|application/xhtml\\\\+xml)</td><td class=\\"v\\">^(text/|application/xhtml\\\\+xml)</td></tr>
+<tr><td class=\\"e\\">mbstring.internal_encoding</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.language</td><td class=\\"v\\">neutral</td><td class=\\"v\\">neutral</td></tr>
+<tr><td class=\\"e\\">mbstring.strict_detection</td><td class=\\"v\\">Off</td><td class=\\"v\\">Off</td></tr>
+<tr><td class=\\"e\\">mbstring.substitute_character</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
 </table>
 <h2><a name=\\"module_pcre\\">pcre</a></h2>
 <table>
@@ -1499,8 +1568,8 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </table>
 <table>
 <tr><td class=\\"e\\">System </td><td class=\\"v\\">Emscripten emscripten 3.1.45 #1 wasm32 </td></tr>
-<tr><td class=\\"e\\">Build Date </td><td class=\\"v\\">Sep 20 2023 05:21:44 </td></tr>
-<tr><td class=\\"e\\">Configure Command </td><td class=\\"v\\"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--disable-mbstring&#039; &#039;--enable-vrzno&#039; </td></tr>
+<tr><td class=\\"e\\">Build Date </td><td class=\\"v\\">Sep 22 2023 14:21:15 </td></tr>
+<tr><td class=\\"e\\">Configure Command </td><td class=\\"v\\"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--enable-mbstring&#039; &#039;--enable-vrzno&#039; </td></tr>
 <tr><td class=\\"e\\">Server API </td><td class=\\"v\\">PHP WASM SAPI </td></tr>
 <tr><td class=\\"e\\">Virtual Directory Support </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Configuration File (php.ini) Path </td><td class=\\"v\\">/usr/local/etc </td></tr>
@@ -1516,7 +1585,7 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 <tr><td class=\\"e\\">Thread Safety </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Zend Signal Handling </td><td class=\\"v\\">enabled </td></tr>
 <tr><td class=\\"e\\">Zend Memory Manager </td><td class=\\"v\\">enabled </td></tr>
-<tr><td class=\\"e\\">Zend Multibyte Support </td><td class=\\"v\\">disabled </td></tr>
+<tr><td class=\\"e\\">Zend Multibyte Support </td><td class=\\"v\\">provided by mbstring </td></tr>
 <tr><td class=\\"e\\">IPv6 Support </td><td class=\\"v\\">enabled </td></tr>
 <tr><td class=\\"e\\">DTrace Support </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Registered PHP Streams</td><td class=\\"v\\">php, file, glob, data, http, ftp</td></tr>
@@ -1669,6 +1738,29 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend&nbsp;Eng
 <table>
 <tr><td class=\\"e\\">json support </td><td class=\\"v\\">enabled </td></tr>
 <tr><td class=\\"e\\">json version </td><td class=\\"v\\">1.6.0 </td></tr>
+</table>
+<h2><a name=\\"module_mbstring\\">mbstring</a></h2>
+<table>
+<tr><td class=\\"e\\">Multibyte Support </td><td class=\\"v\\">enabled </td></tr>
+<tr><td class=\\"e\\">Multibyte string engine </td><td class=\\"v\\">libmbfl </td></tr>
+<tr><td class=\\"e\\">HTTP input encoding translation </td><td class=\\"v\\">disabled </td></tr>
+<tr><td class=\\"e\\">libmbfl version </td><td class=\\"v\\">1.3.2 </td></tr>
+</table>
+<table>
+<tr class=\\"h\\"><th>mbstring extension makes use of \\"streamable kanji code filter and converter\\", which is distributed under the GNU Lesser General Public License version 2.1.</th></tr>
+</table>
+<table>
+<tr class=\\"h\\"><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+<tr><td class=\\"e\\">mbstring.detect_order</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.encoding_translation</td><td class=\\"v\\">Off</td><td class=\\"v\\">Off</td></tr>
+<tr><td class=\\"e\\">mbstring.func_overload</td><td class=\\"v\\">0</td><td class=\\"v\\">0</td></tr>
+<tr><td class=\\"e\\">mbstring.http_input</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.http_output</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.http_output_conv_mimetypes</td><td class=\\"v\\">^(text/|application/xhtml\\\\+xml)</td><td class=\\"v\\">^(text/|application/xhtml\\\\+xml)</td></tr>
+<tr><td class=\\"e\\">mbstring.internal_encoding</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.language</td><td class=\\"v\\">neutral</td><td class=\\"v\\">neutral</td></tr>
+<tr><td class=\\"e\\">mbstring.strict_detection</td><td class=\\"v\\">Off</td><td class=\\"v\\">Off</td></tr>
+<tr><td class=\\"e\\">mbstring.substitute_character</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
 </table>
 <h2><a name=\\"module_pcre\\">pcre</a></h2>
 <table>
@@ -1982,8 +2074,8 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </table>
 <table>
 <tr><td class=\\"e\\">System </td><td class=\\"v\\">Emscripten emscripten 3.1.45 #1 wasm32 </td></tr>
-<tr><td class=\\"e\\">Build Date </td><td class=\\"v\\">Sep 20 2023 05:24:21 </td></tr>
-<tr><td class=\\"e\\">Configure Command </td><td class=\\"v\\"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--disable-mbstring&#039; &#039;--enable-vrzno&#039; </td></tr>
+<tr><td class=\\"e\\">Build Date </td><td class=\\"v\\">Sep 22 2023 14:22:03 </td></tr>
+<tr><td class=\\"e\\">Configure Command </td><td class=\\"v\\"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--enable-mbstring&#039; &#039;--enable-vrzno&#039; </td></tr>
 <tr><td class=\\"e\\">Server API </td><td class=\\"v\\">PHP WASM SAPI </td></tr>
 <tr><td class=\\"e\\">Virtual Directory Support </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Configuration File (php.ini) Path </td><td class=\\"v\\">/usr/local/etc </td></tr>
@@ -1999,7 +2091,7 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 <tr><td class=\\"e\\">Thread Safety </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Zend Signal Handling </td><td class=\\"v\\">enabled </td></tr>
 <tr><td class=\\"e\\">Zend Memory Manager </td><td class=\\"v\\">enabled </td></tr>
-<tr><td class=\\"e\\">Zend Multibyte Support </td><td class=\\"v\\">disabled </td></tr>
+<tr><td class=\\"e\\">Zend Multibyte Support </td><td class=\\"v\\">provided by mbstring </td></tr>
 <tr><td class=\\"e\\">IPv6 Support </td><td class=\\"v\\">enabled </td></tr>
 <tr><td class=\\"e\\">DTrace Support </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Registered PHP Streams</td><td class=\\"v\\">php, file, glob, data, http, ftp</td></tr>
@@ -2154,6 +2246,29 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend&nbsp;Eng
 <table>
 <tr><td class=\\"e\\">json support </td><td class=\\"v\\">enabled </td></tr>
 <tr><td class=\\"e\\">json version </td><td class=\\"v\\">1.7.0 </td></tr>
+</table>
+<h2><a name=\\"module_mbstring\\">mbstring</a></h2>
+<table>
+<tr><td class=\\"e\\">Multibyte Support </td><td class=\\"v\\">enabled </td></tr>
+<tr><td class=\\"e\\">Multibyte string engine </td><td class=\\"v\\">libmbfl </td></tr>
+<tr><td class=\\"e\\">HTTP input encoding translation </td><td class=\\"v\\">disabled </td></tr>
+<tr><td class=\\"e\\">libmbfl version </td><td class=\\"v\\">1.3.2 </td></tr>
+</table>
+<table>
+<tr class=\\"h\\"><th>mbstring extension makes use of \\"streamable kanji code filter and converter\\", which is distributed under the GNU Lesser General Public License version 2.1.</th></tr>
+</table>
+<table>
+<tr class=\\"h\\"><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+<tr><td class=\\"e\\">mbstring.detect_order</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.encoding_translation</td><td class=\\"v\\">Off</td><td class=\\"v\\">Off</td></tr>
+<tr><td class=\\"e\\">mbstring.func_overload</td><td class=\\"v\\">0</td><td class=\\"v\\">0</td></tr>
+<tr><td class=\\"e\\">mbstring.http_input</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.http_output</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.http_output_conv_mimetypes</td><td class=\\"v\\">^(text/|application/xhtml\\\\+xml)</td><td class=\\"v\\">^(text/|application/xhtml\\\\+xml)</td></tr>
+<tr><td class=\\"e\\">mbstring.internal_encoding</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.language</td><td class=\\"v\\">neutral</td><td class=\\"v\\">neutral</td></tr>
+<tr><td class=\\"e\\">mbstring.strict_detection</td><td class=\\"v\\">Off</td><td class=\\"v\\">Off</td></tr>
+<tr><td class=\\"e\\">mbstring.substitute_character</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
 </table>
 <h2><a name=\\"module_pcre\\">pcre</a></h2>
 <table>
@@ -2469,8 +2584,8 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </table>
 <table>
 <tr><td class=\\"e\\">System </td><td class=\\"v\\">Emscripten emscripten 3.1.45 #1 wasm32 </td></tr>
-<tr><td class=\\"e\\">Build Date </td><td class=\\"v\\">Sep 20 2023 05:26:44 </td></tr>
-<tr><td class=\\"e\\">Configure Command </td><td class=\\"v\\"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--disable-mbstring&#039; &#039;--enable-vrzno&#039; &#039;PKG_CONFIG_LIBDIR=/root/emsdk/upstream/emscripten/cache/sysroot/local/lib/pkgconfig:/root/emsdk/upstream/emscripten/cache/sysroot/lib/pkgconfig&#039; </td></tr>
+<tr><td class=\\"e\\">Build Date </td><td class=\\"v\\">Sep 22 2023 14:21:21 </td></tr>
+<tr><td class=\\"e\\">Configure Command </td><td class=\\"v\\"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--enable-mbstring&#039; &#039;--enable-vrzno&#039; &#039;PKG_CONFIG_LIBDIR=/root/emsdk/upstream/emscripten/cache/sysroot/local/lib/pkgconfig:/root/emsdk/upstream/emscripten/cache/sysroot/lib/pkgconfig&#039; </td></tr>
 <tr><td class=\\"e\\">Server API </td><td class=\\"v\\">PHP WASM SAPI </td></tr>
 <tr><td class=\\"e\\">Virtual Directory Support </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Configuration File (php.ini) Path </td><td class=\\"v\\">/usr/local/etc </td></tr>
@@ -2486,7 +2601,7 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 <tr><td class=\\"e\\">Thread Safety </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Zend Signal Handling </td><td class=\\"v\\">enabled </td></tr>
 <tr><td class=\\"e\\">Zend Memory Manager </td><td class=\\"v\\">enabled </td></tr>
-<tr><td class=\\"e\\">Zend Multibyte Support </td><td class=\\"v\\">disabled </td></tr>
+<tr><td class=\\"e\\">Zend Multibyte Support </td><td class=\\"v\\">provided by mbstring </td></tr>
 <tr><td class=\\"e\\">IPv6 Support </td><td class=\\"v\\">enabled </td></tr>
 <tr><td class=\\"e\\">DTrace Support </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Registered PHP Streams</td><td class=\\"v\\">php, file, glob, data, http, ftp</td></tr>
@@ -2646,6 +2761,29 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend&nbsp;Eng
 <h2><a name=\\"module_json\\">json</a></h2>
 <table>
 <tr><td class=\\"e\\">json support </td><td class=\\"v\\">enabled </td></tr>
+</table>
+<h2><a name=\\"module_mbstring\\">mbstring</a></h2>
+<table>
+<tr><td class=\\"e\\">Multibyte Support </td><td class=\\"v\\">enabled </td></tr>
+<tr><td class=\\"e\\">Multibyte string engine </td><td class=\\"v\\">libmbfl </td></tr>
+<tr><td class=\\"e\\">HTTP input encoding translation </td><td class=\\"v\\">disabled </td></tr>
+<tr><td class=\\"e\\">libmbfl version </td><td class=\\"v\\">1.3.2 </td></tr>
+</table>
+<table>
+<tr class=\\"h\\"><th>mbstring extension makes use of \\"streamable kanji code filter and converter\\", which is distributed under the GNU Lesser General Public License version 2.1.</th></tr>
+</table>
+<table>
+<tr class=\\"h\\"><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+<tr><td class=\\"e\\">mbstring.detect_order</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.encoding_translation</td><td class=\\"v\\">Off</td><td class=\\"v\\">Off</td></tr>
+<tr><td class=\\"e\\">mbstring.func_overload</td><td class=\\"v\\">0</td><td class=\\"v\\">0</td></tr>
+<tr><td class=\\"e\\">mbstring.http_input</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.http_output</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.http_output_conv_mimetypes</td><td class=\\"v\\">^(text/|application/xhtml\\\\+xml)</td><td class=\\"v\\">^(text/|application/xhtml\\\\+xml)</td></tr>
+<tr><td class=\\"e\\">mbstring.internal_encoding</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.language</td><td class=\\"v\\">neutral</td><td class=\\"v\\">neutral</td></tr>
+<tr><td class=\\"e\\">mbstring.strict_detection</td><td class=\\"v\\">Off</td><td class=\\"v\\">Off</td></tr>
+<tr><td class=\\"e\\">mbstring.substitute_character</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
 </table>
 <h2><a name=\\"module_pcre\\">pcre</a></h2>
 <table>
@@ -2960,9 +3098,9 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </table>
 <table>
 <tr><td class=\\"e\\">System </td><td class=\\"v\\">Emscripten emscripten 3.1.45 #1 wasm32 </td></tr>
-<tr><td class=\\"e\\">Build Date </td><td class=\\"v\\">Sep 20 2023 05:29:03 </td></tr>
+<tr><td class=\\"e\\">Build Date </td><td class=\\"v\\">Sep 22 2023 14:20:41 </td></tr>
 <tr><td class=\\"e\\">Build System </td><td class=\\"v\\">Linux buildkitsandbox 5.15.49-linuxkit-pr #1 SMP PREEMPT Thu May 25 07:27:39 UTC 2023 aarch64 aarch64 aarch64 GNU/Linux </td></tr>
-<tr><td class=\\"e\\">Configure Command </td><td class=\\"v\\"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--disable-mbstring&#039; &#039;--enable-vrzno&#039; &#039;PKG_CONFIG_LIBDIR=/root/emsdk/upstream/emscripten/cache/sysroot/local/lib/pkgconfig:/root/emsdk/upstream/emscripten/cache/sysroot/lib/pkgconfig&#039; </td></tr>
+<tr><td class=\\"e\\">Configure Command </td><td class=\\"v\\"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--enable-mbstring&#039; &#039;--enable-vrzno&#039; &#039;PKG_CONFIG_LIBDIR=/root/emsdk/upstream/emscripten/cache/sysroot/local/lib/pkgconfig:/root/emsdk/upstream/emscripten/cache/sysroot/lib/pkgconfig&#039; </td></tr>
 <tr><td class=\\"e\\">Server API </td><td class=\\"v\\">PHP WASM SAPI </td></tr>
 <tr><td class=\\"e\\">Virtual Directory Support </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Configuration File (php.ini) Path </td><td class=\\"v\\">/usr/local/etc </td></tr>
@@ -2978,7 +3116,7 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 <tr><td class=\\"e\\">Thread Safety </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Zend Signal Handling </td><td class=\\"v\\">enabled </td></tr>
 <tr><td class=\\"e\\">Zend Memory Manager </td><td class=\\"v\\">enabled </td></tr>
-<tr><td class=\\"e\\">Zend Multibyte Support </td><td class=\\"v\\">disabled </td></tr>
+<tr><td class=\\"e\\">Zend Multibyte Support </td><td class=\\"v\\">provided by mbstring </td></tr>
 <tr><td class=\\"e\\">IPv6 Support </td><td class=\\"v\\">enabled </td></tr>
 <tr><td class=\\"e\\">DTrace Support </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Registered PHP Streams</td><td class=\\"v\\">php, file, glob, data, http, ftp</td></tr>
@@ -3139,6 +3277,28 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend&nbsp;Eng
 <h2><a name=\\"module_json\\">json</a></h2>
 <table>
 <tr><td class=\\"e\\">json support </td><td class=\\"v\\">enabled </td></tr>
+</table>
+<h2><a name=\\"module_mbstring\\">mbstring</a></h2>
+<table>
+<tr><td class=\\"e\\">Multibyte Support </td><td class=\\"v\\">enabled </td></tr>
+<tr><td class=\\"e\\">Multibyte string engine </td><td class=\\"v\\">libmbfl </td></tr>
+<tr><td class=\\"e\\">HTTP input encoding translation </td><td class=\\"v\\">disabled </td></tr>
+<tr><td class=\\"e\\">libmbfl version </td><td class=\\"v\\">1.3.2 </td></tr>
+</table>
+<table>
+<tr class=\\"h\\"><th>mbstring extension makes use of \\"streamable kanji code filter and converter\\", which is distributed under the GNU Lesser General Public License version 2.1.</th></tr>
+</table>
+<table>
+<tr class=\\"h\\"><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+<tr><td class=\\"e\\">mbstring.detect_order</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.encoding_translation</td><td class=\\"v\\">Off</td><td class=\\"v\\">Off</td></tr>
+<tr><td class=\\"e\\">mbstring.http_input</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.http_output</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.http_output_conv_mimetypes</td><td class=\\"v\\">^(text/|application/xhtml\\\\+xml)</td><td class=\\"v\\">^(text/|application/xhtml\\\\+xml)</td></tr>
+<tr><td class=\\"e\\">mbstring.internal_encoding</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.language</td><td class=\\"v\\">neutral</td><td class=\\"v\\">neutral</td></tr>
+<tr><td class=\\"e\\">mbstring.strict_detection</td><td class=\\"v\\">Off</td><td class=\\"v\\">Off</td></tr>
+<tr><td class=\\"e\\">mbstring.substitute_character</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
 </table>
 <h2><a name=\\"module_pcre\\">pcre</a></h2>
 <table>
@@ -3451,9 +3611,9 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </table>
 <table>
 <tr><td class=\\"e\\">System </td><td class=\\"v\\">Emscripten emscripten 3.1.45 #1 wasm32 </td></tr>
-<tr><td class=\\"e\\">Build Date </td><td class=\\"v\\">Sep 20 2023 05:31:13 </td></tr>
+<tr><td class=\\"e\\">Build Date </td><td class=\\"v\\">Sep 22 2023 14:21:06 </td></tr>
 <tr><td class=\\"e\\">Build System </td><td class=\\"v\\">Linux buildkitsandbox 5.15.49-linuxkit-pr #1 SMP PREEMPT Thu May 25 07:27:39 UTC 2023 aarch64 aarch64 aarch64 GNU/Linux </td></tr>
-<tr><td class=\\"e\\">Configure Command </td><td class=\\"v\\"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--disable-mbstring&#039; &#039;--enable-vrzno&#039; &#039;PKG_CONFIG_LIBDIR=/root/emsdk/upstream/emscripten/cache/sysroot/local/lib/pkgconfig:/root/emsdk/upstream/emscripten/cache/sysroot/lib/pkgconfig&#039; </td></tr>
+<tr><td class=\\"e\\">Configure Command </td><td class=\\"v\\"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--enable-mbstring&#039; &#039;--enable-vrzno&#039; &#039;PKG_CONFIG_LIBDIR=/root/emsdk/upstream/emscripten/cache/sysroot/local/lib/pkgconfig:/root/emsdk/upstream/emscripten/cache/sysroot/lib/pkgconfig&#039; </td></tr>
 <tr><td class=\\"e\\">Server API </td><td class=\\"v\\">PHP WASM SAPI </td></tr>
 <tr><td class=\\"e\\">Virtual Directory Support </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Configuration File (php.ini) Path </td><td class=\\"v\\">/usr/local/etc </td></tr>
@@ -3469,7 +3629,7 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 <tr><td class=\\"e\\">Thread Safety </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Zend Signal Handling </td><td class=\\"v\\">enabled </td></tr>
 <tr><td class=\\"e\\">Zend Memory Manager </td><td class=\\"v\\">enabled </td></tr>
-<tr><td class=\\"e\\">Zend Multibyte Support </td><td class=\\"v\\">disabled </td></tr>
+<tr><td class=\\"e\\">Zend Multibyte Support </td><td class=\\"v\\">provided by mbstring </td></tr>
 <tr><td class=\\"e\\">Zend Max Execution Timers </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">IPv6 Support </td><td class=\\"v\\">enabled </td></tr>
 <tr><td class=\\"e\\">DTrace Support </td><td class=\\"v\\">disabled </td></tr>
@@ -3631,6 +3791,28 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend&nbsp;Eng
 <h2><a name=\\"module_json\\">json</a></h2>
 <table>
 <tr><td class=\\"e\\">json support </td><td class=\\"v\\">enabled </td></tr>
+</table>
+<h2><a name=\\"module_mbstring\\">mbstring</a></h2>
+<table>
+<tr><td class=\\"e\\">Multibyte Support </td><td class=\\"v\\">enabled </td></tr>
+<tr><td class=\\"e\\">Multibyte string engine </td><td class=\\"v\\">libmbfl </td></tr>
+<tr><td class=\\"e\\">HTTP input encoding translation </td><td class=\\"v\\">disabled </td></tr>
+<tr><td class=\\"e\\">libmbfl version </td><td class=\\"v\\">1.3.2 </td></tr>
+</table>
+<table>
+<tr class=\\"h\\"><th>mbstring extension makes use of \\"streamable kanji code filter and converter\\", which is distributed under the GNU Lesser General Public License version 2.1.</th></tr>
+</table>
+<table>
+<tr class=\\"h\\"><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+<tr><td class=\\"e\\">mbstring.detect_order</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.encoding_translation</td><td class=\\"v\\">Off</td><td class=\\"v\\">Off</td></tr>
+<tr><td class=\\"e\\">mbstring.http_input</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.http_output</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.http_output_conv_mimetypes</td><td class=\\"v\\">^(text/|application/xhtml\\\\+xml)</td><td class=\\"v\\">^(text/|application/xhtml\\\\+xml)</td></tr>
+<tr><td class=\\"e\\">mbstring.internal_encoding</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.language</td><td class=\\"v\\">neutral</td><td class=\\"v\\">neutral</td></tr>
+<tr><td class=\\"e\\">mbstring.strict_detection</td><td class=\\"v\\">Off</td><td class=\\"v\\">Off</td></tr>
+<tr><td class=\\"e\\">mbstring.substitute_character</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
 </table>
 <h2><a name=\\"module_pcre\\">pcre</a></h2>
 <table>
@@ -3953,9 +4135,9 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </table>
 <table>
 <tr><td class=\\"e\\">System </td><td class=\\"v\\">Emscripten emscripten 3.1.45 #1 wasm32 </td></tr>
-<tr><td class=\\"e\\">Build Date </td><td class=\\"v\\">Sep 20 2023 05:34:50 </td></tr>
+<tr><td class=\\"e\\">Build Date </td><td class=\\"v\\">Sep 22 2023 14:09:33 </td></tr>
 <tr><td class=\\"e\\">Build System </td><td class=\\"v\\">Linux buildkitsandbox 5.15.49-linuxkit-pr #1 SMP PREEMPT Thu May 25 07:27:39 UTC 2023 aarch64 aarch64 aarch64 GNU/Linux </td></tr>
-<tr><td class=\\"e\\">Configure Command </td><td class=\\"v\\"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--disable-mbstring&#039; &#039;--enable-vrzno&#039; &#039;PKG_CONFIG_LIBDIR=/root/emsdk/upstream/emscripten/cache/sysroot/local/lib/pkgconfig:/root/emsdk/upstream/emscripten/cache/sysroot/lib/pkgconfig&#039; </td></tr>
+<tr><td class=\\"e\\">Configure Command </td><td class=\\"v\\"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--enable-mbstring&#039; &#039;--enable-vrzno&#039; &#039;PKG_CONFIG_LIBDIR=/root/emsdk/upstream/emscripten/cache/sysroot/local/lib/pkgconfig:/root/emsdk/upstream/emscripten/cache/sysroot/lib/pkgconfig&#039; </td></tr>
 <tr><td class=\\"e\\">Server API </td><td class=\\"v\\">PHP WASM SAPI </td></tr>
 <tr><td class=\\"e\\">Virtual Directory Support </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Configuration File (php.ini) Path </td><td class=\\"v\\">/usr/local/etc </td></tr>
@@ -3971,7 +4153,7 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 <tr><td class=\\"e\\">Thread Safety </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Zend Signal Handling </td><td class=\\"v\\">enabled </td></tr>
 <tr><td class=\\"e\\">Zend Memory Manager </td><td class=\\"v\\">enabled </td></tr>
-<tr><td class=\\"e\\">Zend Multibyte Support </td><td class=\\"v\\">disabled </td></tr>
+<tr><td class=\\"e\\">Zend Multibyte Support </td><td class=\\"v\\">provided by mbstring </td></tr>
 <tr><td class=\\"e\\">Zend Max Execution Timers </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">IPv6 Support </td><td class=\\"v\\">enabled </td></tr>
 <tr><td class=\\"e\\">DTrace Support </td><td class=\\"v\\">disabled </td></tr>
@@ -4135,6 +4317,28 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend&nbsp;Eng
 <h2><a name=\\"module_json\\" href=\\"#module_json\\">json</a></h2>
 <table>
 <tr><td class=\\"e\\">json support </td><td class=\\"v\\">enabled </td></tr>
+</table>
+<h2><a name=\\"module_mbstring\\" href=\\"#module_mbstring\\">mbstring</a></h2>
+<table>
+<tr><td class=\\"e\\">Multibyte Support </td><td class=\\"v\\">enabled </td></tr>
+<tr><td class=\\"e\\">Multibyte string engine </td><td class=\\"v\\">libmbfl </td></tr>
+<tr><td class=\\"e\\">HTTP input encoding translation </td><td class=\\"v\\">disabled </td></tr>
+<tr><td class=\\"e\\">libmbfl version </td><td class=\\"v\\">1.3.2 </td></tr>
+</table>
+<table>
+<tr class=\\"h\\"><th>mbstring extension makes use of \\"streamable kanji code filter and converter\\", which is distributed under the GNU Lesser General Public License version 2.1.</th></tr>
+</table>
+<table>
+<tr class=\\"h\\"><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+<tr><td class=\\"e\\">mbstring.detect_order</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.encoding_translation</td><td class=\\"v\\">Off</td><td class=\\"v\\">Off</td></tr>
+<tr><td class=\\"e\\">mbstring.http_input</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.http_output</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.http_output_conv_mimetypes</td><td class=\\"v\\">^(text/|application/xhtml\\\\+xml)</td><td class=\\"v\\">^(text/|application/xhtml\\\\+xml)</td></tr>
+<tr><td class=\\"e\\">mbstring.internal_encoding</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.language</td><td class=\\"v\\">neutral</td><td class=\\"v\\">neutral</td></tr>
+<tr><td class=\\"e\\">mbstring.strict_detection</td><td class=\\"v\\">Off</td><td class=\\"v\\">Off</td></tr>
+<tr><td class=\\"e\\">mbstring.substitute_character</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
 </table>
 <h2><a name=\\"module_pcre\\" href=\\"#module_pcre\\">pcre</a></h2>
 <table>
@@ -4462,9 +4666,9 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </table>
 <table>
 <tr><td class=\\"e\\">System </td><td class=\\"v\\">Emscripten emscripten 3.1.45 #1 wasm32 </td></tr>
-<tr><td class=\\"e\\">Build Date </td><td class=\\"v\\">Sep 20 2023 06:00:43 </td></tr>
+<tr><td class=\\"e\\">Build Date </td><td class=\\"v\\">Sep 22 2023 14:34:09 </td></tr>
 <tr><td class=\\"e\\">Build System </td><td class=\\"v\\">Linux buildkitsandbox 5.15.49-linuxkit-pr #1 SMP PREEMPT Thu May 25 07:27:39 UTC 2023 aarch64 aarch64 aarch64 GNU/Linux </td></tr>
-<tr><td class=\\"e\\">Configure Command </td><td class=\\"v\\"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--disable-mbstring&#039; &#039;--enable-vrzno&#039; &#039;PKG_CONFIG_LIBDIR=/root/emsdk/upstream/emscripten/cache/sysroot/local/lib/pkgconfig:/root/emsdk/upstream/emscripten/cache/sysroot/lib/pkgconfig&#039; </td></tr>
+<tr><td class=\\"e\\">Configure Command </td><td class=\\"v\\"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--enable-mbstring&#039; &#039;--enable-vrzno&#039; &#039;PKG_CONFIG_LIBDIR=/root/emsdk/upstream/emscripten/cache/sysroot/local/lib/pkgconfig:/root/emsdk/upstream/emscripten/cache/sysroot/lib/pkgconfig&#039; </td></tr>
 <tr><td class=\\"e\\">Server API </td><td class=\\"v\\">PHP WASM SAPI </td></tr>
 <tr><td class=\\"e\\">Virtual Directory Support </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Configuration File (php.ini) Path </td><td class=\\"v\\">/usr/local/etc </td></tr>
@@ -4480,7 +4684,7 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 <tr><td class=\\"e\\">Thread Safety </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">Zend Signal Handling </td><td class=\\"v\\">enabled </td></tr>
 <tr><td class=\\"e\\">Zend Memory Manager </td><td class=\\"v\\">enabled </td></tr>
-<tr><td class=\\"e\\">Zend Multibyte Support </td><td class=\\"v\\">disabled </td></tr>
+<tr><td class=\\"e\\">Zend Multibyte Support </td><td class=\\"v\\">provided by mbstring </td></tr>
 <tr><td class=\\"e\\">Zend Max Execution Timers </td><td class=\\"v\\">disabled </td></tr>
 <tr><td class=\\"e\\">IPv6 Support </td><td class=\\"v\\">enabled </td></tr>
 <tr><td class=\\"e\\">DTrace Support </td><td class=\\"v\\">disabled </td></tr>
@@ -4647,6 +4851,28 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend Engine v
 <h2><a name=\\"module_json\\" href=\\"#module_json\\">json</a></h2>
 <table>
 <tr><td class=\\"e\\">json support </td><td class=\\"v\\">enabled </td></tr>
+</table>
+<h2><a name=\\"module_mbstring\\" href=\\"#module_mbstring\\">mbstring</a></h2>
+<table>
+<tr><td class=\\"e\\">Multibyte Support </td><td class=\\"v\\">enabled </td></tr>
+<tr><td class=\\"e\\">Multibyte string engine </td><td class=\\"v\\">libmbfl </td></tr>
+<tr><td class=\\"e\\">HTTP input encoding translation </td><td class=\\"v\\">disabled </td></tr>
+<tr><td class=\\"e\\">libmbfl version </td><td class=\\"v\\">1.3.2 </td></tr>
+</table>
+<table>
+<tr class=\\"h\\"><th>mbstring extension makes use of \\"streamable kanji code filter and converter\\", which is distributed under the GNU Lesser General Public License version 2.1.</th></tr>
+</table>
+<table>
+<tr class=\\"h\\"><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+<tr><td class=\\"e\\">mbstring.detect_order</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.encoding_translation</td><td class=\\"v\\">Off</td><td class=\\"v\\">Off</td></tr>
+<tr><td class=\\"e\\">mbstring.http_input</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.http_output</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.http_output_conv_mimetypes</td><td class=\\"v\\">^(text/|application/xhtml\\\\+xml)</td><td class=\\"v\\">^(text/|application/xhtml\\\\+xml)</td></tr>
+<tr><td class=\\"e\\">mbstring.internal_encoding</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
+<tr><td class=\\"e\\">mbstring.language</td><td class=\\"v\\">neutral</td><td class=\\"v\\">neutral</td></tr>
+<tr><td class=\\"e\\">mbstring.strict_detection</td><td class=\\"v\\">Off</td><td class=\\"v\\">Off</td></tr>
+<tr><td class=\\"e\\">mbstring.substitute_character</td><td class=\\"v\\"><i>no value</i></td><td class=\\"v\\"><i>no value</i></td></tr>
 </table>
 <h2><a name=\\"module_pcre\\" href=\\"#module_pcre\\">pcre</a></h2>
 <table>
