@@ -477,6 +477,7 @@ RUN if [ "$WITH_CURL" = "yes" ]; then \
 WORKDIR /root/php-src
 RUN source /root/emsdk/emsdk_env.sh && \
     emconfigure ./configure \
+    CPPFLAGS="-I/root/lib/include " \
     PKG_CONFIG_PATH=$PKG_CONFIG_PATH \
     # Fibers are a PHP 8.1+ feature. They are compiled as
     # a custom assembly implementation by default. However,
