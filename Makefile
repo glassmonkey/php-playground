@@ -35,6 +35,7 @@ build-image:
 		--build-arg WITH_SQLITE=$(WITH_SQLITE) \
 		--build-arg WITH_MYSQL=$(WITH_MYSQL) \
 		--build-arg WITH_WS_NETWORKING_PROXY=$(WITH_WS_NETWORKING_PROXY) \
+		--build-arg WITH_CURL=$(WITH_CURL) \
 		--build-arg EMSCRIPTEN_ENVIRONMENT=$(PLATFORM) && \
 	cd -
 
