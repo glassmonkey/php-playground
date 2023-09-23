@@ -22,7 +22,7 @@ DIST_DIR := $(PWD)/dist
 .PHONY: build-image build-wasm build build-all build-5.6 build-7.0 build-7.1 build-7.2 build-7.3 build-7.4 build-8.0 build-8.1 build-8.2
 build-image:
 	cd src/wasm && \
-	docker build . 	--tag=$(PHP_IMAGE) \
+	DOCKER_BUILDKIT=0 docker build . --tag=$(PHP_IMAGE) \
 		--build-arg PHP_VERSION=$(PHP_VERSION) \
 		--build-arg WITH_VRZNO=$(WITH_VRZNO) \
 		--build-arg WITH_LIBXML=$(WITH_LIBXML) \
