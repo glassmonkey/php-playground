@@ -261,6 +261,29 @@ RUN     source /root/emsdk/emsdk_env.sh && \
 RUN source /root/emsdk/emsdk_env.sh && EMCC_SKIP="-lc -lz" EMCC_FLAGS="-sSIDE_MODULE" emmake make
 RUN source /root/emsdk/emsdk_env.sh && emmake make install
 
+FROM emscripten-openssl AS emscripten-curl
+COPY --from=emscripten-libz /root/lib /root/lib-libz
+RUN /root/copy-lib.sh lib-libz
+RUN export CURL_VERSION="8_3_0" && \
+    wget https://github.com/curl/curl/archive/refs/tags/curl-${CURL_VERSION}.tar.gz && \
+    tar -xf curl-${CURL_VERSION}.tar.gz;
+WORKDIR /root/curl-curl-8_3_0
+# copy for include curl's headers
+RUN cp -r include/curl /root/lib/include
+RUN source /root/emsdk/emsdk_env.sh && \
+    autoreconf -fi && \
+    CPPFLAGS="-I/root/lib/include " \
+    LDFLAGS="-L/root/lib/lib " \
+    emconfigure ./configure \
+        PKG_CONFIG_PATH=$PKG_CONFIG_PATH \
+        --build i386-pc-linux-gnu \
+        --target wasm32-unknown-emscripten \
+        --with-openssl \
+        --without-zlib \
+        --prefix=/root/lib/
+RUN source /root/emsdk/emsdk_env.sh && EMCC_FLAGS="-sSIDE_MODULE" emmake make
+RUN source /root/emsdk/emsdk_env.sh && emmake make install
+
 # Clone PHP
 FROM emscripten AS emscripten-php-src
 ARG PHP_VERSION
@@ -292,6 +315,7 @@ ARG WITH_SQLITE
 ARG WITH_MYSQL
 ARG WITH_OPENSSL
 ARG WITH_WS_NETWORKING_PROXY
+ARG WITH_CURL
 
 # The platform to build for: web or node
 ARG EMSCRIPTEN_ENVIRONMENT=web
@@ -442,6 +466,11 @@ RUN if [ "$WITH_VRZNO" = "yes" ]; \
 # Install Mysql support if needed
 RUN if [ "$WITH_MYSQL" = "yes" ]; then \
         echo -n ' --enable-mysql --enable-pdo --with-mysql=mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd ' >> /root/.php-configure-flags; \
+    fi
+COPY --from=emscripten-curl /root/lib /root/lib-curl
+RUN if [ "$WITH_CURL" = "yes" ]; then \
+        bash /root/copy-lib.sh lib-curl && \
+        echo -n ' --with-curl ' >> /root/.php-configure-flags; \
     fi
 
 # Build the patched PHP
