@@ -8,7 +8,7 @@
     "@codemirror/language": "^6.8.0",
     "@codesandbox/sandpack-react": "^2.1.2",
     "@emotion/react": "^11.11.1",
-    "@emotion/styled": "^11.10.6",
+    "@emotion/styled": "^11.11.0",
     "@monaco-editor/react": "^4.4.6",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/user-event": "^13.5.0",
