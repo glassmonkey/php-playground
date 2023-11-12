@@ -151,6 +151,7 @@ export default function App() {
 			<Editor
 				initCode={initCode}
 				version={currentVersion}
+				format={currentFormat}
 				onChangeCode={function (code: string) {
 					setHistory(code, currentVersion, currentFormat);
 				}}

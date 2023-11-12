@@ -21,6 +21,6 @@ export function SelectFormat(
             updateFormat(e.target.checked ? "html" : "console");
             setIsHtml(e.target.checked);
         }}>
-        HTML display
+        HTML Preview
     </Checkbox>
 }

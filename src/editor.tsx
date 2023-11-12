@@ -10,6 +10,7 @@ import { Box, Center, Flex, Spinner } from '@chakra-ui/react';
 import type { ReactElement } from 'react';
 import * as React from 'react';
 import MonacoEditor from '@monaco-editor/react';
+import {Format} from "./format";
 
 function LoadSpinner() {
 	return (
@@ -41,7 +42,7 @@ function PhpEditor() {
 	);
 }
 
-function PhpPreview(params: { version: Version }) {
+function PhpPreview(params: { version: Version, format: Format }) {
 	const { sandpack } = useSandpack();
 	const { files, activeFile } = sandpack;
 	const code = files[activeFile].code;
@@ -50,8 +51,12 @@ function PhpPreview(params: { version: Version }) {
 	if (loading) {
 		return <LoadSpinner />;
 	}
+	let render = result;
+	if (params.format === "console") {
+		render = `<pre>${result}</pre>`;
+	}
 
-	return <iframe srcDoc={result} height="100%" width="100%" sandbox="" />;
+	return <iframe srcDoc={render} height="100%" width="100%" sandbox="" />;
 }
 
 function PhpCodeCallback(params: { onChangeCode: (code: string) => void }) {
@@ -106,6 +111,7 @@ function EditorLayout(params: { Editor: ReactElement; Preview: ReactElement }) {
 export function Editor(params: {
 	initCode: string;
 	version: Version;
+	format: Format;
 	onChangeCode: (code: string) => void;
 }) {
 	return (
@@ -119,7 +125,7 @@ export function Editor(params: {
 		>
 			<EditorLayout
 				Editor={<PhpEditor />}
-				Preview={<PhpPreview version={params.version} />}
+				Preview={<PhpPreview version={params.version} format={params.format} />}
 			/>
 			<PhpCodeCallback onChangeCode={params.onChangeCode} />
 		</SandpackProvider>
