@@ -1,4 +1,5 @@
-import {Version} from "./php-wasm/php";
+import {Checkbox} from "@chakra-ui/react";
+import {useState} from "react";
 
 export type Format = "html" | "console";
 
@@ -6,11 +7,20 @@ export type Format = "html" | "console";
 export function SelectFormat(
     {
         format,
-        onChange,
+        updateFormat,
     }: {
         format: Format;
         updateFormat: (f: Format) => void;
     }
 ) {
-    return format
+    const [isHtml, setIsHtml] = useState<boolean>(format === "html");
+
+    return <Checkbox
+        isChecked={isHtml}
+        onChange={(e) => {
+            updateFormat(e.target.checked ? "html" : "console");
+            setIsHtml(e.target.checked);
+        }}>
+        HTML display
+    </Checkbox>
 }
