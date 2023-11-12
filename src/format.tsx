@@ -1,4 +1,5 @@
 import {Checkbox} from "@chakra-ui/react";
+import * as React from 'react';
 import {useState} from "react";
 
 export type Format = "html" | "console";

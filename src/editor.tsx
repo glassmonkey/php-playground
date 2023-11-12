@@ -51,12 +51,11 @@ function PhpPreview(params: { version: Version, format: Format }) {
 	if (loading) {
 		return <LoadSpinner />;
 	}
-	let render = result;
 	if (params.format === "console") {
-		render = `<pre>${result}</pre>`;
+		return <pre style={{textWrap: "wrap"}}>{result}</pre>;
 	}
 
-	return <iframe srcDoc={render} height="100%" width="100%" sandbox="" />;
+	return <iframe srcDoc={result} height="100%" width="100%" sandbox="" />;
 }
 
 function PhpCodeCallback(params: { onChangeCode: (code: string) => void }) {

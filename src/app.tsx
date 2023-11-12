@@ -17,7 +17,6 @@ import SelectPHP from './select';
 import { Editor } from './editor';
 import { SunIcon } from '@chakra-ui/icons';
 import {Format, SelectFormat} from "./format";
-import {c} from "../public/index-b4fe954f";
 
 type UrlState = {
 	v: Version;
