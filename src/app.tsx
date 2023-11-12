@@ -16,10 +16,13 @@ import { Version, asVersion } from './php-wasm/php';
 import SelectPHP from './select';
 import { Editor } from './editor';
 import { SunIcon } from '@chakra-ui/icons';
+import {Format, SelectFormat} from "./format";
+import {c} from "../public/index-b4fe954f";
 
 type UrlState = {
 	v: Version;
 	c: string;
+	f: Format;
 };
 
 export default function App() {
@@ -32,25 +35,30 @@ export default function App() {
 	const currentVersion =
 		asVersion(searchParams.get('v')) ?? '8.2';
 
+	const currentFormat = searchParams.get('f') as Format ?? "html";
+
 	function updateVersion(v: Version) {
 		const currentState = history.state as UrlState | null;
 		const code = lzstring.decompressFromEncodedURIComponent(
 			currentState?.c ?? initCode
 		);
+		const format = currentState?.f ?? currentFormat;
 		if (code == null) {
 			return;
 		}
 		setSearchParams({
 			v: v,
 			c: lzstring.compressToEncodedURIComponent(code),
+			f: format,
 		});
-		setHistory(code, v);
+		setHistory(code, v, format);
 	}
 
-	function setHistory(code: string, version: Version) {
+	function setHistory(code: string, version: Version, format: Format) {
 		const state: UrlState = {
 			c: lzstring.compressToEncodedURIComponent(code),
 			v: version,
+			f: format,
 		};
 		const urlSearchParam = new URLSearchParams(state).toString();
 		// Only push to history.
@@ -61,9 +69,27 @@ export default function App() {
 	useEffect(
 		function () {
 			updateVersion(currentVersion);
+			updateFormat(currentFormat)
 		},
-		[currentVersion]
+		[currentVersion, currentFormat]
 	);
+
+	function updateFormat(format: Format) {
+		const currentState = history.state as UrlState | null;
+		const code = lzstring.decompressFromEncodedURIComponent(
+			currentState?.c ?? initCode
+		);
+		const version = currentState?.v ?? currentVersion;
+		if (code == null) {
+			return;
+		}
+		setSearchParams({
+			v: version,
+			c: lzstring.compressToEncodedURIComponent(code),
+			f: format,
+		});
+		setHistory(code, version, format);
+	}
 
 	return (
 		<main style={{ margin: '16px' }}>
@@ -119,13 +145,14 @@ export default function App() {
 						onChange={updateVersion}
 						version={currentVersion}
 					/>
+					<SelectFormat format={currentFormat} updateFormat={updateFormat}/>
 				</Flex>
 			</Flex>
 			<Editor
 				initCode={initCode}
 				version={currentVersion}
 				onChangeCode={function (code: string) {
-					setHistory(code, currentVersion);
+					setHistory(code, currentVersion, currentFormat);
 				}}
 			/>
 		</main>
