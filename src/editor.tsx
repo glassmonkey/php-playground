@@ -10,6 +10,7 @@ import { Box, Center, Flex, Spinner } from '@chakra-ui/react';
 import type { ReactElement } from 'react';
 import * as React from 'react';
 import MonacoEditor from '@monaco-editor/react';
+import {Format} from "./format";
 
 function LoadSpinner() {
 	return (
@@ -41,7 +42,7 @@ function PhpEditor() {
 	);
 }
 
-function PhpPreview(params: { version: Version }) {
+function PhpPreview(params: { version: Version, format: Format }) {
 	const { sandpack } = useSandpack();
 	const { files, activeFile } = sandpack;
 	const code = files[activeFile].code;
@@ -49,6 +50,9 @@ function PhpPreview(params: { version: Version }) {
 
 	if (loading) {
 		return <LoadSpinner />;
+	}
+	if (params.format === "console") {
+		return <pre style={{whiteSpace: "pre-wrap", overflow: "scroll", width: "100%", height: "100%"}}>{result}</pre>;
 	}
 
 	return <iframe srcDoc={result} height="100%" width="100%" sandbox="" />;
@@ -76,7 +80,7 @@ function EditorLayout(params: { Editor: ReactElement; Preview: ReactElement }) {
 					as={SandpackLayout}
 					flexDirection={{ base: 'column', lg: 'row' }}
 					height={{ base: '50%', lg: '100%' }}
-					width="100%"
+					width={{ base: '100%', lg: '50%' }}
 				>
 					<Box
 						as="span"
@@ -90,8 +94,8 @@ function EditorLayout(params: { Editor: ReactElement; Preview: ReactElement }) {
 					</Box>
 				</Box>
 				<Box
-					width="100%"
 					height={{ base: '50%', lg: '100%' }}
+					width={{ base: '100%', lg: '50%' }}
 					style={{
 						backgroundColor: 'white',
 					}}
@@ -106,6 +110,7 @@ function EditorLayout(params: { Editor: ReactElement; Preview: ReactElement }) {
 export function Editor(params: {
 	initCode: string;
 	version: Version;
+	format: Format;
 	onChangeCode: (code: string) => void;
 }) {
 	return (
@@ -119,7 +124,7 @@ export function Editor(params: {
 		>
 			<EditorLayout
 				Editor={<PhpEditor />}
-				Preview={<PhpPreview version={params.version} />}
+				Preview={<PhpPreview version={params.version} format={params.format} />}
 			/>
 			<PhpCodeCallback onChangeCode={params.onChangeCode} />
 		</SandpackProvider>
