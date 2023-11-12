@@ -52,7 +52,7 @@ function PhpPreview(params: { version: Version, format: Format }) {
 		return <LoadSpinner />;
 	}
 	if (params.format === "console") {
-		return <pre style={{textWrap: "wrap"}}>{result}</pre>;
+		return <pre style={{whiteSpace: "pre-wrap", overflow: "scroll", width: "100%", height: "100%"}}>{result}</pre>;
 	}
 
 	return <iframe srcDoc={result} height="100%" width="100%" sandbox="" />;
@@ -80,7 +80,7 @@ function EditorLayout(params: { Editor: ReactElement; Preview: ReactElement }) {
 					as={SandpackLayout}
 					flexDirection={{ base: 'column', lg: 'row' }}
 					height={{ base: '50%', lg: '100%' }}
-					width="100%"
+					width={{ base: '100%', lg: '50%' }}
 				>
 					<Box
 						as="span"
@@ -94,8 +94,8 @@ function EditorLayout(params: { Editor: ReactElement; Preview: ReactElement }) {
 					</Box>
 				</Box>
 				<Box
-					width="100%"
 					height={{ base: '50%', lg: '100%' }}
+					width={{ base: '100%', lg: '50%' }}
 					style={{
 						backgroundColor: 'white',
 					}}
