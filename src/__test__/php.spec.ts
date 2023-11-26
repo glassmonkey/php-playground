@@ -11,7 +11,7 @@ mockFetch.setOptions({
 	baseUrl: '',
 });
 it.skip('should increment counter', async () => {
-	const v = '8.2';
+	const v = '8.3';
 	const code = '<? echo(1);';
 
 	const data = fs.readFileSync(`assets/php-${v}.wasm`);
