@@ -32,7 +32,7 @@ export default function App() {
 		) ?? '<?php\n// example code\nphpinfo();';
 
 	const currentVersion =
-		asVersion(searchParams.get('v')) ?? '8.2';
+		asVersion(searchParams.get('v')) ?? '8.3';
 
 	const currentFormat = searchParams.get('f') as Format ?? "html";
 
