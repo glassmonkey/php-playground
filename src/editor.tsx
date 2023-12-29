@@ -6,7 +6,7 @@ import {
 	useSandpack,
 } from '@codesandbox/sandpack-react';
 import { usePHP } from './php';
-import { Box, Center, Flex, Spinner } from '@chakra-ui/react';
+import { Box, Center, Flex, Spinner, useColorMode } from '@chakra-ui/react';
 import type { ReactElement } from 'react';
 import * as React from 'react';
 import MonacoEditor from '@monaco-editor/react';
@@ -23,12 +23,14 @@ function LoadSpinner() {
 function PhpEditor() {
 	const { code, updateCode } = useActiveCode();
 	const { sandpack } = useSandpack();
+    const { colorMode } = useColorMode();
+
 	return (
 		<MonacoEditor
 			width="100%"
 			height="100%"
 			language="php"
-			theme="light"
+			theme={ ( colorMode === "light" ) ? "vs" : "vs-dark" }
 			key={sandpack.activeFile}
 			defaultValue={code}
 			onChange={(value) => updateCode(value || '')}

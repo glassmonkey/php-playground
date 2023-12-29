@@ -8,6 +8,7 @@ import {
 	Link,
 	Center,
 	Button,
+	useColorMode,
 } from '@chakra-ui/react';
 import { useSearchParams } from 'react-router-dom';
 import * as lzstring from 'lz-string';
@@ -15,7 +16,7 @@ import * as lzstring from 'lz-string';
 import { Version, asVersion } from './php-wasm/php';
 import SelectPHP from './select';
 import { Editor } from './editor';
-import { SunIcon } from '@chakra-ui/icons';
+import { SunIcon, MoonIcon, BellIcon } from '@chakra-ui/icons';
 import {Format, SelectFormat} from "./format";
 
 type UrlState = {
@@ -35,6 +36,8 @@ export default function App() {
 		asVersion(searchParams.get('v')) ?? '8.3';
 
 	const currentFormat = searchParams.get('f') as Format ?? "html";
+
+	const { colorMode, toggleColorMode } = useColorMode();
 
 	function updateVersion(v: Version) {
 		const currentState = history.state as UrlState | null;
@@ -124,7 +127,15 @@ export default function App() {
 				<Flex direction={{ base: 'column', lg: 'row' }} gap="16px">
 					<Center>
 						<Button
-							leftIcon={<SunIcon />}
+							leftIcon={ ( colorMode === "light" ) ? <MoonIcon /> : <SunIcon /> }
+							onClick={toggleColorMode}
+							colorScheme="blue"
+							mr={2}
+						>
+							{ (colorMode === "light") ? "Dark" : "Light" }
+						</Button>
+						<Button
+							leftIcon={<BellIcon />}
 							href="https://github.com/sponsors/glassmonkey"
 							as="a"
 							colorScheme="green"
