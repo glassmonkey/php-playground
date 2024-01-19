@@ -19,7 +19,7 @@ const root = ReactDOM.createRoot(document.getElementById('app')!);
 root.render(
     <>
         <ColorModeScript initialColorMode={theme.config.initialColorMode} />
-        <ChakraProvider>
+        <ChakraProvider  theme={theme}>
             <Box style={{ margin: '16px' }}>
                 <Header />
             </Box>
