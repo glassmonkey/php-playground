@@ -27,7 +27,13 @@ build JavaScript and preview
 npm run preview
 ```
 
-# PHP to WebAssembly build pipeline
+# related 
+
+## chrome extension
+install: [store page](https://chromewebstore.google.com/detail/run-on-php-playground/ddhmobhdfmhfckpkedkompdjdmpapeng)  
+repository: [meihei3/run-on-php-playground](https://github.com/meihei3/run-on-php-playground)
+
+## PHP to WebAssembly build pipeline
 
 The bulild pipeline was created by Forking [WordPress/wordpress-playground](https://github.com/WordPress/wordpress-playground).  
 Please refer to the [original document](https://wordpresswasm.readthedocs.io/en/latest/using-php-in-javascript/) for details.
