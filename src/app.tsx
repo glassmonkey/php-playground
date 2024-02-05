@@ -7,7 +7,7 @@ import {
 	Text,
 	Link,
 	Center,
-	Button,
+	Button, Switch, useColorMode,
 } from '@chakra-ui/react';
 import { useSearchParams } from 'react-router-dom';
 import * as lzstring from 'lz-string';
@@ -33,6 +33,8 @@ export default function App() {
 
 	const currentVersion =
 		asVersion(searchParams.get('v')) ?? '8.3';
+
+	const { colorMode, toggleColorMode } = useColorMode();
 
 	const currentFormat = searchParams.get('f') as Format ?? "html";
 
@@ -90,6 +92,7 @@ export default function App() {
 		setHistory(code, version, format);
 	}
 
+
 	return (
 		<main style={{ margin: '16px' }}>
 			<Flex marginTop="8px" marginBottom="8px" gap="16px">
@@ -144,6 +147,17 @@ export default function App() {
 						onChange={updateVersion}
 						version={currentVersion}
 					/>
+					<Flex direction="row" gap={"8px"} alignItems={"center"}>
+						<Text fontSize="xs">UI Theme:</Text>
+						<Switch
+							variant="colormodeswi∂tcher"
+							size="lg"
+							fontSize="lg"
+							isChecked={ colorMode === "light" }
+							onChange={toggleColorMode}
+							mr={2}
+						/>
+					</Flex>
 					<SelectFormat format={currentFormat} updateFormat={updateFormat}/>
 				</Flex>
 			</Flex>
