@@ -16,7 +16,7 @@ function extendSwitchTheme() {
 
   const template = 'data:image/svg+xml;utf8,$';
 
-  const colormodeswitcher = definePartsStyle({
+  const colormodeSwitcher = definePartsStyle({
     track: {
       background: "#f1bf5a", // yellow
       _dark: {
@@ -36,7 +36,7 @@ function extendSwitchTheme() {
     }
   });
 
-  return defineMultiStyleConfig({ variants: { colormodeswitcher } });
+  return defineMultiStyleConfig({ variants: { colormodeSwitcher } });
 }
 
 export const switchTheme = extendSwitchTheme();
