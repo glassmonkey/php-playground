@@ -15,7 +15,7 @@ import * as lzstring from 'lz-string';
 import { Version, asVersion } from './php-wasm/php';
 import SelectPHP from './select';
 import { Editor } from './editor';
-import { SunIcon } from '@chakra-ui/icons';
+import { BellIcon } from '@chakra-ui/icons';
 import {Format, SelectFormat} from "./format";
 
 type UrlState = {
@@ -124,7 +124,7 @@ export default function App() {
 				<Flex direction={{ base: 'column', lg: 'row' }} gap="16px">
 					<Center>
 						<Button
-							leftIcon={<SunIcon />}
+							leftIcon={<BellIcon />}
 							href="https://github.com/sponsors/glassmonkey"
 							as="a"
 							colorScheme="green"
