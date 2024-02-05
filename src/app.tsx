@@ -150,7 +150,7 @@ export default function App() {
 					<Flex direction="row" gap={"8px"} alignItems={"center"}>
 						<Text fontSize="xs">UI Theme:</Text>
 						<Switch
-							variant="colormodeswi∂tcher"
+							variant="colormodeSwitcher"
 							size="lg"
 							fontSize="lg"
 							isChecked={ colorMode === "light" }
