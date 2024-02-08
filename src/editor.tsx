@@ -9,8 +9,9 @@ import { usePHP } from './php';
 import { Box, Center, Flex, Spinner, useColorMode } from '@chakra-ui/react';
 import type { ReactElement } from 'react';
 import * as React from 'react';
-import MonacoEditor from '@monaco-editor/react';
+import MonacoEditor, { type OnChange } from '@monaco-editor/react';
 import {Format} from "./format";
+import debounce from 'debounce';
 
 function LoadSpinner() {
 	return (
@@ -25,6 +26,10 @@ function PhpEditor() {
 	const { sandpack } = useSandpack();
     const { colorMode } = useColorMode();
 
+	const onChangeCode: OnChange = debounce((value) => {
+		updateCode(value || '');
+	}, 1000);
+
 	return (
 		<MonacoEditor
 			width="100%"
@@ -33,7 +38,7 @@ function PhpEditor() {
 			theme={ ( colorMode === "light" ) ? "vs" : "vs-dark" }
 			key={sandpack.activeFile}
 			defaultValue={code}
-			onChange={(value) => updateCode(value || '')}
+			onChange={onChangeCode}
 			loading={<LoadSpinner />}
 			options={{
 				minimap: {
