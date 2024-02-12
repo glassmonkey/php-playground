@@ -27,7 +27,7 @@
     "react-router-dom": "^6.17.0",
     "react-select": "^5.8.0",
     "typescript": "^5.2.2",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^3.5.2"
   },
   "scripts": {
     "dev": "vite",
