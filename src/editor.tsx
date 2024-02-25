@@ -28,7 +28,7 @@ function PhpEditor() {
 
 	const onChangeCode: OnChange = debounce((value) => {
 		updateCode(value || '');
-	}, 1000);
+	}, 300);
 
 	return (
 		<MonacoEditor
