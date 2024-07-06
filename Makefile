@@ -87,7 +87,6 @@ build-8.1:
 build-8.2:
 	$(MAKE) build-wasm PHP_VERSION=8.2
 
-# not working
 build-8.3:
 	$(MAKE) build-wasm PHP_VERSION=8.3
 
@@ -114,3 +113,7 @@ test-ci:
 style-fix:
 	npm run lint:js:fix
 	npm run format
+
+.PHONY: clean-image
+clean-image:
+	docker image rm `docker images php-wasm -q`
