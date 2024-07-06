@@ -11,4 +11,10 @@ test.describe('default page', () => {
   test('default version is 8.3', async ({ page }) => {
     await expect(page.getByText('8.3')).toBeVisible()
   })
+  test('default code is `phpinfo()`', async ({ page }) => {
+    await expect(page.getByRole('code')).toContainText('phpinfo();')
+  })
+  test('default preview is PHP 8.3', async ({ page }) => {
+    await expect(await page.getByTestId('preview').getAttribute('srcdoc')).toContain('PHP Version 8.3')
+  })
 })
