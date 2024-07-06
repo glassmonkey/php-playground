@@ -17,6 +17,7 @@ export function SelectFormat(
     const [isHtml, setIsHtml] = useState<boolean>(format === "html");
 
     return <Checkbox
+        data-testid="checkbox-format"
         isChecked={isHtml}
         onChange={(e) => {
             updateFormat(e.target.checked ? "html" : "console");

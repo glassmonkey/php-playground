@@ -59,10 +59,10 @@ function PhpPreview(params: { version: Version, format: Format }) {
 		return <LoadSpinner />;
 	}
 	if (params.format === "console") {
-		return <pre style={{whiteSpace: "pre-wrap", overflow: "scroll", width: "100%", height: "100%"}} data-testid = "preview">{result}</pre>;
+		return <pre style={{whiteSpace: "pre-wrap", overflow: "scroll", width: "100%", height: "100%"}} data-testid = "preview-console">{result}</pre>;
 	}
 
-	return <iframe  srcDoc={result} height="100%" width="100%" sandbox="" data-testid = "preview"/>;
+	return <iframe  srcDoc={result} height="100%" width="100%" sandbox="" data-testid = "preview-html"/>;
 }
 
 function PhpCodeCallback(params: { onChangeCode: (code: string) => void }) {

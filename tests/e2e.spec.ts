@@ -15,6 +15,14 @@ test.describe('default page', () => {
     await expect(page.getByRole('code')).toContainText('phpinfo();')
   })
   test('default preview is PHP 8.3', async ({ page }) => {
-    await expect(await page.getByTestId('preview').getAttribute('srcdoc')).toContain('PHP Version 8.3')
+    // html preview
+    await page.getByTestId('checkbox-format').check()
+    await expect(await page.getByTestId('preview-html').getAttribute('srcdoc')).toContain('PHP Version 8.3')
+    await expect(await page.getByTestId('preview-console')).not.toBeVisible()
+
+    // console pvreview
+    await page.getByTestId('checkbox-format').uncheck()
+    await expect(await page.getByTestId('preview-console')).toContainText('PHP Version 8.3')
+    await expect(await page.getByTestId('preview-html')).not.toBeVisible()
   })
 })
