@@ -7,7 +7,6 @@ test.describe('default page', () => {
   })
   test('has title', async ({ page }) => {
     await expect(page).toHaveTitle('PHP Playground');
-
   });
   test('default version is 8.3', async ({ page }) => {
     await expect(page.getByText('8.3')).toBeVisible()
