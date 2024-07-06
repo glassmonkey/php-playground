@@ -4,9 +4,9 @@ import * as React from 'react';
 export default function Header() {
 	return (
 		<Flex gap="8px" direction="column">
-      <Flex justify="space-between">
-        <Heading as="h1">PHP Playground</Heading>
-      </Flex>
+			<Flex justify="space-between">
+				<Heading as="h1">PHP Playground</Heading>
+			</Flex>
 			<Text as="p">
 				PHP Playground let you to execute basic PHP code in real time
 				using WebAssembly technology.

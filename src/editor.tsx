@@ -10,7 +10,7 @@ import { Box, Center, Flex, Spinner, useColorMode } from '@chakra-ui/react';
 import type { ReactElement } from 'react';
 import * as React from 'react';
 import MonacoEditor, { type OnChange } from '@monaco-editor/react';
-import {Format} from "./format";
+import { Format } from './format';
 import debounce from 'debounce';
 
 function LoadSpinner() {
@@ -24,7 +24,7 @@ function LoadSpinner() {
 function PhpEditor() {
 	const { code, updateCode } = useActiveCode();
 	const { sandpack } = useSandpack();
-    const { colorMode } = useColorMode();
+	const { colorMode } = useColorMode();
 
 	const onChangeCode: OnChange = debounce((value) => {
 		updateCode(value || '');
@@ -35,7 +35,7 @@ function PhpEditor() {
 			width="100%"
 			height="100%"
 			language="php"
-			theme={ ( colorMode === "light" ) ? "vs" : "vs-dark" }
+			theme={colorMode === 'light' ? 'vs' : 'vs-dark'}
 			key={sandpack.activeFile}
 			defaultValue={code}
 			onChange={onChangeCode}
@@ -49,7 +49,7 @@ function PhpEditor() {
 	);
 }
 
-function PhpPreview(params: { version: Version, format: Format }) {
+function PhpPreview(params: { version: Version; format: Format }) {
 	const { sandpack } = useSandpack();
 	const { files, activeFile } = sandpack;
 	const code = files[activeFile].code;
@@ -58,11 +58,31 @@ function PhpPreview(params: { version: Version, format: Format }) {
 	if (loading) {
 		return <LoadSpinner />;
 	}
-	if (params.format === "console") {
-		return <pre style={{whiteSpace: "pre-wrap", overflow: "scroll", width: "100%", height: "100%"}} data-testid = "preview-console">{result}</pre>;
+	if (params.format === 'console') {
+		return (
+			<pre
+				style={{
+					whiteSpace: 'pre-wrap',
+					overflow: 'scroll',
+					width: '100%',
+					height: '100%',
+				}}
+				data-testid="preview-console"
+			>
+				{result}
+			</pre>
+		);
 	}
 
-	return <iframe  srcDoc={result} height="100%" width="100%" sandbox="" data-testid = "preview-html"/>;
+	return (
+		<iframe
+			srcDoc={result}
+			height="100%"
+			width="100%"
+			sandbox=""
+			data-testid="preview-html"
+		/>
+	);
 }
 
 function PhpCodeCallback(params: { onChangeCode: (code: string) => void }) {
@@ -131,7 +151,12 @@ export function Editor(params: {
 		>
 			<EditorLayout
 				Editor={<PhpEditor />}
-				Preview={<PhpPreview version={params.version} format={params.format} />}
+				Preview={
+					<PhpPreview
+						version={params.version}
+						format={params.format}
+					/>
+				}
 			/>
 			<PhpCodeCallback onChangeCode={params.onChangeCode} />
 		</SandpackProvider>
