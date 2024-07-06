@@ -31,13 +31,16 @@ test.describe('default page', () => {
     await expect(await page.getByTestId('preview-console')).toContainText('PHP Version 8.3')
     await expect(await page.getByTestId('preview-html')).not.toBeVisible()
   })
+})
 
-  test.describe('select version', () => {
-
-    // ref: https://github.com/microsoft/playwright/issues/7036
-    versions.forEach((v) => {
-      test(`select version v=${v} is running`, async ({ page }) => {
-        //expect(page.locator('#select-php')).toBeFocused()
+test.describe('select version', () => {
+  // ref: https://github.com/microsoft/playwright/issues/7036
+  versions.forEach((v) => {
+    test.describe(`select version v=${v}`, () => {
+      test.beforeEach(async ({page}) => {
+        await page.goto(PAGE);
+      })
+      test(`running php info`, async ({page}) => {
         const input = page.locator('#select-input-php')
         await input.fill(v)
         await page.keyboard.down("Tab");
@@ -45,8 +48,30 @@ test.describe('default page', () => {
         // html preview
         await page.getByTestId('checkbox-format').check()
         await expect(await page.getByTestId('preview-html').getAttribute('srcdoc')).toContain(`PHP Version ${v}`)
-        await expect(await page.getByTestId('preview-console')).not.toBeVisible()
         expect(page.url()).toContain(`v=${v}`)
+      })
+      test(`compute php code(1+1)`, async ({page}) => {
+        // select version
+        const input = page.locator('#select-input-php')
+        await input.fill(v)
+        await page.keyboard.down("Tab");
+
+        const editor = page.getByRole('code')
+        // focus editor
+        await editor.click()
+        // delete all
+        while (await page.getByRole('presentation').textContent() !== '') {
+          await page.keyboard.press("Backspace")
+        }
+        // display code in editor
+        await expect(page.getByRole('presentation')).toHaveText('')
+        // try 1+1
+        await page.keyboard.type('<? echo 1+1;')
+        // display code in editor
+        await expect(page.getByRole('presentation')).toHaveText('<? echo 1+1;')
+        // run and result is 2
+        await page.getByTestId('checkbox-format').uncheck()
+        await expect(await page.getByTestId('preview-console')).toHaveText('2')
       })
     })
   })
