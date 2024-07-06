@@ -1,4 +1,5 @@
-import { test, expect} from '@playwright/test';
+import {expect, test} from '@playwright/test';
+import {versions} from "../src/php-wasm/php";
 
 const PAGE = 'http://localhost:18888';
 test.describe('default page', () => {
@@ -14,7 +15,12 @@ test.describe('default page', () => {
   test('default code is `phpinfo()`', async ({ page }) => {
     await expect(page.getByRole('code')).toContainText('phpinfo();')
   })
-  test('default preview is PHP 8.3', async ({ page }) => {
+
+  test('default URL', async ({ page }) => {
+    expect(page.url()).toBe('http://localhost:18888/?c=DwfgDgFmBQD0sAICmAPAhgWzAGyQgxgPYAmS0kYAlgHYBmhAFAJQDcQA&v=8.3&f=html')
+  })
+
+  test('switch preview', async ({ page }) => {
     // html preview
     await page.getByTestId('checkbox-format').check()
     await expect(await page.getByTestId('preview-html').getAttribute('srcdoc')).toContain('PHP Version 8.3')
@@ -25,4 +31,26 @@ test.describe('default page', () => {
     await expect(await page.getByTestId('preview-console')).toContainText('PHP Version 8.3')
     await expect(await page.getByTestId('preview-html')).not.toBeVisible()
   })
+
+  test.describe('select version', () => {
+
+    // ref: https://github.com/microsoft/playwright/issues/7036
+    versions.forEach((v) => {
+      test(`select version v=${v} is running`, async ({ page }) => {
+        //expect(page.locator('#select-php')).toBeFocused()
+        const input = page.locator('#select-input-php')
+        await input.fill(v)
+        await page.keyboard.down("Tab");
+
+        // html preview
+        await page.getByTestId('checkbox-format').check()
+        await expect(await page.getByTestId('preview-html').getAttribute('srcdoc')).toContain(`PHP Version ${v}`)
+        await expect(await page.getByTestId('preview-console')).not.toBeVisible()
+        expect(page.url()).toContain(`v=${v}`)
+      })
+    })
+  })
 })
+
+
+
