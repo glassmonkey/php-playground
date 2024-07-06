@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   server: {
     open: true,
+    port: 18888,
   },
   publicDir: 'assets',
   build: {

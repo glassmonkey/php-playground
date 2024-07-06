@@ -46,7 +46,9 @@
     "lint:js": "eslint \"./src/**/*.{js,mjs,ts}\"",
     "lint:js:fix": "npm run lint:js -- --fix",
     "test": "vitest",
-    "test:ci": "vitest run"
+    "test:ci": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:report": "playwright show-report"
   },
   "eslintConfig": {
     "extends": [
