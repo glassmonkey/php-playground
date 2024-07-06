@@ -1,5 +1,5 @@
 import React from 'react';
-import Select, { components } from 'react-select';
+import Select from 'react-select';
 import { Version, versions } from './php-wasm/php';
 
 const phpOptions = versions.map((v) => ({
@@ -22,12 +22,12 @@ export default function SelectPHP({
 			id="select-php"
 			inputId="select-input-php"
 			styles={{
-				option: (baseStyles, state) => ({
+				option: (baseStyles) => ({
 					...baseStyles,
 					color: 'black',
 					fontSize: '14px',
 				}),
-				control: (baseStyles, state) => ({
+				control: (baseStyles) => ({
 					...baseStyles,
 					color: 'black',
 					fontSize: '14px',

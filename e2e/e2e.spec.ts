@@ -1,7 +1,7 @@
 import {expect, test} from '@playwright/test';
 import {versions} from "../src/php-wasm/php";
 
-const PAGE = 'http://localhost:18888';
+const PAGE = 'http://127.0.0.1:18888';
 test.describe('default page', () => {
   test.beforeEach(async ({page}) => {
     await page.goto(PAGE);
@@ -17,7 +17,7 @@ test.describe('default page', () => {
   })
 
   test('default URL', async ({ page }) => {
-    expect(page.url()).toBe('http://localhost:18888/?c=DwfgDgFmBQD0sAICmAPAhgWzAGyQgxgPYAmS0kYAlgHYBmhAFAJQDcQA&v=8.3&f=html')
+    expect(page.url()).toBe('http://127.0.0.1:18888/?c=DwfgDgFmBQD0sAICmAPAhgWzAGyQgxgPYAmS0kYAlgHYBmhAFAJQDcQA&v=8.3&f=html')
   })
 
   test('switch preview', async ({ page }) => {

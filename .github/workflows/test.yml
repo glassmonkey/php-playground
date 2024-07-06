@@ -18,3 +18,5 @@ jobs:
       - run: npm ci
       - run: make lint
       - run: make test-ci
+        env:
+          LANG: ja_JP.UTF-8
