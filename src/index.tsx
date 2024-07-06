@@ -17,19 +17,19 @@ const router = createBrowserRouter([
 
 const root = ReactDOM.createRoot(document.getElementById('app')!);
 root.render(
-    <>
-        <ColorModeScript initialColorMode={theme.config.initialColorMode} />
-        <ChakraProvider  theme={theme}>
-            <Box style={{ margin: '16px' }}>
-                <Header />
-            </Box>
-            <RouterProvider router={router} />
-            <Box style={{ margin: '16px' }}>
-                <Manual />
-            </Box>
-            <Center>
-                <Footer />
-            </Center>
-        </ChakraProvider>
-    </>
+	<>
+		<ColorModeScript initialColorMode={theme.config.initialColorMode} />
+		<ChakraProvider theme={theme}>
+			<Box style={{ margin: '16px' }}>
+				<Header />
+			</Box>
+			<RouterProvider router={router} />
+			<Box style={{ margin: '16px' }}>
+				<Manual />
+			</Box>
+			<Center>
+				<Footer />
+			</Center>
+		</ChakraProvider>
+	</>
 );

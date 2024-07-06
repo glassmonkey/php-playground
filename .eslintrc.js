@@ -10,6 +10,9 @@ module.exports = {
 				internal: 'internal',
 			},
 		},
+		react: {
+			version: 'detect',
+		}
 	},
 	extends: [
 		'eslint:recommended',

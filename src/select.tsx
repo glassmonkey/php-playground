@@ -19,13 +19,15 @@ export default function SelectPHP({
 
 	return (
 		<Select
+			id="select-php"
+			inputId="select-input-php"
 			styles={{
-				option: (baseStyles, state) => ({
+				option: (baseStyles) => ({
 					...baseStyles,
 					color: 'black',
 					fontSize: '14px',
 				}),
-				control: (baseStyles, state) => ({
+				control: (baseStyles) => ({
 					...baseStyles,
 					color: 'black',
 					fontSize: '14px',

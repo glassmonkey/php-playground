@@ -7,7 +7,9 @@ import {
 	Text,
 	Link,
 	Center,
-	Button, Switch, useColorMode,
+	Button,
+	Switch,
+	useColorMode,
 } from '@chakra-ui/react';
 import { useSearchParams } from 'react-router-dom';
 import * as lzstring from 'lz-string';
@@ -16,7 +18,7 @@ import { Version, asVersion } from './php-wasm/php';
 import SelectPHP from './select';
 import { Editor } from './editor';
 import { BellIcon } from '@chakra-ui/icons';
-import {Format, SelectFormat} from "./format";
+import { Format, SelectFormat } from './format';
 
 type UrlState = {
 	v: Version;
@@ -31,12 +33,11 @@ export default function App() {
 			searchParams.get('c') ?? ''
 		) ?? '<?php\n// example code\nphpinfo();';
 
-	const currentVersion =
-		asVersion(searchParams.get('v')) ?? '8.3';
+	const currentVersion = asVersion(searchParams.get('v')) ?? '8.3';
 
 	const { colorMode, toggleColorMode } = useColorMode();
 
-	const currentFormat = searchParams.get('f') as Format ?? "html";
+	const currentFormat = (searchParams.get('f') as Format) ?? 'html';
 
 	function updateVersion(v: Version) {
 		const currentState = history.state as UrlState | null;
@@ -70,7 +71,7 @@ export default function App() {
 	useEffect(
 		function () {
 			updateVersion(currentVersion);
-			updateFormat(currentFormat)
+			updateFormat(currentFormat);
 		},
 		[currentVersion, currentFormat]
 	);
@@ -91,7 +92,6 @@ export default function App() {
 		});
 		setHistory(code, version, format);
 	}
-
 
 	return (
 		<main style={{ margin: '16px' }}>
@@ -147,18 +147,21 @@ export default function App() {
 						onChange={updateVersion}
 						version={currentVersion}
 					/>
-					<Flex direction="row" gap={"8px"} alignItems={"center"}>
+					<Flex direction="row" gap={'8px'} alignItems={'center'}>
 						<Text fontSize="xs">UI Theme:</Text>
 						<Switch
 							variant="colormodeSwitcher"
 							size="lg"
 							fontSize="lg"
-							isChecked={ colorMode === "light" }
+							isChecked={colorMode === 'light'}
 							onChange={toggleColorMode}
 							mr={2}
 						/>
 					</Flex>
-					<SelectFormat format={currentFormat} updateFormat={updateFormat}/>
+					<SelectFormat
+						format={currentFormat}
+						updateFormat={updateFormat}
+					/>
 				</Flex>
 			</Flex>
 			<Editor

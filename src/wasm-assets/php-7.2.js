@@ -1,17 +1,17 @@
-export const dependenciesTotalSize = 4633596;
+export const dependenciesTotalSize = 4479664;
 export const dependencyFilename =
-	'php-7.2.wasm?9e3b00480a838f602c933cb77b34cafe';
+	'php-7.2.wasm?58128141ed6c59a67c0c4be8b5c517a3';
 export default function (RuntimeName, PHPLoader, EnvVariables) {
 	var Module = typeof PHPLoader != 'undefined' ? PHPLoader : {};
+	var ENVIRONMENT_IS_WEB = RuntimeName === 'WEB';
+	var ENVIRONMENT_IS_WORKER = RuntimeName === 'WORKER';
+	var ENVIRONMENT_IS_NODE = RuntimeName === 'NODE';
 	var moduleOverrides = Object.assign({}, Module);
 	var arguments_ = [];
 	var thisProgram = './this.program';
 	var quit_ = (status, toThrow) => {
 		throw toThrow;
 	};
-	var ENVIRONMENT_IS_WEB = RuntimeName === 'WEB';
-	var ENVIRONMENT_IS_WORKER = RuntimeName === 'WORKER';
-	var ENVIRONMENT_IS_NODE = RuntimeName === 'NODE';
 	var scriptDirectory = '';
 	function locateFile(path) {
 		if (Module['locateFile']) {
@@ -19,54 +19,31 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		}
 		return scriptDirectory + path;
 	}
-	var read_, readAsync, readBinary;
+	var readAsync, readBinary;
 	if (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) {
 		if (ENVIRONMENT_IS_WORKER) {
 			scriptDirectory = self.location.href;
 		} else if (typeof document != 'undefined' && document.currentScript) {
 			scriptDirectory = document.currentScript.src;
 		}
-		if (scriptDirectory.indexOf('blob:') !== 0) {
+		if (scriptDirectory.startsWith('blob:')) {
+			scriptDirectory = '';
+		} else {
 			scriptDirectory = scriptDirectory.substr(
 				0,
 				scriptDirectory.replace(/[?#].*/, '').lastIndexOf('/') + 1
 			);
-		} else {
-			scriptDirectory = '';
 		}
 		{
-			read_ = (url) => {
-				var xhr = new XMLHttpRequest();
-				xhr.open('GET', url, false);
-				xhr.send(null);
-				return xhr.responseText;
-			};
-			if (ENVIRONMENT_IS_WORKER) {
-				readBinary = (url) => {
-					var xhr = new XMLHttpRequest();
-					xhr.open('GET', url, false);
-					xhr.responseType = 'arraybuffer';
-					xhr.send(null);
-					return new Uint8Array(xhr.response);
-				};
-			}
-			readAsync = (url, onload, onerror) => {
-				var xhr = new XMLHttpRequest();
-				xhr.open('GET', url, true);
-				xhr.responseType = 'arraybuffer';
-				xhr.onload = () => {
-					if (
-						xhr.status == 200 ||
-						(xhr.status == 0 && xhr.response)
-					) {
-						onload(xhr.response);
-						return;
+			readAsync = (url) =>
+				fetch(url, { credentials: 'same-origin' }).then((response) => {
+					if (response.ok) {
+						return response.arrayBuffer();
 					}
-					onerror();
-				};
-				xhr.onerror = onerror;
-				xhr.send(null);
-			};
+					return Promise.reject(
+						new Error(response.status + ' : ' + response.url)
+					);
+				});
 		}
 	} else {
 	}
@@ -79,9 +56,6 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 	if (Module['quit']) quit_ = Module['quit'];
 	var wasmBinary;
 	if (Module['wasmBinary']) wasmBinary = Module['wasmBinary'];
-	if (typeof WebAssembly != 'object') {
-		abort('no native wasm support detected');
-	}
 	var wasmMemory;
 	var ABORT = false;
 	var EXITSTATUS;
@@ -161,15 +135,11 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 	}
 	function addRunDependency(id) {
 		runDependencies++;
-		if (Module['monitorRunDependencies']) {
-			Module['monitorRunDependencies'](runDependencies);
-		}
+		Module['monitorRunDependencies']?.(runDependencies);
 	}
 	function removeRunDependency(id) {
 		runDependencies--;
-		if (Module['monitorRunDependencies']) {
-			Module['monitorRunDependencies'](runDependencies);
-		}
+		Module['monitorRunDependencies']?.(runDependencies);
 		if (runDependencies == 0) {
 			if (runDependencyWatcher !== null) {
 				clearInterval(runDependencyWatcher);
@@ -183,9 +153,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		}
 	}
 	function abort(what) {
-		if (Module['onAbort']) {
-			Module['onAbort'](what);
-		}
+		Module['onAbort']?.(what);
 		what = 'Aborted(' + what + ')';
 		err(what);
 		ABORT = true;
@@ -196,11 +164,14 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 	}
 	var dataURIPrefix = 'data:application/octet-stream;base64,';
 	var isDataURI = (filename) => filename.startsWith(dataURIPrefix);
-	var wasmBinaryFile;
-	wasmBinaryFile = dependencyFilename;
-	if (!isDataURI(wasmBinaryFile)) {
-		wasmBinaryFile = locateFile(wasmBinaryFile);
+	function findWasmBinary() {
+		var f = dependencyFilename;
+		if (!isDataURI(f)) {
+			return locateFile(f);
+		}
+		return f;
 	}
+	var wasmBinaryFile;
 	function getBinarySync(file) {
 		if (file == wasmBinaryFile && wasmBinary) {
 			return new Uint8Array(wasmBinary);
@@ -211,28 +182,17 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		throw 'both async and sync fetching of the wasm failed';
 	}
 	function getBinaryPromise(binaryFile) {
-		if (!wasmBinary && (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER)) {
-			if (typeof fetch == 'function') {
-				return fetch(binaryFile, { credentials: 'same-origin' })
-					.then((response) => {
-						if (!response['ok']) {
-							throw (
-								"failed to load wasm binary file at '" +
-								binaryFile +
-								"'"
-							);
-						}
-						return response['arrayBuffer']();
-					})
-					.catch(() => getBinarySync(binaryFile));
-			}
+		if (!wasmBinary) {
+			return readAsync(binaryFile).then(
+				(response) => new Uint8Array(response),
+				() => getBinarySync(binaryFile)
+			);
 		}
 		return Promise.resolve().then(() => getBinarySync(binaryFile));
 	}
 	function instantiateArrayBuffer(binaryFile, imports, receiver) {
 		return getBinaryPromise(binaryFile)
 			.then((binary) => WebAssembly.instantiate(binary, imports))
-			.then((instance) => instance)
 			.then(receiver, (reason) => {
 				err(`failed to asynchronously prepare wasm: ${reason}`);
 				abort(reason);
@@ -265,14 +225,17 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		}
 		return instantiateArrayBuffer(binaryFile, imports, callback);
 	}
+	function getWasmImports() {
+		return { a: wasmImports };
+	}
 	function createWasm() {
-		var info = { a: wasmImports };
+		var info = getWasmImports();
 		function receiveInstance(instance, module) {
 			wasmExports = instance.exports;
-			wasmMemory = wasmExports['Ka'];
+			wasmMemory = wasmExports['Ia'];
 			updateMemoryViews();
-			wasmTable = wasmExports['Ta'];
-			addOnInit(wasmExports['La']);
+			wasmTable = wasmExports['Na'];
+			addOnInit(wasmExports['Ja']);
 			removeRunDependency('wasm-instantiate');
 			return wasmExports;
 		}
@@ -288,6 +251,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return false;
 			}
 		}
+		if (!wasmBinaryFile) wasmBinaryFile = findWasmBinary();
 		instantiateAsync(
 			wasmBinary,
 			wasmBinaryFile,
@@ -309,8 +273,10 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		}
 	};
 	var noExitRuntime = Module['noExitRuntime'] || false;
+	var stackRestore = (val) => __emscripten_stack_restore(val);
+	var stackSave = () => _emscripten_stack_get_current();
 	var UTF8Decoder =
-		typeof TextDecoder != 'undefined' ? new TextDecoder('utf8') : undefined;
+		typeof TextDecoder != 'undefined' ? new TextDecoder() : undefined;
 	var UTF8ArrayToString = (heapOrArray, idx, maxBytesToRead) => {
 		var endIdx = idx + maxBytesToRead;
 		var endPtr = idx;
@@ -364,8 +330,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				]
 		);
 	};
-	var ___call_sighandler = (fp, sig) =>
-		((a1) => dynCall_vi.apply(null, [fp, a1]))(sig);
+	var ___call_sighandler = (fp, sig) => ((a1) => dynCall_vi(fp, a1))(sig);
 	var PATH = {
 		isAbs: (path) => path.charAt(0) === '/',
 		splitPath: (filename) => {
@@ -429,10 +394,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			if (lastSlash === -1) return path;
 			return path.substr(lastSlash + 1);
 		},
-		join: function () {
-			var paths = Array.prototype.slice.call(arguments);
-			return PATH.normalize(paths.join('/'));
-		},
+		join: (...paths) => PATH.normalize(paths.join('/')),
 		join2: (l, r) => PATH.normalize(l + '/' + r),
 	};
 	var initRandomFill = () => {
@@ -445,15 +407,11 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 	};
 	var randomFill = (view) => (randomFill = initRandomFill())(view);
 	var PATH_FS = {
-		resolve: function () {
+		resolve: (...args) => {
 			var resolvedPath = '',
 				resolvedAbsolute = false;
-			for (
-				var i = arguments.length - 1;
-				i >= -1 && !resolvedAbsolute;
-				i--
-			) {
-				var path = i >= 0 ? arguments[i] : FS.cwd();
+			for (var i = args.length - 1; i >= -1 && !resolvedAbsolute; i--) {
+				var path = i >= 0 ? args[i] : FS.cwd();
 				if (typeof path != 'string') {
 					throw new TypeError(
 						'Arguments to path.resolve must be strings'
@@ -577,11 +535,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				if (result !== null) {
 					result += '\n';
 				}
-			} else if (typeof readline == 'function') {
-				result = readline();
-				if (result !== null) {
-					result += '\n';
-				}
+			} else {
 			}
 			if (!result) {
 				return null;
@@ -729,53 +683,51 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			if (FS.isBlkdev(mode) || FS.isFIFO(mode)) {
 				throw new FS.ErrnoError(63);
 			}
-			if (!MEMFS.ops_table) {
-				MEMFS.ops_table = {
-					dir: {
-						node: {
-							getattr: MEMFS.node_ops.getattr,
-							setattr: MEMFS.node_ops.setattr,
-							lookup: MEMFS.node_ops.lookup,
-							mknod: MEMFS.node_ops.mknod,
-							rename: MEMFS.node_ops.rename,
-							unlink: MEMFS.node_ops.unlink,
-							rmdir: MEMFS.node_ops.rmdir,
-							readdir: MEMFS.node_ops.readdir,
-							symlink: MEMFS.node_ops.symlink,
-						},
-						stream: { llseek: MEMFS.stream_ops.llseek },
+			MEMFS.ops_table ||= {
+				dir: {
+					node: {
+						getattr: MEMFS.node_ops.getattr,
+						setattr: MEMFS.node_ops.setattr,
+						lookup: MEMFS.node_ops.lookup,
+						mknod: MEMFS.node_ops.mknod,
+						rename: MEMFS.node_ops.rename,
+						unlink: MEMFS.node_ops.unlink,
+						rmdir: MEMFS.node_ops.rmdir,
+						readdir: MEMFS.node_ops.readdir,
+						symlink: MEMFS.node_ops.symlink,
 					},
-					file: {
-						node: {
-							getattr: MEMFS.node_ops.getattr,
-							setattr: MEMFS.node_ops.setattr,
-						},
-						stream: {
-							llseek: MEMFS.stream_ops.llseek,
-							read: MEMFS.stream_ops.read,
-							write: MEMFS.stream_ops.write,
-							allocate: MEMFS.stream_ops.allocate,
-							mmap: MEMFS.stream_ops.mmap,
-							msync: MEMFS.stream_ops.msync,
-						},
+					stream: { llseek: MEMFS.stream_ops.llseek },
+				},
+				file: {
+					node: {
+						getattr: MEMFS.node_ops.getattr,
+						setattr: MEMFS.node_ops.setattr,
 					},
-					link: {
-						node: {
-							getattr: MEMFS.node_ops.getattr,
-							setattr: MEMFS.node_ops.setattr,
-							readlink: MEMFS.node_ops.readlink,
-						},
-						stream: {},
+					stream: {
+						llseek: MEMFS.stream_ops.llseek,
+						read: MEMFS.stream_ops.read,
+						write: MEMFS.stream_ops.write,
+						allocate: MEMFS.stream_ops.allocate,
+						mmap: MEMFS.stream_ops.mmap,
+						msync: MEMFS.stream_ops.msync,
 					},
-					chrdev: {
-						node: {
-							getattr: MEMFS.node_ops.getattr,
-							setattr: MEMFS.node_ops.setattr,
-						},
-						stream: FS.chrdev_stream_ops,
+				},
+				link: {
+					node: {
+						getattr: MEMFS.node_ops.getattr,
+						setattr: MEMFS.node_ops.setattr,
+						readlink: MEMFS.node_ops.readlink,
 					},
-				};
-			}
+					stream: {},
+				},
+				chrdev: {
+					node: {
+						getattr: MEMFS.node_ops.getattr,
+						setattr: MEMFS.node_ops.setattr,
+					},
+					stream: FS.chrdev_stream_ops,
+				},
+			};
 			var node = FS.createNode(parent, name, mode, dev);
 			if (FS.isDir(node.mode)) {
 				node.node_ops = MEMFS.ops_table.dir.node;
@@ -901,7 +853,6 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				old_node.name = new_name;
 				new_dir.contents[new_name] = old_node;
 				new_dir.timestamp = old_node.parent.timestamp;
-				old_node.parent = new_dir;
 			},
 			unlink(parent, name) {
 				delete parent.contents[name];
@@ -917,10 +868,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			},
 			readdir(node) {
 				var entries = ['.', '..'];
-				for (var key in node.contents) {
-					if (!node.contents.hasOwnProperty(key)) {
-						continue;
-					}
+				for (var key of Object.keys(node.contents)) {
 					entries.push(key);
 				}
 				return entries;
@@ -1067,17 +1015,12 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 	};
 	var asyncLoad = (url, onload, onerror, noRunDep) => {
 		var dep = !noRunDep ? getUniqueRunDependency(`al ${url}`) : '';
-		readAsync(
-			url,
+		readAsync(url).then(
 			(arrayBuffer) => {
-				assert(
-					arrayBuffer,
-					`Loading data file "${url}" failed (no arrayBuffer).`
-				);
 				onload(new Uint8Array(arrayBuffer));
 				if (dep) removeRunDependency(dep);
 			},
-			(event) => {
+			(err) => {
 				if (onerror) {
 					onerror();
 				} else {
@@ -1094,7 +1037,9 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		canRead,
 		canWrite,
 		canOwn
-	) => FS.createDataFile(parent, name, fileData, canRead, canWrite, canOwn);
+	) => {
+		FS.createDataFile(parent, name, fileData, canRead, canWrite, canOwn);
+	};
 	var preloadPlugins = Module['preloadPlugins'] || [];
 	var FS_handledByPreloadPlugin = (byteArray, fullname, finish, onerror) => {
 		if (typeof Browser != 'undefined') Browser.init();
@@ -1126,7 +1071,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		var dep = getUniqueRunDependency(`cp ${fullname}`);
 		function processData(byteArray) {
 			function finish(byteArray) {
-				if (preFinish) preFinish();
+				preFinish?.();
 				if (!dontCreateFile) {
 					FS_createDataFile(
 						parent,
@@ -1137,12 +1082,12 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 						canOwn
 					);
 				}
-				if (onload) onload();
+				onload?.();
 				removeRunDependency(dep);
 			}
 			if (
 				FS_handledByPreloadPlugin(byteArray, fullname, finish, () => {
-					if (onerror) onerror();
+					onerror?.();
 					removeRunDependency(dep);
 				})
 			) {
@@ -1152,7 +1097,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		}
 		addRunDependency(dep);
 		if (typeof url == 'string') {
-			asyncLoad(url, (byteArray) => processData(byteArray), onerror);
+			asyncLoad(url, processData, onerror);
 		} else {
 			processData(url);
 		}
@@ -1188,10 +1133,87 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		currentPath: '/',
 		initialized: false,
 		ignorePermissions: true,
-		ErrnoError: null,
+		ErrnoError: class {
+			constructor(errno) {
+				this.name = 'ErrnoError';
+				this.errno = errno;
+			}
+		},
 		genericErrors: {},
 		filesystems: null,
 		syncFSRequests: 0,
+		FSStream: class {
+			constructor() {
+				this.shared = {};
+			}
+			get object() {
+				return this.node;
+			}
+			set object(val) {
+				this.node = val;
+			}
+			get isRead() {
+				return (this.flags & 2097155) !== 1;
+			}
+			get isWrite() {
+				return (this.flags & 2097155) !== 0;
+			}
+			get isAppend() {
+				return this.flags & 1024;
+			}
+			get flags() {
+				return this.shared.flags;
+			}
+			set flags(val) {
+				this.shared.flags = val;
+			}
+			get position() {
+				return this.shared.position;
+			}
+			set position(val) {
+				this.shared.position = val;
+			}
+		},
+		FSNode: class {
+			constructor(parent, name, mode, rdev) {
+				if (!parent) {
+					parent = this;
+				}
+				this.parent = parent;
+				this.mount = parent.mount;
+				this.mounted = null;
+				this.id = FS.nextInode++;
+				this.name = name;
+				this.mode = mode;
+				this.node_ops = {};
+				this.stream_ops = {};
+				this.rdev = rdev;
+				this.readMode = 292 | 73;
+				this.writeMode = 146;
+			}
+			get read() {
+				return (this.mode & this.readMode) === this.readMode;
+			}
+			set read(val) {
+				val
+					? (this.mode |= this.readMode)
+					: (this.mode &= ~this.readMode);
+			}
+			get write() {
+				return (this.mode & this.writeMode) === this.writeMode;
+			}
+			set write(val) {
+				val
+					? (this.mode |= this.writeMode)
+					: (this.mode &= ~this.writeMode);
+			}
+			get isFolder() {
+				return FS.isDir(this.mode);
+			}
+			get isDevice() {
+				return FS.isChrdev(this.mode);
+			}
+		},
 		lookupPath(path, opts = {}) {
 			path = PATH_FS.resolve(path);
 			if (!path) return { path: '', node: null };
@@ -1279,7 +1301,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		lookupNode(parent, name) {
 			var errCode = FS.mayLookup(parent);
 			if (errCode) {
-				throw new FS.ErrnoError(errCode, parent);
+				throw new FS.ErrnoError(errCode);
 			}
 			var hash = FS.hashName(parent.id, name);
 			for (var node = FS.nameTable[hash]; node; node = node.name_next) {
@@ -1346,6 +1368,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			return 0;
 		},
 		mayLookup(dir) {
+			if (!FS.isDir(dir.mode)) return 54;
 			var errCode = FS.nodePermissions(dir, 'x');
 			if (errCode) return errCode;
 			if (!dir.node_ops.lookup) return 2;
@@ -1414,53 +1437,6 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		},
 		getStream: (fd) => FS.streams[fd],
 		createStream(stream, fd = -1) {
-			if (!FS.FSStream) {
-				FS.FSStream = function () {
-					this.shared = {};
-				};
-				FS.FSStream.prototype = {};
-				Object.defineProperties(FS.FSStream.prototype, {
-					object: {
-						get() {
-							return this.node;
-						},
-						set(val) {
-							this.node = val;
-						},
-					},
-					isRead: {
-						get() {
-							return (this.flags & 2097155) !== 1;
-						},
-					},
-					isWrite: {
-						get() {
-							return (this.flags & 2097155) !== 0;
-						},
-					},
-					isAppend: {
-						get() {
-							return this.flags & 1024;
-						},
-					},
-					flags: {
-						get() {
-							return this.shared.flags;
-						},
-						set(val) {
-							this.shared.flags = val;
-						},
-					},
-					position: {
-						get() {
-							return this.shared.position;
-						},
-						set(val) {
-							this.shared.position = val;
-						},
-					},
-				});
-			}
 			stream = Object.assign(new FS.FSStream(), stream);
 			if (fd == -1) {
 				fd = FS.nextfd();
@@ -1472,13 +1448,16 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		closeStream(fd) {
 			FS.streams[fd] = null;
 		},
+		dupStream(origStream, fd = -1) {
+			var stream = FS.createStream(origStream, fd);
+			stream.stream_ops?.dup?.(stream);
+			return stream;
+		},
 		chrdev_stream_ops: {
 			open(stream) {
 				var device = FS.getDevice(stream.node.rdev);
 				stream.stream_ops = device.stream_ops;
-				if (stream.stream_ops.open) {
-					stream.stream_ops.open(stream);
-				}
+				stream.stream_ops.open?.(stream);
 			},
 			llseek() {
 				throw new FS.ErrnoError(70);
@@ -1497,7 +1476,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			while (check.length) {
 				var m = check.pop();
 				mounts.push(m);
-				check.push.apply(check, m.mounts);
+				check.push(...m.mounts);
 			}
 			return mounts;
 		},
@@ -1725,6 +1704,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			FS.hashRemoveNode(old_node);
 			try {
 				old_dir.node_ops.rename(old_node, new_dir, new_name);
+				old_node.parent = new_dir;
 			} catch (e) {
 				throw e;
 			} finally {
@@ -1893,8 +1873,8 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			}
 			flags =
 				typeof flags == 'string' ? FS_modeStringToFlags(flags) : flags;
-			mode = typeof mode == 'undefined' ? 438 : mode;
 			if (flags & 64) {
+				mode = typeof mode == 'undefined' ? 438 : mode;
 				mode = (mode & 4095) | 32768;
 			} else {
 				mode = 0;
@@ -2115,7 +2095,6 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				mmapFlags
 			);
 		},
-		munmap: (stream) => 0,
 		ioctl(stream, cmd, arg) {
 			if (!stream.stream_ops.ioctl) {
 				throw new FS.ErrnoError(59);
@@ -2272,26 +2251,11 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			var stdout = FS.open('/dev/stdout', 1);
 			var stderr = FS.open('/dev/stderr', 1);
 		},
-		ensureErrnoError() {
-			if (FS.ErrnoError) return;
-			FS.ErrnoError = function ErrnoError(errno, node) {
-				this.name = 'ErrnoError';
-				this.node = node;
-				this.setErrno = function (errno) {
-					this.errno = errno;
-				};
-				this.setErrno(errno);
-				this.message = 'FS error';
-			};
-			FS.ErrnoError.prototype = new Error();
-			FS.ErrnoError.prototype.constructor = FS.ErrnoError;
+		staticInit() {
 			[44].forEach((code) => {
 				FS.genericErrors[code] = new FS.ErrnoError(code);
 				FS.genericErrors[code].stack = '<generic error, no stack>';
 			});
-		},
-		staticInit() {
-			FS.ensureErrnoError();
 			FS.nameTable = new Array(4096);
 			FS.mount(MEMFS, {}, '/');
 			FS.createDefaultDirectories();
@@ -2301,7 +2265,6 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		},
 		init(input, output, error) {
 			FS.init.initialized = true;
-			FS.ensureErrnoError();
 			Module['stdin'] = input || Module['stdin'];
 			Module['stdout'] = output || Module['stdout'];
 			Module['stderr'] = error || Module['stderr'];
@@ -2404,7 +2367,6 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				FS.close(stream);
 				FS.chmod(node, mode);
 			}
-			return node;
 		},
 		createDevice(parent, name, input, output) {
 			var path = PATH.join2(
@@ -2419,7 +2381,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 					stream.seekable = false;
 				},
 				close(stream) {
-					if (output && output.buffer && output.buffer.length) {
+					if (output?.buffer?.length) {
 						output(10);
 					}
 				},
@@ -2467,38 +2429,33 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				throw new Error(
 					'Lazy loading should have been performed (contents set) in createLazyFile, but it was not. Lazy loading only works in web workers. Use --embed-file or --preload-file in emcc on the main thread.'
 				);
-			} else if (read_) {
+			} else {
 				try {
-					obj.contents = intArrayFromString(read_(obj.url), true);
+					obj.contents = readBinary(obj.url);
 					obj.usedBytes = obj.contents.length;
 				} catch (e) {
 					throw new FS.ErrnoError(29);
 				}
-			} else {
-				throw new Error(
-					'Cannot load without read() or XMLHttpRequest.'
-				);
 			}
 		},
 		createLazyFile(parent, name, url, canRead, canWrite) {
-			function LazyUint8Array() {
-				this.lengthKnown = false;
-				this.chunks = [];
-			}
-			LazyUint8Array.prototype.get = function LazyUint8Array_get(idx) {
-				if (idx > this.length - 1 || idx < 0) {
-					return undefined;
+			class LazyUint8Array {
+				constructor() {
+					this.lengthKnown = false;
+					this.chunks = [];
 				}
-				var chunkOffset = idx % this.chunkSize;
-				var chunkNum = (idx / this.chunkSize) | 0;
-				return this.getter(chunkNum)[chunkOffset];
-			};
-			LazyUint8Array.prototype.setDataGetter =
-				function LazyUint8Array_setDataGetter(getter) {
+				get(idx) {
+					if (idx > this.length - 1 || idx < 0) {
+						return undefined;
+					}
+					var chunkOffset = idx % this.chunkSize;
+					var chunkNum = (idx / this.chunkSize) | 0;
+					return this.getter(chunkNum)[chunkOffset];
+				}
+				setDataGetter(getter) {
 					this.getter = getter;
-				};
-			LazyUint8Array.prototype.cacheLength =
-				function LazyUint8Array_cacheLength() {
+				}
+				cacheLength() {
 					var xhr = new XMLHttpRequest();
 					xhr.open('HEAD', url, false);
 					xhr.send(null);
@@ -2592,29 +2549,24 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 					this._length = datalength;
 					this._chunkSize = chunkSize;
 					this.lengthKnown = true;
-				};
+				}
+				get length() {
+					if (!this.lengthKnown) {
+						this.cacheLength();
+					}
+					return this._length;
+				}
+				get chunkSize() {
+					if (!this.lengthKnown) {
+						this.cacheLength();
+					}
+					return this._chunkSize;
+				}
+			}
 			if (typeof XMLHttpRequest != 'undefined') {
 				if (!ENVIRONMENT_IS_WORKER)
 					throw 'Cannot do synchronous binary XHRs outside webworkers in modern browsers. Use --embed-file or --preload-file in emcc';
 				var lazyArray = new LazyUint8Array();
-				Object.defineProperties(lazyArray, {
-					length: {
-						get: function () {
-							if (!this.lengthKnown) {
-								this.cacheLength();
-							}
-							return this._length;
-						},
-					},
-					chunkSize: {
-						get: function () {
-							if (!this.lengthKnown) {
-								this.cacheLength();
-							}
-							return this._chunkSize;
-						},
-					},
-				});
 				var properties = { isDevice: false, contents: lazyArray };
 			} else {
 				var properties = { isDevice: false, url: url };
@@ -2643,9 +2595,9 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			var keys = Object.keys(node.stream_ops);
 			keys.forEach((key) => {
 				var fn = node.stream_ops[key];
-				stream_ops[key] = function forceLoadLazyFile() {
+				stream_ops[key] = (...args) => {
 					FS.forceLoadFile(node);
-					return fn.apply(null, arguments);
+					return fn(...args);
 				};
 			});
 			function writeChunks(stream, buffer, offset, length, position) {
@@ -2702,18 +2654,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			return PATH.join2(dir, path);
 		},
 		doStat(func, path, buf) {
-			try {
-				var stat = func(path);
-			} catch (e) {
-				if (
-					e &&
-					e.node &&
-					PATH.normalize(path) !== PATH.normalize(FS.getPath(e.node))
-				) {
-					return -54;
-				}
-				throw e;
-			}
+			var stat = func(path);
 			HEAP32[buf >> 2] = stat.dev;
 			HEAP32[(buf + 4) >> 2] = stat.mode;
 			HEAPU32[(buf + 8) >> 2] = stat.nlink;
@@ -2810,22 +2751,14 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			var buffer = HEAPU8.slice(addr, addr + len);
 			FS.msync(stream, buffer, offset, len, flags);
 		},
-		varargs: undefined,
-		get() {
-			var ret = HEAP32[+SYSCALLS.varargs >> 2];
-			SYSCALLS.varargs += 4;
-			return ret;
-		},
-		getp() {
-			return SYSCALLS.get();
-		},
-		getStr(ptr) {
-			var ret = UTF8ToString(ptr);
-			return ret;
-		},
 		getStreamFromFD(fd) {
 			var stream = FS.getStreamChecked(fd);
 			return stream;
+		},
+		varargs: undefined,
+		getStr(ptr) {
+			var ret = UTF8ToString(ptr);
+			return ret;
 		},
 	};
 	function ___syscall__newselect(
@@ -2871,7 +2804,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 					var timeoutInMillis = -1;
 					if (timeout) {
 						var tv_sec = readfds ? HEAP32[timeout >> 2] : 0,
-							tv_usec = readfds ? HEAP32[(timeout + 8) >> 2] : 0;
+							tv_usec = readfds ? HEAP32[(timeout + 4) >> 2] : 0;
 						timeoutInMillis = (tv_sec + tv_usec / 1e6) * 1e3;
 					}
 					flags = stream.stream_ops.poll(stream, timeoutInMillis);
@@ -3475,10 +3408,6 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		if (!socket) throw new FS.ErrnoError(8);
 		return socket;
 	};
-	var setErrNo = (value) => {
-		HEAP32[___errno_location() >> 2] = value;
-		return value;
-	};
 	var inetPton4 = (str) => {
 		var b = str.split('.');
 		for (var i = 0; i < 4; i++) {
@@ -3783,7 +3712,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 	function ___syscall_dup(fd) {
 		try {
 			var old = SYSCALLS.getStreamFromFD(fd);
-			return FS.createStream(old).fd;
+			return FS.dupStream(old).fd;
 		} catch (e) {
 			if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
 			return -e.errno;
@@ -3793,9 +3722,10 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		try {
 			var old = SYSCALLS.getStreamFromFD(fd);
 			if (old.fd === newfd) return -28;
+			if (newfd < 0 || newfd >= FS.MAX_OPEN_FDS) return -8;
 			var existing = FS.getStream(newfd);
 			if (existing) FS.close(existing);
-			return FS.createStream(old, newfd).fd;
+			return FS.dupStream(old, newfd).fd;
 		} catch (e) {
 			if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
 			return -e.errno;
@@ -3839,13 +3769,19 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			return -e.errno;
 		}
 	}
+	function syscallGetVarargI() {
+		var ret = HEAP32[+SYSCALLS.varargs >> 2];
+		SYSCALLS.varargs += 4;
+		return ret;
+	}
+	var syscallGetVarargP = syscallGetVarargI;
 	function ___syscall_fcntl64(fd, cmd, varargs) {
 		SYSCALLS.varargs = varargs;
 		try {
 			var stream = SYSCALLS.getStreamFromFD(fd);
 			switch (cmd) {
 				case 0: {
-					var arg = SYSCALLS.get();
+					var arg = syscallGetVarargI();
 					if (arg < 0) {
 						return -28;
 					}
@@ -3853,7 +3789,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 						arg++;
 					}
 					var newStream;
-					newStream = FS.createStream(stream, arg);
+					newStream = FS.dupStream(stream, arg);
 					return newStream.fd;
 				}
 				case 1:
@@ -3862,29 +3798,21 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				case 3:
 					return stream.flags;
 				case 4: {
-					var arg = SYSCALLS.get();
+					var arg = syscallGetVarargI();
 					stream.flags |= arg;
 					return 0;
 				}
-				case 5: {
-					var arg = SYSCALLS.getp();
+				case 12: {
+					var arg = syscallGetVarargP();
 					var offset = 0;
 					HEAP16[(arg + offset) >> 1] = 2;
 					return 0;
 				}
-				case 6:
-				case 7:
+				case 13:
+				case 14:
 					return 0;
-				case 16:
-				case 8:
-					return -28;
-				case 9:
-					setErrNo(28);
-					return -1;
-				default: {
-					return -28;
-				}
 			}
+			return -28;
 		} catch (e) {
 			if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
 			return -e.errno;
@@ -3932,9 +3860,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 	function ___syscall_getdents64(fd, dirp, count) {
 		try {
 			var stream = SYSCALLS.getStreamFromFD(fd);
-			if (!stream.getdents) {
-				stream.getdents = FS.readdir(stream.path);
-			}
+			stream.getdents ||= FS.readdir(stream.path);
 			var struct_size = 280;
 			var pos = 0;
 			var off = FS.llseek(stream, 0, 1);
@@ -3990,7 +3916,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 					(HEAP32[(dirp + pos + 8) >> 2] = tempI64[0]),
 					(HEAP32[(dirp + pos + 12) >> 2] = tempI64[1]);
 				HEAP16[(dirp + pos + 16) >> 1] = 280;
-				HEAP8[(dirp + pos + 18) >> 0] = type;
+				HEAP8[dirp + pos + 18] = type;
 				stringToUTF8(name, dirp + pos + 19, 256);
 				pos += struct_size;
 				idx += 1;
@@ -4067,13 +3993,13 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 					if (!stream.tty) return -59;
 					if (stream.tty.ops.ioctl_tcgets) {
 						var termios = stream.tty.ops.ioctl_tcgets(stream);
-						var argp = SYSCALLS.getp();
+						var argp = syscallGetVarargP();
 						HEAP32[argp >> 2] = termios.c_iflag || 0;
 						HEAP32[(argp + 4) >> 2] = termios.c_oflag || 0;
 						HEAP32[(argp + 8) >> 2] = termios.c_cflag || 0;
 						HEAP32[(argp + 12) >> 2] = termios.c_lflag || 0;
 						for (var i = 0; i < 32; i++) {
-							HEAP8[(argp + i + 17) >> 0] = termios.c_cc[i] || 0;
+							HEAP8[argp + i + 17] = termios.c_cc[i] || 0;
 						}
 						return 0;
 					}
@@ -4090,14 +4016,14 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				case 21508: {
 					if (!stream.tty) return -59;
 					if (stream.tty.ops.ioctl_tcsets) {
-						var argp = SYSCALLS.getp();
+						var argp = syscallGetVarargP();
 						var c_iflag = HEAP32[argp >> 2];
 						var c_oflag = HEAP32[(argp + 4) >> 2];
 						var c_cflag = HEAP32[(argp + 8) >> 2];
 						var c_lflag = HEAP32[(argp + 12) >> 2];
 						var c_cc = [];
 						for (var i = 0; i < 32; i++) {
-							c_cc.push(HEAP8[(argp + i + 17) >> 0]);
+							c_cc.push(HEAP8[argp + i + 17]);
 						}
 						return stream.tty.ops.ioctl_tcsets(stream.tty, op, {
 							c_iflag: c_iflag,
@@ -4111,7 +4037,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				}
 				case 21519: {
 					if (!stream.tty) return -59;
-					var argp = SYSCALLS.getp();
+					var argp = syscallGetVarargP();
 					HEAP32[argp >> 2] = 0;
 					return 0;
 				}
@@ -4120,7 +4046,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 					return -28;
 				}
 				case 21531: {
-					var argp = SYSCALLS.getp();
+					var argp = syscallGetVarargP();
 					return FS.ioctl(stream, op, argp);
 				}
 				case 21523: {
@@ -4129,7 +4055,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 						var winsize = stream.tty.ops.ioctl_tiocgwinsz(
 							stream.tty
 						);
-						var argp = SYSCALLS.getp();
+						var argp = syscallGetVarargP();
 						HEAP16[argp >> 1] = winsize[0];
 						HEAP16[(argp + 2) >> 1] = winsize[1];
 					}
@@ -4202,7 +4128,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		try {
 			path = SYSCALLS.getStr(path);
 			path = SYSCALLS.calculateAt(dirfd, path);
-			var mode = varargs ? SYSCALLS.get() : 0;
+			var mode = varargs ? syscallGetVarargI() : 0;
 			return FS.open(path, flags, mode).fd;
 		} catch (e) {
 			if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
@@ -4611,8 +4537,17 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			return -e.errno;
 		}
 	}
-	var nowIsMonotonic = true;
+	var __abort_js = () => {
+		abort('');
+	};
+	var nowIsMonotonic = 1;
 	var __emscripten_get_now_is_monotonic = () => nowIsMonotonic;
+	var __emscripten_lookup_name = (name) => {
+		var nameString = UTF8ToString(name);
+		return inetPton4(DNS.lookup_name(nameString));
+	};
+	var __emscripten_memcpy_js = (dest, src, num) =>
+		HEAPU8.copyWithin(dest, src, src + num);
 	var __emscripten_runtime_keepalive_clear = () => {
 		noExitRuntime = false;
 		runtimeKeepaliveCounter = 0;
@@ -4676,6 +4611,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 					Math.min(winterOffset, summerOffset)) | 0;
 		HEAP32[(tmPtr + 32) >> 2] = dst;
 	}
+	var setTempRet0 = (val) => __emscripten_tempret_set(val);
 	var __mktime_js = function (tmPtr) {
 		var ret = (() => {
 			var date = new Date(
@@ -4717,7 +4653,11 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			HEAP32[(tmPtr + 12) >> 2] = date.getDate();
 			HEAP32[(tmPtr + 16) >> 2] = date.getMonth();
 			HEAP32[(tmPtr + 20) >> 2] = date.getYear();
-			return date.getTime() / 1e3;
+			var timeMs = date.getTime();
+			if (isNaN(timeMs)) {
+				return -1;
+			}
+			return timeMs / 1e3;
 		})();
 		return (
 			setTempRet0(
@@ -4761,12 +4701,10 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 	function __munmap_js(addr, len, prot, flags, fd, offset_low, offset_high) {
 		var offset = convertI32PairToI53Checked(offset_low, offset_high);
 		try {
-			if (isNaN(offset)) return 61;
 			var stream = SYSCALLS.getStreamFromFD(fd);
 			if (prot & 2) {
 				SYSCALLS.doMsync(addr, stream, len, flags, offset);
 			}
-			FS.munmap(stream);
 		} catch (e) {
 			if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
 			return -e.errno;
@@ -4784,7 +4722,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 	var _proc_exit = (code) => {
 		EXITSTATUS = code;
 		if (!keepRuntimeAlive()) {
-			if (Module['onExit']) Module['onExit'](code);
+			Module['onExit']?.(code);
 			ABORT = true;
 		}
 		quit_(code, new ExitStatus(code));
@@ -4837,13 +4775,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		timers[which] = { id: id, timeout_ms: timeout_ms };
 		return 0;
 	};
-	var stringToNewUTF8 = (str) => {
-		var size = lengthBytesUTF8(str) + 1;
-		var ret = _malloc(size);
-		if (ret) stringToUTF8(str, ret, size);
-		return ret;
-	};
-	var __tzset_js = (timezone, daylight, tzname) => {
+	var __tzset_js = (timezone, daylight, std_name, dst_name) => {
 		var currentYear = new Date().getFullYear();
 		var winter = new Date(currentYear, 0, 1);
 		var summer = new Date(currentYear, 6, 1);
@@ -4852,30 +4784,26 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		var stdTimezoneOffset = Math.max(winterOffset, summerOffset);
 		HEAPU32[timezone >> 2] = stdTimezoneOffset * 60;
 		HEAP32[daylight >> 2] = Number(winterOffset != summerOffset);
-		function extractZone(date) {
-			var match = date.toTimeString().match(/\(([A-Za-z ]+)\)$/);
-			return match ? match[1] : 'GMT';
-		}
+		var extractZone = (date) =>
+			date
+				.toLocaleTimeString(undefined, {
+					hour12: false,
+					timeZoneName: 'short',
+				})
+				.split(' ')[1];
 		var winterName = extractZone(winter);
 		var summerName = extractZone(summer);
-		var winterNamePtr = stringToNewUTF8(winterName);
-		var summerNamePtr = stringToNewUTF8(summerName);
 		if (summerOffset < winterOffset) {
-			HEAPU32[tzname >> 2] = winterNamePtr;
-			HEAPU32[(tzname + 4) >> 2] = summerNamePtr;
+			stringToUTF8(winterName, std_name, 17);
+			stringToUTF8(summerName, dst_name, 17);
 		} else {
-			HEAPU32[tzname >> 2] = summerNamePtr;
-			HEAPU32[(tzname + 4) >> 2] = winterNamePtr;
+			stringToUTF8(winterName, dst_name, 17);
+			stringToUTF8(summerName, std_name, 17);
 		}
-	};
-	var _abort = () => {
-		abort('');
 	};
 	var _emscripten_date_now = () => Date.now();
 	var getHeapMax = () => 2147483648;
 	var _emscripten_get_heap_max = () => getHeapMax();
-	var _emscripten_memcpy_js = (dest, src, num) =>
-		HEAPU8.copyWithin(dest, src, src + num);
 	var growMemory = (size) => {
 		var b = wasmMemory.buffer;
 		var pages = (size - b.byteLength + 65535) / 65536;
@@ -4945,9 +4873,9 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 	};
 	var stringToAscii = (str, buffer) => {
 		for (var i = 0; i < str.length; ++i) {
-			HEAP8[buffer++ >> 0] = str.charCodeAt(i);
+			HEAP8[buffer++] = str.charCodeAt(i);
 		}
-		HEAP8[buffer >> 0] = 0;
+		HEAP8[buffer] = 0;
 	};
 	var _environ_get = (__environ, environ_buf) => {
 		var bufSize = 0;
@@ -4992,7 +4920,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 					? 7
 					: 4;
 			}
-			HEAP8[pbuf >> 0] = type;
+			HEAP8[pbuf] = type;
 			HEAP16[(pbuf + 2) >> 1] = flags;
 			(tempI64 = [
 				rightsBase >>> 0,
@@ -5038,7 +4966,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			if (curr < 0) return -1;
 			ret += curr;
 			if (curr < len) break;
-			if (typeof offset !== 'undefined') {
+			if (typeof offset != 'undefined') {
 				offset += curr;
 			}
 		}
@@ -5092,7 +5020,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			var curr = FS.write(stream, HEAP8, ptr, len, offset);
 			if (curr < 0) return -1;
 			ret += curr;
-			if (typeof offset !== 'undefined') {
+			if (typeof offset != 'undefined') {
 				offset += curr;
 			}
 		}
@@ -5109,45 +5037,6 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			return e.errno;
 		}
 	}
-	var getHostByName = (name) => {
-		var ret = _malloc(20);
-		var nameBuf = stringToNewUTF8(name);
-		HEAPU32[ret >> 2] = nameBuf;
-		var aliasesBuf = _malloc(4);
-		HEAPU32[aliasesBuf >> 2] = 0;
-		HEAPU32[(ret + 4) >> 2] = aliasesBuf;
-		var afinet = 2;
-		HEAP32[(ret + 8) >> 2] = afinet;
-		HEAP32[(ret + 12) >> 2] = 4;
-		var addrListBuf = _malloc(12);
-		HEAPU32[addrListBuf >> 2] = addrListBuf + 8;
-		HEAPU32[(addrListBuf + 4) >> 2] = 0;
-		HEAP32[(addrListBuf + 8) >> 2] = inetPton4(DNS.lookup_name(name));
-		HEAPU32[(ret + 16) >> 2] = addrListBuf;
-		return ret;
-	};
-	var _gethostbyaddr = (addr, addrlen, type) => {
-		if (type !== 2) {
-			setErrNo(5);
-			return null;
-		}
-		addr = HEAP32[addr >> 2];
-		var host = inetNtop4(addr);
-		var lookup = DNS.lookup_addr(host);
-		if (lookup) {
-			host = lookup;
-		}
-		return getHostByName(host);
-	};
-	var _gethostbyname = (name) => getHostByName(UTF8ToString(name));
-	var _gethostbyname_r = (name, ret, buf, buflen, out, err) => {
-		var data = _gethostbyname(name);
-		_memcpy(ret, data, 20);
-		_free(data);
-		HEAP32[err >> 2] = 0;
-		HEAPU32[out >> 2] = ret;
-		return 0;
-	};
 	var _getnameinfo = (sa, salen, node, nodelen, serv, servlen, flags) => {
 		var info = readSockaddr(sa, salen);
 		if (info.errno) {
@@ -5226,6 +5115,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		var result = Protocols.map[number];
 		return result;
 	};
+	var stackAlloc = (sz) => __emscripten_stack_alloc(sz);
 	var stringToUTF8OnStack = (str) => {
 		var size = lengthBytesUTF8(str) + 1;
 		var ret = stackAlloc(size);
@@ -5368,251 +5258,6 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		}
 		return newDate;
 	};
-	var writeArrayToMemory = (array, buffer) => {
-		HEAP8.set(array, buffer);
-	};
-	var _strftime = (s, maxsize, format, tm) => {
-		var tm_zone = HEAPU32[(tm + 40) >> 2];
-		var date = {
-			tm_sec: HEAP32[tm >> 2],
-			tm_min: HEAP32[(tm + 4) >> 2],
-			tm_hour: HEAP32[(tm + 8) >> 2],
-			tm_mday: HEAP32[(tm + 12) >> 2],
-			tm_mon: HEAP32[(tm + 16) >> 2],
-			tm_year: HEAP32[(tm + 20) >> 2],
-			tm_wday: HEAP32[(tm + 24) >> 2],
-			tm_yday: HEAP32[(tm + 28) >> 2],
-			tm_isdst: HEAP32[(tm + 32) >> 2],
-			tm_gmtoff: HEAP32[(tm + 36) >> 2],
-			tm_zone: tm_zone ? UTF8ToString(tm_zone) : '',
-		};
-		var pattern = UTF8ToString(format);
-		var EXPANSION_RULES_1 = {
-			'%c': '%a %b %d %H:%M:%S %Y',
-			'%D': '%m/%d/%y',
-			'%F': '%Y-%m-%d',
-			'%h': '%b',
-			'%r': '%I:%M:%S %p',
-			'%R': '%H:%M',
-			'%T': '%H:%M:%S',
-			'%x': '%m/%d/%y',
-			'%X': '%H:%M:%S',
-			'%Ec': '%c',
-			'%EC': '%C',
-			'%Ex': '%m/%d/%y',
-			'%EX': '%H:%M:%S',
-			'%Ey': '%y',
-			'%EY': '%Y',
-			'%Od': '%d',
-			'%Oe': '%e',
-			'%OH': '%H',
-			'%OI': '%I',
-			'%Om': '%m',
-			'%OM': '%M',
-			'%OS': '%S',
-			'%Ou': '%u',
-			'%OU': '%U',
-			'%OV': '%V',
-			'%Ow': '%w',
-			'%OW': '%W',
-			'%Oy': '%y',
-		};
-		for (var rule in EXPANSION_RULES_1) {
-			pattern = pattern.replace(
-				new RegExp(rule, 'g'),
-				EXPANSION_RULES_1[rule]
-			);
-		}
-		var WEEKDAYS = [
-			'Sunday',
-			'Monday',
-			'Tuesday',
-			'Wednesday',
-			'Thursday',
-			'Friday',
-			'Saturday',
-		];
-		var MONTHS = [
-			'January',
-			'February',
-			'March',
-			'April',
-			'May',
-			'June',
-			'July',
-			'August',
-			'September',
-			'October',
-			'November',
-			'December',
-		];
-		function leadingSomething(value, digits, character) {
-			var str = typeof value == 'number' ? value.toString() : value || '';
-			while (str.length < digits) {
-				str = character[0] + str;
-			}
-			return str;
-		}
-		function leadingNulls(value, digits) {
-			return leadingSomething(value, digits, '0');
-		}
-		function compareByDay(date1, date2) {
-			function sgn(value) {
-				return value < 0 ? -1 : value > 0 ? 1 : 0;
-			}
-			var compare;
-			if (
-				(compare = sgn(date1.getFullYear() - date2.getFullYear())) === 0
-			) {
-				if (
-					(compare = sgn(date1.getMonth() - date2.getMonth())) === 0
-				) {
-					compare = sgn(date1.getDate() - date2.getDate());
-				}
-			}
-			return compare;
-		}
-		function getFirstWeekStartDate(janFourth) {
-			switch (janFourth.getDay()) {
-				case 0:
-					return new Date(janFourth.getFullYear() - 1, 11, 29);
-				case 1:
-					return janFourth;
-				case 2:
-					return new Date(janFourth.getFullYear(), 0, 3);
-				case 3:
-					return new Date(janFourth.getFullYear(), 0, 2);
-				case 4:
-					return new Date(janFourth.getFullYear(), 0, 1);
-				case 5:
-					return new Date(janFourth.getFullYear() - 1, 11, 31);
-				case 6:
-					return new Date(janFourth.getFullYear() - 1, 11, 30);
-			}
-		}
-		function getWeekBasedYear(date) {
-			var thisDate = addDays(
-				new Date(date.tm_year + 1900, 0, 1),
-				date.tm_yday
-			);
-			var janFourthThisYear = new Date(thisDate.getFullYear(), 0, 4);
-			var janFourthNextYear = new Date(thisDate.getFullYear() + 1, 0, 4);
-			var firstWeekStartThisYear =
-				getFirstWeekStartDate(janFourthThisYear);
-			var firstWeekStartNextYear =
-				getFirstWeekStartDate(janFourthNextYear);
-			if (compareByDay(firstWeekStartThisYear, thisDate) <= 0) {
-				if (compareByDay(firstWeekStartNextYear, thisDate) <= 0) {
-					return thisDate.getFullYear() + 1;
-				}
-				return thisDate.getFullYear();
-			}
-			return thisDate.getFullYear() - 1;
-		}
-		var EXPANSION_RULES_2 = {
-			'%a': (date) => WEEKDAYS[date.tm_wday].substring(0, 3),
-			'%A': (date) => WEEKDAYS[date.tm_wday],
-			'%b': (date) => MONTHS[date.tm_mon].substring(0, 3),
-			'%B': (date) => MONTHS[date.tm_mon],
-			'%C': (date) => {
-				var year = date.tm_year + 1900;
-				return leadingNulls((year / 100) | 0, 2);
-			},
-			'%d': (date) => leadingNulls(date.tm_mday, 2),
-			'%e': (date) => leadingSomething(date.tm_mday, 2, ' '),
-			'%g': (date) => getWeekBasedYear(date).toString().substring(2),
-			'%G': (date) => getWeekBasedYear(date),
-			'%H': (date) => leadingNulls(date.tm_hour, 2),
-			'%I': (date) => {
-				var twelveHour = date.tm_hour;
-				if (twelveHour == 0) twelveHour = 12;
-				else if (twelveHour > 12) twelveHour -= 12;
-				return leadingNulls(twelveHour, 2);
-			},
-			'%j': (date) =>
-				leadingNulls(
-					date.tm_mday +
-						arraySum(
-							isLeapYear(date.tm_year + 1900)
-								? MONTH_DAYS_LEAP
-								: MONTH_DAYS_REGULAR,
-							date.tm_mon - 1
-						),
-					3
-				),
-			'%m': (date) => leadingNulls(date.tm_mon + 1, 2),
-			'%M': (date) => leadingNulls(date.tm_min, 2),
-			'%n': () => '\n',
-			'%p': (date) => {
-				if (date.tm_hour >= 0 && date.tm_hour < 12) {
-					return 'AM';
-				}
-				return 'PM';
-			},
-			'%S': (date) => leadingNulls(date.tm_sec, 2),
-			'%t': () => '\t',
-			'%u': (date) => date.tm_wday || 7,
-			'%U': (date) => {
-				var days = date.tm_yday + 7 - date.tm_wday;
-				return leadingNulls(Math.floor(days / 7), 2);
-			},
-			'%V': (date) => {
-				var val = Math.floor(
-					(date.tm_yday + 7 - ((date.tm_wday + 6) % 7)) / 7
-				);
-				if ((date.tm_wday + 371 - date.tm_yday - 2) % 7 <= 2) {
-					val++;
-				}
-				if (!val) {
-					val = 52;
-					var dec31 = (date.tm_wday + 7 - date.tm_yday - 1) % 7;
-					if (
-						dec31 == 4 ||
-						(dec31 == 5 && isLeapYear((date.tm_year % 400) - 1))
-					) {
-						val++;
-					}
-				} else if (val == 53) {
-					var jan1 = (date.tm_wday + 371 - date.tm_yday) % 7;
-					if (jan1 != 4 && (jan1 != 3 || !isLeapYear(date.tm_year)))
-						val = 1;
-				}
-				return leadingNulls(val, 2);
-			},
-			'%w': (date) => date.tm_wday,
-			'%W': (date) => {
-				var days = date.tm_yday + 7 - ((date.tm_wday + 6) % 7);
-				return leadingNulls(Math.floor(days / 7), 2);
-			},
-			'%y': (date) => (date.tm_year + 1900).toString().substring(2),
-			'%Y': (date) => date.tm_year + 1900,
-			'%z': (date) => {
-				var off = date.tm_gmtoff;
-				var ahead = off >= 0;
-				off = Math.abs(off) / 60;
-				off = (off / 60) * 100 + (off % 60);
-				return (ahead ? '+' : '-') + String('0000' + off).slice(-4);
-			},
-			'%Z': (date) => date.tm_zone,
-			'%%': () => '%',
-		};
-		pattern = pattern.replace(/%%/g, '\0\0');
-		for (var rule in EXPANSION_RULES_2) {
-			if (pattern.includes(rule)) {
-				pattern = pattern.replace(
-					new RegExp(rule, 'g'),
-					EXPANSION_RULES_2[rule](date)
-				);
-			}
-		}
-		pattern = pattern.replace(/\0\0/g, '%');
-		var bytes = intArrayFromString(pattern, false);
-		if (bytes.length > maxsize) {
-			return 0;
-		}
-		writeArrayToMemory(bytes, s);
-		return bytes.length - 1;
-	};
 	var _strptime = (buf, format, tm) => {
 		var pattern = UTF8ToString(format);
 		var SPECIAL_CHARS = '\\!@#$^&*()+=-[]/{}|:<>?,.';
@@ -5623,42 +5268,39 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			);
 		}
 		var EQUIVALENT_MATCHERS = {
-			'%A': '%a',
-			'%B': '%b',
-			'%c': '%a %b %d %H:%M:%S %Y',
-			'%D': '%m\\/%d\\/%y',
-			'%e': '%d',
-			'%F': '%Y-%m-%d',
-			'%h': '%b',
-			'%R': '%H\\:%M',
-			'%r': '%I\\:%M\\:%S\\s%p',
-			'%T': '%H\\:%M\\:%S',
-			'%x': '%m\\/%d\\/(?:%y|%Y)',
-			'%X': '%H\\:%M\\:%S',
+			A: '%a',
+			B: '%b',
+			c: '%a %b %d %H:%M:%S %Y',
+			D: '%m\\/%d\\/%y',
+			e: '%d',
+			F: '%Y-%m-%d',
+			h: '%b',
+			R: '%H\\:%M',
+			r: '%I\\:%M\\:%S\\s%p',
+			T: '%H\\:%M\\:%S',
+			x: '%m\\/%d\\/(?:%y|%Y)',
+			X: '%H\\:%M\\:%S',
 		};
-		for (var matcher in EQUIVALENT_MATCHERS) {
-			pattern = pattern.replace(matcher, EQUIVALENT_MATCHERS[matcher]);
-		}
 		var DATE_PATTERNS = {
-			'%a': '(?:Sun(?:day)?)|(?:Mon(?:day)?)|(?:Tue(?:sday)?)|(?:Wed(?:nesday)?)|(?:Thu(?:rsday)?)|(?:Fri(?:day)?)|(?:Sat(?:urday)?)',
-			'%b': '(?:Jan(?:uary)?)|(?:Feb(?:ruary)?)|(?:Mar(?:ch)?)|(?:Apr(?:il)?)|May|(?:Jun(?:e)?)|(?:Jul(?:y)?)|(?:Aug(?:ust)?)|(?:Sep(?:tember)?)|(?:Oct(?:ober)?)|(?:Nov(?:ember)?)|(?:Dec(?:ember)?)',
-			'%C': '\\d\\d',
-			'%d': '0[1-9]|[1-9](?!\\d)|1\\d|2\\d|30|31',
-			'%H': '\\d(?!\\d)|[0,1]\\d|20|21|22|23',
-			'%I': '\\d(?!\\d)|0\\d|10|11|12',
-			'%j': '00[1-9]|0?[1-9](?!\\d)|0?[1-9]\\d(?!\\d)|[1,2]\\d\\d|3[0-6]\\d',
-			'%m': '0[1-9]|[1-9](?!\\d)|10|11|12',
-			'%M': '0\\d|\\d(?!\\d)|[1-5]\\d',
-			'%n': '\\s',
-			'%p': 'AM|am|PM|pm|A\\.M\\.|a\\.m\\.|P\\.M\\.|p\\.m\\.',
-			'%S': '0\\d|\\d(?!\\d)|[1-5]\\d|60',
-			'%U': '0\\d|\\d(?!\\d)|[1-4]\\d|50|51|52|53',
-			'%W': '0\\d|\\d(?!\\d)|[1-4]\\d|50|51|52|53',
-			'%w': '[0-6]',
-			'%y': '\\d\\d',
-			'%Y': '\\d\\d\\d\\d',
-			'%%': '%',
-			'%t': '\\s',
+			a: '(?:Sun(?:day)?)|(?:Mon(?:day)?)|(?:Tue(?:sday)?)|(?:Wed(?:nesday)?)|(?:Thu(?:rsday)?)|(?:Fri(?:day)?)|(?:Sat(?:urday)?)',
+			b: '(?:Jan(?:uary)?)|(?:Feb(?:ruary)?)|(?:Mar(?:ch)?)|(?:Apr(?:il)?)|May|(?:Jun(?:e)?)|(?:Jul(?:y)?)|(?:Aug(?:ust)?)|(?:Sep(?:tember)?)|(?:Oct(?:ober)?)|(?:Nov(?:ember)?)|(?:Dec(?:ember)?)',
+			C: '\\d\\d',
+			d: '0[1-9]|[1-9](?!\\d)|1\\d|2\\d|30|31',
+			H: '\\d(?!\\d)|[0,1]\\d|20|21|22|23',
+			I: '\\d(?!\\d)|0\\d|10|11|12',
+			j: '00[1-9]|0?[1-9](?!\\d)|0?[1-9]\\d(?!\\d)|[1,2]\\d\\d|3[0-6]\\d',
+			m: '0[1-9]|[1-9](?!\\d)|10|11|12',
+			M: '0\\d|\\d(?!\\d)|[1-5]\\d',
+			n: ' ',
+			p: 'AM|am|PM|pm|A\\.M\\.|a\\.m\\.|P\\.M\\.|p\\.m\\.',
+			S: '0\\d|\\d(?!\\d)|[1-5]\\d|60',
+			U: '0\\d|\\d(?!\\d)|[1-4]\\d|50|51|52|53',
+			W: '0\\d|\\d(?!\\d)|[1-4]\\d|50|51|52|53',
+			w: '[0-6]',
+			y: '\\d\\d',
+			Y: '\\d\\d\\d\\d',
+			t: ' ',
+			z: 'Z|(?:[\\+\\-]\\d\\d:?(?:\\d\\d)?)',
 		};
 		var MONTH_NUMBERS = {
 			JAN: 0,
@@ -5692,21 +5334,22 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			SAT: 5,
 			SUN: 6,
 		};
-		for (var datePattern in DATE_PATTERNS) {
-			pattern = pattern.replace(
-				datePattern,
-				'(' + datePattern + DATE_PATTERNS[datePattern] + ')'
-			);
-		}
 		var capture = [];
-		for (var i = pattern.indexOf('%'); i >= 0; i = pattern.indexOf('%')) {
-			capture.push(pattern[i + 1]);
-			pattern = pattern.replace(
-				new RegExp('\\%' + pattern[i + 1], 'g'),
-				''
-			);
-		}
-		var matches = new RegExp('^' + pattern, 'i').exec(UTF8ToString(buf));
+		var pattern_out = pattern
+			.replace(/%(.)/g, (m, c) => EQUIVALENT_MATCHERS[c] || m)
+			.replace(/%(.)/g, (_, c) => {
+				let pat = DATE_PATTERNS[c];
+				if (pat) {
+					capture.push(c);
+					return `(${pat})`;
+				} else {
+					return c;
+				}
+			})
+			.replace(/\s+/g, '\\s*');
+		var matches = new RegExp('^' + pattern_out, 'i').exec(
+			UTF8ToString(buf)
+		);
 		function initDate() {
 			function fixup(value, min, max) {
 				return typeof value != 'number' || isNaN(value)
@@ -5724,6 +5367,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				hour: fixup(HEAP32[(tm + 8) >> 2], 0, 23),
 				min: fixup(HEAP32[(tm + 4) >> 2], 0, 59),
 				sec: fixup(HEAP32[tm >> 2], 0, 59),
+				gmtoff: 0,
 			};
 		}
 		if (matches) {
@@ -5835,6 +5479,18 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 					date.month = endDate.getMonth();
 				}
 			}
+			if ((value = getMatch('z'))) {
+				if (value.toLowerCase() === 'z') {
+					date.gmtoff = 0;
+				} else {
+					var match = value.match(/^((?:\-|\+)\d\d):?(\d\d)?/);
+					date.gmtoff = match[1] * 3600;
+					if (match[2]) {
+						date.gmtoff +=
+							date.gmtoff > 0 ? match[2] * 60 : -match[2] * 60;
+					}
+				}
+			}
 			var fullDate = new Date(
 				date.year,
 				date.month,
@@ -5861,6 +5517,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				fullDate.getDate() -
 				1;
 			HEAP32[(tm + 32) >> 2] = 0;
+			HEAP32[(tm + 36) >> 2] = date.gmtoff;
 			return buf + intArrayFromString(matches[0]).length - 1;
 		}
 		return 0;
@@ -5988,6 +5645,9 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		var func = Module['_' + ident];
 		return func;
 	};
+	var writeArrayToMemory = (array, buffer) => {
+		HEAP8.set(array, buffer);
+	};
 	var ccall = (ident, returnType, argTypes, args, opts) => {
 		var toC = {
 			string: (str) => {
@@ -6024,7 +5684,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				}
 			}
 		}
-		var ret = func.apply(null, cArgs);
+		var ret = func(...cArgs);
 		function onDone(ret) {
 			if (stack !== 0) stackRestore(stack);
 			return convertReturnValue(ret);
@@ -6032,51 +5692,10 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		ret = onDone(ret);
 		return ret;
 	};
-	var FSNode = function (parent, name, mode, rdev) {
-		if (!parent) {
-			parent = this;
-		}
-		this.parent = parent;
-		this.mount = parent.mount;
-		this.mounted = null;
-		this.id = FS.nextInode++;
-		this.name = name;
-		this.mode = mode;
-		this.node_ops = {};
-		this.stream_ops = {};
-		this.rdev = rdev;
-	};
-	var readMode = 292 | 73;
-	var writeMode = 146;
-	Object.defineProperties(FSNode.prototype, {
-		read: {
-			get: function () {
-				return (this.mode & readMode) === readMode;
-			},
-			set: function (val) {
-				val ? (this.mode |= readMode) : (this.mode &= ~readMode);
-			},
-		},
-		write: {
-			get: function () {
-				return (this.mode & writeMode) === writeMode;
-			},
-			set: function (val) {
-				val ? (this.mode |= writeMode) : (this.mode &= ~writeMode);
-			},
-		},
-		isFolder: {
-			get: function () {
-				return FS.isDir(this.mode);
-			},
-		},
-		isDevice: {
-			get: function () {
-				return FS.isChrdev(this.mode);
-			},
-		},
-	});
-	FS.FSNode = FSNode;
+	var FS_createPath = FS.createPath;
+	var FS_unlink = (path) => FS.unlink(path);
+	var FS_createLazyFile = FS.createLazyFile;
+	var FS_createDevice = FS.createDevice;
 	FS.createPreloadedFile = FS_createPreloadedFile;
 	FS.staticInit();
 	Module['FS_createPath'] = FS.createPath;
@@ -6086,74 +5705,73 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 	Module['FS_createLazyFile'] = FS.createLazyFile;
 	Module['FS_createDevice'] = FS.createDevice;
 	var wasmImports = {
-		E: ___assert_fail,
-		ha: ___call_sighandler,
-		ca: ___syscall__newselect,
-		V: ___syscall_accept4,
-		U: ___syscall_bind,
-		ya: ___syscall_chdir,
-		xa: ___syscall_chmod,
-		T: ___syscall_connect,
-		wa: ___syscall_dup,
-		va: ___syscall_dup3,
-		za: ___syscall_faccessat,
-		z: ___syscall_fchownat,
+		C: ___assert_fail,
+		fa: ___call_sighandler,
+		aa: ___syscall__newselect,
+		U: ___syscall_accept4,
+		T: ___syscall_bind,
+		va: ___syscall_chdir,
+		ua: ___syscall_chmod,
+		S: ___syscall_connect,
+		ta: ___syscall_dup,
+		sa: ___syscall_dup3,
+		wa: ___syscall_faccessat,
+		A: ___syscall_fchownat,
 		h: ___syscall_fcntl64,
-		sa: ___syscall_fstat64,
-		M: ___syscall_ftruncate64,
-		oa: ___syscall_getcwd,
-		ga: ___syscall_getdents64,
-		S: ___syscall_getpeername,
-		R: ___syscall_getsockname,
-		Q: ___syscall_getsockopt,
-		Ba: ___syscall_ioctl,
-		P: ___syscall_listen,
-		pa: ___syscall_lstat64,
-		ma: ___syscall_mkdirat,
-		qa: ___syscall_newfstatat,
+		pa: ___syscall_fstat64,
+		K: ___syscall_ftruncate64,
+		la: ___syscall_getcwd,
+		ea: ___syscall_getdents64,
+		Q: ___syscall_getpeername,
+		P: ___syscall_getsockname,
+		O: ___syscall_getsockopt,
+		za: ___syscall_ioctl,
+		N: ___syscall_listen,
+		ma: ___syscall_lstat64,
+		ka: ___syscall_mkdirat,
+		na: ___syscall_newfstatat,
 		s: ___syscall_openat,
-		la: ___syscall_pipe,
-		ka: ___syscall_poll,
-		fa: ___syscall_readlinkat,
-		O: ___syscall_recvfrom,
-		ea: ___syscall_renameat,
-		da: ___syscall_rmdir,
-		N: ___syscall_sendto,
+		ja: ___syscall_pipe,
+		ia: ___syscall_poll,
+		da: ___syscall_readlinkat,
+		M: ___syscall_recvfrom,
+		ca: ___syscall_renameat,
+		ba: ___syscall_rmdir,
+		L: ___syscall_sendto,
 		w: ___syscall_socket,
-		ra: ___syscall_stat64,
-		ba: ___syscall_statfs64,
-		aa: ___syscall_symlink,
-		Z: ___syscall_unlinkat,
-		Y: ___syscall_utimensat,
-		ta: __emscripten_get_now_is_monotonic,
-		ia: __emscripten_runtime_keepalive_clear,
-		W: __emscripten_throw_longjmp,
-		I: __gmtime_js,
-		J: __localtime_js,
-		K: __mktime_js,
-		G: __mmap_js,
-		H: __munmap_js,
+		oa: ___syscall_stat64,
+		$: ___syscall_statfs64,
+		_: ___syscall_symlink,
+		Y: ___syscall_unlinkat,
+		X: ___syscall_utimensat,
+		ha: __abort_js,
+		qa: __emscripten_get_now_is_monotonic,
+		R: __emscripten_lookup_name,
+		ra: __emscripten_memcpy_js,
+		ga: __emscripten_runtime_keepalive_clear,
+		V: __emscripten_throw_longjmp,
+		G: __gmtime_js,
+		H: __localtime_js,
+		I: __mktime_js,
+		E: __mmap_js,
+		F: __munmap_js,
 		x: __setitimer_js,
-		_: __tzset_js,
-		ja: _abort,
+		ya: __tzset_js,
 		t: _emscripten_date_now,
-		$: _emscripten_get_heap_max,
+		Z: _emscripten_get_heap_max,
 		q: _emscripten_get_now,
-		ua: _emscripten_memcpy_js,
-		X: _emscripten_resize_heap,
-		Ca: _environ_get,
-		Da: _environ_sizes_get,
+		W: _emscripten_resize_heap,
+		Aa: _environ_get,
+		Ba: _environ_sizes_get,
 		o: _exit,
 		p: _fd_close,
 		y: _fd_fdstat_get,
-		A: _fd_read,
-		L: _fd_seek,
+		B: _fd_read,
+		J: _fd_seek,
 		u: _fd_write,
-		C: _gethostbyaddr,
-		D: _gethostbyname_r,
-		na: _getnameinfo,
-		Ia: _getprotobyname,
-		Ha: _getprotobynumber,
+		z: _getnameinfo,
+		Ga: _getprotobyname,
+		Fa: _getprotobynumber,
 		g: invoke_i,
 		c: invoke_ii,
 		d: invoke_iii,
@@ -6168,45 +5786,39 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		k: invoke_viiii,
 		i: invoke_viiiii,
 		e: invoke_viiiiii,
-		Ja: _js_popen_to_file,
-		Aa: _proc_exit,
-		B: _strftime,
-		Ga: _strptime,
-		Ea: _vrzno_del_callback,
-		Fa: _vrzno_exec_callback,
-		F: _wasm_poll_socket,
+		Ha: _js_popen_to_file,
+		xa: _proc_exit,
+		Ea: _strptime,
+		Ca: _vrzno_del_callback,
+		Da: _vrzno_exec_callback,
+		D: _wasm_poll_socket,
 		m: _wasm_setsockopt,
 	};
 	var wasmExports = createWasm();
-	var ___wasm_call_ctors = () => (___wasm_call_ctors = wasmExports['La'])();
+	var ___wasm_call_ctors = () => (___wasm_call_ctors = wasmExports['Ja'])();
 	var _wasm_popen = (Module['_wasm_popen'] = (a0, a1) =>
-		(_wasm_popen = Module['_wasm_popen'] = wasmExports['Ma'])(a0, a1));
-	var ___errno_location = () => (___errno_location = wasmExports['Na'])();
+		(_wasm_popen = Module['_wasm_popen'] = wasmExports['Ka'])(a0, a1));
 	var _wasm_pclose = (Module['_wasm_pclose'] = (a0) =>
-		(_wasm_pclose = Module['_wasm_pclose'] = wasmExports['Oa'])(a0));
+		(_wasm_pclose = Module['_wasm_pclose'] = wasmExports['La'])(a0));
 	var _php_pollfd_for = (Module['_php_pollfd_for'] = (a0, a1, a2) =>
-		(_php_pollfd_for = Module['_php_pollfd_for'] = wasmExports['Pa'])(
+		(_php_pollfd_for = Module['_php_pollfd_for'] = wasmExports['Ma'])(
 			a0,
 			a1,
 			a2
 		));
-	var _memcpy = (a0, a1, a2) => (_memcpy = wasmExports['Qa'])(a0, a1, a2);
-	var _malloc = (a0) => (_malloc = wasmExports['Ra'])(a0);
-	var _free = (a0) => (_free = wasmExports['Sa'])(a0);
-	var setTempRet0 = (a0) => (setTempRet0 = wasmExports['Ua'])(a0);
-	var _ntohs = (a0) => (_ntohs = wasmExports['Va'])(a0);
-	var _htons = (a0) => (_htons = wasmExports['Wa'])(a0);
-	var _fflush = (Module['_fflush'] = (a0) =>
-		(_fflush = Module['_fflush'] = wasmExports['Xa'])(a0));
+	var _malloc = (a0) => (_malloc = wasmExports['Oa'])(a0);
+	var _ntohs = (a0) => (_ntohs = wasmExports['Pa'])(a0);
+	var _htons = (a0) => (_htons = wasmExports['Qa'])(a0);
+	var _fflush = (a0) => (_fflush = wasmExports['Ra'])(a0);
 	var _wasm_set_phpini_path = (Module['_wasm_set_phpini_path'] = (a0) =>
 		(_wasm_set_phpini_path = Module['_wasm_set_phpini_path'] =
-			wasmExports['Ya'])(a0));
+			wasmExports['Sa'])(a0));
 	var _wasm_set_phpini_entries = (Module['_wasm_set_phpini_entries'] = (a0) =>
 		(_wasm_set_phpini_entries = Module['_wasm_set_phpini_entries'] =
-			wasmExports['Za'])(a0));
+			wasmExports['Ta'])(a0));
 	var _wasm_add_SERVER_entry = (Module['_wasm_add_SERVER_entry'] = (a0, a1) =>
 		(_wasm_add_SERVER_entry = Module['_wasm_add_SERVER_entry'] =
-			wasmExports['_a'])(a0, a1));
+			wasmExports['Ua'])(a0, a1));
 	var _wasm_add_uploaded_file = (Module['_wasm_add_uploaded_file'] = (
 		a0,
 		a1,
@@ -6216,99 +5828,104 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		a5
 	) =>
 		(_wasm_add_uploaded_file = Module['_wasm_add_uploaded_file'] =
-			wasmExports['$a'])(a0, a1, a2, a3, a4, a5));
+			wasmExports['Va'])(a0, a1, a2, a3, a4, a5));
 	var _wasm_set_query_string = (Module['_wasm_set_query_string'] = (a0) =>
 		(_wasm_set_query_string = Module['_wasm_set_query_string'] =
-			wasmExports['ab'])(a0));
+			wasmExports['Wa'])(a0));
 	var _wasm_set_path_translated = (Module['_wasm_set_path_translated'] = (
 		a0
 	) =>
 		(_wasm_set_path_translated = Module['_wasm_set_path_translated'] =
-			wasmExports['bb'])(a0));
+			wasmExports['Xa'])(a0));
 	var _wasm_set_skip_shebang = (Module['_wasm_set_skip_shebang'] = (a0) =>
 		(_wasm_set_skip_shebang = Module['_wasm_set_skip_shebang'] =
-			wasmExports['cb'])(a0));
+			wasmExports['Ya'])(a0));
 	var _wasm_set_request_uri = (Module['_wasm_set_request_uri'] = (a0) =>
 		(_wasm_set_request_uri = Module['_wasm_set_request_uri'] =
-			wasmExports['db'])(a0));
+			wasmExports['Za'])(a0));
 	var _wasm_set_request_method = (Module['_wasm_set_request_method'] = (a0) =>
 		(_wasm_set_request_method = Module['_wasm_set_request_method'] =
-			wasmExports['eb'])(a0));
+			wasmExports['_a'])(a0));
 	var _wasm_set_request_host = (Module['_wasm_set_request_host'] = (a0) =>
 		(_wasm_set_request_host = Module['_wasm_set_request_host'] =
-			wasmExports['fb'])(a0));
+			wasmExports['$a'])(a0));
 	var _wasm_set_content_type = (Module['_wasm_set_content_type'] = (a0) =>
 		(_wasm_set_content_type = Module['_wasm_set_content_type'] =
-			wasmExports['gb'])(a0));
+			wasmExports['ab'])(a0));
 	var _wasm_set_request_body = (Module['_wasm_set_request_body'] = (a0) =>
 		(_wasm_set_request_body = Module['_wasm_set_request_body'] =
-			wasmExports['hb'])(a0));
+			wasmExports['bb'])(a0));
 	var _wasm_set_content_length = (Module['_wasm_set_content_length'] = (a0) =>
 		(_wasm_set_content_length = Module['_wasm_set_content_length'] =
-			wasmExports['ib'])(a0));
+			wasmExports['cb'])(a0));
 	var _wasm_set_cookies = (Module['_wasm_set_cookies'] = (a0) =>
-		(_wasm_set_cookies = Module['_wasm_set_cookies'] = wasmExports['jb'])(
+		(_wasm_set_cookies = Module['_wasm_set_cookies'] = wasmExports['db'])(
 			a0
 		));
 	var _wasm_set_php_code = (Module['_wasm_set_php_code'] = (a0) =>
-		(_wasm_set_php_code = Module['_wasm_set_php_code'] = wasmExports['kb'])(
+		(_wasm_set_php_code = Module['_wasm_set_php_code'] = wasmExports['eb'])(
 			a0
 		));
 	var _wasm_set_request_port = (Module['_wasm_set_request_port'] = (a0) =>
 		(_wasm_set_request_port = Module['_wasm_set_request_port'] =
-			wasmExports['lb'])(a0));
+			wasmExports['fb'])(a0));
 	var _phpwasm_init_uploaded_files_hash = (Module[
 		'_phpwasm_init_uploaded_files_hash'
 	] = () =>
 		(_phpwasm_init_uploaded_files_hash = Module[
 			'_phpwasm_init_uploaded_files_hash'
 		] =
-			wasmExports['mb'])());
+			wasmExports['gb'])());
 	var _phpwasm_register_uploaded_file = (Module[
 		'_phpwasm_register_uploaded_file'
 	] = (a0) =>
 		(_phpwasm_register_uploaded_file = Module[
 			'_phpwasm_register_uploaded_file'
 		] =
-			wasmExports['nb'])(a0));
+			wasmExports['hb'])(a0));
 	var _phpwasm_destroy_uploaded_files_hash = (Module[
 		'_phpwasm_destroy_uploaded_files_hash'
 	] = () =>
 		(_phpwasm_destroy_uploaded_files_hash = Module[
 			'_phpwasm_destroy_uploaded_files_hash'
 		] =
-			wasmExports['ob'])());
+			wasmExports['ib'])());
 	var _wasm_sapi_handle_request = (Module['_wasm_sapi_handle_request'] = () =>
 		(_wasm_sapi_handle_request = Module['_wasm_sapi_handle_request'] =
-			wasmExports['pb'])());
+			wasmExports['jb'])());
 	var _php_wasm_init = (Module['_php_wasm_init'] = () =>
-		(_php_wasm_init = Module['_php_wasm_init'] = wasmExports['qb'])());
+		(_php_wasm_init = Module['_php_wasm_init'] = wasmExports['kb'])());
 	var _exec_callback = (Module['_exec_callback'] = (a0) =>
-		(_exec_callback = Module['_exec_callback'] = wasmExports['rb'])(a0));
+		(_exec_callback = Module['_exec_callback'] = wasmExports['lb'])(a0));
 	var _del_callback = (Module['_del_callback'] = (a0) =>
-		(_del_callback = Module['_del_callback'] = wasmExports['sb'])(a0));
-	var ___funcs_on_exit = () => (___funcs_on_exit = wasmExports['tb'])();
+		(_del_callback = Module['_del_callback'] = wasmExports['mb'])(a0));
+	var ___funcs_on_exit = () => (___funcs_on_exit = wasmExports['nb'])();
 	var _emscripten_builtin_memalign = (a0, a1) =>
-		(_emscripten_builtin_memalign = wasmExports['ub'])(a0, a1);
+		(_emscripten_builtin_memalign = wasmExports['ob'])(a0, a1);
 	var __emscripten_timeout = (a0, a1) =>
-		(__emscripten_timeout = wasmExports['vb'])(a0, a1);
-	var _setThrew = (a0, a1) => (_setThrew = wasmExports['wb'])(a0, a1);
-	var stackSave = () => (stackSave = wasmExports['xb'])();
-	var stackRestore = (a0) => (stackRestore = wasmExports['yb'])(a0);
-	var stackAlloc = (a0) => (stackAlloc = wasmExports['zb'])(a0);
+		(__emscripten_timeout = wasmExports['pb'])(a0, a1);
+	var _setThrew = (a0, a1) => (_setThrew = wasmExports['qb'])(a0, a1);
+	var __emscripten_tempret_set = (a0) =>
+		(__emscripten_tempret_set = wasmExports['rb'])(a0);
+	var __emscripten_stack_restore = (a0) =>
+		(__emscripten_stack_restore = wasmExports['sb'])(a0);
+	var __emscripten_stack_alloc = (a0) =>
+		(__emscripten_stack_alloc = wasmExports['tb'])(a0);
+	var _emscripten_stack_get_current = () =>
+		(_emscripten_stack_get_current = wasmExports['ub'])();
 	var dynCall_vi = (Module['dynCall_vi'] = (a0, a1) =>
-		(dynCall_vi = Module['dynCall_vi'] = wasmExports['Ab'])(a0, a1));
+		(dynCall_vi = Module['dynCall_vi'] = wasmExports['vb'])(a0, a1));
 	var dynCall_iiii = (Module['dynCall_iiii'] = (a0, a1, a2, a3) =>
-		(dynCall_iiii = Module['dynCall_iiii'] = wasmExports['Bb'])(
+		(dynCall_iiii = Module['dynCall_iiii'] = wasmExports['wb'])(
 			a0,
 			a1,
 			a2,
 			a3
 		));
 	var dynCall_ii = (Module['dynCall_ii'] = (a0, a1) =>
-		(dynCall_ii = Module['dynCall_ii'] = wasmExports['Cb'])(a0, a1));
+		(dynCall_ii = Module['dynCall_ii'] = wasmExports['xb'])(a0, a1));
 	var dynCall_viiiii = (Module['dynCall_viiiii'] = (a0, a1, a2, a3, a4, a5) =>
-		(dynCall_viiiii = Module['dynCall_viiiii'] = wasmExports['Db'])(
+		(dynCall_viiiii = Module['dynCall_viiiii'] = wasmExports['yb'])(
 			a0,
 			a1,
 			a2,
@@ -6317,9 +5934,9 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			a5
 		));
 	var dynCall_iii = (Module['dynCall_iii'] = (a0, a1, a2) =>
-		(dynCall_iii = Module['dynCall_iii'] = wasmExports['Eb'])(a0, a1, a2));
+		(dynCall_iii = Module['dynCall_iii'] = wasmExports['zb'])(a0, a1, a2));
 	var dynCall_iiiii = (Module['dynCall_iiiii'] = (a0, a1, a2, a3, a4) =>
-		(dynCall_iiiii = Module['dynCall_iiiii'] = wasmExports['Fb'])(
+		(dynCall_iiiii = Module['dynCall_iiiii'] = wasmExports['Ab'])(
 			a0,
 			a1,
 			a2,
@@ -6335,7 +5952,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		a5,
 		a6
 	) =>
-		(dynCall_iiiiiii = Module['dynCall_iiiiiii'] = wasmExports['Gb'])(
+		(dynCall_iiiiiii = Module['dynCall_iiiiiii'] = wasmExports['Bb'])(
 			a0,
 			a1,
 			a2,
@@ -6345,18 +5962,18 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			a6
 		));
 	var dynCall_i = (Module['dynCall_i'] = (a0) =>
-		(dynCall_i = Module['dynCall_i'] = wasmExports['Hb'])(a0));
+		(dynCall_i = Module['dynCall_i'] = wasmExports['Cb'])(a0));
 	var dynCall_viii = (Module['dynCall_viii'] = (a0, a1, a2, a3) =>
-		(dynCall_viii = Module['dynCall_viii'] = wasmExports['Ib'])(
+		(dynCall_viii = Module['dynCall_viii'] = wasmExports['Db'])(
 			a0,
 			a1,
 			a2,
 			a3
 		));
 	var dynCall_vii = (Module['dynCall_vii'] = (a0, a1, a2) =>
-		(dynCall_vii = Module['dynCall_vii'] = wasmExports['Jb'])(a0, a1, a2));
+		(dynCall_vii = Module['dynCall_vii'] = wasmExports['Eb'])(a0, a1, a2));
 	var dynCall_viiii = (Module['dynCall_viiii'] = (a0, a1, a2, a3, a4) =>
-		(dynCall_viiii = Module['dynCall_viiii'] = wasmExports['Kb'])(
+		(dynCall_viiii = Module['dynCall_viiii'] = wasmExports['Fb'])(
 			a0,
 			a1,
 			a2,
@@ -6364,7 +5981,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			a4
 		));
 	var dynCall_v = (Module['dynCall_v'] = (a0) =>
-		(dynCall_v = Module['dynCall_v'] = wasmExports['Lb'])(a0));
+		(dynCall_v = Module['dynCall_v'] = wasmExports['Gb'])(a0));
 	var dynCall_viiiiii = (Module['dynCall_viiiiii'] = (
 		a0,
 		a1,
@@ -6374,7 +5991,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		a5,
 		a6
 	) =>
-		(dynCall_viiiiii = Module['dynCall_viiiiii'] = wasmExports['Mb'])(
+		(dynCall_viiiiii = Module['dynCall_viiiiii'] = wasmExports['Hb'])(
 			a0,
 			a1,
 			a2,
@@ -6384,7 +6001,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			a6
 		));
 	var dynCall_viidii = (Module['dynCall_viidii'] = (a0, a1, a2, a3, a4, a5) =>
-		(dynCall_viidii = Module['dynCall_viidii'] = wasmExports['Nb'])(
+		(dynCall_viidii = Module['dynCall_viidii'] = wasmExports['Ib'])(
 			a0,
 			a1,
 			a2,
@@ -6534,16 +6151,16 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 	}
 	Module['addRunDependency'] = addRunDependency;
 	Module['removeRunDependency'] = removeRunDependency;
-	Module['FS_createPath'] = FS.createPath;
-	Module['FS_createLazyFile'] = FS.createLazyFile;
-	Module['FS_createDevice'] = FS.createDevice;
 	Module['ccall'] = ccall;
 	Module['UTF8ToString'] = UTF8ToString;
 	Module['lengthBytesUTF8'] = lengthBytesUTF8;
-	Module['FS_createPreloadedFile'] = FS.createPreloadedFile;
+	Module['FS_createPreloadedFile'] = FS_createPreloadedFile;
+	Module['FS_unlink'] = FS_unlink;
+	Module['FS_createPath'] = FS_createPath;
+	Module['FS_createDevice'] = FS_createDevice;
 	Module['FS'] = FS;
-	Module['FS_createDataFile'] = FS.createDataFile;
-	Module['FS_unlink'] = FS.unlink;
+	Module['FS_createDataFile'] = FS_createDataFile;
+	Module['FS_createLazyFile'] = FS_createLazyFile;
 	var calledRun;
 	dependenciesFulfilled = function runCaller() {
 		if (!calledRun) run();
@@ -6563,8 +6180,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			Module['calledRun'] = true;
 			if (ABORT) return;
 			initRuntime();
-			if (Module['onRuntimeInitialized'])
-				Module['onRuntimeInitialized']();
+			Module['onRuntimeInitialized']?.();
 			postRun();
 		}
 		if (Module['setStatus']) {
