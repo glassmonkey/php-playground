@@ -1,6 +1,9 @@
 {
   "name": "php-playground",
   "version": "0.1.0",
+  "engines": {
+    "node": "22.4.0"
+  },
   "private": true,
   "dependencies": {
     "@chakra-ui/icons": "^2.1.0",
