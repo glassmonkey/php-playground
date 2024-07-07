@@ -17,9 +17,9 @@ test.describe('default page', () => {
   })
 
   test('default URL', async ({ page }) => {
-    expect(page.url()).toContain('c=DwfgDgFmBQD0sAICmAPAhgWzAGyQgxgPYAmS0kYAlgHYBmhAFAJQDcQA')
-    expect(page.url()).toContain('v=8.3')
-    expect(page.url()).toContain('f=html')
+    const defaultPage = `${PAGE}/?c=DwfgDgFmBQD0sAICmAPAhgWzAGyQgxgPYAmS0kYAlgHYBmhAFAJQDcQA&v=8.3&f=html`
+    await page.waitForURL(defaultPage)
+    expect(page.url()).toContain(defaultPage)
   })
 
   test('switch preview', async ({ page }) => {
