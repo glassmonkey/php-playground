@@ -53,6 +53,7 @@ test.describe('select version', () => {
         expect(page.url()).toContain(`v=${v}`)
       })
       test(`compute php code(1+1)`, async ({page}) => {
+        await page.goto(`${PAGE}/?c=DwfgUEA`);
         // select version
         const input = page.locator('#select-input-php')
         await input.fill(v)
@@ -61,16 +62,12 @@ test.describe('select version', () => {
         const editor = page.getByRole('code')
         // focus editor
         await editor.click()
-        // delete all
-        while (await page.getByRole('presentation').textContent() !== '') {
-          await page.keyboard.press("Backspace")
-        }
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('')
+        await expect(page.getByRole('presentation')).toHaveText('<?')
         // try 1+1
-        await page.keyboard.type('<? echo 1+1;')
+        await page.keyboard.type('echo 1+1;')
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('<? echo 1+1;')
+        await expect(page.getByRole('presentation')).toHaveText('<?echo 1+1;')
         // run and result is 2
         await page.getByTestId('checkbox-format').uncheck()
         await expect(await page.getByTestId('preview-console')).toHaveText('2')
