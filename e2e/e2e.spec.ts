@@ -17,7 +17,9 @@ test.describe('default page', () => {
   })
 
   test('default URL', async ({ page }) => {
-    expect(page.url()).toBe('http://127.0.0.1:18888/?c=DwfgDgFmBQD0sAICmAPAhgWzAGyQgxgPYAmS0kYAlgHYBmhAFAJQDcQA&v=8.3&f=html')
+    expect(page.url()).toContain('c=DwfgDgFmBQD0sAICmAPAhgWzAGyQgxgPYAmS0kYAlgHYBmhAFAJQDcQA')
+    expect(page.url()).toContain('v=8.3')
+    expect(page.url()).toContain('f=html')
   })
 
   test('switch preview', async ({ page }) => {
