@@ -10,7 +10,7 @@
     "@chakra-ui/react": "2.8.0",
     "@codemirror/language": "6.10.1",
     "@codesandbox/sandpack-react": "2.14.5",
-    "@emotion/react": "11.11.1",
+    "@emotion/react": "11.11.4",
     "@emotion/styled": "11.11.0",
     "@monaco-editor/react": "4.6.0",
     "@testing-library/jest-dom": "6.4.6",
