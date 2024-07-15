@@ -1,3 +1,6 @@
+![playwright](https://github.com/glassmonkey/php-playground/actions/workflows/playwright.yml/badge.svg?branch=master)
+![test](https://github.com/glassmonkey/php-playground/actions/workflows/test.yml/badge.svg?branch=master)
+
 # php-playground
 
 PHP Playground let you to execute basic PHP code in real time.
