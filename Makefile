@@ -5,9 +5,9 @@ WITH_LIBXML := no
 WITH_LIBPNG := no
 WITH_MBSTRING := yes
 WITH_CLI_SAPI := no
-WITH_OPENSSL := no
+WITH_OPENSSL := yes
 WITH_NODEFS := no
-WITH_CURL := no
+WITH_CURL := yes
 WITH_SQLITE := no
 WITH_MYSQL := no
 WITH_WS_NETWORKING_PROXY := no
@@ -22,7 +22,7 @@ DIST_DIR := $(PWD)/dist
 .PHONY: build-image build-wasm build build-all build-5.6 build-7.0 build-7.1 build-7.2 build-7.3 build-7.4 build-8.0 build-8.1 build-8.2
 build-image:
 	cd src/wasm && \
-	docker build . 	--tag=$(PHP_IMAGE) \
+	DOCKER_BUILDKIT=0 docker build . --tag=$(PHP_IMAGE) \
 		--build-arg PHP_VERSION=$(PHP_VERSION) \
 		--build-arg WITH_VRZNO=$(WITH_VRZNO) \
 		--build-arg WITH_LIBXML=$(WITH_LIBXML) \
@@ -35,6 +35,7 @@ build-image:
 		--build-arg WITH_SQLITE=$(WITH_SQLITE) \
 		--build-arg WITH_MYSQL=$(WITH_MYSQL) \
 		--build-arg WITH_WS_NETWORKING_PROXY=$(WITH_WS_NETWORKING_PROXY) \
+		--build-arg WITH_CURL=$(WITH_CURL) \
 		--build-arg EMSCRIPTEN_ENVIRONMENT=$(PLATFORM) && \
 	cd -
 
