@@ -11,7 +11,7 @@
     "@codemirror/language": "6.10.2",
     "@codesandbox/sandpack-react": "2.14.5",
     "@emotion/react": "11.11.4",
-    "@emotion/styled": "11.11.0",
+    "@emotion/styled": "11.13.0",
     "@monaco-editor/react": "4.6.0",
     "@testing-library/jest-dom": "6.4.6",
     "@testing-library/user-event": "13.5.0",
