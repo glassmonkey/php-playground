@@ -9,7 +9,7 @@
     "@chakra-ui/icons": "2.1.0",
     "@chakra-ui/react": "2.8.0",
     "@codemirror/language": "6.10.2",
-    "@codesandbox/sandpack-react": "2.14.5",
+    "@codesandbox/sandpack-react": "2.19.1",
     "@emotion/react": "11.11.4",
     "@emotion/styled": "11.13.0",
     "@monaco-editor/react": "4.6.0",
