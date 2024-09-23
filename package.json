@@ -7,7 +7,7 @@
   "private": true,
   "dependencies": {
     "@chakra-ui/icons": "2.1.0",
-    "@chakra-ui/react": "2.8.0",
+    "@chakra-ui/react": "2.8.2",
     "@codemirror/language": "6.10.2",
     "@codesandbox/sandpack-react": "2.19.3",
     "@emotion/react": "11.13.3",
