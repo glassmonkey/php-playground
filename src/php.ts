@@ -33,6 +33,9 @@ async function loadPHPLoaderModule(v: Version) {
 		case '8.3':
 			// @ts-ignore
 			return import('./wasm-assets/php-8.3.js');
+		case '8.4':
+			// @ts-ignore
+			return import('./wasm-assets/php-8.4.js');
 		default:
 			/* eslint no-case-declarations: 0 */
 			/* eslint @typescript-eslint/no-unused-vars: 0 */
