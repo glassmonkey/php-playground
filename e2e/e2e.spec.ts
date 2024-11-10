@@ -83,7 +83,7 @@ test.describe('select version', () => {
         // focus editor
         await editor.click()
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('<?')
+        await expect(page.getByRole('presentation')).toHaveText('empty data')
         // try 1+1
         await page.keyboard.type('Hello, World')
         // display code in editor
@@ -103,7 +103,7 @@ test.describe('select version', () => {
         // focus editor
         await editor.click()
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('<?')
+        await expect(page.getByRole('presentation')).toHaveText('empty data')
         // try 1+1
         await page.keyboard.type('<body><?echo "x"."y"."z"?></body>')
         // display code in editor
