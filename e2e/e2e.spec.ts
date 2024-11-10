@@ -65,9 +65,9 @@ test.describe('select version', () => {
         // display code in editor
         await expect(page.getByRole('presentation')).toHaveText('<?')
         // try 1+1
-        await page.keyboard.type('echo 1+1;')
+        await page.keyboard.type('echo(1+1);')
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('<?echo 1+1;')
+        await expect(page.getByRole('presentation')).toHaveText('<?echo(1+1);')
         // run and result is 2
         await page.getByTestId('checkbox-format').uncheck()
         await expect(await page.getByTestId('preview-console')).toHaveText('2')

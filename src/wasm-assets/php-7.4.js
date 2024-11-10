@@ -1,6 +1,6 @@
 export const dependenciesTotalSize = 4622195;
 export const dependencyFilename =
-	'php-7.4.wasm?4cbf9130c0eac77c050a40a8fd471f30';
+	'php-7.4.wasm?db19f95a81eae4d010ea19a8568050b8';
 export default function (RuntimeName, PHPLoader, EnvVariables) {
 	var Module = typeof PHPLoader != 'undefined' ? PHPLoader : {};
 	var ENVIRONMENT_IS_WEB = RuntimeName === 'WEB';
