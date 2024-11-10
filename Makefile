@@ -28,7 +28,6 @@ endif
 build-image:
 	cd src/wasm && \
 	docker build $(WITH_CACHE) . --tag=$(PHP_IMAGE) \
-		--no-cache \
 		--build-arg PHP_VERSION=$(PHP_VERSION) \
 		--build-arg WITH_VRZNO=$(WITH_VRZNO) \
 		--build-arg WITH_LIBXML=$(WITH_LIBXML) \
@@ -64,7 +63,7 @@ build:
 	$(MAKE) build-all -j$(JOBS)
 
 # too heavy
-build-all: build-5.6 build-7.0 build-7.1 build-7.2 build-7.3 build-7.4 build-8.0 build-8.1 build-8.2 build-8.3
+build-all: build-5.6 build-7.0 build-7.1 build-7.2 build-7.3 build-7.4 build-8.0 build-8.1 build-8.2 build-8.3 build-8.4
 
 build-5.6:
 	$(MAKE) build-wasm PHP_VERSION=5.6
@@ -95,6 +94,9 @@ build-8.2:
 
 build-8.3:
 	$(MAKE) build-wasm PHP_VERSION=8.3
+
+build-8.4:
+	$(MAKE) build-wasm PHP_VERSION=8.4
 
 public/index.js:
 	npm run build
