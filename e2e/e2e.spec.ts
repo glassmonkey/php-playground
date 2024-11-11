@@ -65,15 +65,40 @@ test.describe('select version', () => {
         // display code in editor
         await expect(page.getByRole('presentation')).toHaveText('<?')
         // try 1+1
-        await page.keyboard.type('declare(strict_types=1);echo(1+1);')
+        await page.keyboard.type(' echo(1+1);')
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('<?declare(strict_types=1);echo(1+1);')
+        await expect(page.getByRole('presentation')).toHaveText('<? echo(1+1);')
+        // run and result is 2
+        await page.getByTestId('checkbox-format').uncheck()
+        await expect(await page.getByTestId('preview-console')).toHaveText('2')
+      })
+
+      test(`compute php code(1+1) with strict`, async ({page}) => {
+        if (v < '7.0') {
+          console.log("strict_types is not supported")
+          return
+        }
+        await page.goto(`${PAGE}/?c=DwfgUEA`);
+        // select version
+        const input = page.locator('#select-input-php')
+        await input.fill(v)
+        await page.keyboard.down("Tab");
+
+        const editor = page.getByRole('code')
+        // focus editor
+        await editor.click()
+        // display code in editor
+        await expect(page.getByRole('presentation')).toHaveText('<?')
+        // try 1+1
+        await page.keyboard.type(' declare(strict_types=1);echo(1+1);')
+        // display code in editor
+        await expect(page.getByRole('presentation')).toHaveText('<? declare(strict_types=1);echo(1+1);')
         // run and result is 2
         await page.getByTestId('checkbox-format').uncheck()
         await expect(await page.getByTestId('preview-console')).toHaveText('2')
       })
       test(`not compute text`, async ({page}) => {
-        await page.goto(`${PAGE}/?c=Q`);
+        await page.goto(`${PAGE}/?c=DwQgtBYHxA`);
         // select version
         const input = page.locator('#select-input-php')
         await input.fill(v)
@@ -83,17 +108,17 @@ test.describe('select version', () => {
         // focus editor
         await editor.click()
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('empty data')
+        await expect(page.getByRole('presentation')).toHaveText('<!---->')
         // try 1+1
         await page.keyboard.type('Hello, World')
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('<?echo(1+1);')
+        await expect(page.getByRole('presentation')).toHaveText('<!---->Hello, World')
         // run and result is 2
         await page.getByTestId('checkbox-format').uncheck()
-        await expect(await page.getByTestId('preview-console')).toHaveText('2')
+        await expect(await page.getByTestId('preview-console')).toHaveText('<!---->Hello, World')
       })
       test(`include compute text`, async ({page}) => {
-        await page.goto(`${PAGE}/?c=Q`);
+        await page.goto(`${PAGE}/?c=DwQgtBYHxA`); // <!---->
         // select version
         const input = page.locator('#select-input-php')
         await input.fill(v)
@@ -103,14 +128,14 @@ test.describe('select version', () => {
         // focus editor
         await editor.click()
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('empty data')
+        await expect(page.getByRole('presentation')).toHaveText('<!---->')
         // try 1+1
         await page.keyboard.type('<body><?echo "x"."y"."z"?></body>')
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('<body><?echo "x"."y"."z"?></body>')
+        await expect(page.getByRole('presentation')).toHaveText('<!----><body><?echo "x"."y"."z"?></body>')
         // run and result is 2
         await page.getByTestId('checkbox-format').uncheck()
-        await expect(await page.getByTestId('preview-console')).toHaveText('hoge')
+        await expect(await page.getByTestId('preview-console')).toHaveText('<!----><body>xyz</body>')
       })
     })
   })
