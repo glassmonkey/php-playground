@@ -1,5 +1,5 @@
 import { expect, it, describe } from 'vitest';
-import {convertCodeToPhpPlayground, initPHP, runPHP} from '../php.js';
+import {convertCodeToPhpPlayground, initPHP, runPHP} from '../php';
 // @ts-ignore
 import { mockFetch } from 'vi-fetch';
 // @ts-ignore

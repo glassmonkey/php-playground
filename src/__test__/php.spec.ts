@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { usePHP } from '../php.js';
+import { usePHP } from '../php';
 // @ts-ignore
 import { mockFetch } from 'vi-fetch';
 // @ts-ignore
