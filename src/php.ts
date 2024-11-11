@@ -57,13 +57,26 @@ export async function runPHP(php: PHP, code: string) {
 	return new TextDecoder().decode(output.body);
 }
 
+// Convert code to PHP code
+export function convertCodeToPhpPlayground(code: string) {
+	const phpPrefixPattern = /^<\?(php)?\s+/g;
+
+	const hasPhpPrefix = code.match(phpPrefixPattern);
+	let phpCode = code.replace(phpPrefixPattern, '');
+	// Add PHP tag if not exists
+	if (!hasPhpPrefix) {
+		phpCode = '?>' + phpCode;
+	}
+	return phpCode;
+}
+
 export function usePHP(version: Version, code: string): [boolean, string] {
 	const [php, setPHP] = useState<PHP | null>(null);
 	const [loading, setLoading] = useState<boolean>(false);
 	const [internalCode, setInternalCode] = useState<string>('');
 	const [result, setResult] = useState<string>('');
-	// for declare(strict_types=1), remove <?php
-	const phpCode = code.replace(/^<\?(php)?/g, '');
+
+	const phpCode = convertCodeToPhpPlayground(code);
 
 	useEffect(
 		function () {
