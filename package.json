@@ -31,7 +31,7 @@
     "react-router-dom": "6.26.2",
     "react-select": "5.8.0",
     "typescript": "5.6.2",
-    "web-vitals": "4.2.3"
+    "web-vitals": "4.2.4"
   },
   "scripts": {
     "dev": "vite",
