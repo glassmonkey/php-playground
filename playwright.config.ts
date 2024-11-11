@@ -1,5 +1,23 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const projects = [
+  {
+    name: 'chromium',
+    use: { ...devices['Desktop Chrome'] },
+  },
+]
+if (process.env.CI) {
+  projects.push({
+    name: 'firefox',
+    use: { ...devices['Desktop Firefox'] },
+  })
+  projects.push({
+    name: 'webkit',
+    use: { ...devices['Desktop Safari'] },
+  })
+}
+
+
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
@@ -17,7 +35,7 @@ export default defineConfig({
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
-  retries: 3,
+  retries: 2,
   /* Opt out of parallel tests on CI. */
   workers: 4,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
@@ -32,25 +50,11 @@ export default defineConfig({
   },
   timeout: 5 * 60 * 1000,
   expect: {
-    timeout: 10 * 1000,
+    timeout: 1000,
   },
 
   /* Configure projects for major browsers */
-  projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
+  projects: projects,
 
     /* Test against mobile viewports. */
     // {
@@ -71,14 +75,13 @@ export default defineConfig({
     //   name: 'Google Chrome',
     //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
     // },
-  ],
 
   /* Run your local dev server before starting the tests */
   webServer: {
     command: 'npm run dev',
     url: 'http://127.0.0.1:18888',
-    //reuseExistingServer: !process.env.CI,
-    timeout: 60 * 1000,
+    reuseExistingServer: !process.env.CI,
+    timeout: 1000 * 60,
     stdout: 'pipe',
     stderr: 'pipe',
   },
