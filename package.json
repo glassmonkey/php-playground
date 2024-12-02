@@ -9,7 +9,7 @@
   "dependencies": {
     "@chakra-ui/icons": "2.1.0",
     "@chakra-ui/react": "2.8.0",
-    "@codemirror/language": "6.10.2",
+    "@codemirror/language": "6.10.6",
     "@codesandbox/sandpack-react": "2.19.9",
     "@emotion/react": "11.13.3",
     "@emotion/styled": "11.13.0",
