@@ -33,7 +33,7 @@ export default function App() {
 			searchParams.get('c') ?? ''
 		) ?? '<?php\n// example code\nphpinfo();';
 
-	const currentVersion = asVersion(searchParams.get('v')) ?? '8.3';
+	const currentVersion = asVersion(searchParams.get('v')) ?? '8.4';
 
 	const { colorMode, toggleColorMode } = useColorMode();
 
