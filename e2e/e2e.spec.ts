@@ -9,15 +9,15 @@ test.describe('default page', () => {
   test('has title', async ({ page }) => {
     await expect(page).toHaveTitle('PHP Playground');
   });
-  test('default version is 8.3', async ({ page }) => {
-    await expect(page.getByText('8.3')).toBeVisible()
+  test('default version is 8.4', async ({ page }) => {
+    await expect(page.getByText('8.4')).toBeVisible()
   })
   test('default code is `phpinfo()`', async ({ page }) => {
     await expect(page.getByRole('code')).toContainText('phpinfo();')
   })
 
   test('default URL', async ({ page }) => {
-    const defaultPage = `${PAGE}/?c=DwfgDgFmBQD0sAICmAPAhgWzAGyQgxgPYAmS0kYAlgHYBmhAFAJQDcQA&v=8.3&f=html`
+    const defaultPage = `${PAGE}/?c=DwfgDgFmBQD0sAICmAPAhgWzAGyQgxgPYAmS0kYAlgHYBmhAFAJQDcQA&v=8.4&f=html`
     await page.waitForURL(defaultPage)
     expect(page.url()).toContain(defaultPage)
   })
@@ -25,12 +25,12 @@ test.describe('default page', () => {
   test('switch preview', async ({ page }) => {
     // html preview
     await page.getByTestId('checkbox-format').check()
-    await expect(await page.getByTestId('preview-html').getAttribute('srcdoc')).toContain('PHP Version 8.3')
+    await expect(await page.getByTestId('preview-html').getAttribute('srcdoc')).toContain('PHP Version 8.4')
     await expect(await page.getByTestId('preview-console')).not.toBeVisible()
 
     // console pvreview
     await page.getByTestId('checkbox-format').uncheck()
-    await expect(await page.getByTestId('preview-console')).toContainText('PHP Version 8.3')
+    await expect(await page.getByTestId('preview-console')).toContainText('PHP Version 8.4')
     await expect(await page.getByTestId('preview-html')).not.toBeVisible()
   })
 })
