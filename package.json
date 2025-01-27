@@ -70,7 +70,7 @@
     ]
   },
   "devDependencies": {
-    "@playwright/test": "1.45.1",
+    "@playwright/test": "1.50.0",
     "@testing-library/react": "16.0.1",
     "@types/debounce": "1.2.4",
     "@typescript-eslint/eslint-plugin": "7.16.0",
