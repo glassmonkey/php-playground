@@ -75,7 +75,7 @@
     "@types/debounce": "1.2.4",
     "@typescript-eslint/eslint-plugin": "7.16.0",
     "@vitejs/plugin-react": "4.3.4",
-    "esbuild": "0.24.0",
+    "esbuild": "0.25.1",
     "eslint": "8.57.0",
     "eslint-plugin-react": "7.35.0",
     "jsdom": "^25.0.1",
