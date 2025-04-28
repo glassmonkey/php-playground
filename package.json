@@ -77,7 +77,7 @@
     "@vitejs/plugin-react": "4.3.4",
     "esbuild": "0.25.1",
     "eslint": "8.57.0",
-    "eslint-plugin-react": "7.35.0",
+    "eslint-plugin-react": "7.37.5",
     "jsdom": "^25.0.1",
     "node-fetch": "3.3.2",
     "vi-fetch": "0.8.0",
