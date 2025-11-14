@@ -1,7 +1,6 @@
 # Originally forked from https://github.com/WordPress/wordpress-playground
-# ubuntu:lunar supports amd64 and arm64 (Apple Silicon) while
-# emscripten/emsdk:3.1.24 supports amd64 only.
-FROM ubuntu:22.04 as emscripten
+# ubuntu:noble supports amd64 and arm64 (Apple Silicon)
+FROM ubuntu:noble as emscripten
 
 SHELL ["/bin/bash", "-c"]
 
