@@ -1,11 +1,10 @@
 services:
-  playground:
+  php-playground:
     build: .
     ports:
       - "3000:3000"
     volumes:
       - .:/app
-      - /app/node_modules
     environment:
       - NODE_ENV=production
     command: npm run preview
