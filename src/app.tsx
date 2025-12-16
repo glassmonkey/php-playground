@@ -14,7 +14,7 @@ import {
 import { useSearchParams } from 'react-router-dom';
 import * as lzstring from 'lz-string';
 
-import { Version, asVersion } from './php-wasm/php';
+import { Version, asVersion, defaultVersion } from './php-wasm/php';
 import SelectPHP from './select';
 import { Editor } from './editor';
 import { BellIcon } from '@chakra-ui/icons';
@@ -33,7 +33,7 @@ export default function App() {
 			searchParams.get('c') ?? ''
 		) ?? '<?php\n// example code\nphpinfo();';
 
-	const currentVersion = asVersion(searchParams.get('v')) ?? '8.4';
+	const currentVersion = asVersion(searchParams.get('v')) ?? defaultVersion;
 
 	const { colorMode, toggleColorMode } = useColorMode();
 
