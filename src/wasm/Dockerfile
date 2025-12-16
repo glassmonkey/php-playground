@@ -420,10 +420,19 @@ RUN if [ "$WITH_MBSTRING" = "yes" ]; \
     else echo -n ' --disable-mbstring ' >> /root/.php-configure-flags; \
     fi;
 
+# Disable JIT on wasm target (opcache build pulls JIT headers otherwise)
+RUN if [ "${PHP_VERSION:0:1}" -ge "8" ]; then \
+        echo -n ' --disable-opcache-jit ' >> /root/.php-configure-flags; \
+    fi;
+
 # Get and patch PHP
 COPY build-assets/php*.patch /root/
 RUN cd /root && \
-    git apply --no-index /root/php${PHP_VERSION:0:3}*.patch -v && \
+    if compgen -G "/root/php${PHP_VERSION:0:3}*.patch" > /dev/null; then \
+        git apply --no-index /root/php${PHP_VERSION:0:3}*.patch -v; \
+    else \
+        echo "No PHP ${PHP_VERSION} patch found; skipping apply."; \
+    fi && \
     touch php-src/patched
 
 # Add VRZNO if needed
@@ -874,7 +883,7 @@ RUN source /root/emsdk/emsdk_env.sh && \
     $(cat /root/.emcc-php-wasm-flags) \
     -o /root/output/php.js \
     -s EXPORTED_FUNCTIONS="$EXPORTED_FUNCTIONS" \
-    -s EXTRA_EXPORTED_RUNTIME_METHODS='["ccall", "UTF8ToString", "lengthBytesUTF8", "FS", "PROXYFS"]' \
+    -s EXPORTED_RUNTIME_METHODS='["ccall","UTF8ToString","lengthBytesUTF8","FS"]' \
     -s INITIAL_MEMORY=1024MB \
     -s ALLOW_MEMORY_GROWTH=1         \
     -s ASSERTIONS=0                  \
