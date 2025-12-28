@@ -76,6 +76,7 @@ function PhpPreview(params: { version: Version; format: Format }) {
 
 	return (
 		<iframe
+			key={result}
 			srcDoc={result}
 			height="100%"
 			width="100%"
