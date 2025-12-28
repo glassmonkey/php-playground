@@ -15,12 +15,15 @@ export const versions = [
 	'8.2',
 	'8.3',
 	'8.4',
+	'8.5',
 ] as const;
 
 export type Version = (typeof versions)[number];
 
+export const defaultVersion: Version = versions[versions.length - 1];
+
 export function asVersion(s: string | null): Version | null {
-	const r = versions.filter((v) => v == s).pop();
+	const r = versions.find((v) => v === s);
 	if (!r) {
 		return null;
 	}

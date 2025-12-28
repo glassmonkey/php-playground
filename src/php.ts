@@ -1,47 +1,19 @@
 import { PHP, startPHP, Version } from './php-wasm/php';
 import { useEffect, useState } from 'react';
 
+const phpWasmLoaders = import.meta.glob('./wasm-assets/php-*.js');
+
 async function loadPHPLoaderModule(v: Version) {
-	switch (v) {
-		case '5.6':
-			// @ts-ignore
-			return import('./wasm-assets/php-5.6.js');
-		case '7.0':
-			// @ts-ignore
-			return import('./wasm-assets/php-7.0.js');
-		case '7.1':
-			// @ts-ignore
-			return import('./wasm-assets/php-7.1.js');
-		case '7.2':
-			// @ts-ignore
-			return import('./wasm-assets/php-7.2.js');
-		case '7.3':
-			// @ts-ignore
-			return import('./wasm-assets/php-7.3.js');
-		case '7.4':
-			// @ts-ignore
-			return import('./wasm-assets/php-7.4.js');
-		case '8.0':
-			// @ts-ignore
-			return import('./wasm-assets/php-8.0.js');
-		case '8.1':
-			// @ts-ignore
-			return import('./wasm-assets/php-8.1.js');
-		case '8.2':
-			// @ts-ignore
-			return import('./wasm-assets/php-8.2.js');
-		case '8.3':
-			// @ts-ignore
-			return import('./wasm-assets/php-8.3.js');
-		case '8.4':
-			// @ts-ignore
-			return import('./wasm-assets/php-8.4.js');
-		default:
-			/* eslint no-case-declarations: 0 */
-			/* eslint @typescript-eslint/no-unused-vars: 0 */
-			const x: never = v;
-			throw Error('not defined version');
+	// Lazy-load the matching wasm loader; this only resolves for versions with assets on disk.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const loader = phpWasmLoaders[`./wasm-assets/php-${v}.js`] as
+		| (() => Promise<any>)
+		| undefined;
+	if (!loader) {
+		throw Error(`PHP ${v} assets not found. Build them with make build-${v}.`);
 	}
+	// @ts-ignore
+	return loader();
 }
 
 export async function initPHP(v: Version) {
