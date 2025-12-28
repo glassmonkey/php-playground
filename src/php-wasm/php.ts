@@ -111,7 +111,10 @@ export interface PHPResponse {
 export interface PHPLoaderModule {
 	dependenciesTotalSize: number;
 	dependencyFilename: string;
-	default: (runtime: string, args: EmscriptenModuleArgs) => EmscriptenPHPModule;
+	default: (
+		runtime: string,
+		args: EmscriptenModuleArgs
+	) => EmscriptenPHPModule;
 }
 
 /**
@@ -130,10 +133,31 @@ export interface EmscriptenModuleArgs {
  */
 export interface EmscriptenPHPModule {
 	ccall: {
-		(name: string, returnType: null, argTypes: string[], args: unknown[]): void;
-		(name: string, returnType: null, argTypes: string[], args: unknown[], options: { async: true }): Promise<number>;
-		(name: string, returnType: 'number', argTypes: string[], args: unknown[]): number;
-		(name: string, returnType: 'string', argTypes: string[], args: unknown[]): string;
+		(
+			name: string,
+			returnType: null,
+			argTypes: string[],
+			args: unknown[]
+		): void;
+		(
+			name: string,
+			returnType: null,
+			argTypes: string[],
+			args: unknown[],
+			options: { async: true }
+		): Promise<number>;
+		(
+			name: string,
+			returnType: 'number',
+			argTypes: string[],
+			args: unknown[]
+		): number;
+		(
+			name: string,
+			returnType: 'string',
+			argTypes: string[],
+			args: unknown[]
+		): string;
 	};
 	FS: {
 		readdir: (path: string) => string[];
