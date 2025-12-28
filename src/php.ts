@@ -1,20 +1,18 @@
-import { PHP, startPHP, Version } from './php-wasm/php';
+import { PHP, startPHP, Version, PHPLoaderModule } from './php-wasm/php';
 import { useEffect, useState } from 'react';
 
 const phpWasmLoaders = import.meta.glob('./wasm-assets/php-*.js');
 
-async function loadPHPLoaderModule(v: Version) {
+async function loadPHPLoaderModule(v: Version): Promise<PHPLoaderModule> {
 	// Lazy-load the matching wasm loader; this only resolves for versions with assets on disk.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const loader = phpWasmLoaders[`./wasm-assets/php-${v}.js`] as
-		| (() => Promise<any>)
+		| (() => Promise<PHPLoaderModule>)
 		| undefined;
 	if (!loader) {
 		throw Error(
 			`PHP ${v} assets not found. Build them with make build-${v}.`
 		);
 	}
-	// @ts-ignore
 	return loader();
 }
 

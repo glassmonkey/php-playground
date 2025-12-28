@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2020",
+    "module": "ESNext",
     "allowJs": true,
     "checkJs": false,
     "allowSyntheticDefaultImports": true,
@@ -25,6 +26,7 @@
     "declarationDir": "build-types",
     "outDir": "build-types",
     "baseUrl": ".",
+    "types": ["vite/client"],
     "lib": [
       "dom",
       "ESNext"
