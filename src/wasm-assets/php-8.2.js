@@ -1,6 +1,6 @@
-export const dependenciesTotalSize = 4613632;
+export const dependenciesTotalSize = 4613451;
 export const dependencyFilename =
-	'php-8.2.wasm?c3152acb2e83f70e195679a37c13d87d';
+	'php-8.2.wasm?99a7aa634182ad86601c9b69ebc8a5b3';
 export default function (RuntimeName, PHPLoader, EnvVariables) {
 	var Module = typeof PHPLoader != 'undefined' ? PHPLoader : {};
 	var ENVIRONMENT_IS_WEB = RuntimeName === 'WEB';
@@ -5898,9 +5898,9 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		Oa: invoke_iiiiiiiiii,
 		c: invoke_v,
 		a: invoke_vi,
-		f: invoke_vii,
+		e: invoke_vii,
 		x: invoke_viidii,
-		e: invoke_viii,
+		f: invoke_viii,
 		k: invoke_viiii,
 		m: invoke_viiiii,
 		h: invoke_viiiiii,
