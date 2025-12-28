@@ -2,7 +2,7 @@
   "name": "php-playground",
   "version": "0.1.0",
   "engines": {
-    "node": "22.12.0"
+    "node": "24.12.0"
   },
   "type": "module",
   "private": true,
@@ -18,7 +18,7 @@
     "@testing-library/user-event": "14.5.2",
     "@types/jest": "29.5.14",
     "@types/lz-string": "1.5.0",
-    "@types/node": "20.12.8",
+    "@types/node": "24.10.4",
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.1",
     "debounce": "2.2.0",
