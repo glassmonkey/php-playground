@@ -1005,10 +1005,19 @@ int EMSCRIPTEN_KEEPALIVE wasm_sapi_handle_request() {
 	{
 		zend_file_handle file_handle;
 
-#if PHP_MAJOR_VERSION >= 8
-		zend_stream_init_filename(&file_handle, SG(request_info).path_translated);
-#else
 		file_handle.type = ZEND_HANDLE_FILENAME;
+#if PHP_MAJOR_VERSION >= 8
+		zend_string *filename = zend_string_init(
+			SG(request_info).path_translated,
+			strlen(SG(request_info).path_translated),
+			1
+		);
+		#if PHP_MINOR_VERSION == 0
+		file_handle.filename = (const char *) filename;
+		#else
+		file_handle.filename = (zend_string *) filename;
+		#endif
+#else
 		file_handle.filename = SG(request_info).path_translated;
 		file_handle.free_filename = 0;
 		file_handle.opened_path = NULL;
