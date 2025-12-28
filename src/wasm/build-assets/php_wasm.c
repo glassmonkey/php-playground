@@ -1012,11 +1012,13 @@ int EMSCRIPTEN_KEEPALIVE wasm_sapi_handle_request() {
 			strlen(SG(request_info).path_translated),
 			1
 		);
-		file_handle.filename = filename;
+		#if PHP_MINOR_VERSION == 0
+		file_handle.filename = (const char *) filename;
+		#else
+		file_handle.filename = (zend_string *) filename;
+		#endif
 #else
 		file_handle.filename = SG(request_info).path_translated;
-#endif
-#if PHP_MAJOR_VERSION < 8
 		file_handle.free_filename = 0;
 		file_handle.opened_path = NULL;
 #endif

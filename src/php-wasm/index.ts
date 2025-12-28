@@ -5,6 +5,10 @@ export type {
 	PHPResponse,
 	JavascriptRuntime,
 	ErrnoError,
+	PHPLoaderModule,
+	EmscriptenModuleArgs,
+	EmscriptenPHPModule,
+	DataDependencyModule,
 } from './php';
 
 import PHPServer from './php-server';
