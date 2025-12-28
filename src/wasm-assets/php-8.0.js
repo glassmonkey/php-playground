@@ -2681,7 +2681,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 						: ~~+Math.ceil(
 								(tempDouble - +(~~tempDouble >>> 0)) /
 									4294967296
-						  ) >>> 0
+							) >>> 0
 					: 0),
 			]),
 				(HEAP32[(buf + 24) >> 2] = tempI64[0]),
@@ -2700,7 +2700,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 						: ~~+Math.ceil(
 								(tempDouble - +(~~tempDouble >>> 0)) /
 									4294967296
-						  ) >>> 0
+							) >>> 0
 					: 0),
 			]),
 				(HEAP32[(buf + 40) >> 2] = tempI64[0]),
@@ -2715,7 +2715,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 						: ~~+Math.ceil(
 								(tempDouble - +(~~tempDouble >>> 0)) /
 									4294967296
-						  ) >>> 0
+							) >>> 0
 					: 0),
 			]),
 				(HEAP32[(buf + 56) >> 2] = tempI64[0]),
@@ -2730,7 +2730,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 						: ~~+Math.ceil(
 								(tempDouble - +(~~tempDouble >>> 0)) /
 									4294967296
-						  ) >>> 0
+							) >>> 0
 					: 0),
 			]),
 				(HEAP32[(buf + 72) >> 2] = tempI64[0]),
@@ -2745,7 +2745,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 						: ~~+Math.ceil(
 								(tempDouble - +(~~tempDouble >>> 0)) /
 									4294967296
-						  ) >>> 0
+							) >>> 0
 					: 0),
 			]),
 				(HEAP32[(buf + 88) >> 2] = tempI64[0]),
@@ -3173,7 +3173,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 								sock,
 								sock.daddr,
 								sock.dport
-						  )
+							)
 						: null;
 				if (
 					sock.recv_queue.length ||
@@ -3893,10 +3893,10 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 					type = FS.isChrdev(child.mode)
 						? 2
 						: FS.isDir(child.mode)
-						? 4
-						: FS.isLink(child.mode)
-						? 10
-						: 8;
+							? 4
+							: FS.isLink(child.mode)
+								? 10
+								: 8;
 				}
 				(tempI64 = [
 					id >>> 0,
@@ -3907,7 +3907,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 							: ~~+Math.ceil(
 									(tempDouble - +(~~tempDouble >>> 0)) /
 										4294967296
-							  ) >>> 0
+								) >>> 0
 						: 0),
 				]),
 					(HEAP32[(dirp + pos) >> 2] = tempI64[0]),
@@ -3921,7 +3921,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 							: ~~+Math.ceil(
 									(tempDouble - +(~~tempDouble >>> 0)) /
 										4294967296
-							  ) >>> 0
+								) >>> 0
 						: 0),
 				]),
 					(HEAP32[(dirp + pos + 8) >> 2] = tempI64[0]),
@@ -4679,7 +4679,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 						: ~~+Math.ceil(
 								(tempDouble - +(~~tempDouble >>> 0)) /
 									4294967296
-						  ) >>> 0
+							) >>> 0
 					: 0)
 			),
 			ret >>> 0
@@ -4926,10 +4926,10 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				var type = stream.tty
 					? 2
 					: FS.isDir(stream.mode)
-					? 3
-					: FS.isLink(stream.mode)
-					? 7
-					: 4;
+						? 3
+						: FS.isLink(stream.mode)
+							? 7
+							: 4;
 			}
 			HEAP8[pbuf] = type;
 			HEAP16[(pbuf + 2) >> 1] = flags;
@@ -4942,7 +4942,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 						: ~~+Math.ceil(
 								(tempDouble - +(~~tempDouble >>> 0)) /
 									4294967296
-						  ) >>> 0
+							) >>> 0
 					: 0),
 			]),
 				(HEAP32[(pbuf + 8) >> 2] = tempI64[0]),
@@ -4956,7 +4956,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 						: ~~+Math.ceil(
 								(tempDouble - +(~~tempDouble >>> 0)) /
 									4294967296
-						  ) >>> 0
+							) >>> 0
 					: 0),
 			]),
 				(HEAP32[(pbuf + 16) >> 2] = tempI64[0]),
@@ -5009,7 +5009,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 						: ~~+Math.ceil(
 								(tempDouble - +(~~tempDouble >>> 0)) /
 									4294967296
-						  ) >>> 0
+							) >>> 0
 					: 0),
 			]),
 				(HEAP32[newOffset >> 2] = tempI64[0]),
@@ -5497,10 +5497,10 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return typeof value != 'number' || isNaN(value)
 					? min
 					: value >= min
-					? value <= max
-						? value
-						: max
-					: min;
+						? value <= max
+							? value
+							: max
+						: min;
 			}
 			return {
 				year: fixup(HEAP32[(tm + 20) >> 2] + 1900, 1970, 9999),

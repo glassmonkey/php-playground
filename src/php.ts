@@ -10,7 +10,9 @@ async function loadPHPLoaderModule(v: Version) {
 		| (() => Promise<any>)
 		| undefined;
 	if (!loader) {
-		throw Error(`PHP ${v} assets not found. Build them with make build-${v}.`);
+		throw Error(
+			`PHP ${v} assets not found. Build them with make build-${v}.`
+		);
 	}
 	// @ts-ignore
 	return loader();
