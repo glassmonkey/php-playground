@@ -55,6 +55,15 @@ function PhpPreview(params: { version: Version; format: Format }) {
 	const code = files[activeFile].code;
 	const [loading, result] = usePHP(params.version, code);
 
+	// Generate a unique key whenever result changes (O(1) operation)
+	const iframeKey = React.useRef(0);
+	const prevResult = React.useRef(result);
+
+	if (prevResult.current !== result) {
+		iframeKey.current += 1;
+		prevResult.current = result;
+	}
+
 	if (loading) {
 		return <LoadSpinner />;
 	}
@@ -76,7 +85,7 @@ function PhpPreview(params: { version: Version; format: Format }) {
 
 	return (
 		<iframe
-			key={result}
+			key={iframeKey.current}
 			srcDoc={result}
 			height="100%"
 			width="100%"
