@@ -2,7 +2,7 @@
   "name": "php-playground",
   "version": "0.1.0",
   "engines": {
-    "node": "22.4.0"
+    "node": "22.12.0"
   },
   "type": "module",
   "private": true,
@@ -74,7 +74,7 @@
     "@testing-library/react": "16.0.1",
     "@types/debounce": "1.2.4",
     "@typescript-eslint/eslint-plugin": "7.16.0",
-    "@vitejs/plugin-react": "4.3.4",
+    "@vitejs/plugin-react": "5.1.2",
     "esbuild": "0.25.1",
     "eslint": "8.57.0",
     "eslint-plugin-react": "7.37.5",
