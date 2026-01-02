@@ -1,4 +1,4 @@
-import { MessageType, type WorkerMessage } from './types';
+import { ClientMessageType, WorkerMessageType, type ClientMessage } from './types';
 import { registerSW } from 'virtual:pwa-register';
 
 export function registerServiceWorker(): void {
@@ -11,7 +11,7 @@ export function registerServiceWorker(): void {
 
 	// Register service worker using Vite PWA
 	registerSW({
-		onRegistered(registration) {
+		onRegisteredSW(swScriptUrl, registration) {
 			console.log('Service Worker registered with scope:', registration?.scope);
 		},
 		onRegisterError(error) {
@@ -20,15 +20,27 @@ export function registerServiceWorker(): void {
 	});
 
 	// Listen for messages from service worker
-	navigator.serviceWorker.addEventListener('message', (event: MessageEvent<WorkerMessage>) => {
+	navigator.serviceWorker.addEventListener('message', (event: MessageEvent<ClientMessage>) => {
 		const { type, message } = event.data;
 
 		switch (type) {
-			case MessageType.SHOW_ALERT:
+			case ClientMessageType.SHOW_ALERT:
 				alert(message);
 				break;
 			default:
 				console.warn('Unknown message type from service worker:', type);
 		}
+	});
+}
+
+export function triggerServiceWorkerAlert(): void {
+	if (!navigator.serviceWorker.controller) {
+		console.warn('Service Worker is not active');
+		return;
+	}
+
+	// Send message to service worker
+	navigator.serviceWorker.controller.postMessage({
+		type: WorkerMessageType.TRIGGER_ALERT,
 	});
 }

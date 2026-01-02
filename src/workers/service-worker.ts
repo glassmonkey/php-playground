@@ -1,36 +1,37 @@
 /// <reference lib="webworker" />
 
-import { MessageType, type ShowAlertMessage } from './types';
+import {
+	ClientMessageType,
+	WorkerMessageType,
+	type ShowAlertMessage,
+	type WorkerMessage,
+} from './types';
 
 // Service Worker
-// This service worker will send a message to all clients 1 second after activation
+// This service worker will send a message to clients when requested
 
 export {};
 
 declare var self: ServiceWorkerGlobalScope;
 
 self.addEventListener('activate', (event: ExtendableEvent) => {
-	event.waitUntil(
-		self.clients.claim().then(() => {
-			// Wait for 1 second, then send message to all clients
-			return new Promise<void>((resolve) => {
-				setTimeout(async () => {
-					const clients = await self.clients.matchAll({ type: 'window' });
-					const message: ShowAlertMessage = {
-						type: MessageType.SHOW_ALERT,
-						message: 'hello world',
-					};
-					clients.forEach((client: Client) => {
-						client.postMessage(message);
-					});
-					resolve();
-				}, 1000);
-			});
-		})
-	);
+	event.waitUntil(self.clients.claim());
 });
 
-// Optional: Also handle the install event
 self.addEventListener('install', () => {
 	void self.skipWaiting();
+});
+
+// Handle messages from clients
+self.addEventListener('message', (event: ExtendableMessageEvent) => {
+	const data = event.data as WorkerMessage;
+
+	if (data.type === WorkerMessageType.TRIGGER_ALERT) {
+		// Send alert message back to the client who sent the request
+		const message: ShowAlertMessage = {
+			type: ClientMessageType.SHOW_ALERT,
+			message: 'hello world',
+		};
+		event.source?.postMessage(message);
+	}
 });
