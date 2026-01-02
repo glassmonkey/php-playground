@@ -5,7 +5,7 @@ import {
 	useActiveCode,
 	useSandpack,
 } from '@codesandbox/sandpack-react';
-import { usePHP } from './php';
+import { usePHP } from './workers/client';
 import { Box, Center, Flex, Spinner, useColorMode } from '@chakra-ui/react';
 import type { ReactElement } from 'react';
 import * as React from 'react';

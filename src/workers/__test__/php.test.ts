@@ -1,11 +1,12 @@
 import { expect, it, describe } from 'vitest';
-import { convertCodeToPhpPlayground, initPHP, runPHP } from '../php';
+import { convertCodeToPhpPlayground } from '../client';
+import { initPHP, runPHP } from '../service-worker';
 // @ts-ignore
 import { mockFetch } from 'vi-fetch';
 // @ts-ignore
 import 'vi-fetch/setup';
 import * as fs from 'fs';
-import { versions } from '../php-wasm/php';
+import { versions } from '../../php-wasm/php';
 
 mockFetch.setOptions({
 	baseUrl: '',

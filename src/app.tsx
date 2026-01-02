@@ -19,7 +19,6 @@ import SelectPHP from './select';
 import { Editor } from './editor';
 import { BellIcon } from '@chakra-ui/icons';
 import { Format, SelectFormat } from './format';
-import { triggerServiceWorkerAlert } from './workers/client';
 
 type UrlState = {
 	v: Version;
@@ -134,14 +133,6 @@ export default function App() {
 							colorScheme="green"
 						>
 							Donate
-						</Button>
-					</Center>
-					<Center>
-						<Button
-							onClick={triggerServiceWorkerAlert}
-							colorScheme="blue"
-						>
-							Test Service Worker
 						</Button>
 					</Center>
 					<label

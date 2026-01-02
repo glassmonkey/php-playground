@@ -1,26 +1,15 @@
-// Message types from Service Worker to Client
-export const ClientMessageType = {
-	SHOW_ALERT: 'SHOW_ALERT',
-} as const;
+import type { Version } from '../php-wasm/php';
 
-export type ClientMessageType = (typeof ClientMessageType)[keyof typeof ClientMessageType];
-
-export interface ShowAlertMessage {
-	type: typeof ClientMessageType.SHOW_ALERT;
-	message: string;
+// Message from Service Worker to Client
+export interface PHPResultMessage {
+	requestId: string;
+	result: string;
+	error?: string;
 }
 
-export type ClientMessage = ShowAlertMessage;
-
-// Message types from Client to Service Worker
-export const WorkerMessageType = {
-	TRIGGER_ALERT: 'TRIGGER_ALERT',
-} as const;
-
-export type WorkerMessageType = (typeof WorkerMessageType)[keyof typeof WorkerMessageType];
-
-export interface TriggerAlertMessage {
-	type: typeof WorkerMessageType.TRIGGER_ALERT;
+// Message from Client to Service Worker
+export interface RunPHPMessage {
+	requestId: string;
+	version: Version;
+	code: string;
 }
-
-export type WorkerMessage = TriggerAlertMessage;
