@@ -17,7 +17,17 @@ function loadPHPLoaderModule(v: Version): PHPLoaderModule {
 
 export async function initPHP(v: Version): Promise<PHP> {
 	const PHPLoaderModule = loadPHPLoaderModule(v);
-	return startPHP(v, PHPLoaderModule, 'WEBWORKER', {});
+	return startPHP(v, PHPLoaderModule, 'WEBWORKER', {
+		locateFile: (path: string) => {
+			const cleanPath = path.split('?')[0];
+			// Always load WASM files from the root assets directory
+			// This ensures correct paths in both dev and production environments
+			if (cleanPath.endsWith('.wasm')) {
+				return `/${path}`;
+			}
+			return path;
+		}
+	});
 }
 
 export async function runPHP(php: PHP, code: string): Promise<string> {
