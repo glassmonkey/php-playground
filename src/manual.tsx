@@ -1,4 +1,4 @@
-import { Box, Code, Heading, Link, Text, Flex } from '@chakra-ui/react';
+import { Box, Heading, Highlight, Link, Text, Flex } from '@chakra-ui/react';
 import React from 'react';
 
 export default function Manual() {
@@ -51,11 +51,12 @@ export default function Manual() {
 				<Heading as="h3">Notes</Heading>
 				<Box>
 					<Text as="p">
-						If you write code that hangs (e.g., an infinite loop
-						like `while(true)`), you can stop the
-						execution by modifying the code. The PHP code is
-						executed in a Web Worker, so editing the code will
-						terminate the previous execution.
+						<Highlight
+							query="while(true)"
+							styles={{ px: '1', py: '1', bg: 'gray.100', fontFamily: 'mono', borderRadius: 'sm' }}
+						>
+							If you write code that hangs (e.g., an infinite loop like while(true)), you can stop the execution by modifying the code. The PHP code is executed in a Web Worker, so editing the code will terminate the previous execution.
+						</Highlight>
 					</Text>
 				</Box>
 			</Flex>
