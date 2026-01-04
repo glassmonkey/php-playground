@@ -1,6 +1,6 @@
 // Client-side Web Worker integration
 import { useEffect, useState } from 'react';
-import { defaultVersion, Version } from '../php-wasm/php';
+import { Version } from '../php-wasm/php';
 import type { PHPResultMessage, RunPHPMessage } from './types';
 import phpWorker from "./php-worker?worker";
 

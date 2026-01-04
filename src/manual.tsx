@@ -52,7 +52,7 @@ export default function Manual() {
 				<Box>
 					<Text as="p">
 						If you write code that hangs (e.g., an infinite loop
-						like <Code>while(true)</Code>), you can stop the
+						like `while(true)`), you can stop the
 						execution by modifying the code. The PHP code is
 						executed in a Web Worker, so editing the code will
 						terminate the previous execution.

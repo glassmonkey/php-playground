@@ -1,39 +1,9 @@
 /// <reference lib="webworker" />
 
 import type { PHPResultMessage, RunPHPMessage } from './types';
-import { startPHP, type PHP, type Version, type PHPLoaderModule } from '../php-wasm/php';
+import { type PHP, type Version } from '../php-wasm/php';
+import {initPHP, runPHP} from "./php";
 
-// Web Worker for executing PHP code via WASM
-
-const phpWasmLoaders = import.meta.glob('../wasm-assets/php-*.js', { eager: true }) as Record<string, PHPLoaderModule>;
-
-function loadPHPLoaderModule(v: Version): PHPLoaderModule {
-	const loader = phpWasmLoaders[`../wasm-assets/php-${v}.js`];
-	if (!loader) {
-		throw Error(`PHP ${v} assets not found.`);
-	}
-	return loader;
-}
-
-export async function initPHP(v: Version): Promise<PHP> {
-	const PHPLoaderModule = loadPHPLoaderModule(v);
-	return startPHP(v, PHPLoaderModule, 'WEBWORKER', {
-		locateFile: (path: string) => {
-			const cleanPath = path.split('?')[0];
-			// Always load WASM files from the root assets directory
-			// This ensures correct paths in both dev and production environments
-			if (cleanPath.endsWith('.wasm')) {
-				return `/${path}`;
-			}
-			return path;
-		}
-	});
-}
-
-export async function runPHP(php: PHP, code: string): Promise<string> {
-	const output = php.run({ code });
-	return new TextDecoder().decode(output.body);
-}
 
 // PHP instances cache
 const phpInstances = new Map<Version, PHP>();
@@ -48,7 +18,7 @@ async function getOrInitPHP(version: Version): Promise<PHP> {
 	return php;
 }
 
-// Handle messages from main thread
+// Handle messages from main thread (only in worker context)
 self.addEventListener('message', async (event: MessageEvent<RunPHPMessage>) => {
 	const phpMessage = event.data;
 
