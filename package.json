@@ -11,7 +11,7 @@
     "@chakra-ui/react": "2.8.0",
     "@codemirror/language": "6.11.0",
     "@codesandbox/sandpack-react": "2.19.9",
-    "@emotion/react": "11.13.3",
+    "@emotion/react": "11.14.0",
     "@emotion/styled": "11.13.0",
     "@monaco-editor/react": "4.6.0",
     "@testing-library/jest-dom": "6.5.0",
