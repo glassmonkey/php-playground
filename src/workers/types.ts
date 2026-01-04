@@ -1,15 +1,15 @@
 import type { Version } from '../php-wasm/php';
 
-// Message from Service Worker to Client
+// Message from Web Worker to Main Thread
 export interface PHPResultMessage {
-	requestId: NodeJS.Timeout;
+	requestId: NodeJS.Timeout
 	result: string;
 	error?: string;
 }
 
-// Message from Client to Service Worker
+// Message from Main Thread to Web Worker
 export interface RunPHPMessage {
-	requestId: NodeJS.Timeout;
+	requestId: NodeJS.Timeout
 	version: Version;
 	code: string;
 }

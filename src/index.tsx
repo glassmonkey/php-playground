@@ -7,10 +7,6 @@ import Header from './header';
 import Footer from './footer';
 import Manual from './manual';
 import theme from './theme';
-import { registerServiceWorker } from './workers/client';
-
-// Register service worker
-registerServiceWorker();
 
 const router = createBrowserRouter([
 	{

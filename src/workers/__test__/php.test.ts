@@ -1,6 +1,6 @@
 import { expect, it, describe } from 'vitest';
 import { convertCodeToPhpPlayground } from '../client';
-import { initPHP, runPHP } from '../service-worker';
+import { initPHP, runPHP } from '../php-worker';
 // @ts-ignore
 import { mockFetch } from 'vi-fetch';
 // @ts-ignore

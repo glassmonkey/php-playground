@@ -1,34 +1,20 @@
-// Client-side Service Worker integration
+// Client-side Web Worker integration
 import { useEffect, useState } from 'react';
-import { registerSW } from 'virtual:pwa-register';
-import {defaultVersion, PHPRequest, Version} from '../php-wasm/php';
+import { defaultVersion, Version } from '../php-wasm/php';
 import type { PHPResultMessage, RunPHPMessage } from './types';
+import phpWorker from "./php-worker?worker";
 
 type PHPState = {
 	executionId?: NodeJS.Timeout;
-	code: string;
-	version: Version;
-	ready: boolean;
+	worker?: Worker;
 	result: string;
 	error?: string;
 }
 
 const codeState: PHPState = {
-	executionId: undefined,
-	code: '',
-	version: defaultVersion,
-	ready: false,
+	worker: undefined,
 	result: '',
-	error: undefined
-}
-
-async function clearExecution() {
-	if (codeState.executionId) {
-		clearInterval(codeState.executionId);
-		codeState.executionId = undefined;
-	}
-	codeState.result = '';
-	codeState.error = undefined;
+	error: undefined,
 }
 
 // Convert code to PHP code
@@ -43,104 +29,82 @@ export function convertCodeToPhpPlayground(code: string): string {
 	return phpCode;
 }
 
-
-export async function registerServiceWorker(): Promise<void> {
-	if (!('serviceWorker' in navigator)) {
-		console.warn('Service Worker is not supported in this browser');
-		return;
+// Initialize Web Worker
+function initializeWorker() {
+	if (codeState.worker) {
+		return
 	}
 
-	console.log('Registering Service Worker...');
+	const worker = new phpWorker()
 
-	registerSW({
-		onRegisteredSW(_swScriptUrl, registration) {
-			console.log('Service Worker registered with scope:', registration?.scope);
-			registration?.update()
-			console.log('Service Worker:', registration)
-		},
-		onRegisterError(error) {
-			console.error('Service Worker registration failed:', error);
-		},
-		immediate: true,
+	// Listen for messages from worker
+	worker.addEventListener('message', (event: MessageEvent<PHPResultMessage>) => {
+		const phpResult = event.data;
+		if (phpResult.requestId !== codeState.executionId) {
+			console.warn('Received message for unknown request:', phpResult);
+			return;
+		}
+		codeState.result = phpResult.result;
+		codeState.error = phpResult.error;
 	});
 
-	// Only register message listener once
-	if (!codeState.ready) {
-		console.log('Registering message listener...');
-		navigator.serviceWorker.addEventListener('message', (event: MessageEvent<PHPResultMessage>) => {
-			const phpResult = event.data;
-			if (phpResult.requestId !== codeState.executionId) {
-				console.warn('Received message for unknown request:', phpResult);
-				return;
-			}
-			codeState.result = phpResult.result;
-			codeState.error = phpResult.error;
-		});
-		codeState.ready = true;
-	}
-}
-
-async function waitForControllerReady(): Promise<ServiceWorker> {
-	await navigator.serviceWorker.ready;
-	if (navigator.serviceWorker.controller) {
-		return navigator.serviceWorker.controller;
-	}
-
-	// Wait for controller to be available
-	return new Promise<ServiceWorker>((resolve) => {
-		const checkController = () => {
-			if (navigator.serviceWorker.controller) {
-				resolve(navigator.serviceWorker.controller);
-			}
-		};
-
-		navigator.serviceWorker.addEventListener('controllerchange', checkController, {
-			once: true,
-		});
-
-		// Check immediately in case controller was set between ready and addEventListener
-		checkController();
+	worker.addEventListener('error', (error) => {
+		codeState.error = error.message;
 	});
+
+	codeState.worker = worker;
 }
 
-function runPHPInServiceWorker(
+// Clean up worker
+function terminateWorker(): void {
+	if (codeState.worker) {
+		codeState.worker.terminate();
+		codeState.worker = undefined;
+	}
+	if(codeState.executionId){
+		clearInterval(codeState.executionId);
+		codeState.executionId = undefined;
+	}
+
+	codeState.result = '';
+	codeState.error = undefined;
+}
+
+function runPHPInWorker(
 	version: Version,
 	code: string,
 ): Promise<string> {
-	return new Promise(async (resolve, reject) => {
+	return new Promise((resolve, reject) => {
 		try {
-			// Wait for service worker controller to be ready
-			const controller = await waitForControllerReady();
+			terminateWorker();
+			initializeWorker();
+			codeState.result = '';
+			codeState.error = undefined;
 
-			if (codeState.executionId) {
-				return;
-			}
 
 			// Start monitoring interval (approx 60 FPS, ~16ms)
-			codeState.executionId = setInterval(() => {
+			// Use intervalId as requestId (browser setInterval returns number)
+			const intervalId = setInterval(() => {
 				// Check if code has changed
-				if (codeState.code !== code) {
-					reject(new Error('Execution cancelled due to code change'));
-					return;
-				}
-				if (codeState.version !== version) {
-					reject(new Error('Execution cancelled due to version change'));
-					return;
-				}
-				if(codeState.error) {
+				if (codeState.error) {
 					reject(new Error(codeState.error));
+					return;
 				}
 				if (codeState.result) {
 					resolve(codeState.result);
 				}
-			}, 16);
+			}, 1000/30)
 
+			// Use intervalId as requestId
+			codeState.executionId = intervalId;
 			const request: RunPHPMessage = {
-				requestId: codeState.executionId,
+				requestId: intervalId,
 				version: version,
 				code: code,
 			}
-			controller.postMessage(request);
+			if(codeState.worker) {
+				codeState.worker.postMessage(request);
+			}
 		} catch (error) {
 			reject(error);
 		}
@@ -152,8 +116,6 @@ export function usePHP(version: Version, code: string): [boolean, string] {
 	const [internalCode, setInternalCode] = useState<string>('');
 	const [result, setResult] = useState<string>('');
 	const [currentVersion, setCurrentVersion] = useState<Version>(version);
-	codeState.code = internalCode;
-	codeState.version = version;
 
 	const phpCode = convertCodeToPhpPlayground(code);
 
@@ -186,7 +148,7 @@ export function usePHP(version: Version, code: string): [boolean, string] {
 			// Start execution
 			(async function () {
 				try {
-					const info = await runPHPInServiceWorker(
+					const info = await runPHPInWorker(
 						version,
 						internalCode,
 					)
@@ -195,14 +157,13 @@ export function usePHP(version: Version, code: string): [boolean, string] {
 				} catch (error) {
 					const errorMessage = error instanceof Error ? error.message : String(error);
 					setResult(`Error: ${errorMessage}`);
-
 					setLoading(false);
 				} finally {
-					await clearExecution()
+					terminateWorker();
 				}
 			})();
 
-			// Cleanup function: nothing needed, monitoring is handled in runPHPInServiceWorker
+			// Cleanup function
 			return () => {};
 		},
 		[code, internalCode, loading, version, currentVersion, phpCode]
