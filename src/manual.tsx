@@ -1,4 +1,4 @@
-import { Box, Heading, Link, Text, Flex } from '@chakra-ui/react';
+import { Box, Code, Heading, Link, Text, Flex } from '@chakra-ui/react';
 import React from 'react';
 
 export default function Manual() {
@@ -44,6 +44,18 @@ export default function Manual() {
 						is entered, and can be bookmarked or referred to a
 						friend if necessary. Please use it to share snippets of
 						your code review.
+					</Text>
+				</Box>
+			</Flex>
+			<Flex as="section" direction="column" gap="8px">
+				<Heading as="h3">Notes</Heading>
+				<Box>
+					<Text as="p">
+						If you write code that hangs (e.g., an infinite loop
+						like <Code>while(true)</Code>), you can stop the
+						execution by modifying the code. The PHP code is
+						executed in a Web Worker, so editing the code will
+						terminate the previous execution.
 					</Text>
 				</Box>
 			</Flex>
