@@ -11,5 +11,6 @@ export default mergeConfig(ViteConfig, {
       ['src/__test__/**.test.ts', 'node'],
     ],
     exclude: [...configDefaults.exclude, 'e2e/**',],
+    setupFiles: ['@vitest/web-worker'],
   },
 })

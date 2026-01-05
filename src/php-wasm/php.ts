@@ -1,7 +1,7 @@
 const STR = 'string';
 const NUM = 'number';
 
-export type JavascriptRuntime = 'NODE' | 'WEB' | 'WEBWORKER';
+export type JavascriptRuntime = 'NODE' | 'WEB' | 'WORKER';
 
 export const versions = [
 	'5.6',
