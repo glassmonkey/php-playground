@@ -4,7 +4,7 @@ import { convertCodeToPhpPlayground, runPHPInWorker } from '../client';
 import fs from 'fs';
 import { mockFetch } from 'vi-fetch';
 import 'vi-fetch/setup';
-import {Version, versions} from '../../php-wasm/php';
+import { Version, versions } from '../../php-wasm/php';
 
 async function callPHP(v: Version, code: string) {
 	const data = fs.readFileSync(`assets/php-${v}.wasm`);
@@ -13,12 +13,14 @@ async function callPHP(v: Version, code: string) {
 	return runPHPInWorker(v, code);
 }
 
-
 describe('load wasm files', async function () {
-	it.each(versions)('version: %s should load wasm file, eval(1+1=2)', async function (v) {
-		const actual = await callPHP(v, 'echo(1+1);');
-		expect(actual).toBe('2');
-	})
+	it.each(versions)(
+		'version: %s should load wasm file, eval(1+1=2)',
+		async function (v) {
+			const actual = await callPHP(v, 'echo(1+1);');
+			expect(actual).toBe('2');
+		}
+	);
 });
 
 describe('show phpinfo()', async function () {
@@ -34,7 +36,7 @@ describe('show phpinfo()', async function () {
 			'$1--$3'
 		);
 		expect(actual).toMatchSnapshot();
-	})
+	});
 });
 
 describe('convert code to php code for wasm', async function () {

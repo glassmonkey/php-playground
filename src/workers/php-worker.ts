@@ -1,7 +1,12 @@
 /// <reference lib="webworker" />
 
 import type { PHPResultMessage, RunPHPMessage } from './types';
-import {JavascriptRuntime, type PHP, PHPLoaderModule, startPHP, type Version} from '../php-wasm/php';
+import {
+	type PHP,
+	PHPLoaderModule,
+	startPHP,
+	type Version,
+} from '../php-wasm/php';
 
 const phpWasmLoaders = import.meta.glob('../wasm-assets/php-*.js', {
 	eager: true,
@@ -15,9 +20,7 @@ function loadPHPLoaderModule(v: Version): PHPLoaderModule {
 	return loader;
 }
 
-export async function initPHP(
-	v: Version
-): Promise<PHP> {
+export async function initPHP(v: Version): Promise<PHP> {
 	const PHPLoaderModule = loadPHPLoaderModule(v);
 	return startPHP(v, PHPLoaderModule, 'WORKER', {
 		locateFile: (path: string) => {
@@ -36,7 +39,6 @@ export async function runPHP(php: PHP, code: string): Promise<string> {
 	const output = php.run({ code });
 	return new TextDecoder().decode(output.body);
 }
-
 
 // PHP instances cache
 const phpInstances = new Map<Version, PHP>();
