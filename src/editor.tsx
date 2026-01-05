@@ -15,7 +15,7 @@ import debounce from 'debounce';
 
 function LoadSpinner() {
 	return (
-		<Center height="100%">
+		<Center height="100%" data-testid="loading-spinner">
 			<Spinner size="xl" />
 		</Center>
 	);
