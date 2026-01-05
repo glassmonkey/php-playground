@@ -1,3 +1,27 @@
+diff --git a/php-src/ext/session/session.c b/php-src/ext/session/session.c
+--- a/php-src/ext/session/session.c
++++ b/php-src/ext/session/session.c
+@@ -1075,7 +1075,7 @@
+
+ 	PHP_VAR_UNSERIALIZE_INIT(var_hash);
+ 	ALLOC_INIT_ZVAL(session_vars);
+-	if (php_var_unserialize(&session_vars, &val, endptr, &var_hash TSRMLS_CC)) {
++	if (php_var_unserialize(&session_vars, (const unsigned char **)&val, (const unsigned char *)endptr, &var_hash TSRMLS_CC)) {
+ 		var_push_dtor(&var_hash, &session_vars);
+ 	}
+
+diff --git a/php-src/ext/mbstring/libmbfl/filters/mbfilter_iso2022jp_mobile.c b/php-src/ext/mbstring/libmbfl/filters/mbfilter_iso2022jp_mobile.c
+--- a/php-src/ext/mbstring/libmbfl/filters/mbfilter_iso2022jp_mobile.c
++++ b/php-src/ext/mbstring/libmbfl/filters/mbfilter_iso2022jp_mobile.c
+@@ -48,7 +48,7 @@
+ 	mbfl_no_encoding_2022jp_kddi,
+ 	"ISO-2022-JP-MOBILE#KDDI",
+ 	"ISO-2022-JP",
+-	mbfl_encoding_2022jp_kddi_aliases,
++	(const char *(*)[])&mbfl_encoding_2022jp_kddi_aliases,
+ 	NULL,
+ 	MBFL_ENCTYPE_MBCS | MBFL_ENCTYPE_SHFTCODE | MBFL_ENCTYPE_GL_UNSAFE
+ };
 diff --git a/php-src/ext/mbstring/libmbfl/filters/mbfilter_utf8_mobile.c b/php-src/ext/mbstring/libmbfl/filters/mbfilter_utf8_mobile.c
 --- a/php-src/ext/mbstring/libmbfl/filters/mbfilter_utf8_mobile.c	2023-01-18 15:22:55
 +++ b/php-src/ext/mbstring/libmbfl/filters/mbfilter_utf8_mobile.c	2023-01-18 15:22:57
