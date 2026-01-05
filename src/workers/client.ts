@@ -54,7 +54,6 @@ function initializeWorker() {
 	};
 
 	codeState.worker = worker;
-	console.log('Initialized worker:', codeState.worker);
 }
 
 // Clean up worker
