@@ -76,11 +76,11 @@ export default defineConfig({
     //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
     // },
 
-  /* Run your local dev server before starting the tests */
+  /* Run production build before starting the tests */
   webServer: {
-    command: 'npm run dev',
-    url: 'http://127.0.0.1:18888',
-    reuseExistingServer: !process.env.CI,
+    command: 'npm run preview',
+    url: 'http://127.0.0.1:8888',
+    reuseExistingServer: false,
     timeout: 1000 * 60,
     stdout: 'pipe',
     stderr: 'pipe',

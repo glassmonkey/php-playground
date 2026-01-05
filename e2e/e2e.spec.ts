@@ -1,7 +1,7 @@
 import {expect, test} from '@playwright/test';
 import {versions, defaultVersion} from "../src/php-wasm/php";
 
-const PAGE = 'http://127.0.0.1:18888';
+const PAGE = 'http://127.0.0.1:8888';
 test.describe('default page', () => {
   test.beforeEach(async ({page}) => {
     await page.goto(PAGE);
