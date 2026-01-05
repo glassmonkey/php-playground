@@ -37,11 +37,9 @@ function initializeWorker() {
 	}
 
 	const worker = new phpWorker();
-	console.log('Created worker:', worker);
 
 	// Listen for messages from worker
 	worker.onmessage = (event: MessageEvent<PHPResultMessage>) => {
-		console.log('Received message from worker:', event);
 		const phpResult = event.data;
 		if (phpResult.requestId !== codeState.requestId) {
 			console.warn('Received message for unknown request:', phpResult);
@@ -119,7 +117,6 @@ export function runPHPInWorker(
 			if (codeState.worker) {
 				codeState.worker.postMessage(request);
 			}
-			console.log('Sent message to worker:', request);
 		} catch (error) {
 			reject(error);
 		}

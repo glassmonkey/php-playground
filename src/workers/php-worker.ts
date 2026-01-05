@@ -54,7 +54,6 @@ async function getOrInitPHP(version: Version): Promise<PHP> {
 // Handle messages from main thread (only in worker context)
 
 self.onmessage = async (event: MessageEvent<RunPHPMessage>) => {
-	console.log('Received message from main thread:', event);
 	const phpMessage = event.data;
 
 	try {
@@ -67,7 +66,6 @@ self.onmessage = async (event: MessageEvent<RunPHPMessage>) => {
 		};
 		self.postMessage(resultMessage);
 	} catch (error) {
-		console.error(error);
 		const errorMessage: PHPResultMessage = {
 			requestId: phpMessage.requestId,
 			result: '',
