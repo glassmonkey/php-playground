@@ -53,9 +53,19 @@ export default function Manual() {
 					<Text as="p">
 						<Highlight
 							query="while(true)"
-							styles={{ px: '1', py: '1', bg: 'gray.100', fontFamily: 'mono', borderRadius: 'sm' }}
+							styles={{
+								px: '1',
+								py: '1',
+								bg: 'gray.100',
+								fontFamily: 'mono',
+								borderRadius: 'sm',
+							}}
 						>
-							If you write code that hangs (e.g., an infinite loop like while(true)), you can stop the execution by modifying the code. The PHP code is executed in a Web Worker, so editing the code will terminate the previous execution.
+							If you write code that hangs (e.g., an infinite loop
+							like while(true)), you can stop the execution by
+							modifying the code. The PHP code is executed in a
+							Web Worker, so editing the code will terminate the
+							previous execution.
 						</Highlight>
 					</Text>
 				</Box>
