@@ -31,8 +31,8 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </td></tr>
 </table>
 <table>
-<tr><td class="e">System </td><td class="v">Emscripten emscripten 3.1.62 #1 wasm32 </td></tr>
-<tr><td class="e">Build Date </td><td class="v">Nov 10 2024 11:04:02 </td></tr>
+<tr><td class="e">System </td><td class="v">Emscripten emscripten 4.0.22 #1 wasm32 </td></tr>
+<tr><td class="e">Build Date </td><td class="v">Jan  5 2026 14:17:44 </td></tr>
 <tr><td class="e">Configure Command </td><td class="v"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--enable-mbstring&#039; &#039;--enable-vrzno&#039; &#039;CC=/root/emsdk/upstream/emscripten/emcc&#039; &#039;CXX=/root/emsdk/upstream/emscripten/em++&#039; </td></tr>
 <tr><td class="e">Server API </td><td class="v">PHP WASM SAPI </td></tr>
 <tr><td class="e">Virtual Directory Support </td><td class="v">disabled </td></tr>

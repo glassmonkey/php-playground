@@ -1,8 +1,41 @@
 /// <reference lib="webworker" />
 
 import type { PHPResultMessage, RunPHPMessage } from './types';
-import { type PHP, type Version } from '../php-wasm/php';
-import {initPHP, runPHP} from "./php";
+import {JavascriptRuntime, type PHP, PHPLoaderModule, startPHP, type Version} from '../php-wasm/php';
+
+const phpWasmLoaders = import.meta.glob('../wasm-assets/php-*.js', {
+	eager: true,
+}) as Record<string, PHPLoaderModule>;
+
+function loadPHPLoaderModule(v: Version): PHPLoaderModule {
+	const loader = phpWasmLoaders[`../wasm-assets/php-${v}.js`];
+	if (!loader) {
+		throw Error(`PHP ${v} assets not found.`);
+	}
+	return loader;
+}
+
+export async function initPHP(
+	v: Version
+): Promise<PHP> {
+	const PHPLoaderModule = loadPHPLoaderModule(v);
+	return startPHP(v, PHPLoaderModule, 'WORKER', {
+		locateFile: (path: string) => {
+			const cleanPath = path.split('?')[0];
+			// Always load WASM files from the root assets directory
+			// This ensures correct paths in both dev and production environments
+			if (cleanPath.endsWith('.wasm')) {
+				return `/${path}`;
+			}
+			return path;
+		},
+	});
+}
+
+export async function runPHP(php: PHP, code: string): Promise<string> {
+	const output = php.run({ code });
+	return new TextDecoder().decode(output.body);
+}
 
 
 // PHP instances cache
@@ -19,7 +52,9 @@ async function getOrInitPHP(version: Version): Promise<PHP> {
 }
 
 // Handle messages from main thread (only in worker context)
-self.addEventListener('message', async (event: MessageEvent<RunPHPMessage>) => {
+
+self.onmessage = async (event: MessageEvent<RunPHPMessage>) => {
+	console.log('Received message from main thread:', event);
 	const phpMessage = event.data;
 
 	try {
@@ -32,6 +67,7 @@ self.addEventListener('message', async (event: MessageEvent<RunPHPMessage>) => {
 		};
 		self.postMessage(resultMessage);
 	} catch (error) {
+		console.error(error);
 		const errorMessage: PHPResultMessage = {
 			requestId: phpMessage.requestId,
 			result: '',
@@ -39,6 +75,6 @@ self.addEventListener('message', async (event: MessageEvent<RunPHPMessage>) => {
 		};
 		self.postMessage(errorMessage);
 	}
-});
+};
 
-export default {}
+export default {};

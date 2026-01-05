@@ -1,16 +1,10 @@
-import { expect, it, describe } from 'vitest';
-import { convertCodeToPhpPlayground } from '../client';
-// @ts-ignore
+import { describe, it, expect } from 'vitest';
+import '@vitest/web-worker';
+import { convertCodeToPhpPlayground, runPHPInWorker, simple } from '../client';
+import fs from 'fs';
 import { mockFetch } from 'vi-fetch';
-// @ts-ignore
 import 'vi-fetch/setup';
-import * as fs from 'fs';
 import { versions } from '../../php-wasm/php';
-import {initPHP, runPHP} from "../php";
-
-mockFetch.setOptions({
-	baseUrl: '',
-});
 
 describe('load wasm files', async function () {
 	versions.forEach(function (v) {
@@ -18,11 +12,8 @@ describe('load wasm files', async function () {
 			const data = fs.readFileSync(`assets/php-${v}.wasm`);
 			const pattern = `php-${v}\\.wasm.*`;
 			mockFetch('GET', new RegExp(pattern)).willResolve(data.buffer);
-			// Runtime error occurs, but you can ignore it because it is a problem with the way wasm is loaded.
-			const sut = await initPHP(v, 'WEB');
-			expect(sut.version).toBe(v);
-			const actual = await runPHP(sut, 'echo(1);');
-			expect(actual).toBe('1');
+			const actual = await runPHPInWorker(v, 'echo(1+1);');
+			expect(actual).toBe('2');
 		});
 	});
 });
@@ -34,9 +25,7 @@ describe('show phpinfo()', async function () {
 			const pattern = `php-${v}\\.wasm.*`;
 			mockFetch('GET', new RegExp(pattern)).willResolve(data.buffer);
 			// Runtime error occurs, but you can ignore it because it is a problem with the way wasm is loaded.
-			const sut = await initPHP(v, 'WEB');
-			expect(sut.version).toBe(v);
-			let actual = await runPHP(sut, 'phpinfo();');
+			let actual = await runPHPInWorker(v, 'phpinfo();');
 			// Shrink the request time
 			actual = actual.replace(
 				/(<tr>.+?REQUEST_TIME_FLOAT.+?<td.+?>)([\d.]+)(<\/td><\/tr>)/g,

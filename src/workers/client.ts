@@ -2,20 +2,21 @@
 import { useEffect, useState } from 'react';
 import { Version } from '../php-wasm/php';
 import type { PHPResultMessage, RunPHPMessage } from './types';
-import phpWorker from "./php-worker?worker";
+import phpWorker from './php-worker?worker';
 
 type PHPState = {
+	requestId?: string;
 	executionId?: NodeJS.Timeout;
 	worker?: Worker;
 	result: string;
 	error?: string;
-}
+};
 
 const codeState: PHPState = {
 	worker: undefined,
 	result: '',
 	error: undefined,
-}
+};
 
 // Convert code to PHP code
 export function convertCodeToPhpPlayground(code: string): string {
@@ -32,27 +33,30 @@ export function convertCodeToPhpPlayground(code: string): string {
 // Initialize Web Worker
 function initializeWorker() {
 	if (codeState.worker) {
-		return
+		return;
 	}
 
-	const worker = new phpWorker()
+	const worker = new phpWorker();
+	console.log('Created worker:', worker);
 
 	// Listen for messages from worker
-	worker.addEventListener('message', (event: MessageEvent<PHPResultMessage>) => {
+	worker.onmessage = (event: MessageEvent<PHPResultMessage>) => {
+		console.log('Received message from worker:', event);
 		const phpResult = event.data;
-		if (phpResult.requestId !== codeState.executionId) {
+		if (phpResult.requestId !== codeState.requestId) {
 			console.warn('Received message for unknown request:', phpResult);
 			return;
 		}
 		codeState.result = phpResult.result;
 		codeState.error = phpResult.error;
-	});
+	};
 
-	worker.addEventListener('error', (error) => {
+	worker.onerror = (error) => {
 		codeState.error = error.message;
-	});
+	};
 
 	codeState.worker = worker;
+	console.log('Initialized worker:', codeState.worker);
 }
 
 // Clean up worker
@@ -61,18 +65,27 @@ function terminateWorker(): void {
 		codeState.worker.terminate();
 		codeState.worker = undefined;
 	}
-	if(codeState.executionId){
+	if (codeState.executionId) {
 		clearInterval(codeState.executionId);
 		codeState.executionId = undefined;
+		codeState.requestId = undefined;
 	}
 
 	codeState.result = '';
 	codeState.error = undefined;
 }
 
-function runPHPInWorker(
+export async function simple(callback: (worker: Worker) => void) {
+	initializeWorker();
+	if (codeState.worker) {
+		codeState.worker.postMessage('hello');
+		callback(codeState.worker);
+	}
+}
+
+export function runPHPInWorker(
 	version: Version,
-	code: string,
+	code: string
 ): Promise<string> {
 	return new Promise((resolve, reject) => {
 		try {
@@ -81,9 +94,9 @@ function runPHPInWorker(
 			codeState.result = '';
 			codeState.error = undefined;
 
-
 			// Start monitoring interval (approx 60 FPS, ~16ms)
 			// Use intervalId as requestId (browser setInterval returns number)
+			const requestId = `id-${Date.now()}-${Math.random()}`;
 			const intervalId = setInterval(() => {
 				// Check if code has changed
 				if (codeState.error) {
@@ -93,18 +106,20 @@ function runPHPInWorker(
 				if (codeState.result) {
 					resolve(codeState.result);
 				}
-			}, 1000/30)
+			}, 1000 / 30);
 
 			// Use intervalId as requestId
+			codeState.requestId = requestId;
 			codeState.executionId = intervalId;
 			const request: RunPHPMessage = {
-				requestId: intervalId,
+				requestId: requestId,
 				version: version,
 				code: code,
-			}
-			if(codeState.worker) {
+			};
+			if (codeState.worker) {
 				codeState.worker.postMessage(request);
 			}
+			console.log('Sent message to worker:', request);
 		} catch (error) {
 			reject(error);
 		}
@@ -148,14 +163,12 @@ export function usePHP(version: Version, code: string): [boolean, string] {
 			// Start execution
 			(async function () {
 				try {
-					const info = await runPHPInWorker(
-						version,
-						internalCode,
-					)
+					const info = await runPHPInWorker(version, internalCode);
 					setResult(info);
 					setLoading(false);
 				} catch (error) {
-					const errorMessage = error instanceof Error ? error.message : String(error);
+					const errorMessage =
+						error instanceof Error ? error.message : String(error);
 					setResult(`Error: ${errorMessage}`);
 					setLoading(false);
 				} finally {
