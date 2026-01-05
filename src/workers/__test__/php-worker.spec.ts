@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import '@vitest/web-worker';
-import { convertCodeToPhpPlayground, runPHPInWorker, simple } from '../client';
+import { convertCodeToPhpPlayground, runPHPInWorker } from '../client';
 import fs from 'fs';
 import { mockFetch } from 'vi-fetch';
 import 'vi-fetch/setup';

@@ -72,14 +72,6 @@ function terminateWorker(): void {
 	codeState.error = undefined;
 }
 
-export async function simple(callback: (worker: Worker) => void) {
-	initializeWorker();
-	if (codeState.worker) {
-		codeState.worker.postMessage('hello');
-		callback(codeState.worker);
-	}
-}
-
 export function runPHPInWorker(
 	version: Version,
 	code: string
