@@ -15,7 +15,7 @@ import debounce from 'debounce';
 
 function LoadSpinner() {
 	return (
-		<Center height="100%" data-testid="loading-spinner">
+		<Center height="100%" width="100%" data-testid="loading-spinner">
 			<Spinner size="xl" />
 		</Center>
 	);
@@ -67,31 +67,48 @@ function PhpPreview(params: { version: Version; format: Format }) {
 	if (loading) {
 		return <LoadSpinner />;
 	}
-	if (params.format === 'console') {
-		return (
-			<pre
-				style={{
-					whiteSpace: 'pre-wrap',
-					overflow: 'scroll',
-					width: '100%',
-					height: '100%',
-				}}
-				data-testid="preview-console"
-			>
-				{result}
-			</pre>
-		);
-	}
 
 	return (
-		<iframe
-			key={iframeKey.current}
-			srcDoc={result}
-			height="100%"
+		<Box
 			width="100%"
-			sandbox=""
-			data-testid="preview-html"
-		/>
+			height="100%"
+			position="relative"
+			style={{ scrollbarGutter: 'stable' }}
+		>
+			{params.format === 'console' ? (
+				<pre
+					style={{
+						whiteSpace: 'pre-wrap',
+						wordBreak: 'break-all',
+						overflow: 'auto',
+						width: '100%',
+						height: '100%',
+						boxSizing: 'border-box',
+						margin: 0,
+						padding: '10px',
+						display: 'block',
+						border: 'none',
+					}}
+				>
+					{result}
+				</pre>
+			) : (
+				<iframe
+					key={iframeKey.current}
+					srcDoc={result}
+					height="100%"
+					width="100%"
+					sandbox=""
+					style={{
+						boxSizing: 'border-box',
+						display: 'block',
+						border: 'none',
+						margin: 0,
+						padding: 0,
+					}}
+				/>
+			)}
+		</Box>
 	);
 }
 
@@ -135,6 +152,7 @@ function EditorLayout(params: { Editor: ReactElement; Preview: ReactElement }) {
 					width={{ base: '100%', lg: '50%' }}
 					style={{
 						backgroundColor: 'white',
+						boxSizing: 'border-box',
 					}}
 				>
 					{params.Preview}
