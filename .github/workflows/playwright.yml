@@ -9,8 +9,7 @@ on:
 jobs:
   test:
     timeout-minutes: 60
-    # Playwright 1.56 cannot install browsers on ubuntu-latest (26.04)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v6
     - uses: actions/setup-node@v6
