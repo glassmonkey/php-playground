@@ -35,10 +35,18 @@ RUN set -euxo pipefail;\
 # Install Emscripten from the repository. We'd use the official
 # Docker image, but there is no arm64 image available which makes
 # the build take forever on Apple Silicon.
+#
+# The version is pinned because newer releases break this build:
+# * 5.0.4+ runs --fpcast-emu before --post-emscripten, which makes
+#   wasm-opt crash for PHP < 8.0 (EMULATE_FUNCTION_POINTER_CASTS).
+# * 6.0.3+ already emits stream.stream_ops?.poll and 6.0.13+ no longer
+#   emits the ENVIRONMENT_IS_* variables, so the php.js post-processing
+#   step below finds nothing to replace and fails.
+ARG EMSDK_VERSION=4.0.22
 RUN ln -s /usr/bin/python3 /usr/bin/python
 RUN git clone https://github.com/emscripten-core/emsdk.git && \
-    ./emsdk/emsdk install latest && \
-    /root/emsdk/emsdk activate latest
+    ./emsdk/emsdk install $EMSDK_VERSION && \
+    /root/emsdk/emsdk activate $EMSDK_VERSION
 
 RUN mkdir -p /root/lib/lib /root/lib/include /root/lib/share /root/lib/bin
 

@@ -1,6 +1,6 @@
-export const dependenciesTotalSize = 4711311;
+export const dependenciesTotalSize = 4739582;
 export const dependencyFilename =
-	'php-8.3.wasm?ae0de1a5936bb22cd54775ea70a9eb98';
+	'php-8.3.wasm?e1a9b93e64e139c6e6b4bfec56077336';
 export default function (RuntimeName, PHPLoader, EnvVariables) {
 	var Module = typeof PHPLoader != 'undefined' ? PHPLoader : {};
 	var ENVIRONMENT_IS_WEB = RuntimeName === 'WEB';
@@ -73,7 +73,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		TTY.init();
 		SOCKFS.root = FS.mount(SOCKFS, {}, null);
 		PIPEFS.root = FS.mount(PIPEFS, {}, null);
-		wasmExports['Sa']();
+		wasmExports['Ta']();
 		FS.ignorePermissions = false;
 	}
 	function exitRuntime() {
@@ -5758,67 +5758,67 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		wasmMemory,
 		wasmTable;
 	function assignWasmExports(wasmExports) {
-		_wasm_popen = Module['_wasm_popen'] = wasmExports['Ta'];
-		_wasm_pclose = Module['_wasm_pclose'] = wasmExports['Ua'];
-		_php_pollfd_for = Module['_php_pollfd_for'] = wasmExports['Va'];
-		_malloc = wasmExports['Xa'];
-		_htons = wasmExports['Ya'];
-		_ntohs = wasmExports['Za'];
-		_htonl = wasmExports['_a'];
-		_fflush = wasmExports['$a'];
+		_wasm_popen = Module['_wasm_popen'] = wasmExports['Ua'];
+		_wasm_pclose = Module['_wasm_pclose'] = wasmExports['Va'];
+		_php_pollfd_for = Module['_php_pollfd_for'] = wasmExports['Wa'];
+		_malloc = wasmExports['Ya'];
+		_htons = wasmExports['Za'];
+		_ntohs = wasmExports['_a'];
+		_htonl = wasmExports['$a'];
+		_fflush = wasmExports['ab'];
 		_wasm_set_phpini_path = Module['_wasm_set_phpini_path'] =
-			wasmExports['ab'];
-		_wasm_set_phpini_entries = Module['_wasm_set_phpini_entries'] =
 			wasmExports['bb'];
-		_wasm_add_SERVER_entry = Module['_wasm_add_SERVER_entry'] =
+		_wasm_set_phpini_entries = Module['_wasm_set_phpini_entries'] =
 			wasmExports['cb'];
-		_wasm_add_uploaded_file = Module['_wasm_add_uploaded_file'] =
+		_wasm_add_SERVER_entry = Module['_wasm_add_SERVER_entry'] =
 			wasmExports['db'];
-		_wasm_set_query_string = Module['_wasm_set_query_string'] =
+		_wasm_add_uploaded_file = Module['_wasm_add_uploaded_file'] =
 			wasmExports['eb'];
-		_wasm_set_path_translated = Module['_wasm_set_path_translated'] =
+		_wasm_set_query_string = Module['_wasm_set_query_string'] =
 			wasmExports['fb'];
-		_wasm_set_skip_shebang = Module['_wasm_set_skip_shebang'] =
+		_wasm_set_path_translated = Module['_wasm_set_path_translated'] =
 			wasmExports['gb'];
-		_wasm_set_request_uri = Module['_wasm_set_request_uri'] =
+		_wasm_set_skip_shebang = Module['_wasm_set_skip_shebang'] =
 			wasmExports['hb'];
-		_wasm_set_request_method = Module['_wasm_set_request_method'] =
+		_wasm_set_request_uri = Module['_wasm_set_request_uri'] =
 			wasmExports['ib'];
-		_wasm_set_request_host = Module['_wasm_set_request_host'] =
+		_wasm_set_request_method = Module['_wasm_set_request_method'] =
 			wasmExports['jb'];
-		_wasm_set_content_type = Module['_wasm_set_content_type'] =
+		_wasm_set_request_host = Module['_wasm_set_request_host'] =
 			wasmExports['kb'];
-		_wasm_set_request_body = Module['_wasm_set_request_body'] =
+		_wasm_set_content_type = Module['_wasm_set_content_type'] =
 			wasmExports['lb'];
-		_wasm_set_content_length = Module['_wasm_set_content_length'] =
+		_wasm_set_request_body = Module['_wasm_set_request_body'] =
 			wasmExports['mb'];
-		_wasm_set_cookies = Module['_wasm_set_cookies'] = wasmExports['nb'];
-		_wasm_set_php_code = Module['_wasm_set_php_code'] = wasmExports['ob'];
+		_wasm_set_content_length = Module['_wasm_set_content_length'] =
+			wasmExports['nb'];
+		_wasm_set_cookies = Module['_wasm_set_cookies'] = wasmExports['ob'];
+		_wasm_set_php_code = Module['_wasm_set_php_code'] = wasmExports['pb'];
 		_wasm_set_request_port = Module['_wasm_set_request_port'] =
-			wasmExports['pb'];
+			wasmExports['qb'];
 		_phpwasm_init_uploaded_files_hash = Module[
 			'_phpwasm_init_uploaded_files_hash'
-		] = wasmExports['qb'];
+		] = wasmExports['rb'];
 		_phpwasm_register_uploaded_file = Module[
 			'_phpwasm_register_uploaded_file'
-		] = wasmExports['rb'];
+		] = wasmExports['sb'];
 		_phpwasm_destroy_uploaded_files_hash = Module[
 			'_phpwasm_destroy_uploaded_files_hash'
-		] = wasmExports['sb'];
+		] = wasmExports['tb'];
 		_wasm_sapi_handle_request = Module['_wasm_sapi_handle_request'] =
-			wasmExports['tb'];
-		_php_wasm_init = Module['_php_wasm_init'] = wasmExports['ub'];
-		_exec_callback = Module['_exec_callback'] = wasmExports['vb'];
-		_del_callback = Module['_del_callback'] = wasmExports['wb'];
-		___funcs_on_exit = wasmExports['xb'];
-		_emscripten_builtin_memalign = wasmExports['yb'];
-		__emscripten_timeout = wasmExports['zb'];
-		_setThrew = wasmExports['Ab'];
-		__emscripten_stack_restore = wasmExports['Bb'];
-		__emscripten_stack_alloc = wasmExports['Cb'];
-		_emscripten_stack_get_current = wasmExports['Db'];
-		memory = wasmMemory = wasmExports['Ra'];
-		__indirect_function_table = wasmTable = wasmExports['Wa'];
+			wasmExports['ub'];
+		_php_wasm_init = Module['_php_wasm_init'] = wasmExports['vb'];
+		_exec_callback = Module['_exec_callback'] = wasmExports['wb'];
+		_del_callback = Module['_del_callback'] = wasmExports['xb'];
+		___funcs_on_exit = wasmExports['yb'];
+		_emscripten_builtin_memalign = wasmExports['zb'];
+		__emscripten_timeout = wasmExports['Ab'];
+		_setThrew = wasmExports['Bb'];
+		__emscripten_stack_restore = wasmExports['Cb'];
+		__emscripten_stack_alloc = wasmExports['Db'];
+		_emscripten_stack_get_current = wasmExports['Eb'];
+		memory = wasmMemory = wasmExports['Sa'];
+		__indirect_function_table = wasmTable = wasmExports['Xa'];
 	}
 	var wasmImports = {
 		p: ___assert_fail,
@@ -5826,12 +5826,12 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		X: ___syscall__newselect,
 		P: ___syscall_accept4,
 		O: ___syscall_bind,
-		xa: ___syscall_chdir,
-		wa: ___syscall_chmod,
+		ya: ___syscall_chdir,
+		xa: ___syscall_chmod,
 		N: ___syscall_connect,
-		ua: ___syscall_dup,
+		va: ___syscall_dup,
 		ta: ___syscall_dup3,
-		ya: ___syscall_faccessat,
+		za: ___syscall_faccessat,
 		D: ___syscall_fchownat,
 		k: ___syscall_fcntl64,
 		sa: ___syscall_fdatasync,
@@ -5861,7 +5861,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		V: ___syscall_symlinkat,
 		T: ___syscall_unlinkat,
 		S: ___syscall_utimensat,
-		za: __abort_js,
+		Aa: __abort_js,
 		M: __emscripten_lookup_name,
 		ba: __emscripten_runtime_keepalive_clear,
 		Q: __emscripten_throw_longjmp,
@@ -5871,14 +5871,14 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		ea: __mmap_js,
 		fa: __munmap_js,
 		A: __setitimer_js,
-		Ba: __tzset_js,
-		va: _clock_time_get,
+		Ca: __tzset_js,
+		wa: _clock_time_get,
 		C: _emscripten_date_now,
 		U: _emscripten_get_heap_max,
 		r: _emscripten_get_now,
 		R: _emscripten_resize_heap,
-		Ca: _environ_get,
-		Da: _environ_sizes_get,
+		Ea: _environ_get,
+		Fa: _environ_sizes_get,
 		s: _exit,
 		o: _fd_close,
 		B: _fd_fdstat_get,
@@ -5886,12 +5886,12 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		ka: _fd_seek,
 		na: _fd_sync,
 		v: _fd_write,
-		Pa: _getaddrinfo,
-		Oa: _getcontext,
-		La: _getdtablesize,
+		Qa: _getaddrinfo,
+		Da: _getcontext,
+		Na: _getdtablesize,
 		t: _getnameinfo,
-		Ka: _getprotobyname,
-		Ja: _getprotobynumber,
+		Ma: _getprotobyname,
+		La: _getprotobynumber,
 		j: invoke_i,
 		e: invoke_ii,
 		b: invoke_iii,
@@ -5899,7 +5899,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		i: invoke_iiiii,
 		n: invoke_iiiiii,
 		q: invoke_iiiiiii,
-		Na: invoke_iiiiiiiiii,
+		Pa: invoke_iiiiiiiiii,
 		c: invoke_v,
 		a: invoke_vi,
 		g: invoke_vii,
@@ -5908,14 +5908,15 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		l: invoke_viiii,
 		d: invoke_viiiii,
 		x: invoke_viiiiii,
-		Qa: _js_popen_to_file,
-		Ga: _makecontext,
-		Ma: _posix_spawnp,
-		Aa: _proc_exit,
-		Ia: _strptime,
-		Ha: _swapcontext,
-		Ea: _vrzno_del_callback,
-		Fa: _vrzno_exec_callback,
+		Ia: invoke_vj,
+		Ra: _js_popen_to_file,
+		ua: _makecontext,
+		Oa: _posix_spawnp,
+		Ba: _proc_exit,
+		Ka: _strptime,
+		Ja: _swapcontext,
+		Ga: _vrzno_del_callback,
+		Ha: _vrzno_exec_callback,
 		F: _wasm_poll_socket,
 		m: _wasm_setsockopt,
 	};
@@ -6053,6 +6054,16 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		var sp = stackSave();
 		try {
 			return getWasmTableEntry(index)(a1, a2, a3, a4, a5, a6, a7, a8, a9);
+		} catch (e) {
+			stackRestore(sp);
+			if (e !== e + 0) throw e;
+			_setThrew(1, 0);
+		}
+	}
+	function invoke_vj(index, a1) {
+		var sp = stackSave();
+		try {
+			getWasmTableEntry(index)(a1);
 		} catch (e) {
 			stackRestore(sp);
 			if (e !== e + 0) throw e;

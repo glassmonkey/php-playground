@@ -2,6 +2,7 @@ import {expect, test} from '@playwright/test';
 import {versions, defaultVersion} from "../src/php-wasm/php";
 
 const PAGE = 'http://127.0.0.1:8888';
+const versionPattern = (v: string) => new RegExp(`PHP Version ${v.replace('.', '\\.')}`);
 test.describe('default page', () => {
   test.beforeEach(async ({page}) => {
     await page.goto(PAGE);
@@ -25,7 +26,7 @@ test.describe('default page', () => {
   test('switch preview', async ({ page }) => {
     // html preview
     await page.getByTestId('checkbox-format').check()
-    await expect(await page.getByTestId('preview-html').getAttribute('srcdoc')).toContain(`PHP Version ${defaultVersion}`)
+    await expect(page.getByTestId('preview-html')).toHaveAttribute('srcdoc', versionPattern(defaultVersion))
     await expect(await page.getByTestId('preview-console')).not.toBeVisible()
 
     // console pvreview
@@ -55,7 +56,7 @@ test.describe('select version', () => {
 
         // html preview
         await page.getByTestId('checkbox-format').check()
-        await expect(await page.getByTestId('preview-html').getAttribute('srcdoc')).toContain(`PHP Version ${v}`)
+        await expect(page.getByTestId('preview-html')).toHaveAttribute('srcdoc', versionPattern(v))
         expect(page.url()).toContain(`v=${v}`)
       })
       test(`compute php code(1+1)`, async ({page}) => {
