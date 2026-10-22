@@ -150,10 +150,14 @@ export function Editor(params: {
 	format: Format;
 	onChangeCode: (code: string) => void;
 }) {
+	// SandpackProvider resets its files whenever this object changes, which
+	// discards edits still waiting for the debounce. Keep the first one.
+	const [files] = React.useState(() => ({ '/app.php': params.initCode }));
+
 	return (
 		<SandpackProvider
 			template="react"
-			files={{ '/app.php': params.initCode }}
+			files={files}
 			options={{
 				activeFile: '/app.php', // used to be activePath
 				visibleFiles: ['/app.php'], // used to be openPaths
