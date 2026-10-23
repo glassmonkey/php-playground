@@ -535,17 +535,6 @@ RUN if [ "$EMSCRIPTEN_ENVIRONMENT" = "node" ]; then \
         echo -n ' -g2 ' >> /root/.emcc-php-wasm-flags; \
     fi
 
-# PHP < 8.0 errors out with "null function or function signature mismatch"
-# unless EMULATE_FUNCTION_POINTER_CASTS is enabled. The error originates in
-# the rc_dtor_func which traces back to calling the zend_list_free function.
-# The signatures are the same on the face value, but the wasm runtime is not
-# happy somehow. This can probably be patched in PHP, but for now we just
-# enable the flag and pay the price of the additional overhead.
-# https://emscripten.org/docs/porting/guidelines/function_pointer_issues.html
-RUN if [ "${PHP_VERSION:0:1}" -lt "8" ]; then \
-        echo -n ' -s EMULATE_FUNCTION_POINTER_CASTS=1' >> /root/.emcc-php-wasm-flags; \
-    fi
-
 # Add ws networking proxy support if needed
 RUN if [ "$WITH_WS_NETWORKING_PROXY" = "yes" ]; \
     then \
@@ -838,10 +827,6 @@ RUN if [ "$WITH_WS_NETWORKING_PROXY" = "yes" ]; \
 "zim_ReflectionMethod_invokeArgs",\
 "zim_reflection_method_invoke",\
 "zim_reflection_method_invokeArgs"'; \
-    # If pointer casts are enabled, we need to asyncify both the prefixed and unprefixed names
-    if [ "${PHP_VERSION:0:1}" -lt "8" ]; then \
-        export ASYNCIFY_ONLY="$ASYNCIFY_ONLY,"$(echo "$ASYNCIFY_ONLY" | sed -E $'s/"([a-zA-Z])/"byn$fpcast-emu$\1/g'); \
-    fi; \
     echo -n ' -s ASYNCIFY_ONLY=['$ASYNCIFY_ONLY_UNPREFIXED$ASYNCIFY_ONLY'] '| tr -d "\n" >> /root/.emcc-php-wasm-flags; \
 fi;
 
