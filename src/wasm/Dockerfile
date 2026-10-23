@@ -517,7 +517,9 @@ RUN echo 'extern int wasm_close(int fd);' >> /root/php-src/main/php_config.h;
 
 RUN source /root/emsdk/emsdk_env.sh && \
     # We're compiling PHP as emscripten's side module...
-    EMCC_FLAGS=" -sSIDE_MODULE -Dsetsockopt=wasm_setsockopt -Dpopen=wasm_popen -Dpclose=wasm_pclose " \
+    # setjmp/longjmp (zend_try and zend_bailout) is handled inside wasm instead of
+    # going through JS. This must match SUPPORT_LONGJMP in the final link below.
+    EMCC_FLAGS=" -sSIDE_MODULE -sSUPPORT_LONGJMP=wasm -Dsetsockopt=wasm_setsockopt -Dpopen=wasm_popen -Dpclose=wasm_pclose " \
     # ...which means we must skip all the libraries - they will be provided in the final linking step.
     EMCC_SKIP="-lz -ledit -ldl -lncurses -lzip -lpng16 -lssl -lcrypto -lxml2 -lc -lm -lsqlite3 /root/lib/lib/libxml2.a /root/lib/lib/libsqlite3.so /root/lib/lib/libsqlite3.a /root/lib/lib/libpng16.so" \
     emmake make -j8
@@ -875,6 +877,7 @@ RUN source /root/emsdk/emsdk_env.sh && \
     -s ERROR_ON_UNDEFINED_SYMBOLS=0  \
     -s INVOKE_RUN=0                  \
     -s EXIT_RUNTIME=1                \
+    -s SUPPORT_LONGJMP=wasm          \
         /root/lib/libphp.a \
         /root/php_wasm.c \
         $(cat /root/.emcc-php-wasm-sources) \
