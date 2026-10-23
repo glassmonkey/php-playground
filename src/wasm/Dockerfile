@@ -922,11 +922,6 @@ RUN \
         fi; \
     # Make the php.wasm URL configurable via the dependencyFilename loader argument:
         /root/replace.sh $'s/["\']php\.wasm[\'"]/dependencyFilename/g' /root/output/php.js && \
-    # Patch a "property undefined" error
-        # Emscripten produces an if that checkes a stream.stream_ops.poll property. However,
-        # stream.stream_ops is sometimes undefined and the check fails. Let's adjust it to
-        # tolerate a null stream.stream_ops value.
-        /root/replace.sh "s/if\s*\(stream\.stream_ops\.poll\)/if (stream.stream_ops?.poll)/g" /root/output/php.js && \
     # Make Emscripten websockets configurable
         # Emscripten makes the Websocket proxy connect to a fixed URL.
         # This assumes the traffic is always forwarded to the same target.
@@ -955,18 +950,7 @@ RUN \
             /root/replace.sh 's/recvmsg:\s*function\(sock,\s*length\)/recvmsg: function(sock, length, flags)/g' /root/output/php.js && \
             /root/replace.sh 's/if\s*\(sock\.type\s*===\s*1\s*&&\s*bytesRead\s*<\s*queuedLength\)/if (flags&2) {bytesRead = 0;} if (sock.type === 1 && bytesRead < queuedLength)/g' /root/output/php.js; \
         fi ; \
-    # Replace the hardcoded ENVIRONMENT variable with a dynamic computation
-        #
-        # The JavaScript code of the web loader and web worker loader is identical,
-        # but Emscripten forces running different code paths by setting
-        #
-        # ENVIRONMENT_IS_WEB = true; ENVIRONMENT_IS_WORKER = false
-        #
-        # This project supports both environments and would have to maintain two
-        # separate copies of the code. Instead, we use a dynamic computation of the
-        # environment, based on the `RuntimeName` variable, which is an argument to the
-        # wrapper function.
-        /root/replace.sh $'s/ENVIRONMENT_IS_([A-Z]+)\s*=\s*(true|false)/ENVIRONMENT_IS_$1=RuntimeName==="$1"/g' /root/output/php.js && \
+    # Let PHPLoader.ENV provide the initial environment variables
         /root/replace.sh 's/var ENV\s*=\s*\{\}/var ENV = PHPLoader.ENV || {}/g' /root/output/php.js && \
     # Turn the php.js file into an ES module
         # Manually turn the output into a esm module instead of relying on -s MODULARIZE=1.
