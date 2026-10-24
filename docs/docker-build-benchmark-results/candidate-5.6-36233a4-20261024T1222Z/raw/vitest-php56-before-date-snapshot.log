@@ -1,0 +1,45 @@
+
+ RUN  v4.1.10 /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure
+
+stderr | src/workers/__test__/php-worker.spec.ts > show phpinfo() > version: 5.6 run phpinfo().
+wasm streaming compile failed: TypeError [ERR_INVALID_ARG_TYPE]: The "source" argument must be an instance of Response or an Promise resolving to Response. Received an instance of ResponseMock
+falling back to ArrayBuffer instantiation
+
+ ❯ src/workers/__test__/php-worker.spec.ts (308 tests | 2 failed | 306 skipped) 10024ms
+     × version: 5.6 should load wasm file, eval(1+1=2) 5014ms
+     × version: 5.6 run phpinfo(). 5006ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/workers/__test__/php-worker.spec.ts > load wasm files > version: 5.6 should load wasm file, eval(1+1=2)
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/workers/__test__/php-worker.spec.ts:31:18
+     29|
+     30| describe('load wasm files', async function () {
+     31|  it.each(versions)(
+       |                  ^
+     32|   'version: %s should load wasm file, eval(1+1=2)',
+     33|   async function (v) {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/workers/__test__/php-worker.spec.ts > show phpinfo() > version: 5.6 run phpinfo().
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/workers/__test__/php-worker.spec.ts:41:18
+     39|
+     40| describe('show phpinfo()', async function () {
+     41|  it.each(versions)('version: %s run phpinfo().', async function (v) {
+       |                  ^
+     42|   let actual = await callPHP(v, 'phpinfo();');
+     43|   // Shrink the request time
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 306 skipped (308)
+   Start at  21:48:48
+   Duration  11.18s (transform 6.81s, setup 114ms, import 537ms, tests 10.02s, environment 0ms)
+

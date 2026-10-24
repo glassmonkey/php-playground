@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "status": "succeeded",
+  "exit_code": 0,
+  "emsdk_version": "6.0.13",
+  "emsdk_repo_sha": "d7b4130688bfa348392b921ab04015aa15c4f154",
+  "base_image_digest": "sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+  "platform": "linux/arm64",
+  "compiler_setting": "INCOMING_MODULE_JS_API=[\"ENVIRONMENT\",\"arguments\",\"canvas\",\"dynamicLibraries\",\"elementPointerLock\",\"instantiateWasm\",\"locateFile\",\"monitorRunDependencies\",\"noExitRuntime\",\"noInitialRun\",\"onAbort\",\"onExit\",\"onRuntimeInitialized\",\"postRun\",\"preInit\",\"preRun\",\"print\",\"printErr\",\"setStatus\",\"statusMessage\",\"stderr\",\"stdin\",\"stdout\",\"thisProgram\",\"wasm\",\"websocket\",\"wasmBinary\"]",
+  "verification": "The Node runner reads wasmBinary from disk then deletes the .wasm file before instantiating the module, proving the supplied bytes are used. C setjmp/longjmp returns 42 and main exits 0.",
+  "stdout": "wasmBinary-provided; longjmp=42; main=0",
+  "source_files": [
+    "smoke.c",
+    "runner.cjs"
+  ],
+  "raw_log": "raw/compiler-runtime.log",
+  "not_php_compatibility": true,
+  "append_syntax_attempts": {
+    "split_-s_setting": "rejected before compilation: setting token treated as an input path",
+    "attached_+=_setting": "rejected by clang as an unknown argument",
+    "conclusion": "Pinned SDK does not accept the proposed += form; explicit full default API plus wasmBinary succeeded."
+  }
+}

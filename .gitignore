@@ -34,3 +34,7 @@ build-types
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Immutable Docker benchmark contexts are regenerated from their recorded Git ref.
+# Keep local copies for reproduction without duplicating expanded source trees in PRs.
+/docs/docker-build-benchmark-results/*/contexts/

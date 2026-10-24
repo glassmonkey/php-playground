@@ -1,0 +1,42 @@
+{
+  "kind": "correctness-build-result",
+  "repo_revision": "36233a46fa82c8db2ff8b7655c6d14cadcaa194c",
+  "php_source_sha": "48b3f94fe2d1055d05b4bfdebd9d84ce6565a73a",
+  "php_version": "8.5",
+  "exit_code": 0,
+  "observed_utc": "2026-10-24T11:46:39Z",
+  "ended_utc_observed": "2026-10-24T11:46:39Z",
+  "command_spawn_utc": "unknown",
+  "first_active_progress_observed_utc": "2026-10-24T10:56:32Z",
+  "summary": {
+    "status": "succeeded",
+    "note": "cache-enabled correctness/export build; not a performance measurement"
+  },
+  "raw_log": "raw/build.log",
+  "command": "raw/build-command.txt",
+  "metadata": "raw/build-metadata.json",
+  "image": {
+    "tag": "gla96-candidate-php85:36233a4",
+    "reference": "docker.io/library/gla96-candidate-php85:36233a4",
+    "digest": "sha256:06c754dc1a5bee4f1845d4282ceae940ebbb7eb279bc1e616d36fbbd54676a96"
+  },
+  "benchmark_eligible": false,
+  "inputs": {
+    "context_tree_sha": "b7c7411be2b1eb0af865952eb0d4961a5a7eb29e",
+    "linked_input_tree_sha": "4045438bc840a4eedfda94209ded8a19caf2883a",
+    "archive_sha256": "dc1b23704a0bece8dadf7b237250e0e267da85f8a287d1bc8639733372193275",
+    "emsdk_version": "6.0.13",
+    "emsdk_repo_sha": "d7b4130688bfa348392b921ab04015aa15c4f154",
+    "base_image_digest": "sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+    "platform": "linux/arm64",
+    "builder": "gla96-a3c1",
+    "resources": {
+      "docker_vm_cpu_count": 2,
+      "builder_cpuset": "0-1",
+      "builder_cpu_quota": "200000/100000",
+      "builder_memory_bytes": 5368709120,
+      "build_step_memory": "4g",
+      "parallelism": 1
+    }
+  }
+}

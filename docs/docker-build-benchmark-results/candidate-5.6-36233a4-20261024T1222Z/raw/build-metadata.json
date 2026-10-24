@@ -1,0 +1,101 @@
+{
+  "buildx.build.provenance": {
+    "builder": {
+      "id": ""
+    },
+    "buildType": "https://mobyproject.org/buildkit@v1",
+    "materials": [
+      {
+        "uri": "pkg:docker/ubuntu?digest=sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac\u0026platform=linux%2Farm64",
+        "digest": {
+          "sha256": "68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac"
+        }
+      }
+    ],
+    "invocation": {
+      "configSource": {
+        "entryPoint": "Dockerfile"
+      },
+      "parameters": {
+        "frontend": "dockerfile.v0",
+        "args": {
+          "build-arg:BASE_IMAGE": "ubuntu@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+          "build-arg:EMSCRIPTEN_ENVIRONMENT": "web",
+          "build-arg:EMSDK_REPO_REF": "d7b4130688bfa348392b921ab04015aa15c4f154",
+          "build-arg:EMSDK_VERSION": "6.0.13",
+          "build-arg:PHP_SOURCE_REF": "4b8f72da5dfb201af4e82dee960261d8657e414f",
+          "build-arg:PHP_VERSION": "5.6",
+          "build-arg:WITH_CLI_SAPI": "no",
+          "build-arg:WITH_CURL": "no",
+          "build-arg:WITH_LIBPNG": "no",
+          "build-arg:WITH_LIBXML": "no",
+          "build-arg:WITH_MBSTRING": "yes",
+          "build-arg:WITH_MYSQL": "no",
+          "build-arg:WITH_NODEFS": "no",
+          "build-arg:WITH_OPENSSL": "no",
+          "build-arg:WITH_SQLITE": "no",
+          "build-arg:WITH_VRZNO": "yes",
+          "build-arg:WITH_WS_NETWORKING_PROXY": "no",
+          "cpusetcpus": "0-1",
+          "memory": "4294967296"
+        },
+        "locals": [
+          {
+            "name": "context"
+          },
+          {
+            "name": "dockerfile"
+          }
+        ],
+        "root": {
+          "configSource": {
+            "path": "Dockerfile"
+          },
+          "request": {
+            "args": {
+              "build-arg:BASE_IMAGE": "ubuntu@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+              "build-arg:EMSCRIPTEN_ENVIRONMENT": "web",
+              "build-arg:EMSDK_REPO_REF": "d7b4130688bfa348392b921ab04015aa15c4f154",
+              "build-arg:EMSDK_VERSION": "6.0.13",
+              "build-arg:PHP_SOURCE_REF": "4b8f72da5dfb201af4e82dee960261d8657e414f",
+              "build-arg:PHP_VERSION": "5.6",
+              "build-arg:WITH_CLI_SAPI": "no",
+              "build-arg:WITH_CURL": "no",
+              "build-arg:WITH_LIBPNG": "no",
+              "build-arg:WITH_LIBXML": "no",
+              "build-arg:WITH_MBSTRING": "yes",
+              "build-arg:WITH_MYSQL": "no",
+              "build-arg:WITH_NODEFS": "no",
+              "build-arg:WITH_OPENSSL": "no",
+              "build-arg:WITH_SQLITE": "no",
+              "build-arg:WITH_VRZNO": "yes",
+              "build-arg:WITH_WS_NETWORKING_PROXY": "no",
+              "cpusetcpus": "0-1",
+              "memory": "4294967296",
+              "vcs:localdir:context": "docs/docker-build-benchmark-results/candidate-8.5-wasmBinary-36233a4-20261024T1056Z/contexts/target",
+              "vcs:localdir:dockerfile": "docs/docker-build-benchmark-results/candidate-8.5-wasmBinary-36233a4-20261024T1056Z/contexts/target",
+              "vcs:revision": "3e8396a3a75c068ceaa63d692bcbdba56ea9c9b7",
+              "vcs:source": "https://github.com/glassmonkey/php-playground.git"
+            }
+          }
+        },
+        "compatibilityVersion": 30
+      },
+      "environment": {
+        "dockerfileVersion": "1.27.0",
+        "platform": "linux/arm64"
+      }
+    }
+  },
+  "buildx.build.ref": "gla96-a3c1/gla96-a3c10/gswgd75qe1nyypnta4g160qi3",
+  "containerimage.descriptor": {
+    "mediaType": "application/vnd.oci.image.index.v1+json",
+    "digest": "sha256:1c8505c8c8ab77324e6369631f8e10aeb2a2c571b7e6a1e0b8f582446cafa5e4",
+    "size": 857,
+    "annotations": {
+      "org.opencontainers.image.created": "2026-10-24T12:44:29Z"
+    }
+  },
+  "containerimage.digest": "sha256:1c8505c8c8ab77324e6369631f8e10aeb2a2c571b7e6a1e0b8f582446cafa5e4",
+  "image.name": "docker.io/library/gla96-candidate-php56:36233a4"
+}

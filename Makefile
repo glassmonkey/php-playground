@@ -3,6 +3,7 @@ PHP_VERSION := 8.2
 WITH_VRZNO := yes
 WITH_LIBXML := no
 WITH_LIBPNG := no
+WITH_LIBZIP := no
 WITH_MBSTRING := yes
 WITH_CLI_SAPI := no
 WITH_OPENSSL := no
@@ -17,9 +18,10 @@ PLATFORM := web
 PHP_IMAGE := php-wasm:$(PHP_VERSION)
 
 DIST_DIR := $(PWD)/dist
+PHP_VERSIONS := 5.6 7.0 7.1 7.2 7.3 7.4 8.0 8.1 8.2 8.3 8.4 8.5
 
 
-.PHONY: build-image build-wasm build build-all build-5.6 build-7.0 build-7.1 build-7.2 build-7.3 build-7.4 build-8.0 build-8.1 build-8.2
+.PHONY: build-image build-wasm build build-all $(addprefix build-,$(PHP_VERSIONS))
 WITH_CACHE :=
 ifeq ($(WITH_CACHE),no)
 	WITH_CACHE := --no-cache
@@ -32,6 +34,7 @@ build-image:
 		--build-arg WITH_VRZNO=$(WITH_VRZNO) \
 		--build-arg WITH_LIBXML=$(WITH_LIBXML) \
 		--build-arg WITH_LIBPNG=$(WITH_LIBPNG) \
+		--build-arg WITH_LIBZIP=$(WITH_LIBZIP) \
 		--build-arg WITH_MBSTRING=$(WITH_MBSTRING) \
 		--build-arg WITH_CLI_SAPI=$(WITH_CLI_SAPI) \
 		--build-arg WITH_OPENSSL=$(WITH_OPENSSL) \
@@ -43,63 +46,34 @@ build-image:
 		--build-arg EMSCRIPTEN_ENVIRONMENT=$(PLATFORM) && \
 	cd -
 
-CMD_DIST := 'cp /root/output/php* /output'
+CMD_DIST := cp /root/output/php* /output
 ifeq ($(WITH_CLI_SAPI),yes)
-	CMD_DIST = "$(CMD_DIST) && cp /root/lib/share/terminfo/x/xterm /output/terminfo/x"
+	CMD_DIST += && cp /root/lib/share/terminfo/x/xterm /output/terminfo/x
 endif
 
 build-wasm: build-image
 	docker run --rm -v $(DIST_DIR):/output $(PHP_IMAGE) \
-		sh -c $(CMD_DIST);
+		sh -c '$(CMD_DIST)';
 	mv $(DIST_DIR)/php-$(PHP_VERSION).js src/wasm-assets/;
 	mv $(DIST_DIR)/php-$(PHP_VERSION).wasm assets/;
 
-JOBS := $(call add $(shell grep cpu.cores /proc/cpuinfo | sort -u | sed 's/[^0-9]//g'), 1)
-ifeq  ($(shell uname), Darwin)
-	JOBS = $(shell sysctl -a machdep.cpu  | grep core_count | sed 's/[^0-9]//g')
+ifeq ($(shell uname), Darwin)
+JOBS := $(shell sysctl -n hw.ncpu)
+else
+JOBS := $(shell grep -c ^processor /proc/cpuinfo)
 endif
 
 build:
 	$(MAKE) build-all -j$(JOBS)
 
 # too heavy
-build-all: build-5.6 build-7.0 build-7.1 build-7.2 build-7.3 build-7.4 build-8.0 build-8.1 build-8.2 build-8.3 build-8.4 build-8.5
+build-all: $(addprefix build-,$(PHP_VERSIONS))
 
-build-5.6:
-	$(MAKE) build-wasm PHP_VERSION=5.6
-
-build-7.0:
-	$(MAKE) build-wasm PHP_VERSION=7.0
-
-build-7.1:
-	$(MAKE) build-wasm PHP_VERSION=7.1
-
-build-7.2:
-	$(MAKE) build-wasm PHP_VERSION=7.2
-
-build-7.3:
-	$(MAKE) build-wasm PHP_VERSION=7.3
-
-build-7.4:
-	$(MAKE) build-wasm PHP_VERSION=7.4
-
-build-8.0:
-	$(MAKE) build-wasm PHP_VERSION=8.0
-
-build-8.1:
-	$(MAKE) build-wasm PHP_VERSION=8.1
-
-build-8.2:
-	$(MAKE) build-wasm PHP_VERSION=8.2
-
-build-8.3:
-	$(MAKE) build-wasm PHP_VERSION=8.3
-
-build-8.4:
-	$(MAKE) build-wasm PHP_VERSION=8.4
-
-build-8.5:
-	$(MAKE) build-wasm PHP_VERSION=8.5
+define build-version-target
+build-$(1):
+	$$(MAKE) build-wasm PHP_VERSION=$(1)
+endef
+$(foreach version,$(PHP_VERSIONS),$(eval $(call build-version-target,$(version))))
 
 public/index.js:
 	npm run build
