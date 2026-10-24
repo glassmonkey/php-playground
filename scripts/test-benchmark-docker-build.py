@@ -36,6 +36,7 @@ class BenchmarkHarnessContractTest(unittest.TestCase):
             exported = benchmark.export_context(root, revision, "src/wasm", output, "target")
             self.assertEqual((exported["context"] / "build-assets/input.txt").read_text(encoding="utf-8"), "baseline\n")
             self.assertEqual(len(exported["archive_sha256"]), 64)
+            self.assertTrue((exported["context"] / "Dockerfile").is_file())
 
     def test_buildkit_cache_events_are_attributed_to_stage_lines(self):
         parsed = benchmark.parse_build_events(

@@ -178,6 +178,8 @@ def validate_args(args) -> tuple[Path, str, str, str, str | None]:
         raise ValueError("--dockerfile must be relative to the exported context")
     context_tree_sha = subprocess.run(["git", "-C", str(repo_root), "rev-parse", f"{args.repo_revision}:{args.context_path}"],
                                       capture_output=True, text=True, check=True).stdout.strip()
+    repo_dockerfile_path = f"{args.context_path.rstrip('/')}/{dockerfile.as_posix()}"
+    subprocess.run(["git", "-C", str(repo_root), "cat-file", "-e", f"{args.repo_revision}:{repo_dockerfile_path}"], check=True)
     input_tree_sha = subprocess.run(["git", "-C", str(repo_root), "rev-parse", f"{args.repo_revision}:{args.input_path}"],
                                     capture_output=True, text=True, check=True).stdout.strip()
     output = Path(args.output).resolve()
@@ -301,10 +303,14 @@ def main() -> int:
     run_id = str(uuid.uuid4())
     records = []
     target_export = export_context(repo_root, args.repo_revision, args.context_path, output, "target")
+    if not (target_export["context"] / dockerfile).is_file():
+        raise RuntimeError(f"exported Dockerfile is missing under context: {target_export['context'] / dockerfile}")
     warmup_export = None
     if args.mode != "cold":
         warm_revision = args.warmup_repo_revision or args.repo_revision
         warmup_export = export_context(repo_root, warm_revision, args.context_path, output, "warmup")
+        if not (warmup_export["context"] / dockerfile).is_file():
+            raise RuntimeError(f"exported warmup Dockerfile is missing under context: {warmup_export['context'] / dockerfile}")
     env = {
         "docker_version": None,
         "buildx_version": None,
