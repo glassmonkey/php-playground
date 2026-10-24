@@ -80,7 +80,7 @@ const htmlPreviewVariations: {
     want: {
       surfaceBackgroundColor: 'rgb(30, 30, 30)',
       doctype: null,
-      compatMode: 'BackCompat',
+      compatMode: 'CSS1Compat',
       htmlBackgroundColor: 'rgb(30, 30, 30)',
       bodyBackgroundColor: 'rgba(0, 0, 0, 0)',
       bodyColor: 'rgb(212, 212, 212)',
