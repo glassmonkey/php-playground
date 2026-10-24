@@ -1,0 +1,46 @@
+{
+  "observed_at_utc": "2026-10-24T06:00:29Z",
+  "repository": {
+    "inherited_baseline_sha": "2eeffdde9ec27d691e28e8961962dddffd4407a1",
+    "source": "local Git history: PR405 head c23b4382d2146fe2ef5f001981e8ed3ac302ef8d merged into existing PR406 branch; Makefile WIP patch SHA256 423101886900db88ff8df2a18f1693864788c350753bb26f6c7cd75a6fab8679"
+  },
+  "php_source_refs": {
+    "5.6": {"sha": "05fb10165081cb4fb55a9943b44cab62c627db7a", "source": "https://api.github.com/repos/php/php-src/branches/PHP-5.6"},
+    "7.0": {"sha": "bd289af9630f827728b32360bcd09a614aae8f23", "source": "https://api.github.com/repos/php/php-src/branches/PHP-7.0"},
+    "7.1": {"sha": "1d9205b665d898453cdd32036ad9b687cf6278fe", "source": "https://api.github.com/repos/php/php-src/branches/PHP-7.1"},
+    "7.2": {"sha": "2d3d72412a6734e19a38ed10f385227a6238e4a6", "source": "https://api.github.com/repos/php/php-src/branches/PHP-7.2"},
+    "7.3": {"sha": "7d92153182f86722f83963d6fb054609c40bed8d", "source": "https://api.github.com/repos/php/php-src/branches/PHP-7.3"},
+    "7.4": {"sha": "004cb827501d1ddaf98daacb185a53e0816f78a7", "source": "https://api.github.com/repos/php/php-src/branches/PHP-7.4"},
+    "8.0": {"sha": "670052c427eb08a67577789e3b00e56a4fd640a7", "source": "https://api.github.com/repos/php/php-src/branches/PHP-8.0"},
+    "8.1": {"sha": "6f82565f12630ba320c52c96e28160189b15ecbf", "source": "https://api.github.com/repos/php/php-src/branches/PHP-8.1"},
+    "8.2": {"sha": "a640b5288bc97882165631612bd6cb8e75dbf6d5", "source": "https://api.github.com/repos/php/php-src/branches/PHP-8.2"},
+    "8.3": {"sha": "f35ed4fb5cf44ef9ecc48e105b6a53b590d54f0b", "source": "https://api.github.com/repos/php/php-src/branches/PHP-8.3"},
+    "8.4": {"sha": "ad7ad7c425ae816426ed88f2540b0be3626f4222", "source": "https://api.github.com/repos/php/php-src/branches/PHP-8.4"},
+    "8.5": {"sha": "48b3f94fe2d1055d05b4bfdebd9d84ce6565a73a", "source": "https://api.github.com/repos/php/php-src/branches/PHP-8.5"}
+  },
+  "emsdk": {
+    "repository_sha": "d7b4130688bfa348392b921ab04015aa15c4f154",
+    "repository_source": "https://api.github.com/repos/emscripten-core/emsdk/branches/main",
+    "version": "6.0.13",
+    "release_commit": "eb132757325583b787fe9414b09afea9442b72ad",
+    "release_map_source": "https://raw.githubusercontent.com/emscripten-core/emsdk/d7b4130688bfa348392b921ab04015aa15c4f154/emscripten-releases-tags.json"
+  },
+  "base_image": {
+    "reference": "ubuntu:noble",
+    "index_digest": "sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+    "linux_arm64_manifest_digest": "sha256:18b33ff3829707f31ada654a963b9ee35f2e6f0241b964bd17a22a9b330cb63d",
+    "source": "docker buildx imagetools inspect ubuntu:noble"
+  },
+  "docker_vm": {
+    "server_version": "29.5.3",
+    "platform": "linux/arm64",
+    "cpu_count": 2,
+    "memory_bytes": 6209429504,
+    "builder": "gla96-a3c1",
+    "builder_cpus": "cpuset 0-1, quota 200000/period 100000",
+    "builder_memory_bytes": 5368709120,
+    "buildkit_version": "v0.33.1",
+    "max_parallel_build_steps": 1,
+    "per_step_resources": ["cpuset-cpus=0-1", "memory=4g"]
+  }
+}

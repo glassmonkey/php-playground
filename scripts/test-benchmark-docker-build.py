@@ -2,6 +2,7 @@
 """Lightweight contract checks for the benchmark harness; never run Docker."""
 
 import importlib.util
+import subprocess
 import tempfile
 from types import SimpleNamespace
 import unittest
@@ -15,6 +16,26 @@ SPEC.loader.exec_module(benchmark)
 
 
 class BenchmarkHarnessContractTest(unittest.TestCase):
+    def test_context_export_is_bound_to_git_revision_not_dirty_worktree(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "src/wasm/build-assets").mkdir(parents=True)
+            tracked = root / "src/wasm/Dockerfile"
+            tracked.write_text("FROM pinned\n", encoding="utf-8")
+            (root / "src/wasm/build-assets/input.txt").write_text("baseline\n", encoding="utf-8")
+            subprocess.run(["git", "-C", str(root), "init", "-q"], check=True)
+            subprocess.run(["git", "-C", str(root), "config", "user.email", "test@example.invalid"], check=True)
+            subprocess.run(["git", "-C", str(root), "config", "user.name", "Harness Test"], check=True)
+            subprocess.run(["git", "-C", str(root), "add", "src/wasm"], check=True)
+            subprocess.run(["git", "-C", str(root), "commit", "-qm", "fixture"], check=True)
+            revision = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
+            (root / "src/wasm/build-assets/input.txt").write_text("working tree changed\n", encoding="utf-8")
+            output = root / "results"
+            output.mkdir()
+            exported = benchmark.export_context(root, revision, "src/wasm", output, "target")
+            self.assertEqual((exported["context"] / "build-assets/input.txt").read_text(encoding="utf-8"), "baseline\n")
+            self.assertEqual(len(exported["archive_sha256"]), 64)
+
     def test_buildkit_cache_events_are_attributed_to_stage_lines(self):
         parsed = benchmark.parse_build_events(
             "#1 [internal] load build definition from Dockerfile\n"
@@ -38,8 +59,10 @@ class BenchmarkHarnessContractTest(unittest.TestCase):
 
     def test_failed_build_keeps_input_identity_and_matching_raw_log(self):
         args = SimpleNamespace(
-            docker="docker", builder="gla96-bench-test", platform="linux/arm64",
-            dockerfile=Path("/tmp/Dockerfile"), tag_prefix="bench", build_arg=[], emsdk_version="4.0.22",
+            docker="docker", builder="gla96-a3c1", platform="linux/arm64",
+            dockerfile=Path("/tmp/Dockerfile"), tag_prefix="bench", build_arg=[],
+            build_resource=["cpuset-cpus=0-1", "memory=4g"], emsdk_version="6.0.13",
+            emsdk_repo_sha="d" * 40, base_image="ubuntu", base_image_digest="sha256:" + "e" * 64,
         )
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -50,14 +73,17 @@ class BenchmarkHarnessContractTest(unittest.TestCase):
             fake = SimpleNamespace(stdout="#1 [compile 1/1] RUN make FAILED\n", returncode=23)
             with patch.object(benchmark.subprocess, "run", return_value=fake):
                 record = benchmark.run_build(
-                    args, context=context, source_sha="a" * 40, input_sha="b" * 40,
+                    args, context=context, repo_revision="a" * 40, context_tree_sha="b" * 40,
+                    context_archive_sha="c" * 64, input_tree_sha="f" * 40, php_source_sha="e" * 40,
                     php_version="7.4", phase="measured", sample=1,
                     no_cache=True, output=output, run_id="12345678-1234-1234-1234-123456789012",
                 )
             raw_log = output / record["raw_log"]
             self.assertEqual(record["status"], "failed")
-            self.assertEqual(record["source_sha"], "a" * 40)
-            self.assertEqual(record["input_sha"], "b" * 40)
+            self.assertEqual(record["repo_revision"], "a" * 40)
+            self.assertEqual(record["context_tree_sha"], "b" * 40)
+            self.assertEqual(record["input_tree_sha"], "f" * 40)
+            self.assertEqual(record["php_source_sha"], "e" * 40)
             self.assertEqual(raw_log.read_text(encoding="utf-8"), fake.stdout)
             summary = benchmark.summarize([record])
             self.assertEqual(summary["status"], "failed")
@@ -75,13 +101,17 @@ class BenchmarkHarnessContractTest(unittest.TestCase):
 
     def test_warm_and_cold_policies_are_explicitly_separate(self):
         args = SimpleNamespace(
-            docker="docker", builder="gla96-bench-test", platform="linux/arm64",
-            dockerfile=Path("/tmp/Dockerfile"), tag_prefix="bench", build_arg=[], emsdk_version="4.0.22",
+            docker="docker", builder="gla96-a3c1", platform="linux/arm64",
+            dockerfile=Path("/tmp/Dockerfile"), tag_prefix="bench", build_arg=[],
+            build_resource=["cpuset-cpus=0-1", "memory=4g"], emsdk_version="6.0.13",
+            emsdk_repo_sha="d" * 40, base_image="ubuntu", base_image_digest="sha256:" + "e" * 64,
         )
-        cold_command = benchmark.build_command(args, Path("/tmp/context"), "7.4", "bench:cold", True, Path("/tmp/cold.log"))
-        warm_command = benchmark.build_command(args, Path("/tmp/context"), "7.4", "bench:warm", False, Path("/tmp/warm.log"))
+        cold_command = benchmark.build_command(args, Path("/tmp/context"), "7.4", "c" * 40, "bench:cold", True, Path("/tmp/cold.log"))
+        warm_command = benchmark.build_command(args, Path("/tmp/context"), "7.4", "c" * 40, "bench:warm", False, Path("/tmp/warm.log"))
         self.assertIn("--no-cache", cold_command)
         self.assertNotIn("--no-cache", warm_command)
+        self.assertIn("--build-arg", cold_command)
+        self.assertIn("--resource", cold_command)
         cold = benchmark.summarize([
             {"id": "cold-01", "phase": "measured", "status": "succeeded", "duration_seconds": 20, "cache_hits": 0, "completed_steps": 8},
         ])

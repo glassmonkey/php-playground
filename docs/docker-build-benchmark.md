@@ -1,70 +1,56 @@
 # Docker build benchmark
 
-`scripts/benchmark-docker-build.py` runs one controlled build case at a time. It accepts an immutable source context and records its full Git SHA, the linked input SHA, PHP/Emscripten versions, resolved base-image digest, host and builder details, command, duration, BuildKit cache events, provenance metadata, and the matching raw log. It never removes images, prunes cache, edits source assets, or changes the caller's Docker context.
+`scripts/benchmark-docker-build.py` exports a Docker context directly from an immutable Git commit and records its repository revision separately from the upstream `php-src` commit, Emsdk manager revision, resolved Emscripten SDK release, and base-image digest. The Dockerfile verifies the PHP and Emsdk Git checkouts against the supplied full commit SHAs and prints the resolved commits and active SDK in the raw BuildKit log. Buildx provenance and the resolved base material are retained for independent review.
 
-The results directory is an experiment boundary: use a new empty directory for every run. A run writes `results.json`, `raw/<phase>-NN.log`, and any Buildx metadata JSON. Failed runs retain their logs and produce a failed summary with no successful median. Warmup is recorded separately and excluded from the measured median.
+The harness records a Git tree SHA for the Docker context and linked build inputs, an SHA-256 for the exported context tar, and a raw log plus Buildx metadata file for each build. `results.json` relates those artifacts to input identifiers, build command, host, builder limits, duration and cache events. `cold` uses `--no-cache`; cached modes perform an uncounted warmup first. A failed build makes the summary fail and produces no successful median.
 
-## Prepare immutable inputs
+## Fixed inputs
 
-Use separate clean worktrees or exported trees for baseline and candidate. Do not point a run at a worktree that another process is editing. Keep the PHP source ref and Emscripten version identical across the comparison. Supply the full commit SHA as `--source-sha`; supply a full Git tree/object SHA for the linked inputs as `--input-sha` (for example, the tree SHA of `src/wasm/build-assets`). Record any non-Git generated input separately in the input hash before building.
+For each PHP version, pin the **same upstream PHP source commit** in baseline and candidate. `--repo-revision` identifies the app repository build definition and may differ between baseline and candidate. `--php-source-sha` identifies the PHP source checkout and must remain the same for the same PHP version. The default `--input-path` tree SHA is derived from Git, not supplied as a label. `git archive` exports the exact repository revision to an isolated context before Buildx reads it; dirty worktree files cannot enter the build.
 
-Resolve the Dockerfile's `FROM` image to an immutable `sha256:` digest and pass it as `--base-image-digest`. With Buildx provenance enabled, retain and inspect the per-build `.metadata.json` alongside the raw BuildKit log. Verify its material digest against this declared value before treating the comparison as controlled. The harness records this declaration; it cannot prove that a mutable `FROM` reference resolved to the declared digest by itself.
+Pass a full Emsdk manager repo SHA and an exact SDK version. The reference manifest records the current resolved manager commit and the SDK release that the pinned manifest maps from `latest`; the benchmark commands use the exact release number so the Dockerfile and result JSON agree. Pass the actual Ubuntu multi-platform image index digest; Buildx provenance must show the expected arm64 material selected from that index.
 
-Create a dedicated Buildx builder for this experiment, named `gla96-bench-<experiment>`, with the requested platform and CPU/memory allocation. Do not use the shared default builder. Keep the same builder configuration for baseline and candidate. The harness records the builder's inspect output hash and the human-readable CPU allocation; it does not reconfigure the host or builder. Use unique result directories and the default unique image tags. No cache is pruned or imported from another builder.
+The Docker daemon reports a 2-CPU, 6,209,429,504-byte VM. The dedicated `gla96-a3c1` Docker-container builder is limited to cpuset `0-1`, CPU quota 200,000/100,000 (2 CPUs), 5 GiB memory, and one parallel BuildKit step. Each build `RUN` step is limited to cpuset `0-1` and 4 GiB. These are Docker/Buildx container limits; no host-wide reservation is made. The harness reads the daemon and builder container limits before building and fails if they do not match the declared configuration.
 
-For this repository, use the `src/wasm` directory as context and its `Dockerfile`. The Makefile build arguments should be passed explicitly when needed, for example:
+Use the same builder and resource settings for baseline and candidate. The builder owns an isolated cache; do not prune it, use the shared default builder, delete existing images, or build concurrently with another heavy Docker task. Every experiment uses a new output directory. The result archive, raw logs, metadata and unique tags are retained; builds do not load images or write generated assets into the repository.
 
-```sh
---build-arg WITH_VRZNO=yes \
---build-arg WITH_LIBXML=no \
---build-arg WITH_LIBPNG=no \
---build-arg WITH_MBSTRING=yes \
---build-arg WITH_CLI_SAPI=no \
---build-arg WITH_OPENSSL=no \
---build-arg WITH_NODEFS=no \
---build-arg WITH_CURL=no \
---build-arg WITH_SQLITE=no \
---build-arg WITH_MYSQL=no \
---build-arg WITH_WS_NETWORKING_PROXY=no \
---build-arg EMSCRIPTEN_ENVIRONMENT=web
-```
+## Scenarios and repetitions
 
-## Modes and repeat counts
+Each invocation measures one PHP version from one immutable repository revision.
 
-Each invocation measures one PHP version and one immutable context.
+* `cold`: `--no-cache` is set for each measured build. Run at least one sample for 5.6, 7.4, and 8.5 on both baseline and candidate.
+* `warm`: the same inputs build once as an uncounted warmup, followed by at least three measured cached builds.
+* `php-version`: warm the cache with a different PHP version and its pinned PHP source commit, then measure the target version at least three times.
+* `link-input-change`: warm the cache from the pre-change repository revision, then measure the changed linked-input tree at least three times.
 
-* `cold`: `--no-cache` is set on every measured build. Use at least one sample for 5.6, 7.4, and 8.5 for both baseline and candidate.
-* `warm`: an uncounted warmup build runs first, then at least three measured builds use the same builder cache and inputs.
-* `php-version`: an uncounted warmup builds a different PHP version from the same context, then at least three measured builds use the target version. This captures version-switch rebuild behavior.
-* `link-input-change`: an uncounted warmup uses the previous linked-input context/ref, then at least three measured builds use the changed linked inputs. Provide the warmup context, source SHA, and input SHA explicitly.
+Compare baseline and candidate only when the per-version PHP source SHA, Emsdk repo SHA and release version, base-image digest, host/architecture, platform and resource limits match. The app repository revision and linked-input tree are expected to differ when code changes. Keep cold and cached measurements separate. The actual resolved PHP/Emsdk refs must appear in build logs; declared result metadata alone is not proof.
 
-The warmup compiles the context into the same dedicated builder cache, so include its PHP/source/input identity in the run record. Do not compare medians unless baseline and candidate have identical source SHA, Emscripten version, base-image digest, host/architecture, platform, and CPU allocation for the relevant case. The PHP version and input SHA should differ only for the scenario deliberately varying that input. Keep cold and cached measurements separate.
-
-Example dry run (does not invoke Docker or create the output directory):
+Example dry run (validates Git revisions/tree IDs and arguments; does not create output files or invoke Docker):
 
 ```sh
 python3 scripts/benchmark-docker-build.py \
-  --context /immutable/baseline/src/wasm \
-  --dockerfile Dockerfile \
-  --source-sha <full-source-sha> \
-  --input-sha <full-linked-input-tree-sha> \
+  --repo-root "$PWD" \
+  --repo-revision <full-repository-commit-sha> \
+  --php-source-sha <full-php-src-commit-sha-for-7.4> \
+  --emsdk-repo-sha d7b4130688bfa348392b921ab04015aa15c4f154 \
   --php-version 7.4 \
-  --emsdk-version 4.0.22 \
-  --base-image-digest sha256:<64-hex-digits> \
+  --emsdk-version 6.0.13 \
+  --base-image-digest sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac \
   --platform linux/arm64 \
-  --cpu-allocation '4 CPUs reserved; builder limit=4' \
-  --builder gla96-bench-pr405 \
-  --mode cold --samples 1 \
-  --output /tmp/gla96-baseline-74-cold \
-  --dry-run
+  --cpu-allocation 'Docker VM=2 CPUs; builder cpuset=0-1; quota=200000/100000' \
+  --memory-allocation 'VM=6209429504 bytes; builder=5368709120 bytes; build-step=4g; parallelism=1' \
+  --build-resource cpuset-cpus=0-1 --build-resource memory=4g \
+  --builder gla96-a3c1 --builder-cpu-set 0-1 --builder-cpu-quota 200000 \
+  --builder-memory-bytes 5368709120 \
+  --mode cold --samples 1 --output /tmp/gla96-baseline-74-cold --dry-run
 ```
 
-Remove `--dry-run` only after the manager has provided the baseline/candidate SHAs and resource allocation. Run the same command for the candidate using a separate output directory, preserving all other controlled values. For repeatable modes, set `--samples 3` or higher. Never launch the baseline and candidate builds concurrently.
+For a real run, remove `--dry-run`, use a fresh output directory, and provide the immutable repository and PHP source revisions from the measurement input manifest. For `php-version`, also provide a distinct `--warmup-php-version` and its `--warmup-php-source-sha`. For `link-input-change`, provide `--warmup-repo-revision` whose linked-input Git tree differs from the target. Run baseline and candidate sequentially.
 
-## Reviewing the evidence
+## Reviewing evidence
 
-Check every `results.json` has `summary.status=succeeded` and the expected number of measured records. Confirm each record points to an existing raw log and metadata file, each process exit code is zero, and the Buildx metadata's materials include the declared base digest. Failed builds are retained and make the run exit nonzero; do not remove failures or compute a successful comparison from only the surviving samples.
+Check that `summary.status` is `succeeded`, all expected measured records exist, and every record links to its matching raw log and metadata file. Verify raw logs show the exact PHP source SHA, Emsdk manager SHA, resolved SDK release, and zero exit status. Inspect Buildx provenance materials for the pinned base-image digest. Failed records stay in the result set and suppress the median; do not omit them from a comparison.
 
-The reported duration is wall-clock time for the `docker buildx build` process. `cache_hits` counts BuildKit log steps explicitly marked `CACHED`; `completed_steps` counts steps marked `DONE`. The event list includes the step number/detail from the corresponding raw log. Review stage labels and logs to identify which build stages reran; do not interpret the count as a complete list of rebuilt stages. Summarize each controlled case with median duration/cache hits/completed steps, alongside all raw observations and provenance. Do not combine the cold and warm medians.
+`duration_seconds` is the wall-clock time of `docker buildx build`. `cache_hits` counts BuildKit steps logged as `CACHED`; `completed_steps` counts those logged as `DONE`. The event list records each step number and text. Use stage labels and raw logs to identify rebuilds; step counts alone are not a complete rebuilt-stage list.
 
-This harness does not claim an optimization from dry runs or simulated command failures. The actual baseline/candidate Docker builds and their resulting logs/metadata are required evidence.
+The lightweight contract tests and dry runs verify harness behavior, not optimization. Actual baseline/candidate Docker builds and their retained evidence are required for AC2.

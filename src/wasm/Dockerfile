@@ -1,6 +1,7 @@
 # Originally forked from https://github.com/WordPress/wordpress-playground
 # ubuntu:noble supports amd64 and arm64 (Apple Silicon)
-FROM ubuntu:noble as emscripten
+ARG BASE_IMAGE=ubuntu:noble
+FROM ${BASE_IMAGE} as emscripten
 
 SHELL ["/bin/bash", "-c"]
 
@@ -35,10 +36,18 @@ RUN set -euxo pipefail;\
 # Install Emscripten from the repository. We'd use the official
 # Docker image, but there is no arm64 image available which makes
 # the build take forever on Apple Silicon.
+ARG EMSDK_VERSION=latest
+ARG EMSDK_REPO_REF=
 RUN ln -s /usr/bin/python3 /usr/bin/python
 RUN git clone https://github.com/emscripten-core/emsdk.git && \
-    ./emsdk/emsdk install latest && \
-    /root/emsdk/emsdk activate latest
+    if [ -n "$EMSDK_REPO_REF" ]; then \
+        cd emsdk && git fetch --depth 1 origin "$EMSDK_REPO_REF" && git checkout --detach FETCH_HEAD && \
+        test "$(git rev-parse HEAD)" = "$EMSDK_REPO_REF" && cd /root; \
+    fi && \
+    echo "EMSDK_REPO_SHA=$(git -C /root/emsdk rev-parse HEAD)" && \
+    ./emsdk/emsdk install $EMSDK_VERSION && \
+    /root/emsdk/emsdk activate $EMSDK_VERSION && \
+    /root/emsdk/emsdk active
 
 RUN mkdir -p /root/lib/lib /root/lib/include /root/lib/share /root/lib/bin
 
@@ -263,10 +272,15 @@ RUN source /root/emsdk/emsdk_env.sh && emmake make install
 # Clone PHP
 FROM emscripten AS emscripten-php-src
 ARG PHP_VERSION
-RUN git clone https://github.com/php/php-src.git php-src \
-    --branch PHP-$PHP_VERSION   \
-    --single-branch          \
-    --depth 1;
+ARG PHP_SOURCE_REF=
+RUN if [ -n "$PHP_SOURCE_REF" ]; then \
+        git init php-src && cd php-src && git remote add origin https://github.com/php/php-src.git && \
+        git fetch --depth 1 origin "$PHP_SOURCE_REF" && git checkout --detach FETCH_HEAD && \
+        test "$(git rev-parse HEAD)" = "$PHP_SOURCE_REF"; \
+    else \
+        git clone https://github.com/php/php-src.git php-src --branch PHP-$PHP_VERSION --single-branch --depth 1; \
+    fi && \
+    echo "PHP_SOURCE_SHA=$(git -C php-src rev-parse HEAD)"
 
 
 # Build PHP

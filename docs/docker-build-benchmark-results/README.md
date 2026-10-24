@@ -1,5 +1,3 @@
 # Docker build benchmark results
 
-Store one directory per baseline/candidate scenario here. Each directory should contain the harness-generated `results.json`, `raw/` build logs, and Buildx metadata files. Do not check in placeholder or simulated results as measurements. Comparison summaries must cite both result directories and record any unmatched environment/input fields as reference-only.
-
-No baseline or candidate measurements have been recorded yet. They will be added after the manager supplies immutable SHAs and the dedicated resource allocation.
+Record each baseline/candidate scenario with the harness-generated `results.json`, context archive, raw logs and Buildx metadata. Do not omit failures. `inputs.json` records the actual upstream/toolchain/container references used. The inherited baseline commit is `2eeffdde9ec27d691e28e8961962dddffd4407a1`; the instrumentation-only measurement baseline commit will be recorded after it is committed. First measured case: PHP 7.4 cold build on dedicated builder `gla96-a3c1`.
