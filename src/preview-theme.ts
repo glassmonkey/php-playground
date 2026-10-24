@@ -1,12 +1,12 @@
-export type PreviewMode = 'light' | 'dark';
+type ThemeMode = 'light' | 'dark';
 
 export type PreviewTheme = Readonly<{
-	mode: PreviewMode;
+	mode: ThemeMode;
 	background: string;
 	foreground: string;
 }>;
 
-const themes: Readonly<Record<PreviewMode, PreviewTheme>> = {
+const themes: Readonly<Record<ThemeMode, PreviewTheme>> = {
 	light: {
 		mode: 'light',
 		background: '#fff',
@@ -19,6 +19,6 @@ const themes: Readonly<Record<PreviewMode, PreviewTheme>> = {
 	},
 };
 
-export function previewThemeFor(mode: PreviewMode): PreviewTheme {
+export function previewThemeFor(mode: ThemeMode): PreviewTheme {
 	return themes[mode];
 }

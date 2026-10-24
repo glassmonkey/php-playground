@@ -10,6 +10,14 @@ type PreviewProps = {
 };
 
 export function Preview({ result, format, theme }: PreviewProps) {
+	const iframeKey = React.useRef(0);
+	const previousResult = React.useRef(result);
+
+	if (previousResult.current !== result) {
+		iframeKey.current += 1;
+		previousResult.current = result;
+	}
+
 	return (
 		<Box
 			width="100%"
@@ -21,7 +29,20 @@ export function Preview({ result, format, theme }: PreviewProps) {
 				scrollbarGutter: 'stable',
 			}}
 		>
-			{format === 'console' ? (
+			{renderPreview(result, format, theme, iframeKey.current)}
+		</Box>
+	);
+}
+
+function renderPreview(
+	result: string,
+	format: Format,
+	theme: PreviewTheme,
+	iframeKey: number
+): React.ReactNode {
+	switch (format) {
+		case 'console':
+			return (
 				<pre
 					data-testid="preview-console"
 					style={{
@@ -41,8 +62,11 @@ export function Preview({ result, format, theme }: PreviewProps) {
 				>
 					{result}
 				</pre>
-			) : (
+			);
+		case 'html':
+			return (
 				<iframe
+					key={iframeKey}
 					data-testid="preview-html"
 					srcDoc={applyPreviewTheme(result, theme)}
 					height="100%"
@@ -56,9 +80,14 @@ export function Preview({ result, format, theme }: PreviewProps) {
 						padding: 0,
 					}}
 				/>
-			)}
-		</Box>
-	);
+			);
+		default:
+			return assertNever(format);
+	}
+}
+
+function assertNever(value: never): never {
+	throw new Error(`Unsupported preview format: ${value}`);
 }
 
 function applyPreviewTheme(srcDoc: string, theme: PreviewTheme): string {
