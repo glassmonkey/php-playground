@@ -17,9 +17,10 @@ PLATFORM := web
 PHP_IMAGE := php-wasm:$(PHP_VERSION)
 
 DIST_DIR := $(PWD)/dist
+PHP_VERSIONS := 5.6 7.0 7.1 7.2 7.3 7.4 8.0 8.1 8.2 8.3 8.4 8.5
 
 
-.PHONY: build-image build-wasm build build-all build-5.6 build-7.0 build-7.1 build-7.2 build-7.3 build-7.4 build-8.0 build-8.1 build-8.2
+.PHONY: build-image build-wasm build build-all $(addprefix build-,$(PHP_VERSIONS))
 WITH_CACHE :=
 ifeq ($(WITH_CACHE),no)
 	WITH_CACHE := --no-cache
@@ -64,43 +65,13 @@ build:
 	$(MAKE) build-all -j$(JOBS)
 
 # too heavy
-build-all: build-5.6 build-7.0 build-7.1 build-7.2 build-7.3 build-7.4 build-8.0 build-8.1 build-8.2 build-8.3 build-8.4 build-8.5
+build-all: $(addprefix build-,$(PHP_VERSIONS))
 
-build-5.6:
-	$(MAKE) build-wasm PHP_VERSION=5.6
-
-build-7.0:
-	$(MAKE) build-wasm PHP_VERSION=7.0
-
-build-7.1:
-	$(MAKE) build-wasm PHP_VERSION=7.1
-
-build-7.2:
-	$(MAKE) build-wasm PHP_VERSION=7.2
-
-build-7.3:
-	$(MAKE) build-wasm PHP_VERSION=7.3
-
-build-7.4:
-	$(MAKE) build-wasm PHP_VERSION=7.4
-
-build-8.0:
-	$(MAKE) build-wasm PHP_VERSION=8.0
-
-build-8.1:
-	$(MAKE) build-wasm PHP_VERSION=8.1
-
-build-8.2:
-	$(MAKE) build-wasm PHP_VERSION=8.2
-
-build-8.3:
-	$(MAKE) build-wasm PHP_VERSION=8.3
-
-build-8.4:
-	$(MAKE) build-wasm PHP_VERSION=8.4
-
-build-8.5:
-	$(MAKE) build-wasm PHP_VERSION=8.5
+define build-version-target
+build-$(1):
+	$$(MAKE) build-wasm PHP_VERSION=$(1)
+endef
+$(foreach version,$(PHP_VERSIONS),$(eval $(call build-version-target,$(version))))
 
 public/index.js:
 	npm run build
