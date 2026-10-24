@@ -6,26 +6,26 @@ import {
 	useSandpack,
 } from '@codesandbox/sandpack-react';
 import { usePHP } from './workers/client';
-import { Box, Center, Flex, Spinner, useColorMode } from '@chakra-ui/react';
+import { Box, Center, Flex, Spinner } from '@chakra-ui/react';
 import type { ReactElement } from 'react';
 import * as React from 'react';
 import MonacoEditor, { type OnChange } from '@monaco-editor/react';
 import { Format } from './format';
 import debounce from 'debounce';
-import { applyHtmlPreviewColorMode } from './html-preview';
+import { Preview } from './preview';
+import type { PreviewTheme } from './preview-theme';
 
 function LoadSpinner() {
 	return (
-		<Center height="100%" data-testid="loading-spinner">
+		<Center height="100%" width="100%" data-testid="loading-spinner">
 			<Spinner size="xl" />
 		</Center>
 	);
 }
 
-function PhpEditor() {
+function PhpEditor(params: { theme: PreviewTheme }) {
 	const { code, updateCode } = useActiveCode();
 	const { sandpack } = useSandpack();
-	const { colorMode } = useColorMode();
 
 	const onChangeCode: OnChange = debounce((value) => {
 		updateCode(value || '');
@@ -36,7 +36,7 @@ function PhpEditor() {
 			width="100%"
 			height="100%"
 			language="php"
-			theme={colorMode === 'light' ? 'vs' : 'vs-dark'}
+			theme={params.theme.mode === 'light' ? 'vs' : 'vs-dark'}
 			key={sandpack.activeFile}
 			defaultValue={code}
 			onChange={onChangeCode}
@@ -50,50 +50,22 @@ function PhpEditor() {
 	);
 }
 
-function PhpPreview(params: { version: Version; format: Format }) {
+function PhpPreview(params: {
+	version: Version;
+	format: Format;
+	theme: PreviewTheme;
+}) {
 	const { sandpack } = useSandpack();
 	const { files, activeFile } = sandpack;
 	const code = files[activeFile].code;
 	const [loading, result] = usePHP(params.version, code);
-	const { colorMode } = useColorMode();
-
-	// Generate a unique key whenever result changes (O(1) operation)
-	const iframeKey = React.useRef(0);
-	const prevResult = React.useRef(result);
-
-	if (prevResult.current !== result) {
-		iframeKey.current += 1;
-		prevResult.current = result;
-	}
 
 	if (loading) {
 		return <LoadSpinner />;
 	}
-	if (params.format === 'console') {
-		return (
-			<pre
-				style={{
-					whiteSpace: 'pre-wrap',
-					overflow: 'scroll',
-					width: '100%',
-					height: '100%',
-				}}
-				data-testid="preview-console"
-			>
-				{result}
-			</pre>
-		);
-	}
 
 	return (
-		<iframe
-			key={iframeKey.current}
-			srcDoc={applyHtmlPreviewColorMode(result, colorMode)}
-			height="100%"
-			width="100%"
-			sandbox=""
-			data-testid="preview-html"
-		/>
+		<Preview result={result} format={params.format} theme={params.theme} />
 	);
 }
 
@@ -105,9 +77,11 @@ function PhpCodeCallback(params: { onChangeCode: (code: string) => void }) {
 	return <></>;
 }
 
-function EditorLayout(params: { Editor: ReactElement; Preview: ReactElement }) {
-	const { colorMode } = useColorMode();
-
+function EditorLayout(params: {
+	Editor: ReactElement;
+	Preview: ReactElement;
+	theme: PreviewTheme;
+}) {
 	return (
 		<Flex direction="column" padding="3" bg="gray.800" height="100%">
 			<Flex
@@ -138,8 +112,9 @@ function EditorLayout(params: { Editor: ReactElement; Preview: ReactElement }) {
 					height={{ base: '50%', lg: '100%' }}
 					width={{ base: '100%', lg: '50%' }}
 					style={{
-						backgroundColor:
-							colorMode === 'light' ? 'white' : 'rgb(30, 30, 30)',
+						backgroundColor: params.theme.background,
+						color: params.theme.foreground,
+						boxSizing: 'border-box',
 					}}
 				>
 					{params.Preview}
@@ -153,6 +128,7 @@ export function Editor(params: {
 	initCode: string;
 	version: Version;
 	format: Format;
+	theme: PreviewTheme;
 	onChangeCode: (code: string) => void;
 }) {
 	// SandpackProvider resets its files whenever this object changes, which
@@ -169,11 +145,13 @@ export function Editor(params: {
 			}}
 		>
 			<EditorLayout
-				Editor={<PhpEditor />}
+				theme={params.theme}
+				Editor={<PhpEditor theme={params.theme} />}
 				Preview={
 					<PhpPreview
 						version={params.version}
 						format={params.format}
+						theme={params.theme}
 					/>
 				}
 			/>
