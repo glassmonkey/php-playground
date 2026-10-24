@@ -5,7 +5,7 @@ import {versions, defaultVersion} from "../src/php-wasm/php";
 const PAGE = (process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:8888').replace(/\/$/, '');
 const versionPattern = (v: string) => new RegExp(`PHP Version ${v.replace('.', '\\.')}`);
 
-type PreviewTheme = 'light' | 'dark';
+type ThemeMode = 'light' | 'dark';
 
 type HtmlPreviewState = {
   surfaceBackgroundColor: string;
@@ -35,7 +35,7 @@ const rawConsoleOutput = '  raw console <output> & text\n';
 const htmlPreviewVariations: {
   name: string;
   output: string;
-  theme: PreviewTheme;
+  theme: ThemeMode;
   want: HtmlPreviewState;
   observeParserEffects?: boolean;
 }[] = [
@@ -113,7 +113,7 @@ const htmlPreviewVariations: {
 const consolePreviewVariations: {
   name: string;
   output?: string;
-  theme: PreviewTheme;
+  theme: ThemeMode;
   wantText: string;
   exact: boolean;
 }[] = [
@@ -153,7 +153,7 @@ async function openHtmlPreview(page: Page, output?: string) {
   await expect(page.getByTestId('preview-html')).toBeVisible();
 }
 
-async function setPreviewTheme(page: Page, theme: PreviewTheme) {
+async function setPreviewTheme(page: Page, theme: ThemeMode) {
   const themeSwitch = page.getByText('UI Theme:').locator('..').getByRole('checkbox');
   const shouldBeChecked = theme === 'light';
   if ((await themeSwitch.isChecked()) !== shouldBeChecked) {
