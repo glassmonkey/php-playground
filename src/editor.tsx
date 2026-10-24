@@ -12,6 +12,7 @@ import * as React from 'react';
 import MonacoEditor, { type OnChange } from '@monaco-editor/react';
 import { Format } from './format';
 import debounce from 'debounce';
+import { applyHtmlPreviewColorMode } from './html-preview';
 
 function LoadSpinner() {
 	return (
@@ -54,6 +55,7 @@ function PhpPreview(params: { version: Version; format: Format }) {
 	const { files, activeFile } = sandpack;
 	const code = files[activeFile].code;
 	const [loading, result] = usePHP(params.version, code);
+	const { colorMode } = useColorMode();
 
 	// Generate a unique key whenever result changes (O(1) operation)
 	const iframeKey = React.useRef(0);
@@ -97,7 +99,7 @@ function PhpPreview(params: { version: Version; format: Format }) {
 				<iframe
 					key={iframeKey.current}
 					data-testid="preview-html"
-					srcDoc={result}
+					srcDoc={applyHtmlPreviewColorMode(result, colorMode)}
 					height="100%"
 					width="100%"
 					sandbox=""
@@ -123,6 +125,8 @@ function PhpCodeCallback(params: { onChangeCode: (code: string) => void }) {
 }
 
 function EditorLayout(params: { Editor: ReactElement; Preview: ReactElement }) {
+	const { colorMode } = useColorMode();
+
 	return (
 		<Flex direction="column" padding="3" bg="gray.800" height="100%">
 			<Flex
@@ -153,7 +157,8 @@ function EditorLayout(params: { Editor: ReactElement; Preview: ReactElement }) {
 					height={{ base: '50%', lg: '100%' }}
 					width={{ base: '100%', lg: '50%' }}
 					style={{
-						backgroundColor: 'white',
+						backgroundColor:
+							colorMode === 'light' ? 'white' : 'rgb(30, 30, 30)',
 						boxSizing: 'border-box',
 					}}
 				>
