@@ -39,7 +39,8 @@ export default function App() {
 	const { colorMode, toggleColorMode } = useColorMode();
 	const previewTheme = previewThemeFor(colorMode);
 
-	const currentFormat = (searchParams.get('f') as Format) ?? 'html';
+	const currentFormat: Format =
+		searchParams.get('f') === 'console' ? 'console' : 'html';
 
 	function updateVersion(v: Version) {
 		const currentState = history.state as UrlState | null;
