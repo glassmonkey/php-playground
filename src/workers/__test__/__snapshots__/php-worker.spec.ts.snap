@@ -31,8 +31,8 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </td></tr>
 </table>
 <table>
-<tr><td class="e">System </td><td class="v">Emscripten emscripten 4.0.22 #1 wasm32 </td></tr>
-<tr><td class="e">Build Date </td><td class="v">Oct 22 2026 00:07:15 </td></tr>
+<tr><td class="e">System </td><td class="v">Emscripten emscripten 6.0.13 #1 wasm32 </td></tr>
+<tr><td class="e">Build Date </td><td class="v">Oct 22 2026 09:24:42 </td></tr>
 <tr><td class="e">Configure Command </td><td class="v"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--enable-mbstring&#039; &#039;--enable-vrzno&#039; &#039;CC=/root/emsdk/upstream/emscripten/emcc&#039; &#039;CXX=/root/emsdk/upstream/emscripten/em++&#039; </td></tr>
 <tr><td class="e">Server API </td><td class="v">PHP WASM SAPI </td></tr>
 <tr><td class="e">Virtual Directory Support </td><td class="v">disabled </td></tr>
@@ -555,8 +555,8 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </td></tr>
 </table>
 <table>
-<tr><td class="e">System </td><td class="v">Emscripten emscripten 4.0.22 #1 wasm32 </td></tr>
-<tr><td class="e">Build Date </td><td class="v">Oct 22 2026 00:07:20 </td></tr>
+<tr><td class="e">System </td><td class="v">Emscripten emscripten 6.0.13 #1 wasm32 </td></tr>
+<tr><td class="e">Build Date </td><td class="v">Oct 22 2026 09:25:45 </td></tr>
 <tr><td class="e">Configure Command </td><td class="v"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--enable-mbstring&#039; &#039;--enable-vrzno&#039; </td></tr>
 <tr><td class="e">Server API </td><td class="v">PHP WASM SAPI </td></tr>
 <tr><td class="e">Virtual Directory Support </td><td class="v">disabled </td></tr>
@@ -1060,8 +1060,8 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </td></tr>
 </table>
 <table>
-<tr><td class="e">System </td><td class="v">Emscripten emscripten 4.0.22 #1 wasm32 </td></tr>
-<tr><td class="e">Build Date </td><td class="v">Oct 22 2026 00:19:11 </td></tr>
+<tr><td class="e">System </td><td class="v">Emscripten emscripten 6.0.13 #1 wasm32 </td></tr>
+<tr><td class="e">Build Date </td><td class="v">Oct 22 2026 09:26:46 </td></tr>
 <tr><td class="e">Configure Command </td><td class="v"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--enable-mbstring&#039; &#039;--enable-vrzno&#039; </td></tr>
 <tr><td class="e">Server API </td><td class="v">PHP WASM SAPI </td></tr>
 <tr><td class="e">Virtual Directory Support </td><td class="v">disabled </td></tr>
@@ -1567,8 +1567,8 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </td></tr>
 </table>
 <table>
-<tr><td class="e">System </td><td class="v">Emscripten emscripten 4.0.22 #1 wasm32 </td></tr>
-<tr><td class="e">Build Date </td><td class="v">Oct 22 2026 00:19:12 </td></tr>
+<tr><td class="e">System </td><td class="v">Emscripten emscripten 6.0.13 #1 wasm32 </td></tr>
+<tr><td class="e">Build Date </td><td class="v">Oct 22 2026 09:27:52 </td></tr>
 <tr><td class="e">Configure Command </td><td class="v"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--enable-mbstring&#039; &#039;--enable-vrzno&#039; </td></tr>
 <tr><td class="e">Server API </td><td class="v">PHP WASM SAPI </td></tr>
 <tr><td class="e">Virtual Directory Support </td><td class="v">disabled </td></tr>
@@ -2073,8 +2073,8 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </td></tr>
 </table>
 <table>
-<tr><td class="e">System </td><td class="v">Emscripten emscripten 4.0.22 #1 wasm32 </td></tr>
-<tr><td class="e">Build Date </td><td class="v">Oct 22 2026 00:30:46 </td></tr>
+<tr><td class="e">System </td><td class="v">Emscripten emscripten 6.0.13 #1 wasm32 </td></tr>
+<tr><td class="e">Build Date </td><td class="v">Oct 22 2026 09:29:30 </td></tr>
 <tr><td class="e">Configure Command </td><td class="v"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--enable-mbstring&#039; &#039;--enable-vrzno&#039; </td></tr>
 <tr><td class="e">Server API </td><td class="v">PHP WASM SAPI </td></tr>
 <tr><td class="e">Virtual Directory Support </td><td class="v">disabled </td></tr>
@@ -2583,8 +2583,8 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </td></tr>
 </table>
 <table>
-<tr><td class="e">System </td><td class="v">Emscripten emscripten 4.0.22 #1 wasm32 </td></tr>
-<tr><td class="e">Build Date </td><td class="v">Oct 21 2026 23:49:13 </td></tr>
+<tr><td class="e">System </td><td class="v">Emscripten emscripten 6.0.13 #1 wasm32 </td></tr>
+<tr><td class="e">Build Date </td><td class="v">Oct 22 2026 09:19:29 </td></tr>
 <tr><td class="e">Configure Command </td><td class="v"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--enable-mbstring&#039; &#039;--enable-vrzno&#039; &#039;PKG_CONFIG_LIBDIR=/root/emsdk/upstream/emscripten/cache/sysroot/local/lib/pkgconfig:/root/emsdk/upstream/emscripten/cache/sysroot/lib/pkgconfig&#039; </td></tr>
 <tr><td class="e">Server API </td><td class="v">PHP WASM SAPI </td></tr>
 <tr><td class="e">Virtual Directory Support </td><td class="v">disabled </td></tr>
@@ -3097,8 +3097,8 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </td></tr>
 </table>
 <table>
-<tr><td class="e">System </td><td class="v">Emscripten emscripten 4.0.22 #1 wasm32 </td></tr>
-<tr><td class="e">Build Date </td><td class="v">Oct 21 2026 23:56:29 </td></tr>
+<tr><td class="e">System </td><td class="v">Emscripten emscripten 6.0.13 #1 wasm32 </td></tr>
+<tr><td class="e">Build Date </td><td class="v">Oct 22 2026 09:30:54 </td></tr>
 <tr><td class="e">Build System </td><td class="v">Linux buildkitsandbox 6.18.37-0-virt #1-Alpine SMP PREEMPT_DYNAMIC 2026-06-29 10:52:25 aarch64 aarch64 aarch64 GNU/Linux </td></tr>
 <tr><td class="e">Configure Command </td><td class="v"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--enable-mbstring&#039; &#039;--disable-opcache-jit&#039; &#039;--enable-vrzno&#039; &#039;PKG_CONFIG_LIBDIR=/root/emsdk/upstream/emscripten/cache/sysroot/local/lib/pkgconfig:/root/emsdk/upstream/emscripten/cache/sysroot/lib/pkgconfig&#039; </td></tr>
 <tr><td class="e">Server API </td><td class="v">PHP WASM SAPI </td></tr>
@@ -3610,8 +3610,8 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </td></tr>
 </table>
 <table>
-<tr><td class="e">System </td><td class="v">Emscripten emscripten 4.0.22 #1 wasm32 </td></tr>
-<tr><td class="e">Build Date </td><td class="v">Oct 22 2026 00:30:35 </td></tr>
+<tr><td class="e">System </td><td class="v">Emscripten emscripten 6.0.13 #1 wasm32 </td></tr>
+<tr><td class="e">Build Date </td><td class="v">Oct 22 2026 09:32:24 </td></tr>
 <tr><td class="e">Build System </td><td class="v">Linux buildkitsandbox 6.18.37-0-virt #1-Alpine SMP PREEMPT_DYNAMIC 2026-06-29 10:52:25 aarch64 aarch64 aarch64 GNU/Linux </td></tr>
 <tr><td class="e">Configure Command </td><td class="v"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--enable-mbstring&#039; &#039;--disable-opcache-jit&#039; &#039;--enable-vrzno&#039; &#039;PKG_CONFIG_LIBDIR=/root/emsdk/upstream/emscripten/cache/sysroot/local/lib/pkgconfig:/root/emsdk/upstream/emscripten/cache/sysroot/lib/pkgconfig&#039; </td></tr>
 <tr><td class="e">Server API </td><td class="v">PHP WASM SAPI </td></tr>
@@ -4134,8 +4134,8 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </td></tr>
 </table>
 <table>
-<tr><td class="e">System </td><td class="v">Emscripten emscripten 4.0.22 #1 wasm32 </td></tr>
-<tr><td class="e">Build Date </td><td class="v">Oct 22 2026 00:33:06 </td></tr>
+<tr><td class="e">System </td><td class="v">Emscripten emscripten 6.0.13 #1 wasm32 </td></tr>
+<tr><td class="e">Build Date </td><td class="v">Oct 22 2026 09:33:51 </td></tr>
 <tr><td class="e">Build System </td><td class="v">Linux buildkitsandbox 6.18.37-0-virt #1-Alpine SMP PREEMPT_DYNAMIC 2026-06-29 10:52:25 aarch64 aarch64 aarch64 GNU/Linux </td></tr>
 <tr><td class="e">Configure Command </td><td class="v"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--enable-mbstring&#039; &#039;--disable-opcache-jit&#039; &#039;--enable-vrzno&#039; &#039;PKG_CONFIG_LIBDIR=/root/emsdk/upstream/emscripten/cache/sysroot/local/lib/pkgconfig:/root/emsdk/upstream/emscripten/cache/sysroot/lib/pkgconfig&#039; </td></tr>
 <tr><td class="e">Server API </td><td class="v">PHP WASM SAPI </td></tr>
@@ -4239,7 +4239,6 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend&nbsp;Eng
 <tr><td class="e">max_input_time</td><td class="v">-1</td><td class="v">-1</td></tr>
 <tr><td class="e">max_input_vars</td><td class="v">1000</td><td class="v">1000</td></tr>
 <tr><td class="e">max_multipart_body_parts</td><td class="v">-1</td><td class="v">-1</td></tr>
-<tr><td class="e">memory_hard_limit_percent</td><td class="v"><i>no value</i></td><td class="v"><i>no value</i></td></tr>
 <tr><td class="e">memory_limit</td><td class="v">128M</td><td class="v">128M</td></tr>
 <tr><td class="e">open_basedir</td><td class="v"><i>no value</i></td><td class="v"><i>no value</i></td></tr>
 <tr><td class="e">output_buffering</td><td class="v">0</td><td class="v">0</td></tr>
@@ -4666,8 +4665,8 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </td></tr>
 </table>
 <table>
-<tr><td class="e">System </td><td class="v">Emscripten emscripten 4.0.22 #1 wasm32 </td></tr>
-<tr><td class="e">Build Date </td><td class="v">Oct 22 2026 00:33:16 </td></tr>
+<tr><td class="e">System </td><td class="v">Emscripten emscripten 6.0.13 #1 wasm32 </td></tr>
+<tr><td class="e">Build Date </td><td class="v">Oct 22 2026 09:35:40 </td></tr>
 <tr><td class="e">Build System </td><td class="v">Linux buildkitsandbox 6.18.37-0-virt #1-Alpine SMP PREEMPT_DYNAMIC 2026-06-29 10:52:25 aarch64 aarch64 aarch64 GNU/Linux </td></tr>
 <tr><td class="e">Configure Command </td><td class="v"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--enable-mbstring&#039; &#039;--disable-opcache-jit&#039; &#039;--enable-vrzno&#039; &#039;PKG_CONFIG_LIBDIR=/root/emsdk/upstream/emscripten/cache/sysroot/local/lib/pkgconfig:/root/emsdk/upstream/emscripten/cache/sysroot/lib/pkgconfig&#039; </td></tr>
 <tr><td class="e">Server API </td><td class="v">PHP WASM SAPI </td></tr>
@@ -5202,8 +5201,8 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </td></tr>
 </table>
 <table>
-<tr><td class="e">System </td><td class="v">Emscripten emscripten 4.0.22 #1 wasm32 </td></tr>
-<tr><td class="e">Build Date </td><td class="v">Oct 22 2026 00:36:13 </td></tr>
+<tr><td class="e">System </td><td class="v">Emscripten emscripten 6.0.13 #1 wasm32 </td></tr>
+<tr><td class="e">Build Date </td><td class="v">Oct 22 2026 09:38:06 </td></tr>
 <tr><td class="e">Build System </td><td class="v">Linux buildkitsandbox 6.18.37-0-virt #1-Alpine SMP PREEMPT_DYNAMIC 2026-06-29 10:52:25 aarch64 aarch64 aarch64 GNU/Linux </td></tr>
 <tr><td class="e">Configure Command </td><td class="v"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--enable-mbstring&#039; &#039;--disable-opcache-jit&#039; &#039;--enable-vrzno&#039; &#039;PKG_CONFIG_LIBDIR=/root/emsdk/upstream/emscripten/cache/sysroot/local/lib/pkgconfig:/root/emsdk/upstream/emscripten/cache/sysroot/lib/pkgconfig&#039; </td></tr>
 <tr><td class="e">Server API </td><td class="v">PHP WASM SAPI </td></tr>
@@ -5733,8 +5732,8 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </td></tr>
 </table>
 <table>
-<tr><td class="e">System </td><td class="v">Emscripten emscripten 4.0.22 #1 wasm32 </td></tr>
-<tr><td class="e">Build Date </td><td class="v">Oct 22 2026 00:37:03 </td></tr>
+<tr><td class="e">System </td><td class="v">Emscripten emscripten 6.0.13 #1 wasm32 </td></tr>
+<tr><td class="e">Build Date </td><td class="v">Oct 22 2026 09:21:04 </td></tr>
 <tr><td class="e">Build System </td><td class="v">Linux buildkitsandbox 6.18.37-0-virt #1-Alpine SMP PREEMPT_DYNAMIC 2026-06-29 10:52:25 aarch64 aarch64 aarch64 GNU/Linux </td></tr>
 <tr><td class="e">Configure Command </td><td class="v"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--enable-mbstring&#039; &#039;--disable-opcache-jit&#039; &#039;--enable-vrzno&#039; &#039;PKG_CONFIG_LIBDIR=/root/emsdk/upstream/emscripten/cache/sysroot/local/lib/pkgconfig:/root/emsdk/upstream/emscripten/cache/sysroot/lib/pkgconfig&#039; </td></tr>
 <tr><td class="e">Server API </td><td class="v">PHP WASM SAPI </td></tr>
