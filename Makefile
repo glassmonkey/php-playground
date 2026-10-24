@@ -54,9 +54,10 @@ build-wasm: build-image
 	mv $(DIST_DIR)/php-$(PHP_VERSION).js src/wasm-assets/;
 	mv $(DIST_DIR)/php-$(PHP_VERSION).wasm assets/;
 
-JOBS := $(call add $(shell grep cpu.cores /proc/cpuinfo | sort -u | sed 's/[^0-9]//g'), 1)
-ifeq  ($(shell uname), Darwin)
-	JOBS = $(shell sysctl -a machdep.cpu  | grep core_count | sed 's/[^0-9]//g')
+ifeq ($(shell uname), Darwin)
+JOBS := $(shell sysctl -n hw.ncpu)
+else
+JOBS := $(shell grep -c ^processor /proc/cpuinfo)
 endif
 
 build:
