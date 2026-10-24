@@ -533,7 +533,7 @@ RUN source /root/emsdk/emsdk_env.sh && \
     # We're compiling PHP as emscripten's side module...
     # Use the common JavaScript longjmp implementation for every PHP version.
     # This must match SUPPORT_LONGJMP in the final link below.
-    EMCC_FLAGS=" -sSIDE_MODULE -sSUPPORT_LONGJMP=js -Dsetsockopt=wasm_setsockopt -Dpopen=wasm_popen -Dpclose=wasm_pclose " \
+    EMCC_FLAGS=" -sSIDE_MODULE -sSUPPORT_LONGJMP=emscripten -Dsetsockopt=wasm_setsockopt -Dpopen=wasm_popen -Dpclose=wasm_pclose " \
     # ...which means we must skip all the libraries - they will be provided in the final linking step.
     EMCC_SKIP="-lz -ledit -ldl -lncurses -lzip -lpng16 -lssl -lcrypto -lxml2 -lc -lm -lsqlite3 /root/lib/lib/libxml2.a /root/lib/lib/libsqlite3.so /root/lib/lib/libsqlite3.a /root/lib/lib/libpng16.so" \
     emmake make -j8
@@ -891,7 +891,7 @@ RUN source /root/emsdk/emsdk_env.sh && \
     -s ERROR_ON_UNDEFINED_SYMBOLS=0  \
     -s INVOKE_RUN=0                  \
     -s EXIT_RUNTIME=1                \
-    -s SUPPORT_LONGJMP=js            \
+    -s SUPPORT_LONGJMP=emscripten    \
         /root/lib/libphp.a \
         /root/php_wasm.c \
         $(cat /root/.emcc-php-wasm-sources) \
