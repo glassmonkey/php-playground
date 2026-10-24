@@ -14,7 +14,7 @@ const codeWithoutCustomCSS = lzString.compressToEncodedURIComponent(
 	`<?php echo '${outputWithoutCustomCSS}';`
 );
 const outputWithParserEdgeCases =
-	'<!doctype html><html><head><title>title marker __HTML_PREVIEW_COLOR_MODE__ &lt;head&gt;literal&lt;/head&gt;</title></head><body><p id="body-probe">body marker __HTML_PREVIEW_COLOR_MODE__ &lt;head&gt;literal&lt;/head&gt;</p><div id="comment-probe"><!-- comment marker __HTML_PREVIEW_COLOR_MODE__ <head>literal</head> --></div><textarea id="textarea-probe">textarea marker __HTML_PREVIEW_COLOR_MODE__ <head>literal</head></textarea></body></html>';
+	'<!doctype html><html><head><title>title marker __HTML_PREVIEW_COLOR_MODE__ &lt;head&gt;literal&lt;/head&gt;</title></head><body><p id="body-probe">body marker __HTML_PREVIEW_COLOR_MODE__ data-php-playground-preview-theme &lt;head&gt;literal&lt;/head&gt;</p><div id="comment-probe"><!-- comment marker __HTML_PREVIEW_COLOR_MODE__ data-php-playground-preview-theme <head>literal</head> --></div><textarea id="textarea-probe">textarea marker __HTML_PREVIEW_COLOR_MODE__ <head>literal</head></textarea></body></html>';
 const codeWithParserEdgeCases = lzString.compressToEncodedURIComponent(
 	`<?php echo '${outputWithParserEdgeCases}';`
 );
@@ -65,12 +65,14 @@ test('uses dark default colors for HTML output when the UI theme is dark', async
 	await openPreview(page, codeWithoutCustomCSS, 'light');
 	await toggleUITheme(page);
 
-	expect(await previewColors(page)).toEqual({
-		htmlBackgroundColor: 'rgb(30, 30, 30)',
-		bodyBackgroundColor: 'rgba(0, 0, 0, 0)',
-		bodyColor: 'rgb(212, 212, 212)',
-		probeColor: 'rgb(212, 212, 212)',
-	});
+	await expect
+		.poll(() => previewColors(page))
+		.toEqual({
+			htmlBackgroundColor: 'rgb(30, 30, 30)',
+			bodyBackgroundColor: 'rgba(0, 0, 0, 0)',
+			bodyColor: 'rgb(212, 212, 212)',
+			probeColor: 'rgb(212, 212, 212)',
+		});
 });
 
 test('restores the original light HTML appearance when the UI theme switches back', async ({
@@ -79,24 +81,28 @@ test('restores the original light HTML appearance when the UI theme switches bac
 	await openPreview(page, codeWithoutCustomCSS, 'dark');
 	await toggleUITheme(page);
 
-	expect(await previewColors(page)).toEqual({
-		htmlBackgroundColor: 'rgba(0, 0, 0, 0)',
-		bodyBackgroundColor: 'rgba(0, 0, 0, 0)',
-		bodyColor: 'rgb(0, 0, 0)',
-		probeColor: 'rgb(0, 0, 0)',
-	});
+	await expect
+		.poll(() => previewColors(page))
+		.toEqual({
+			htmlBackgroundColor: 'rgba(0, 0, 0, 0)',
+			bodyBackgroundColor: 'rgba(0, 0, 0, 0)',
+			bodyColor: 'rgb(0, 0, 0)',
+			probeColor: 'rgb(0, 0, 0)',
+		});
 });
 
 test('keeps user supplied CSS colors in dark mode', async ({ page }) => {
 	await openPreview(page, codeWithCustomCSS, 'light');
 	await toggleUITheme(page);
 
-	expect(await previewColors(page)).toEqual({
-		htmlBackgroundColor: 'rgb(30, 30, 30)',
-		bodyBackgroundColor: 'rgb(12, 34, 56)',
-		bodyColor: 'rgb(210, 220, 230)',
-		probeColor: 'rgb(210, 220, 230)',
-	});
+	await expect
+		.poll(() => previewColors(page))
+		.toEqual({
+			htmlBackgroundColor: 'rgb(30, 30, 30)',
+			bodyBackgroundColor: 'rgb(12, 34, 56)',
+			bodyColor: 'rgb(210, 220, 230)',
+			probeColor: 'rgb(210, 220, 230)',
+		});
 });
 
 test('preserves parsed doctype, title, textarea, body marker, and comment content', async ({
@@ -111,6 +117,11 @@ test('preserves parsed doctype, title, textarea, body marker, and comment conten
 		.evaluate(() => ({
 			doctype: document.doctype?.name,
 			compatMode: document.compatMode,
+			htmlBackgroundColor: getComputedStyle(document.documentElement)
+				.backgroundColor,
+			bodyBackgroundColor: getComputedStyle(document.body)
+				.backgroundColor,
+			bodyColor: getComputedStyle(document.body).color,
 			title: document.title,
 			textarea: (
 				document.querySelector('#textarea-probe') as HTMLTextAreaElement
@@ -124,13 +135,16 @@ test('preserves parsed doctype, title, textarea, body marker, and comment conten
 	expect(parsedOutput).toEqual({
 		doctype: 'html',
 		compatMode: 'CSS1Compat',
+		htmlBackgroundColor: 'rgb(30, 30, 30)',
+		bodyBackgroundColor: 'rgba(0, 0, 0, 0)',
+		bodyColor: 'rgb(212, 212, 212)',
 		title: 'title marker __HTML_PREVIEW_COLOR_MODE__ <head>literal</head>',
 		textarea:
 			'textarea marker __HTML_PREVIEW_COLOR_MODE__ <head>literal</head>',
 		bodyMarker:
-			'body marker __HTML_PREVIEW_COLOR_MODE__ <head>literal</head>',
+			'body marker __HTML_PREVIEW_COLOR_MODE__ data-php-playground-preview-theme <head>literal</head>',
 		commentMarker:
-			' comment marker __HTML_PREVIEW_COLOR_MODE__ <head>literal</head> ',
+			' comment marker __HTML_PREVIEW_COLOR_MODE__ data-php-playground-preview-theme <head>literal</head> ',
 	});
 });
 
@@ -212,8 +226,14 @@ test('dark processing does not fetch resources or execute scripts in the parent 
 					({ url, source }) =>
 						url === imageResourceURL && source === 'preview'
 				).length,
+				lightUnknownRequests: lightRequests
+					.filter(({ source }) => source === 'unknown')
+					.map(({ url }) => url),
 				darkParentRequests: darkRequests
 					.filter(({ source }) => source === 'parent')
+					.map(({ url }) => url),
+				darkUnknownRequests: darkRequests
+					.filter(({ source }) => source === 'unknown')
 					.map(({ url }) => url),
 				darkPreviewImageRequests: darkRequests.filter(
 					({ url, source }) =>
@@ -229,7 +249,9 @@ test('dark processing does not fetch resources or execute scripts in the parent 
 		.toEqual({
 			lightParentRequests: [],
 			lightPreviewImageRequests: 1,
+			lightUnknownRequests: [],
 			darkParentRequests: [],
+			darkUnknownRequests: [],
 			darkPreviewImageRequests: 1,
 			darkIframeRequests: 1,
 			darkHtmlBackground: 'rgb(30, 30, 30)',
