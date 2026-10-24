@@ -1,0 +1,30 @@
+{
+  "kind": "compiler-runtime-readiness-smoke",
+  "status": "success",
+  "is_benchmark_measurement": false,
+  "started_at_utc": "2026-10-24T08:44:37Z",
+  "repository_revision": "cdbb0fdff6549fbfa5ea67976c2e4de27bafc119",
+  "php_version_context": "7.4 (PHP source build not part of this target)",
+  "php_source_sha_argument": "004cb827501d1ddaf98daacb185a53e0816f78a7",
+  "emsdk_repository_sha": "d7b4130688bfa348392b921ab04015aa15c4f154",
+  "emscripten_version": "6.0.13",
+  "node_version": "v24.19.0 (from pinned Emscripten SDK)",
+  "base_image": "ubuntu:noble@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+  "platform": "linux/arm64",
+  "builder": {
+    "name": "gla96-a3c1",
+    "cpu_quota_cpus": 2,
+    "cpuset": "0-1",
+    "memory": "5g",
+    "max_parallelism": 1
+  },
+  "runtime_smoke": "compile minimal setjmp/longjmp C program with -sSUPPORT_LONGJMP=emscripten -sEXIT_RUNTIME=1; execute generated JavaScript with SDK node",
+  "base_dockerfile": "src/wasm/Dockerfile at cdbb0fdff6549fbfa5ea67976c2e4de27bafc119",
+  "runtime_smoke_stage_source": "runtime-smoke-stage.Dockerfile",
+  "buildx_command": "docker buildx build --builder gla96-a3c1 --platform linux/arm64 --progress=plain --file /tmp/gla96-a3c1-php74-emscripten-longjmp-runtime-smoke.Dockerfile --target longjmp-runtime-smoke --build-arg BASE_IMAGE=ubuntu:noble@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac --build-arg PHP_VERSION=7.4 --build-arg PHP_SOURCE_REF=004cb827501d1ddaf98daacb185a53e0816f78a7 --build-arg EMSDK_VERSION=6.0.13 --build-arg EMSDK_REPO_REF=d7b4130688bfa348392b921ab04015aa15c4f154 docs/docker-build-benchmark-results/baseline-7.4-cold-instrumented/contexts/target",
+  "node_command": "source /root/emsdk/emsdk_env.sh && node --version && node /tmp/longjmp-runtime-smoke.js && printf 'RUNTIME_SMOKE_EXIT=0\\n'",
+  "node_exit_code": 0,
+  "node_output": "v24.19.0\nlongjmp-return=7\nRUNTIME_SMOKE_EXIT=0",
+  "raw_logs": ["raw/runtime-attempt1.log", "raw/runtime-attempt2.log"],
+  "timing_use": "exclude from baseline/candidate performance comparisons"
+}
