@@ -74,6 +74,23 @@ const htmlPreviewVariations: {
     },
   },
   {
+    name: 'renders a doctype-free HTML fragment in dark mode',
+    output: '<p id="body-probe">fragment preview</p>',
+    theme: 'dark',
+    want: {
+      surfaceBackgroundColor: 'rgb(30, 30, 30)',
+      doctype: null,
+      compatMode: 'BackCompat',
+      htmlBackgroundColor: 'rgb(30, 30, 30)',
+      bodyBackgroundColor: 'rgba(0, 0, 0, 0)',
+      bodyColor: 'rgb(212, 212, 212)',
+      title: '',
+      bodyText: 'fragment preview',
+      commentText: null,
+      textareaValue: null,
+    },
+  },
+  {
     name: 'keeps user CSS colors while applying the dark palette',
     output: customCssHtml,
     theme: 'dark',
