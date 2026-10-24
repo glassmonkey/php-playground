@@ -313,6 +313,12 @@ test.describe('default page', () => {
         let lightRequests: PreviewRequest[] = [];
         if (variation.observeParserEffects) {
           await Promise.all([initialImageRequest, initialIframeRequest]);
+          await expect.poll(() => summarizeParserRequests(observedRequests)).toEqual({
+            parent: [],
+            unknown: [],
+            previewImage: 1,
+            previewIframe: 1,
+          });
           lightRequests = observedRequests.splice(0);
         }
 
