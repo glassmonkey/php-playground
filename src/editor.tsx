@@ -77,6 +77,7 @@ function PhpPreview(params: { version: Version; format: Format }) {
 		>
 			{params.format === 'console' ? (
 				<pre
+					data-testid="preview-console"
 					style={{
 						whiteSpace: 'pre-wrap',
 						wordBreak: 'break-all',
@@ -95,6 +96,7 @@ function PhpPreview(params: { version: Version; format: Format }) {
 			) : (
 				<iframe
 					key={iframeKey.current}
+					data-testid="preview-html"
 					srcDoc={result}
 					height="100%"
 					width="100%"
