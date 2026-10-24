@@ -67,7 +67,7 @@ def build_command(args, context: Path, php_version: str, php_source_sha: str, ta
         "--platform",
         args.platform,
         "--file",
-        str(args.dockerfile),
+        str(context / args.dockerfile),
         "--tag",
         tag,
         "--metadata-file",

@@ -61,7 +61,7 @@ class BenchmarkHarnessContractTest(unittest.TestCase):
     def test_failed_build_keeps_input_identity_and_matching_raw_log(self):
         args = SimpleNamespace(
             docker="docker", builder="gla96-a3c1", platform="linux/arm64",
-            dockerfile=Path("/tmp/Dockerfile"), tag_prefix="bench", build_arg=[],
+            dockerfile=Path("Dockerfile"), tag_prefix="bench", build_arg=[],
             build_resource=["cpuset-cpus=0-1", "memory=4g"], emsdk_version="6.0.13",
             emsdk_repo_sha="d" * 40, base_image="ubuntu", base_image_digest="sha256:" + "e" * 64,
         )
@@ -104,7 +104,7 @@ class BenchmarkHarnessContractTest(unittest.TestCase):
     def test_warm_and_cold_policies_are_explicitly_separate(self):
         args = SimpleNamespace(
             docker="docker", builder="gla96-a3c1", platform="linux/arm64",
-            dockerfile=Path("/tmp/Dockerfile"), tag_prefix="bench", build_arg=[],
+            dockerfile=Path("Dockerfile"), tag_prefix="bench", build_arg=[],
             build_resource=["cpuset-cpus=0-1", "memory=4g"], emsdk_version="6.0.13",
             emsdk_repo_sha="d" * 40, base_image="ubuntu", base_image_digest="sha256:" + "e" * 64,
         )
@@ -112,6 +112,7 @@ class BenchmarkHarnessContractTest(unittest.TestCase):
         warm_command = benchmark.build_command(args, Path("/tmp/context"), "7.4", "c" * 40, "bench:warm", False, Path("/tmp/warm.log"))
         self.assertIn("--no-cache", cold_command)
         self.assertNotIn("--no-cache", warm_command)
+        self.assertEqual(cold_command[cold_command.index("--file") + 1], "/tmp/context/Dockerfile")
         self.assertIn("--build-arg", cold_command)
         self.assertIn("--resource", cold_command)
         cold = benchmark.summarize([
