@@ -47,7 +47,8 @@ RUN git clone https://github.com/emscripten-core/emsdk.git && \
     echo "EMSDK_REPO_SHA=$(git -C /root/emsdk rev-parse HEAD)" && \
     ./emsdk/emsdk install $EMSDK_VERSION && \
     /root/emsdk/emsdk activate $EMSDK_VERSION && \
-    /root/emsdk/emsdk active
+    source /root/emsdk/emsdk_env.sh && \
+    emcc --version
 
 RUN mkdir -p /root/lib/lib /root/lib/include /root/lib/share /root/lib/bin
 
