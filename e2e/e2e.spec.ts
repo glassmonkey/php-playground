@@ -269,6 +269,15 @@ test.describe('default page', () => {
   })
 
   test.describe('switch preview', () => {
+    test('defaults unsupported URL formats to the HTML preview', async ({page}) => {
+      await page.emulateMedia({colorScheme: 'light'});
+      await page.goto(`${PAGE}/?f=unsupported`);
+
+      await expect(page.getByTestId('preview-html')).toBeVisible();
+      await expect(page.getByTestId('checkbox-format')).toBeChecked();
+      await expect(page.getByTestId('preview-console')).not.toBeVisible();
+    });
+
     for (const variation of htmlPreviewVariations) {
       test(variation.name, async ({page}) => {
         const observedRequests: PreviewRequest[] = [];
