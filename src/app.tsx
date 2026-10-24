@@ -19,6 +19,7 @@ import SelectPHP from './select';
 import { Editor } from './editor';
 import { BellIcon } from '@chakra-ui/icons';
 import { Format, SelectFormat } from './format';
+import { previewThemeFor } from './preview-theme';
 
 type UrlState = {
 	v: Version;
@@ -36,6 +37,7 @@ export default function App() {
 	const currentVersion = asVersion(searchParams.get('v')) ?? defaultVersion;
 
 	const { colorMode, toggleColorMode } = useColorMode();
+	const previewTheme = previewThemeFor(colorMode);
 
 	const currentFormat = (searchParams.get('f') as Format) ?? 'html';
 
@@ -168,6 +170,7 @@ export default function App() {
 				initCode={initCode}
 				version={currentVersion}
 				format={currentFormat}
+				theme={previewTheme}
 				onChangeCode={function (code: string) {
 					setHistory(code, currentVersion, currentFormat);
 				}}
