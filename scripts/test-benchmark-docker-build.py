@@ -2,6 +2,7 @@
 """Lightweight contract checks for the benchmark harness; never run Docker."""
 
 import importlib.util
+import io
 import subprocess
 import tempfile
 from types import SimpleNamespace
@@ -71,7 +72,8 @@ class BenchmarkHarnessContractTest(unittest.TestCase):
             output = root / "results"
             output.mkdir()
             fake = SimpleNamespace(stdout="#1 [compile 1/1] RUN make FAILED\n", returncode=23)
-            with patch.object(benchmark.subprocess, "run", return_value=fake):
+            fake_process = SimpleNamespace(stdout=io.StringIO(fake.stdout), wait=lambda: fake.returncode)
+            with patch.object(benchmark.subprocess, "Popen", return_value=fake_process):
                 record = benchmark.run_build(
                     args, context=context, repo_revision="a" * 40, context_tree_sha="b" * 40,
                     context_archive_sha="c" * 64, input_tree_sha="f" * 40, php_source_sha="e" * 40,

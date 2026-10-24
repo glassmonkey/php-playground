@@ -98,16 +98,22 @@ def run_build(args, *, context: Path, repo_revision: str, context_tree_sha: str,
     command = build_command(args, context, php_version, php_source_sha, tag, no_cache, raw_path)
     started = datetime.now(timezone.utc).isoformat()
     begin = time.perf_counter()
-    proc = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, check=False)
+    proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
+    with raw_path.open("w", encoding="utf-8") as raw_log:
+        for line in proc.stdout:
+            raw_log.write(line)
+            raw_log.flush()
+            print(line, end="", flush=True)
+        return_code = proc.wait()
     elapsed = time.perf_counter() - begin
-    raw_path.write_text(proc.stdout, encoding="utf-8")
-    events = parse_build_events(proc.stdout)
+    log_text = raw_path.read_text(encoding="utf-8")
+    events = parse_build_events(log_text)
     return {
         "id": slug,
         "phase": phase,
         "sample": sample,
-        "status": "succeeded" if proc.returncode == 0 else "failed",
-        "exit_code": proc.returncode,
+        "status": "succeeded" if return_code == 0 else "failed",
+        "exit_code": return_code,
         "started_at": started,
         "duration_seconds": round(elapsed, 3),
         "cache_policy": "disabled" if no_cache else "builder-cache",
