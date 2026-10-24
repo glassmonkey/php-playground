@@ -530,7 +530,7 @@ export class PHP {
 		let port;
 		try {
 			port = parseInt(new URL(host).port, 10);
-		} catch (e) {}
+		} catch {}
 
 		if (!port || isNaN(port) || port === 80) {
 			port = protocol === 'https' ? 443 : 80;
@@ -773,7 +773,7 @@ export class PHP {
 		try {
 			this.#Runtime.FS.lookupPath(path);
 			return true;
-		} catch (e) {
+		} catch {
 			return false;
 		}
 	}
