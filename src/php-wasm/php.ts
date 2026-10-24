@@ -86,10 +86,10 @@ export interface PHPResponse {
 	 */
 	exitCode: number;
 	/**
-	 * Response body. Contains the output from `echo`,
+	 * Response body bytes. Contains the output from `echo`,
 	 * `print`, inline HTML etc.
 	 */
-	body: ArrayBuffer;
+	body: Uint8Array;
 	/**
 	 * PHP errors.
 	 */
