@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "applies_to_execution": 27203,
+  "result_directory": "baseline-7.4-cold-contended-20261024T0914Z",
+  "classification": "contended correctness/reference only; excluded from clean optimization timing comparison",
+  "immutable_inputs_and_raw_results_modified": false,
+  "interference": [
+    {
+      "observed_at_utc": "2026-10-24T09:06:00Z",
+      "source": "manager resource readback relayed in task instruction",
+      "host_load": "8 CPU host; load 63.56; CPU idle 22-23%",
+      "scope": "possible host contention during baseline execution"
+    },
+    {
+      "received_at_utc": "2026-10-24T10:24:33Z",
+      "source_file": "/Users/glassmonkey/src/github.com/glassmonkey/cmux-dash/data/herdr-reports/a3c1961b-be89-41a9-a392-9c3128f4eccb/host-io-notice-20261024T1024Z.json",
+      "status": "announced; actual start/end not independently observed",
+      "scope": [
+        "10 dedicated completed GLA64/71 Go caches (~9.1GiB)",
+        "Homebrew/Yarn/Cypress caches",
+        "unneeded older JetBrains materials"
+      ],
+      "expected_io_window_minutes": [
+        15,
+        20
+      ],
+      "excluded_by_owner": [
+        "PHP build/VM/cache/generated assets",
+        "VM restart/prune/heavy measurements"
+      ],
+      "possible_overlap": "notice was received at 10:24:33Z, after results.json created_at 10:24:10Z; actual cleanup start/end were not observed, so overlap is unknown."
+    }
+  ],
+  "clean_timing_gate": "Do not compare as clean optimization timing until cleanup terminal and suitable resource conditions are observed."
+}

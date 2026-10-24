@@ -859,6 +859,7 @@ fi;
 # Build the final .wasm file
 RUN mkdir /root/output
 COPY build-assets/phpwasm-emscripten-library.js /root/phpwasm-emscripten-library.js
+# Keep emsdk 6.0.13's incoming API and add optional wasmBinary for Node callers.
 RUN source /root/emsdk/emsdk_env.sh && \
     export EXPORTED_FUNCTIONS=$'["_php_wasm_init", \n\
 "_phpwasm_destroy_uploaded_files_hash", \n\
@@ -902,6 +903,7 @@ RUN source /root/emsdk/emsdk_env.sh && \
     -s INVOKE_RUN=0                  \
     -s EXIT_RUNTIME=1                \
     -s SUPPORT_LONGJMP=emscripten    \
+    -s 'INCOMING_MODULE_JS_API=["ENVIRONMENT","arguments","canvas","dynamicLibraries","elementPointerLock","instantiateWasm","locateFile","monitorRunDependencies","noExitRuntime","noInitialRun","onAbort","onExit","onRuntimeInitialized","postRun","preInit","preRun","print","printErr","setStatus","statusMessage","stderr","stdin","stdout","thisProgram","wasm","websocket","wasmBinary"]' \
         /root/lib/libphp.a \
         /root/php_wasm.c \
         $(cat /root/.emcc-php-wasm-sources) \
