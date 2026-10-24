@@ -133,8 +133,10 @@ RUN cd libzip/build && source /root/emsdk/emsdk_env.sh && EMCC_SKIP="-lz" EMCC_F
 
 # Compile ncurses
 FROM emscripten AS emscripten-ncurses
+ARG WITH_CLI_SAPI=no
 COPY build-assets/ncurses.patch /root/
-RUN     set -euxo pipefail &&\
+RUN if [ "$WITH_CLI_SAPI" = "yes" ]; then \
+        set -euxo pipefail &&\
         # Install libncurses
         wget https://ftp.gnu.org/gnu/ncurses/ncurses-6.2.tar.gz && \
         tar -xzf ncurses-6.2.tar.gz && \
@@ -166,13 +168,18 @@ RUN     set -euxo pipefail &&\
         /root/replace.sh $'s/^\s+cd misc.*$//g' Makefile && \
         /root/replace.sh $'s/^\s+cd c\+\+.*$//g' Makefile && \
         emmake make && \
-        emmake make install
+        emmake make install; \
+    else \
+        echo "WITH_CLI_SAPI=$WITH_CLI_SAPI; skipping ncurses configure/build/install"; \
+    fi
 
 # Compile libedit (readline alternative)
 FROM emscripten AS emscripten-libedit
+ARG WITH_CLI_SAPI=no
 COPY --from=emscripten-ncurses /root/lib /root/lib-ncurses
 RUN /root/copy-lib.sh lib-ncurses
-RUN     wget https://www.thrysoee.dk/editline/libedit-20221030-3.1.tar.gz && \
+RUN if [ "$WITH_CLI_SAPI" = "yes" ]; then \
+        wget https://www.thrysoee.dk/editline/libedit-20221030-3.1.tar.gz && \
         tar -xzf libedit-20221030-3.1.tar.gz  && \
         source /root/emsdk/emsdk_env.sh && \
         cd libedit-20221030-3.1 && \
@@ -190,7 +197,10 @@ RUN     wget https://www.thrysoee.dk/editline/libedit-20221030-3.1.tar.gz && \
         # http://lists.busybox.net/pipermail/buildroot/2016-January/149100.html
         EMCC_SKIP="-lc -lncurses " EMCC_FLAGS=" -sSIDE_MODULE -D__STDC_ISO_10646__=201103L " \
         emmake make && \
-        emmake make install
+        emmake make install; \
+    else \
+        echo "WITH_CLI_SAPI=$WITH_CLI_SAPI; skipping libedit configure/build/install"; \
+    fi
 
 # Compile Libxml2
 FROM emscripten AS emscripten-libxml

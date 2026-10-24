@@ -1,0 +1,63 @@
+diff --git a/php-src/Zend/zend_builtin_functions.c b/php-src/Zend/zend_builtin_functions.c
+index a921c93..4a8aa6b 100644
+--- a/php-src/Zend/zend_builtin_functions.c
++++ b/php-src/Zend/zend_builtin_functions.c
+@@ -1902,11 +1902,11 @@ static int add_extension_info(zend_module_entry *module, void *arg TSRMLS_DC)
+ 	return 0;
+ }
+ 
+-static int add_zendext_info(zend_extension *ext, void *arg TSRMLS_DC)
++/* Called through llist_apply_with_arg_func_t, which returns void. */
++static void add_zendext_info(zend_extension *ext, void *arg TSRMLS_DC)
+ {
+ 	zval *name_array = (zval *)arg;
+ 	add_next_index_string(name_array, ext->name, 1);
+-	return 0;
+ }
+ 
+ static int add_constant_info(zend_constant *constant, void *arg TSRMLS_DC)
+diff --git a/php-src/Zend/zend_generators.c b/php-src/Zend/zend_generators.c
+index b12f5f6..c30d667 100644
+--- a/php-src/Zend/zend_generators.c
++++ b/php-src/Zend/zend_generators.c
+@@ -240,13 +240,15 @@ static zend_object_value zend_generator_create(zend_class_entry *class_type TSRM
+ }
+ /* }}} */
+ 
+-static void copy_closure_static_var(zval **var TSRMLS_DC, int num_args, va_list args, zend_hash_key *key) /* {{{ */
++/* Called through apply_func_args_t, which returns int. */
++static int copy_closure_static_var(zval **var TSRMLS_DC, int num_args, va_list args, zend_hash_key *key) /* {{{ */
+ {
+ 	HashTable *target = va_arg(args, HashTable *);
+ 
+ 	SEPARATE_ZVAL_TO_MAKE_IS_REF(var);
+ 	Z_ADDREF_PP(var);
+ 	zend_hash_quick_update(target, key->arKey, key->nKeyLength, key->h, var, sizeof(zval *), NULL);
++	return ZEND_HASH_APPLY_KEEP;
+ }
+ /* }}} */
+ 
+diff --git a/php-src/Zend/zend_qsort.c b/php-src/Zend/zend_qsort.c
+index 98cf8f7..bd04bff 100644
+--- a/php-src/Zend/zend_qsort.c
++++ b/php-src/Zend/zend_qsort.c
+@@ -118,9 +118,18 @@ ZEND_API void zend_qsort_r(void *base, size_t nmemb, size_t siz, compare_r_func_
+ 	}
+ }
+ 
++/* zend_qsort_r() calls the comparison function with an extra argument.
++ * Calling a two-argument compare_func_t that way traps in WebAssembly, where
++ * an indirect call must match the callee's signature, so pass it through a
++ * three-argument function instead. */
++static int zend_qsort_compare(const void *a, const void *b TSRMLS_DC, void *compare)
++{
++	return ((compare_func_t)compare)(a, b TSRMLS_CC);
++}
++
+ ZEND_API void zend_qsort(void *base, size_t nmemb, size_t siz, compare_func_t compare TSRMLS_DC)
+ {
+-	zend_qsort_r(base, nmemb, siz, (compare_r_func_t)compare, NULL TSRMLS_CC);
++	zend_qsort_r(base, nmemb, siz, zend_qsort_compare, (void *)compare TSRMLS_CC);
+ }
+ 
+ /* 

@@ -1,0 +1,45 @@
+Name:          gla96-a3c1
+Driver:        docker-container
+Last Activity: 2026-10-24 06:03:53 +0000 UTC
+
+Nodes:
+Name:                  gla96-a3c10
+Endpoint:              rancher-desktop
+Driver Options:        memory-swap="5g" cpu-period="100000" cpu-quota="200000" cpuset-cpus="0-1" memory="5g"
+Status:                running
+BuildKit daemon flags: --allow-insecure-entitlement=network.host
+BuildKit version:      v0.33.1
+Platforms:             linux/arm64*, linux/amd64, linux/amd64/v2
+Labels:
+ org.mobyproject.buildkit.worker.executor:         oci
+ org.mobyproject.buildkit.worker.hostname:         c0e88945fbc2
+ org.mobyproject.buildkit.worker.network:          host
+ org.mobyproject.buildkit.worker.oci.process-mode: sandbox
+ org.mobyproject.buildkit.worker.selinux.enabled:  false
+ org.mobyproject.buildkit.worker.snapshotter:      overlayfs
+GC Policy rule#0:
+ All:            false
+ Filters:        type==source.local type==exec.cachemount type==source.git.checkout
+ Keep Duration:  48h0m0s
+ Max Used Space: 488.3MiB
+GC Policy rule#1:
+ All:            false
+ Keep Duration:  1440h0m0s
+ Reserved Space: 9.313GiB
+ Max Used Space: 73.57GiB
+ Min Free Space: 18.63GiB
+GC Policy rule#2:
+ All:            false
+ Reserved Space: 9.313GiB
+ Max Used Space: 73.57GiB
+ Min Free Space: 18.63GiB
+GC Policy rule#3:
+ All:            true
+ Reserved Space: 9.313GiB
+ Max Used Space: 73.57GiB
+ Min Free Space: 18.63GiB
+File#buildkitd.toml:
+ > [worker]
+ > [worker.oci]
+ > max-parallelism = 1
+ > 
