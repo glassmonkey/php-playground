@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import * as React from 'react';
 import '@testing-library/jest-dom/vitest';
-import { act, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { act, cleanup, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { applyHtmlPreviewColorMode } from '../html-preview';
 import { Editor } from '../editor';
 import { versions } from '../php-wasm/php';
@@ -17,7 +17,10 @@ vi.mock('@chakra-ui/react', async () => {
 	const passthrough = ({ children }: React.PropsWithChildren) =>
 		React.createElement('div', undefined, children);
 	return {
-		Box: ({ as, children }: React.PropsWithChildren & { as?: React.ElementType }) =>
+		Box: ({
+			as,
+			children,
+		}: React.PropsWithChildren & { as?: React.ElementType }) =>
 			React.createElement(as ?? 'div', undefined, children),
 		Center: passthrough,
 		Flex: passthrough,
@@ -51,6 +54,17 @@ vi.mock('../workers/client', () => ({
 	usePHP: () => [false, editorState.result],
 }));
 
+beforeEach(() => {
+	editorState.colorMode = 'light';
+	editorState.code = '<?php echo "preview";';
+	editorState.result =
+		'<!doctype html><html><body><p id="preview">preview</p></body></html>';
+});
+
+afterEach(() => {
+	cleanup();
+});
+
 describe('applyHtmlPreviewColorMode', () => {
 	it('returns the original HTML unchanged in light mode', () => {
 		const srcDoc = '<!doctype html><p>plain output</p>';
@@ -62,54 +76,73 @@ describe('applyHtmlPreviewColorMode', () => {
 
 	it.each([
 		{
-			name: 'HTML fragment',
-			srcDoc: '<main><p>fragment output</p></main>',
-			preserved: '<main><p>fragment output</p></main>',
+			name: 'HTML fragment content',
+			srcDoc: '<main id="fragment-probe"><p>fragment output</p></main>',
+			select: '#fragment-probe',
+			value: 'fragment output',
 		},
-		{
-			name: 'HTML document doctype',
-			srcDoc: '<!doctype html><html><head><title>result</title></head><body><p>document output</p></body></html>',
-			preserved: '<!doctype html>',
-		},
-		{
-			name: 'HTML document title',
-			srcDoc: '<!doctype html><html><head><title>result</title></head><body><p>document output</p></body></html>',
-			preserved: '<title>result</title>',
-		},
-		{
-			name: 'HTML document body',
-			srcDoc: '<!doctype html><html><head><title>result</title></head><body><p>document output</p></body></html>',
-			preserved: '<p>document output</p>',
-		},
-		{
-			name: 'comment containing head-looking text',
-			srcDoc: '<!-- <head><style>comment</style></head> --><script>const example = "<head>not markup</head>";</script><p>script output</p>',
-			preserved: '<!-- <head><style>comment</style></head> -->',
-		},
-		{
-			name: 'script containing head-looking text',
-			srcDoc: '<!-- <head><style>comment</style></head> --><script>const example = "<head>not markup</head>";</script><p>script output</p>',
-			preserved: '<script>const example = "<head>not markup</head>";</script>',
-		},
-		{
-			name: 'script output',
-			srcDoc: '<!-- <head><style>comment</style></head> --><script>const example = "<head>not markup</head>";</script><p>script output</p>',
-			preserved: '<p>script output</p>',
-		},
-	])('keeps $name when applying dark mode', ({ srcDoc, preserved }) => {
+	])('keeps $name when applying dark mode', ({ srcDoc, select, value }) => {
 		const got = applyHtmlPreviewColorMode(srcDoc, 'dark');
+		const document = new DOMParser().parseFromString(got, 'text/html');
 
-		expect(got).toContain(preserved);
+		expect(document.querySelector(select)?.textContent).toBe(value);
+	});
+
+	it('keeps standards mode when dark output contains a doctype', () => {
+		const srcDoc =
+			'<!doctype html><html><body><p id="doctype-probe">document output</p></body></html>';
+		const got = applyHtmlPreviewColorMode(srcDoc, 'dark');
+		const document = new DOMParser().parseFromString(got, 'text/html');
+
+		expect({
+			doctype: document.doctype?.name,
+			compatMode: document.compatMode,
+			content: document.querySelector('#doctype-probe')?.textContent,
+		}).toEqual({
+			doctype: 'html',
+			compatMode: 'CSS1Compat',
+			content: 'document output',
+		});
+	});
+
+	it('keeps title and textarea text that resembles head markup', () => {
+		const srcDoc =
+			'<!doctype html><html><head><title>title marker __HTML_PREVIEW_COLOR_MODE__ <head>literal</head></title></head><body><textarea id="rawtext-probe">textarea marker __HTML_PREVIEW_COLOR_MODE__ <head>literal</head></textarea></body></html>';
+		const got = applyHtmlPreviewColorMode(srcDoc, 'dark');
+		const document = new DOMParser().parseFromString(got, 'text/html');
+
+		expect({
+			title: document.title,
+			textarea: (
+				document.querySelector('#rawtext-probe') as HTMLTextAreaElement
+			).value,
+		}).toEqual({
+			title: 'title marker __HTML_PREVIEW_COLOR_MODE__ <head>literal</head>',
+			textarea:
+				'textarea marker __HTML_PREVIEW_COLOR_MODE__ <head>literal</head>',
+		});
+	});
+
+	it('keeps marker-like body text and comment content in the parsed HTML', () => {
+		const srcDoc =
+			'<!doctype html><html><body><p id="body-probe">body marker __HTML_PREVIEW_COLOR_MODE__ &lt;head&gt;literal&lt;/head&gt;</p><div id="comment-probe"><!-- comment marker __HTML_PREVIEW_COLOR_MODE__ <head>literal</head> --></div></body></html>';
+		const got = applyHtmlPreviewColorMode(srcDoc, 'dark');
+		const document = new DOMParser().parseFromString(got, 'text/html');
+
+		expect({
+			body: document.querySelector('#body-probe')?.textContent,
+			comment:
+				document.querySelector('#comment-probe')?.firstChild
+					?.textContent,
+		}).toEqual({
+			body: 'body marker __HTML_PREVIEW_COLOR_MODE__ <head>literal</head>',
+			comment:
+				' comment marker __HTML_PREVIEW_COLOR_MODE__ <head>literal</head> ',
+		});
 	});
 });
 
 describe('Editor preview output', () => {
-	afterEach(() => {
-		editorState.colorMode = 'light';
-		editorState.result =
-			'<!doctype html><html><body><p id="preview">preview</p></body></html>';
-	});
-
 	it('keeps the raw PHP result in console mode', () => {
 		editorState.result = '  Notice: raw console output\n';
 		render(
@@ -150,10 +183,14 @@ describe('Editor preview output', () => {
 			/>
 		);
 
-		expect(screen.getByTestId('preview-html')).toHaveAttribute('sandbox', '');
+		expect(screen.getByTestId('preview-html')).toHaveAttribute(
+			'sandbox',
+			''
+		);
 	});
 
-	it('updates HTML output when the selected color mode changes', () => {
+	it('updates parsed HTML in dark mode and restores the original HTML in light mode', () => {
+		const lightSource = editorState.result;
 		const { rerender } = render(
 			<Editor
 				initCode={editorState.code}
@@ -162,7 +199,6 @@ describe('Editor preview output', () => {
 				onChangeCode={vi.fn()}
 			/>
 		);
-		const lightOutput = screen.getByTestId('preview-html').getAttribute('srcdoc');
 		act(() => {
 			editorState.colorMode = 'dark';
 		});
@@ -174,9 +210,41 @@ describe('Editor preview output', () => {
 				onChangeCode={vi.fn()}
 			/>
 		);
-
-		expect(screen.getByTestId('preview-html').getAttribute('srcdoc')).not.toBe(
-			lightOutput
+		const darkOutput = screen
+			.getByTestId('preview-html')
+			.getAttribute('srcdoc');
+		const darkDocument = new DOMParser().parseFromString(
+			darkOutput ?? '',
+			'text/html'
 		);
+		const darkView = {
+			doctype: darkDocument.doctype?.name,
+			compatMode: darkDocument.compatMode,
+			previewText: darkDocument.querySelector('#preview')?.textContent,
+		};
+
+		act(() => {
+			editorState.colorMode = 'light';
+		});
+		rerender(
+			<Editor
+				initCode={editorState.code}
+				version={versions[versions.length - 1]}
+				format="html"
+				onChangeCode={vi.fn()}
+			/>
+		);
+
+		expect({
+			dark: darkView,
+			light: screen.getByTestId('preview-html').getAttribute('srcdoc'),
+		}).toEqual({
+			dark: {
+				doctype: 'html',
+				compatMode: 'CSS1Compat',
+				previewText: 'preview',
+			},
+			light: lightSource,
+		});
 	});
 });
