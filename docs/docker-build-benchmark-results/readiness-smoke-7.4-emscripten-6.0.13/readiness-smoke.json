@@ -1,0 +1,25 @@
+{
+  "kind": "compiler-readiness-smoke",
+  "status": "success",
+  "is_benchmark_measurement": false,
+  "started_at_utc": "2026-10-24T08:37:35Z",
+  "wall_seconds": 8.8,
+  "repository_revision": "cdbb0fdff6549fbfa5ea67976c2e4de27bafc119",
+  "php_version_context": "7.4 (PHP source build not part of this target)",
+  "php_source_sha_argument": "004cb827501d1ddaf98daacb185a53e0816f78a7",
+  "emsdk_repository_sha": "d7b4130688bfa348392b921ab04015aa15c4f154",
+  "emscripten_version": "6.0.13",
+  "base_image": "ubuntu:noble@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+  "platform": "linux/arm64",
+  "builder": {
+    "name": "gla96-a3c1",
+    "cpu_quota_cpus": 2,
+    "cpuset": "0-1",
+    "memory": "5g",
+    "max_parallelism": 1
+  },
+  "smoke": "emcc compile+link minimal C setjmp/longjmp program with -sSUPPORT_LONGJMP=emscripten",
+  "buildx_command": "docker buildx build --builder gla96-a3c1 --platform linux/arm64 --progress=plain --file /tmp/gla96-a3c1-php74-emscripten-longjmp-smoke.Dockerfile --target longjmp-compiler-smoke --build-arg BASE_IMAGE=ubuntu:noble@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac --build-arg PHP_VERSION=7.4 --build-arg PHP_SOURCE_REF=004cb827501d1ddaf98daacb185a53e0816f78a7 --build-arg EMSDK_VERSION=6.0.13 --build-arg EMSDK_REPO_REF=d7b4130688bfa348392b921ab04015aa15c4f154 docs/docker-build-benchmark-results/baseline-7.4-cold-instrumented/contexts/target",
+  "raw_log": "raw/build.log",
+  "timing_use": "exclude from baseline/candidate performance comparisons"
+}
