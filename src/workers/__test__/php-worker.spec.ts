@@ -7,10 +7,24 @@ import 'vi-fetch/setup';
 import { Version, versions } from '../../php-wasm/php';
 
 async function callPHP(v: Version, code: string) {
-	const data = fs.readFileSync(`assets/php-${v}.wasm`);
-	const pattern = `php-${v}\\.wasm.*`;
-	mockFetch('GET', new RegExp(pattern)).willResolve(data.buffer);
-	return runPHPInWorker(v, code);
+	const navigator = globalThis.navigator;
+	const originalLanguage = Object.getOwnPropertyDescriptor(navigator, 'language');
+	Object.defineProperty(navigator, 'language', {
+		configurable: true,
+		value: 'ja-JP',
+	});
+	try {
+		const data = fs.readFileSync(`assets/php-${v}.wasm`);
+		const pattern = `php-${v}\\.wasm.*`;
+		mockFetch('GET', new RegExp(pattern)).willResolve(data.buffer);
+		return await runPHPInWorker(v, code);
+	} finally {
+		if (originalLanguage) {
+			Object.defineProperty(navigator, 'language', originalLanguage);
+		} else {
+			Reflect.deleteProperty(navigator, 'language');
+		}
+	}
 }
 
 describe('load wasm files', async function () {

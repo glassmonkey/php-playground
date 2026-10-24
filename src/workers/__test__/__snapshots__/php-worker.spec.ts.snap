@@ -5733,7 +5733,7 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </table>
 <table>
 <tr><td class="e">System </td><td class="v">Emscripten emscripten 6.0.13 #1 wasm32 </td></tr>
-<tr><td class="e">Build Date </td><td class="v">Oct 22 2026 09:21:04 </td></tr>
+<tr><td class="e">Build Date </td><td class="v">Oct 24 2026 11:38:49 </td></tr>
 <tr><td class="e">Build System </td><td class="v">Linux buildkitsandbox 6.18.37-0-virt #1-Alpine SMP PREEMPT_DYNAMIC 2026-06-29 10:52:25 aarch64 aarch64 aarch64 GNU/Linux </td></tr>
 <tr><td class="e">Configure Command </td><td class="v"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--enable-mbstring&#039; &#039;--disable-opcache-jit&#039; &#039;--enable-vrzno&#039; &#039;PKG_CONFIG_LIBDIR=/root/emsdk/upstream/emscripten/cache/sysroot/local/lib/pkgconfig:/root/emsdk/upstream/emscripten/cache/sysroot/lib/pkgconfig&#039; </td></tr>
 <tr><td class="e">Server API </td><td class="v">PHP WASM SAPI </td></tr>
