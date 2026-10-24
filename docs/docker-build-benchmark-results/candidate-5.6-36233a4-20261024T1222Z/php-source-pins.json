@@ -1,0 +1,69 @@
+{
+  "source": "GitHub REST git refs/tags and dereferenced tag objects from php/php-src; 8.5 and inherited 7.4 pins from saved task manifests",
+  "tag_selection": "highest semantic release tag returned for each branch prefix as of lookup",
+  "php_source_pins": {
+    "5.6": {
+      "release_tag": "php-5.6.40",
+      "tag_object_sha": "39037cd39fb5a894d0b211db1756305f38336b8f",
+      "source_commit_sha": "4b8f72da5dfb201af4e82dee960261d8657e414f"
+    },
+    "7.0": {
+      "release_tag": "php-7.0.33",
+      "tag_object_sha": "de7c7f938706ad3ea4713a9b40ce4a611a4bd190",
+      "source_commit_sha": "bf574c2b67a1f786e36cf679f41b758b973a82c4"
+    },
+    "7.1": {
+      "release_tag": "php-7.1.33",
+      "tag_object_sha": "f2470026282a70f49c073eb10b3898f0797cae65",
+      "source_commit_sha": "326cd05dae2eb411d5fdacede8a4bfa7a0798182"
+    },
+    "7.2": {
+      "release_tag": "php-7.2.34",
+      "tag_object_sha": "d8cbeca1b9689ac8a588144277879846f3ba6bbe",
+      "source_commit_sha": "05eb475499359800a9c698f1759e442042c4f841"
+    },
+    "7.3": {
+      "release_tag": "php-7.3.33",
+      "tag_object_sha": "58b78d8fd19e1fc68fc58853090bf043fe9dd268",
+      "source_commit_sha": "c796a801599b13943c2413589e339c39d1d4bb47"
+    },
+    "7.4": {
+      "release_tag": "php-7.4.33",
+      "tag_object_sha": "005f0cbace2d58e74867606f6b9a335491566bb0",
+      "release_commit_sha": "dca8d5565b947270a29f232bc54efd9df3b92b94",
+      "source_commit_sha": "004cb827501d1ddaf98daacb185a53e0816f78a7",
+      "source_policy": "Use the inherited baseline source commit for baseline/candidate identity."
+    },
+    "8.0": {
+      "release_tag": "php-8.0.30",
+      "tag_object_sha": "3b83a80ef0fc3dce530d795e833a13f2e4410071",
+      "source_commit_sha": "8213daa932be1c2ae04726233e4e56e5df63980e"
+    },
+    "8.1": {
+      "release_tag": "php-8.1.34",
+      "tag_object_sha": "4fb4b39b0943c7a4c69d63917401170fdda35f45",
+      "source_commit_sha": "94abff74457effe4432f0bd49f5230aa11155dff"
+    },
+    "8.2": {
+      "release_tag": "php-8.2.35",
+      "tag_object_sha": "5db33b627a2a1cc18e307f8ecd6060875efa28b1",
+      "source_commit_sha": "09a9f29a0402bb87bb448cb2e3149ccbec1699c6"
+    },
+    "8.3": {
+      "release_tag": "php-8.3.36",
+      "tag_object_sha": "7ed5ca1aa4fe3272c08ad5283217dc96ac6e3d82",
+      "source_commit_sha": "5ba6ad519229ac09fc4fc74155c76bdca69ae0de"
+    },
+    "8.4": {
+      "release_tag": "php-8.4.27",
+      "tag_object_sha": "aa58018e5a2d69f3c497aa22a085fc897b5c3df8",
+      "source_commit_sha": "00d8bae801541db0d95a698e108bb4b1b273fe6e"
+    },
+    "8.5": {
+      "source_commit_sha": "48b3f94fe2d1055d05b4bfdebd9d84ce6565a73a",
+      "source_policy": "Use the source commit pinned in the completed candidate 8.5 build manifest."
+    }
+  },
+  "recorded_utc": "2026-10-24T12:44:11Z",
+  "source_ref_lookup_time": "Not captured per API call; refs were resolved during this active task turn."
+}

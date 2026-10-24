@@ -1,0 +1,1 @@
+ERROR: failed to build: failed to update builder last activity time: open /Users/glassmonkey/.docker/buildx/activity/.tmp-gla96-a3c13174778128: operation not permitted
