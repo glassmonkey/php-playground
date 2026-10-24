@@ -3,6 +3,7 @@ PHP_VERSION := 8.2
 WITH_VRZNO := yes
 WITH_LIBXML := no
 WITH_LIBPNG := no
+WITH_LIBZIP := no
 WITH_MBSTRING := yes
 WITH_CLI_SAPI := no
 WITH_OPENSSL := no
@@ -33,6 +34,7 @@ build-image:
 		--build-arg WITH_VRZNO=$(WITH_VRZNO) \
 		--build-arg WITH_LIBXML=$(WITH_LIBXML) \
 		--build-arg WITH_LIBPNG=$(WITH_LIBPNG) \
+		--build-arg WITH_LIBZIP=$(WITH_LIBZIP) \
 		--build-arg WITH_MBSTRING=$(WITH_MBSTRING) \
 		--build-arg WITH_CLI_SAPI=$(WITH_CLI_SAPI) \
 		--build-arg WITH_OPENSSL=$(WITH_OPENSSL) \

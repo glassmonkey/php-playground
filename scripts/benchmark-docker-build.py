@@ -22,11 +22,124 @@ from pathlib import Path
 
 
 PHP_VERSIONS = ("5.6", "7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2", "8.3", "8.4", "8.5")
+WEB_FEATURE_BUILD_ARGS = {
+    "WITH_VRZNO": "yes",
+    "WITH_LIBXML": "no",
+    "WITH_LIBPNG": "no",
+    "WITH_LIBZIP": "no",
+    "WITH_MBSTRING": "yes",
+    "WITH_CLI_SAPI": "no",
+    "WITH_OPENSSL": "no",
+    "WITH_NODEFS": "no",
+    "WITH_CURL": "no",
+    "WITH_SQLITE": "no",
+    "WITH_MYSQL": "no",
+    "WITH_WS_NETWORKING_PROXY": "no",
+    "EMSCRIPTEN_ENVIRONMENT": "web",
+}
 STAGE_LINE = re.compile(r"^#(?P<step>\d+)\s+(?P<detail>.*)$")
 
 
 def sha256_text(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def parse_build_args(items: list[str]) -> dict[str, str]:
+    values = {}
+    for item in items:
+        if "=" not in item:
+            raise ValueError(f"--build-arg must be KEY=VALUE: {item}")
+        key, value = item.split("=", 1)
+        if key in values:
+            raise ValueError(f"--build-arg {key} was provided more than once")
+        values[key] = value
+    return dict(sorted(values.items()))
+
+
+def validate_web_feature_args(items: list[str]) -> dict[str, str]:
+    values = parse_build_args(items)
+    for key, expected in WEB_FEATURE_BUILD_ARGS.items():
+        if values.get(key) != expected:
+            raise ValueError(f"web builds require explicit --build-arg {key}={expected}")
+    return values
+
+
+def linked_input_change_identity(repo_root: Path, parent_revision: str, target_revision: str,
+                                 linked_input_path: str, build_input_path: str) -> dict[str, str]:
+    changed = subprocess.run(
+        ["git", "-C", str(repo_root), "diff", "--name-only", parent_revision, target_revision, "--", build_input_path],
+        capture_output=True, text=True, check=True,
+    ).stdout.splitlines()
+    if changed != [linked_input_path]:
+        raise ValueError(f"linked-input variant must change only {linked_input_path} under {build_input_path}; found {changed}")
+    patch = subprocess.run(
+        ["git", "-C", str(repo_root), "diff", "--no-ext-diff", "--binary", parent_revision, target_revision, "--", linked_input_path],
+        capture_output=True, text=True, check=True,
+    ).stdout
+    patch_id_output = subprocess.run(
+        ["git", "-C", str(repo_root), "patch-id", "--stable"],
+        input=patch, capture_output=True, text=True, check=True,
+    ).stdout.split()
+    if not patch_id_output:
+        raise ValueError(f"linked-input variant has no content change in {linked_input_path}")
+    parent_blob = subprocess.run(
+        ["git", "-C", str(repo_root), "rev-parse", f"{parent_revision}:{linked_input_path}"],
+        capture_output=True, text=True, check=True,
+    ).stdout.strip()
+    target_blob = subprocess.run(
+        ["git", "-C", str(repo_root), "rev-parse", f"{target_revision}:{linked_input_path}"],
+        capture_output=True, text=True, check=True,
+    ).stdout.strip()
+    return {
+        "path": linked_input_path,
+        "parent_blob_sha": parent_blob,
+        "target_blob_sha": target_blob,
+        "change_patch_id": patch_id_output[0],
+    }
+
+
+def build_schedule(args) -> list[dict]:
+    if args.mode == "cold":
+        return [
+            {"role": "measured", "phase": "measured", "sample": sample,
+             "php_version": args.php_version, "php_source_sha": args.php_source_sha,
+             "repo_revision": args.repo_revision, "no_cache": True}
+            for sample in range(1, args.samples + 1)
+        ]
+    if args.mode == "warm":
+        warm_revision = args.warmup_repo_revision or args.repo_revision
+        schedule = [{
+            "role": "prime", "phase": "prime", "sample": 0,
+            "php_version": args.php_version, "php_source_sha": args.php_source_sha,
+            "repo_revision": warm_revision, "no_cache": False,
+        }]
+        schedule.extend({
+            "role": "measured", "phase": "measured", "sample": sample,
+            "php_version": args.php_version, "php_source_sha": args.php_source_sha,
+            "repo_revision": args.repo_revision, "no_cache": False,
+        } for sample in range(1, args.samples + 1))
+        return schedule
+    if args.mode == "php-version":
+        schedule = []
+        for sample in range(1, args.samples + 1):
+            schedule.extend((
+                {"role": "prime", "phase": "prime-switch", "sample": sample,
+                 "php_version": args.warmup_php_version, "php_source_sha": args.warmup_php_source_sha,
+                 "repo_revision": args.repo_revision, "no_cache": False, "pair_id": f"switch-{sample:02d}"},
+                {"role": "measured", "phase": "measured", "sample": sample,
+                 "php_version": args.php_version, "php_source_sha": args.php_source_sha,
+                 "repo_revision": args.repo_revision, "no_cache": False, "pair_id": f"switch-{sample:02d}"},
+            ))
+        return schedule
+    parent = args.warmup_repo_revision
+    return [
+        {"role": "prime", "phase": "prime-parent", "sample": 1,
+         "php_version": args.php_version, "php_source_sha": args.php_source_sha,
+         "repo_revision": parent, "no_cache": False, "variant_id": args.link_input_variant_id},
+        {"role": "measured", "phase": "measured", "sample": 1,
+         "php_version": args.php_version, "php_source_sha": args.php_source_sha,
+         "repo_revision": args.repo_revision, "no_cache": False, "variant_id": args.link_input_variant_id},
+    ]
 
 
 def sha256_file(path: Path) -> str:
@@ -90,7 +203,8 @@ def build_command(args, context: Path, php_version: str, php_source_sha: str, ta
 
 def run_build(args, *, context: Path, repo_revision: str, context_tree_sha: str,
               context_archive_sha: str, input_tree_sha: str, php_version: str, php_source_sha: str,
-              phase: str, sample: int, no_cache: bool, output: Path, run_id: str) -> dict:
+              phase: str, sample: int, no_cache: bool, output: Path, run_id: str,
+              transition: dict | None = None, feature_build_args: dict | None = None) -> dict:
     slug = f"{phase}-{sample:02d}"
     raw_path = output / "raw" / f"{slug}.log"
     raw_path.parent.mkdir(parents=True, exist_ok=True)
@@ -128,15 +242,18 @@ def run_build(args, *, context: Path, repo_revision: str, context_tree_sha: str,
         "command": shlex.join(command),
         "raw_log": str(raw_path.relative_to(output)),
         "metadata_file": str(raw_path.with_suffix(".metadata.json").relative_to(output)),
+        "transition": transition or {},
+        "feature_build_args": feature_build_args or {},
+        "feature_signature_sha256": sha256_text(json.dumps(feature_build_args or {}, sort_keys=True, separators=(",", ":"))),
         **events,
     }
 
 
 def summarize(records: list[dict]) -> dict:
     measured = [record for record in records if record["phase"] == "measured"]
-    failed = [record for record in measured if record["status"] != "succeeded"]
+    failed = [record for record in records if record["status"] != "succeeded"]
     if failed:
-        return {"status": "failed", "reason": "one or more measured builds failed", "failed_runs": [run["id"] for run in failed]}
+        return {"status": "failed", "reason": "one or more prime or measured builds failed", "failed_runs": [run["id"] for run in failed]}
     return {
         "status": "succeeded",
         "sample_count": len(measured),
@@ -146,7 +263,8 @@ def summarize(records: list[dict]) -> dict:
     }
 
 
-def validate_args(args) -> tuple[Path, str, str, str, str | None]:
+def validate_args(args) -> tuple[Path, str, str, str, str | None, dict | None]:
+    validate_web_feature_args(args.build_arg)
     for label, value in (("--repo-revision", args.repo_revision), ("--php-source-sha", args.php_source_sha),
                          ("--emsdk-repo-sha", args.emsdk_repo_sha)):
         if not re.fullmatch(r"[0-9a-fA-F]{40,64}", value):
@@ -156,9 +274,12 @@ def validate_args(args) -> tuple[Path, str, str, str, str | None]:
     for label, value in (("--warmup-repo-revision", args.warmup_repo_revision), ("--warmup-php-source-sha", args.warmup_php_source_sha)):
         if value and not re.fullmatch(r"[0-9a-fA-F]{40,64}", value):
             raise ValueError(f"{label} must be a full Git SHA")
-    minimum_samples = 1 if args.mode == "cold" else 3
-    if args.samples < minimum_samples:
-        raise ValueError(f"{args.mode} mode needs at least {minimum_samples} measured sample(s)")
+    minimum_samples = 1 if args.mode in ("cold", "link-input-change") else 3
+    if args.samples < minimum_samples or (args.mode == "link-input-change" and args.samples != 1):
+        requirement = "exactly one sample per immutable variant" if args.mode == "link-input-change" else f"at least {minimum_samples} measured sample(s)"
+        raise ValueError(f"{args.mode} mode needs {requirement}")
+    if args.mode == "link-input-change" and not args.link_input_variant_id:
+        raise ValueError("link-input-change mode requires --link-input-variant-id")
     if args.builder != "gla96-a3c1":
         raise ValueError("this assignment is restricted to the dedicated gla96-a3c1 builder")
     repo_root = Path(args.repo_root).resolve(strict=True)
@@ -173,6 +294,12 @@ def validate_args(args) -> tuple[Path, str, str, str, str | None]:
         path = Path(value)
         if path.is_absolute() or ".." in path.parts or not path.parts:
             raise ValueError(f"{label} must be a repository-relative path without '..'")
+    linked_path = Path(args.linked_input_path)
+    if linked_path.is_absolute() or ".." in linked_path.parts or not linked_path.parts:
+        raise ValueError("--linked-input-path must be a repository-relative path without '..'")
+    input_root = Path(args.input_path)
+    if linked_path.parts[:len(input_root.parts)] != input_root.parts or len(linked_path.parts) == len(input_root.parts):
+        raise ValueError("--linked-input-path must be a file inside --input-path")
     dockerfile = Path(args.dockerfile)
     if dockerfile.is_absolute() or ".." in dockerfile.parts:
         raise ValueError("--dockerfile must be relative to the exported context")
@@ -186,6 +313,7 @@ def validate_args(args) -> tuple[Path, str, str, str, str | None]:
     if output.exists() and any(output.iterdir()):
         raise ValueError(f"output directory is not empty; use a new per-experiment path: {output}")
     warmup_input_tree_sha = None
+    linked_change = None
     if args.mode == "cold":
         if args.samples < 1:
             raise ValueError("cold requires at least one sample")
@@ -199,7 +327,11 @@ def validate_args(args) -> tuple[Path, str, str, str, str | None]:
             raise ValueError("php-version mode requires the actual --warmup-php-source-sha")
         if args.mode == "link-input-change" and warmup_input_tree_sha == input_tree_sha:
             raise ValueError("link-input-change mode requires a warmup repo revision with different linked-input tree")
-    return repo_root, context_tree_sha, input_tree_sha, str(dockerfile), warmup_input_tree_sha
+        if args.mode == "link-input-change":
+            linked_change = linked_input_change_identity(
+                repo_root, warmup_revision, args.repo_revision, args.linked_input_path, args.input_path,
+            )
+    return repo_root, context_tree_sha, input_tree_sha, str(dockerfile), warmup_input_tree_sha, linked_change
 
 
 def export_context(repo_root: Path, revision: str, context_path: str, output: Path, label: str) -> dict:
@@ -243,6 +375,8 @@ def make_parser() -> argparse.ArgumentParser:
     parser.add_argument("--repo-revision", required=True, help="full repository commit SHA for this build")
     parser.add_argument("--context-path", default="src/wasm", help="repository-relative Docker context directory")
     parser.add_argument("--input-path", default="src/wasm/build-assets", help="repository-relative linked/build inputs to identify")
+    parser.add_argument("--linked-input-path", default="src/wasm/build-assets/php_wasm.c",
+                        help="single source file changed by each linked-input variant")
     parser.add_argument("--dockerfile", default="Dockerfile", help="path relative to exported context")
     parser.add_argument("--php-source-sha", required=True, help="full immutable php-src Git commit SHA")
     parser.add_argument("--emsdk-repo-sha", required=True, help="full immutable emsdk manager repository commit SHA")
@@ -268,6 +402,8 @@ def make_parser() -> argparse.ArgumentParser:
     parser.add_argument("--warmup-repo-revision", default="", help="prior repo SHA for warm/input-change measurements; defaults to target")
     parser.add_argument("--warmup-php-version", default="")
     parser.add_argument("--warmup-php-source-sha", default="")
+    parser.add_argument("--link-input-variant-id", default="",
+                        help="identity for one new comment-only linked-input variant; run one variant per invocation")
     parser.add_argument("--output", required=True, help="new, dedicated result directory")
     parser.add_argument("--dry-run", action="store_true", help="validate/print plan; does not call Docker")
     return parser
@@ -276,12 +412,15 @@ def make_parser() -> argparse.ArgumentParser:
 def main() -> int:
     args = make_parser().parse_args()
     try:
-        repo_root, context_tree_sha, input_tree_sha, dockerfile, warmup_input_tree_sha = validate_args(args)
+        repo_root, context_tree_sha, input_tree_sha, dockerfile, warmup_input_tree_sha, linked_change = validate_args(args)
+        feature_build_args = validate_web_feature_args(args.build_arg)
     except (ValueError, OSError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
     output = Path(args.output).resolve()
+    schedule = build_schedule(args)
+    feature_signature = sha256_text(json.dumps(feature_build_args, sort_keys=True, separators=(",", ":")))
     if args.dry_run:
         print(json.dumps({
             "status": "dry-run", "mode": args.mode, "samples": args.samples,
@@ -295,6 +434,11 @@ def main() -> int:
             "build_resources": args.build_resource, "builder": args.builder,
             "builder_cpu_set": args.builder_cpu_set, "builder_cpu_quota": args.builder_cpu_quota,
             "builder_memory_bytes": args.builder_memory_bytes,
+            "effective_feature_build_args": feature_build_args,
+            "feature_signature_sha256": feature_signature,
+            "schedule": schedule,
+            "link_input_variant_id": args.link_input_variant_id or None,
+            "linked_input_change": linked_change,
             "output": str(output), "docker_invoked": False,
         }, indent=2))
         return 0
@@ -351,26 +495,50 @@ def main() -> int:
             raise RuntimeError(f"dedicated builder limits mismatch: {observed_limits}")
         if "max-parallelism = 1" not in inspect.stdout:
             raise RuntimeError("dedicated builder must enforce one parallel BuildKit step")
-        if args.mode != "cold":
-            warm_version = args.warmup_php_version or args.php_version
-            warm_php_sha = args.warmup_php_source_sha or args.php_source_sha
-            warm_revision = args.warmup_repo_revision or args.repo_revision
-            warmup = run_build(args, context=warmup_export["context"], repo_revision=warm_revision,
-                               context_tree_sha=context_tree_sha if warm_revision == args.repo_revision else subprocess.run(
-                                   ["git", "-C", str(repo_root), "rev-parse", f"{warm_revision}:{args.context_path}"], capture_output=True, text=True, check=True).stdout.strip(),
-                               context_archive_sha=warmup_export["archive_sha256"], input_tree_sha=warmup_input_tree_sha,
-                               php_version=warm_version, php_source_sha=warm_php_sha,
-                               phase="warmup", sample=0, no_cache=False, output=output, run_id=run_id)
-            records.append(warmup)
-            if warmup["status"] != "succeeded":
-                raise RuntimeError("warmup build failed; measured samples were not started")
-        for sample in range(1, args.samples + 1):
-            record = run_build(args, context=target_export["context"], repo_revision=args.repo_revision,
-                               context_tree_sha=context_tree_sha, context_archive_sha=target_export["archive_sha256"],
-                               input_tree_sha=input_tree_sha, php_version=args.php_version, php_source_sha=args.php_source_sha,
-                               phase="measured", sample=sample,
-                               no_cache=args.mode == "cold", output=output, run_id=run_id)
+        successful_versions = set()
+        last_successful_prime = None
+        for operation in schedule:
+            operation_revision = operation["repo_revision"]
+            is_target = operation_revision == args.repo_revision
+            exported = target_export if is_target else warmup_export
+            operation_context_sha = context_tree_sha if is_target else subprocess.run(
+                ["git", "-C", str(repo_root), "rev-parse", f"{operation_revision}:{args.context_path}"],
+                capture_output=True, text=True, check=True,
+            ).stdout.strip()
+            operation_input_sha = input_tree_sha if is_target else warmup_input_tree_sha
+            cache_state = {
+                "successful_php_versions_built_in_this_invocation": sorted(successful_versions),
+                "most_recent_successful_prime_php_version": last_successful_prime,
+                "persistent_builder_cache_outside_this_invocation": "unknown; cache is not cleared",
+            }
+            if operation["role"] == "measured" and args.mode == "php-version":
+                cache_state["classification"] = (
+                    "warm-switch; both PHP versions were built in this invocation"
+                    if args.php_version in successful_versions and last_successful_prime in successful_versions
+                    else "prime-before-target; external target cache may preexist; not a first-visit cost claim"
+                )
+                cache_state["target_php_version"] = args.php_version
+                cache_state["primed_php_version"] = last_successful_prime
+            if operation["role"] == "measured" and args.mode == "link-input-change":
+                cache_state["classification"] = "changed linked input after successful unchanged-parent prime; external cache may preexist"
+                cache_state["variant_id"] = args.link_input_variant_id
+                cache_state["parent_revision"] = args.warmup_repo_revision
+            record = run_build(
+                args, context=exported["context"], repo_revision=operation_revision,
+                context_tree_sha=operation_context_sha, context_archive_sha=exported["archive_sha256"],
+                input_tree_sha=operation_input_sha, php_version=operation["php_version"],
+                php_source_sha=operation["php_source_sha"], phase=operation["phase"],
+                sample=operation["sample"], no_cache=operation["no_cache"], output=output,
+                run_id=run_id, transition={**operation, "cache_state_before": cache_state},
+                feature_build_args=feature_build_args,
+            )
             records.append(record)
+            if operation["role"] == "prime":
+                if record["status"] != "succeeded":
+                    raise RuntimeError(f"excluded prime failed before its measured transition: {record['id']}")
+                last_successful_prime = operation["php_version"]
+            if record["status"] == "succeeded":
+                successful_versions.add(operation["php_version"])
     except (subprocess.CalledProcessError, OSError, RuntimeError) as exc:
         env["setup_error"] = str(exc)
 
@@ -378,10 +546,15 @@ def main() -> int:
     if "setup_error" in env:
         summary = {"status": "failed", "reason": "benchmark setup or warmup failed", "error": env["setup_error"]}
     result = {
-        "schema_version": 1,
+        "schema_version": 2,
         "run_id": run_id,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "mode": args.mode,
+        "feature_build_args": feature_build_args,
+        "feature_signature_sha256": feature_signature,
+        "schedule": schedule,
+        "link_input_variant_id": args.link_input_variant_id or None,
+        "linked_input_change": linked_change,
         "inputs": {
             "repo_revision": args.repo_revision, "context_tree_sha": context_tree_sha,
             "context_archive": str(target_export["archive"].relative_to(output)),

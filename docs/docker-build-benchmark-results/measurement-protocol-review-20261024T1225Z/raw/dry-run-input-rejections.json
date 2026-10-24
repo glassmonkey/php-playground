@@ -1,0 +1,15 @@
+{
+  "kind": "dry-run-input-validation-evidence",
+  "attempts": [
+    {
+      "command": "php-version dry-run with abbreviated repository SHA 3e8396a92e56ddc520bbda4658e1b8210b00970b",
+      "status": "rejected",
+      "reason": "repository revision did not resolve to a Git commit; Docker was not invoked"
+    },
+    {
+      "command": "link-input-change dry-run using candidate and c23b4382d2146fe2ef5f001981e8ed3ac302ef8d",
+      "status": "rejected",
+      "reason": "linked-input tree was identical; Docker was not invoked"
+    }
+  ]
+}

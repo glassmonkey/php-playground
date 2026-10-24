@@ -17,6 +17,78 @@ SPEC.loader.exec_module(benchmark)
 
 
 class BenchmarkHarnessContractTest(unittest.TestCase):
+    def test_web_build_features_are_explicit_and_match_makefile(self):
+        makefile = (MODULE_PATH.parent.parent / "Makefile").read_text(encoding="utf-8")
+        for key, value in benchmark.WEB_FEATURE_BUILD_ARGS.items():
+            if key == "EMSCRIPTEN_ENVIRONMENT":
+                self.assertIn("PLATFORM := web", makefile)
+            else:
+                self.assertIn(f"{key} := {value}", makefile)
+                self.assertIn(f"--build-arg {key}=$({key})", makefile)
+        args = [f"{key}={value}" for key, value in benchmark.WEB_FEATURE_BUILD_ARGS.items()]
+        self.assertEqual(benchmark.validate_web_feature_args(args), dict(sorted(benchmark.WEB_FEATURE_BUILD_ARGS.items())))
+        with self.assertRaisesRegex(ValueError, "explicit --build-arg WITH_LIBZIP=no"):
+            benchmark.validate_web_feature_args([item for item in args if not item.startswith("WITH_LIBZIP=")])
+
+    def test_php_version_schedule_primes_each_measured_transition(self):
+        args = SimpleNamespace(
+            mode="php-version", samples=3, php_version="8.5", php_source_sha="a" * 40,
+            warmup_php_version="7.4", warmup_php_source_sha="b" * 40,
+            repo_revision="c" * 40,
+        )
+        schedule = benchmark.build_schedule(args)
+        self.assertEqual([entry["role"] for entry in schedule], ["prime", "measured"] * 3)
+        for index in range(3):
+            prime, target = schedule[index * 2:index * 2 + 2]
+            self.assertEqual(prime["php_version"], "7.4")
+            self.assertEqual(target["php_version"], "8.5")
+            self.assertEqual(prime["pair_id"], target["pair_id"])
+            self.assertEqual(prime["sample"], target["sample"])
+        self.assertEqual(len({entry["phase"] + str(entry["sample"]) for entry in schedule}), 6)
+
+    def test_link_input_schedule_pairs_one_variant_with_unchanged_parent(self):
+        args = SimpleNamespace(
+            mode="link-input-change", samples=1, php_version="7.4", php_source_sha="a" * 40,
+            repo_revision="b" * 40, warmup_repo_revision="c" * 40,
+            link_input_variant_id="variant-02",
+        )
+        prime, measured = benchmark.build_schedule(args)
+        self.assertEqual(prime["role"], "prime")
+        self.assertEqual(prime["repo_revision"], "c" * 40)
+        self.assertEqual(measured["repo_revision"], "b" * 40)
+        self.assertEqual(prime["variant_id"], measured["variant_id"])
+        self.assertEqual(prime["variant_id"], "variant-02")
+
+    def test_link_input_change_identity_pins_blob_and_patch(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            linked = root / "src/wasm/build-assets/php_wasm.c"
+            linked.parent.mkdir(parents=True)
+            linked.write_text("int php_wasm_entry(void) { return 0; }\n", encoding="utf-8")
+            subprocess.run(["git", "-C", str(root), "init", "-q"], check=True)
+            subprocess.run(["git", "-C", str(root), "config", "user.email", "test@example.invalid"], check=True)
+            subprocess.run(["git", "-C", str(root), "config", "user.name", "Harness Test"], check=True)
+            subprocess.run(["git", "-C", str(root), "add", "src/wasm/build-assets/php_wasm.c"], check=True)
+            subprocess.run(["git", "-C", str(root), "commit", "-qm", "parent"], check=True)
+            parent = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
+            linked.write_text(linked.read_text(encoding="utf-8") + "/* behavior-neutral variant-01 */\n", encoding="utf-8")
+            subprocess.run(["git", "-C", str(root), "add", "src/wasm/build-assets/php_wasm.c"], check=True)
+            subprocess.run(["git", "-C", str(root), "commit", "-qm", "comment variant"], check=True)
+            target = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
+            identity = benchmark.linked_input_change_identity(
+                root, parent, target, "src/wasm/build-assets/php_wasm.c", "src/wasm/build-assets",
+            )
+            self.assertNotEqual(identity["parent_blob_sha"], identity["target_blob_sha"])
+            self.assertEqual(len(identity["change_patch_id"]), 40)
+            (linked.parent / "other.txt").write_text("unexpected input change\n", encoding="utf-8")
+            subprocess.run(["git", "-C", str(root), "add", "src/wasm/build-assets/other.txt"], check=True)
+            subprocess.run(["git", "-C", str(root), "commit", "-qm", "unexpected extra input"], check=True)
+            extra_target = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
+            with self.assertRaisesRegex(ValueError, "must change only src/wasm/build-assets/php_wasm.c"):
+                benchmark.linked_input_change_identity(
+                    root, parent, extra_target, "src/wasm/build-assets/php_wasm.c", "src/wasm/build-assets",
+                )
+
     def test_context_export_is_bound_to_git_revision_not_dirty_worktree(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -58,6 +130,14 @@ class BenchmarkHarnessContractTest(unittest.TestCase):
         self.assertEqual(summary["status"], "failed")
         self.assertNotIn("median_duration_seconds", summary)
         self.assertEqual(summary["failed_runs"], ["measured-02"])
+
+    def test_failed_prime_is_retained_and_disables_median(self):
+        summary = benchmark.summarize([
+            {"id": "prime-switch-01", "phase": "prime-switch", "status": "failed", "duration_seconds": 7, "cache_hits": 0, "completed_steps": 2},
+        ])
+        self.assertEqual(summary["status"], "failed")
+        self.assertEqual(summary["failed_runs"], ["prime-switch-01"])
+        self.assertNotIn("median_duration_seconds", summary)
 
     def test_failed_build_keeps_input_identity_and_matching_raw_log(self):
         args = SimpleNamespace(
