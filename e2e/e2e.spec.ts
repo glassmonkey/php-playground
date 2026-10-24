@@ -288,11 +288,35 @@ test.describe('default page', () => {
   test.describe('switch preview', () => {
     test('defaults unsupported URL formats to the HTML preview', async ({page}) => {
       await page.emulateMedia({colorScheme: 'light'});
-      await page.goto(`${PAGE}/?f=unsupported`);
+      // End the beforeEach page first so its warmed WASM request cannot satisfy this wait.
+      await page.goto('about:blank');
 
-      await expect(page.getByTestId('preview-html')).toBeVisible();
-      await expect(page.getByTestId('checkbox-format')).toBeChecked();
-      await expect(page.getByTestId('preview-console')).not.toBeVisible();
+      const targetURL = `${PAGE}/?f=unsupported`;
+      const expectedWasmURL = new URL(`/php-${defaultVersion}.wasm`, PAGE);
+      const wasmReady = page.context().waitForEvent('requestfinished', {
+        predicate: request => {
+          const requestURL = new URL(request.url());
+          return requestURL.origin === expectedWasmURL.origin && requestURL.pathname === expectedWasmURL.pathname;
+        },
+        timeout: 30_000,
+      }).then(async request => {
+        const response = await request.response();
+        expect(response, 'the default PHP WASM request must receive a response').not.toBeNull();
+        expect(response?.status(), 'the default PHP WASM response must be HTTP 200').toBe(200);
+      });
+      const navigation = page.goto(targetURL);
+      const formatAssertions = Promise.all([
+        expect(page).toHaveURL(/[?&]f=html(?:&|$)/, {timeout: 5000}),
+        expect(page.getByTestId('checkbox-format')).toBeChecked({timeout: 5000}),
+      ]);
+
+      void wasmReady.catch(() => undefined);
+      void navigation.catch(() => undefined);
+      void formatAssertions.catch(() => undefined);
+      await Promise.all([wasmReady, navigation, formatAssertions]);
+
+      await expect(page.getByTestId('preview-html')).toBeVisible({timeout: 5000});
+      await expect(page.getByTestId('preview-console')).not.toBeVisible({timeout: 5000});
     });
 
     for (const variation of htmlPreviewVariations) {

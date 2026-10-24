@@ -148,24 +148,34 @@ export function usePHP(version: Version, code: string): [boolean, string] {
 				return;
 			}
 
+			let cancelled = false;
+
 			// Start execution
 			(async function () {
 				try {
 					const info = await runPHPInWorker(version, internalCode);
-					setResult(info);
-					setLoading(false);
+					if (!cancelled) {
+						setResult(info);
+						setLoading(false);
+					}
 				} catch (error) {
-					const errorMessage =
-						error instanceof Error ? error.message : String(error);
-					setResult(`Error: ${errorMessage}`);
-					setLoading(false);
+					if (!cancelled) {
+						const errorMessage =
+							error instanceof Error ? error.message : String(error);
+						setResult(`Error: ${errorMessage}`);
+						setLoading(false);
+					}
 				} finally {
-					terminateWorker();
+					if (!cancelled) {
+						terminateWorker();
+					}
 				}
 			})();
 
-			// Cleanup function
-			return () => {};
+			return () => {
+				cancelled = true;
+				terminateWorker();
+			};
 		},
 		[code, internalCode, loading, version, currentVersion, phpCode]
 	);
