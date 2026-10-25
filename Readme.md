@@ -20,6 +20,11 @@ build JavaScript with watching
 npm run dev
 ```
 
+The PHPantom LSP preview requires a separate pinned WASM asset. After `npm ci`,
+run `./scripts/lsp/phpantom/fetch-wasm.sh` before starting the preview. See
+[`docs/lsp/preview.md`](docs/lsp/preview.md) for the local preview steps and
+browser checks.
+
 build JavaScript
 ```
 npm run build
