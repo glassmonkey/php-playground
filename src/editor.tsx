@@ -6,7 +6,16 @@ import {
 	useSandpack,
 } from '@codesandbox/sandpack-react';
 import { usePHP } from './workers/client';
-import { Box, Center, Flex, Spinner, Switch, Text } from '@chakra-ui/react';
+import {
+	Box,
+	Center,
+	Flex,
+	Spinner,
+	Switch,
+	Text,
+	Tooltip,
+	useColorModeValue,
+} from '@chakra-ui/react';
 import type { ReactElement } from 'react';
 import * as React from 'react';
 import MonacoEditor, {
@@ -165,29 +174,92 @@ function EditorLayout(params: {
 	lspStatus: LspStatus;
 	onLspEnabledChange: (enabled: boolean) => void;
 }) {
+	const surface = useColorModeValue('gray.50', 'gray.800');
+	const foreground = useColorModeValue('gray.800', 'gray.100');
+	const completionStateColor = useColorModeValue('gray.600', 'gray.300');
+	const completionErrorColor = useColorModeValue('orange.600', 'orange.300');
+	const trackHoverFilter = useColorModeValue(
+		'brightness(0.95)',
+		'brightness(1.2)'
+	);
+	const unsupportedPhpVersion =
+		params.lspStatus.state === 'error' &&
+		params.lspStatus.message?.startsWith(
+			'PHPantom 0.11.1 WASI does not apply'
+		);
+	const completionError =
+		params.lspStatus.state !== 'error'
+			? undefined
+			: unsupportedPhpVersion
+				? 'PHP 8.4は未対応です。PHPantomはPHP 8.5固定です。'
+				: (params.lspStatus.message ??
+					'PHP補完を開始できませんでした。');
+	const completionStatusId = 'php-completion-status';
+
 	return (
-		<Flex direction="column" padding="3" bg="gray.800" height="100%">
-			<Flex align="center" gap="3" paddingBottom="3" flexWrap="wrap">
-				<Text fontSize="sm">PHPantom completion:</Text>
+		<Flex
+			direction="column"
+			padding="3"
+			bg={surface}
+			color={foreground}
+			height="100%"
+		>
+			<Flex align="center" gap="2" paddingBottom="3" flexWrap="wrap">
+				<Text
+					as="label"
+					htmlFor="php-completion-toggle"
+					fontSize="sm"
+					cursor="pointer"
+				>
+					補完
+				</Text>
 				<Switch
-					aria-label="PHPantom completion"
-					variant="colormodeSwitcher"
-					size="lg"
+					id="php-completion-toggle"
+					aria-label="PHP補完"
+					aria-describedby={
+						completionError ? completionStatusId : undefined
+					}
+					colorScheme="gray"
+					size="md"
 					isChecked={params.lspEnabled}
+					cursor="pointer"
+					sx={{
+						'&:hover .chakra-switch__track': {
+							filter: trackHoverFilter,
+						},
+						'.chakra-switch__input:focus-visible + .chakra-switch__track':
+							{
+								boxShadow:
+									'0 0 0 3px var(--chakra-colors-gray-500)',
+							},
+					}}
 					onChange={(event) =>
 						params.onLspEnabledChange(event.target.checked)
 					}
 				/>
-				<Text fontSize="sm" role="status" aria-live="polite">
-					{params.lspStatus.state === 'off' && 'Off'}
-					{params.lspStatus.state === 'loading' &&
-						'PHPantom loading…'}
-					{params.lspStatus.state === 'ready' && 'PHPantom ready'}
-					{params.lspStatus.state === 'error' &&
-						`PHPantom error: ${params.lspStatus.message}`}
+				<Text
+					fontSize="xs"
+					fontWeight="semibold"
+					color={completionStateColor}
+				>
+					{params.lspEnabled ? 'ON' : 'OFF'}
 				</Text>
-				{params.lspEnabled && params.lspStatus.state === 'ready' && (
-					<Text fontSize="xs">PHP 8.5 analysis</Text>
+				{completionError && (
+					<Tooltip label={completionError} placement="top">
+						<Text
+							id={completionStatusId}
+							as="span"
+							role="status"
+							aria-live="polite"
+							aria-label={completionError}
+							color={completionErrorColor}
+							fontSize="sm"
+							fontWeight="bold"
+							cursor="help"
+						>
+							!
+						</Text>
+					</Tooltip>
 				)}
 			</Flex>
 			<Flex

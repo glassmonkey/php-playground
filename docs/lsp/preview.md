@@ -25,13 +25,14 @@ npm run dev -- --host 127.0.0.1 --port 7260 --strictPort --open false
 ```
 
 Open <http://127.0.0.1:7260/>. Select PHP version **8.5**, then turn on
-**PHPantom completion**. The status changes to “PHPantom ready” after the
-Worker initializes. Turning the switch off stops that Worker and removes its
-providers. With the switch still on, change the execution version to **8.4**:
-the status reports that PHPantom 0.11.1 WASI does not support 8.4, and no LSP
-completion provider remains active. Change back to **8.5** while the switch is
-still on; the Worker initializes again. The existing PHP execution version
-selector remains available and is not changed by the preview.
+**補完**. The control shows only its **ON/OFF** state during normal use. Errors
+appear as a short help marker beside the switch; turning it off stops the
+Worker and removes its providers. With it on, change the execution version to
+**8.4**: the help marker explains that this PHPantom build only analyzes PHP
+8.5, and no LSP completion provider remains active. Change back to **8.5** while
+the switch is still on; the Worker initializes again. The existing PHP
+execution version selector remains available and is not changed by the
+preview.
 
 The WASM file is a pinned upstream release asset and is deliberately not in Git.
 The fetch script verifies its SHA-256 and writes
@@ -51,15 +52,25 @@ class Widget {
 }
 function makeWidget(): Widget { return new Widget(); }
 $widget = makeWidget();
+function greetUser(string $name): string { return $name; }
+$greeting = 'hello';
 $widget->run('ready');
 Widget::create();
 $date = date_create();
 $date->format('Y');
+echo $gre;
 ```
 
 - **Completion:** place the caret after `->` on `$widget->run('ready');` and
   press **Ctrl+Space** (or **Option+Escape** on macOS). `run` should be offered.
   Try after `Widget::` and `$date->` as well.
+- On a new line, type `strl` and request completion; PHPantom returns `strlen`
+  with a call snippet. In `echo $gre;`, request completion after `$gre`;
+  PHPantom returns `$greeting` with an edit range that replaces the typed
+  dollar-prefixed variable. In the same-file global `gre` fixture, PHPantom
+  returns `greetUser($name)` with a parameter snippet. Its response also
+  contains many unrelated symbols; the preview keeps PHPantom's `sortText` and
+  does not add its own ranking or candidate list.
 - **Hover:** point at `run` in `$widget->run(...)` and wait for the type and
   method information.
 - **Signature help:** place the caret inside `run(|'ready')`; the parameter
@@ -77,7 +88,7 @@ the URL.
 | `npm run build`                                              | Passed (exit 0)                 | Vite production build; existing Sandpack `eval` and large-chunk warnings remain.                                                                           |
 | `node scripts/lsp/phpantom/smoke-test.mjs`                   | Passed                          | Actual release WASM/WASI exercised completion, hover, signature help, resolve, request IDs, errors, and PHP-version policy.                                |
 | `npx vitest run src/workers/__test__/usePHP.spec.ts`         | Passed (3 tests)                | Existing PHP-version change behavior.                                                                                                                      |
-| `npx vitest run src/lsp/__test__/client.spec.ts`             | Passed (1 test)                 | Checks stale completion rejection, provider disposal, PHP 8.4 refusal, and PHP 8.5 reinitialization.                                                       |
+| `npx vitest run src/lsp/__test__/client.spec.ts`             | Passed (2 tests)                | Checks stale completion rejection, provider disposal, PHP 8.4 refusal, PHP 8.5 reinitialization, snippet insertion, and `$`-prefixed textEdit ranges.      |
 | `npm run test:ci`                                            | Failed (33 passed, 6 timed out) | Existing `php-worker.spec.ts` WASM startup cases for PHP 5.6 and 7.0–7.4 exceeded the configured 5-second timeout.                                         |
 | `npm run test:ci -- src/workers/__test__/php-worker.spec.ts` | Failed (28 passed, 4 timed out) | Isolated run timed out on PHP 5.6, 7.0, 7.1, and 7.2.                                                                                                      |
 | Same isolated worker test at base `be516894`                 | Failed (30 passed, 2 timed out) | Unchanged base also timed out on PHP 5.6 and 7.0, indicating this failure exists outside the preview changes; the failing version set varied between runs. |

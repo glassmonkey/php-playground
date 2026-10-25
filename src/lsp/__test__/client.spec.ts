@@ -30,6 +30,7 @@ class TestWorker {
 	terminated = false;
 	delayCompletions = false;
 	lastCompletion: RpcMessage | undefined;
+	completionResult: unknown = { items: [{ label: 'fresh' }] };
 
 	addEventListener(type: string, listener: EventListener): void {
 		this.listeners.set(type, [
@@ -69,7 +70,7 @@ class TestWorker {
 					this.reply({
 						jsonrpc: '2.0',
 						id: message.id,
-						result: { items: [{ label: 'fresh' }] },
+						result: this.completionResult,
 					})
 				);
 			}
@@ -157,7 +158,10 @@ function testModel() {
 			changeListener = listener;
 			return { dispose: () => (changeListener = undefined) };
 		},
-		getWordUntilPosition: () => ({ startColumn: 1, endColumn: 1 }),
+		getWordUntilPosition: (position: Monaco.Position) => ({
+			startColumn: Math.max(1, position.column - 4),
+			endColumn: position.column,
+		}),
 	};
 	return {
 		model: model as unknown as Monaco.editor.ITextModel,
@@ -170,6 +174,133 @@ function testModel() {
 
 describe('PHPantom Monaco lifecycle', () => {
 	afterEach(() => vi.restoreAllMocks());
+
+	it('preserves PHPantom snippet and variable edit completion shapes', async () => {
+		// Arrange
+		const document = testModel();
+		const monaco = testMonaco(document.model);
+		const worker = new TestWorker();
+		worker.completionResult = {
+			items: [
+				{
+					label: 'strlen',
+					filterText: 'strlen',
+					insertText: 'strlen()$0',
+					insertTextFormat: 2,
+					kind: 3,
+				},
+				{
+					label: 'greetUser($name)',
+					filterText: 'greetUser',
+					sortText: 'b00_greetuser',
+					insertText: 'greetUser(${1:\\$name})$0',
+					insertTextFormat: 2,
+					kind: 3,
+				},
+				{
+					label: '$greeting',
+					filterText: '$greeting',
+					kind: 6,
+					textEdit: {
+						range: {
+							start: { line: 2, character: 5 },
+							end: { line: 2, character: 9 },
+						},
+						newText: '$greeting',
+					},
+				},
+			],
+		};
+		const client = await LspClient.connect({
+			worker: worker as unknown as Worker,
+			model: document.model,
+			monaco: monaco.monaco,
+			phpVersion: '8.5',
+			onStatus: vi.fn(),
+		});
+
+		const provider = monaco.getActive()[0]
+			.provider as Monaco.languages.CompletionItemProvider;
+
+		// Act
+		const result = await provider.provideCompletionItems(
+			document.model,
+			{ lineNumber: 3, column: 10 } as Monaco.Position,
+			{ triggerKind: 1, triggerCharacter: undefined },
+			{
+				isCancellationRequested: false,
+				onCancellationRequested: () => ({ dispose: () => undefined }),
+			}
+		);
+		const suggestions: Monaco.languages.CompletionItem[] = Array.isArray(
+			result
+		)
+			? result
+			: (result?.suggestions ?? []);
+		const got = suggestions.map(
+			({
+				label,
+				filterText,
+				sortText,
+				insertText,
+				insertTextRules,
+				range,
+			}) => ({
+				label,
+				filterText,
+				sortText,
+				insertText,
+				insertTextRules,
+				range,
+			})
+		);
+		const want = [
+			{
+				label: 'strlen',
+				filterText: 'strlen',
+				sortText: undefined,
+				insertText: 'strlen()$0',
+				insertTextRules: 4,
+				range: {
+					startLineNumber: 3,
+					startColumn: 6,
+					endLineNumber: 3,
+					endColumn: 10,
+				},
+			},
+			{
+				label: 'greetUser($name)',
+				filterText: 'greetUser',
+				sortText: 'b00_greetuser',
+				insertText: 'greetUser(${1:\\$name})$0',
+				insertTextRules: 4,
+				range: {
+					startLineNumber: 3,
+					startColumn: 6,
+					endLineNumber: 3,
+					endColumn: 10,
+				},
+			},
+			{
+				label: '$greeting',
+				filterText: '$greeting',
+				sortText: undefined,
+				insertText: '$greeting',
+				insertTextRules: undefined,
+				range: {
+					startLineNumber: 3,
+					startColumn: 6,
+					endLineNumber: 3,
+					endColumn: 10,
+				},
+			},
+		];
+
+		// Assert
+		expect(got).toEqual(want);
+
+		client.dispose();
+	});
 
 	it('disposes providers on off/8.4 and initializes a fresh PHP 8.5 client when re-enabled', async () => {
 		const document = testModel();
