@@ -8,10 +8,21 @@ type RpcMessage = {
 	jsonrpc: '2.0';
 	id?: number;
 	method?: string;
-	params?: Record<string, any>;
-	result?: Record<string, any>;
+	params?: unknown;
+	result?: unknown;
 	error?: { code: number; message: string };
 };
+
+function initializationOptions(message: RpcMessage): unknown {
+	if (
+		typeof message.params !== 'object' ||
+		message.params === null ||
+		Array.isArray(message.params)
+	) {
+		return undefined;
+	}
+	return (message.params as Record<string, unknown>).initializationOptions;
+}
 
 class TestWorker {
 	readonly sent: RpcMessage[] = [];
@@ -40,7 +51,7 @@ class TestWorker {
 		this.sent.push(message);
 		if (message.method === 'initialize') {
 			const reason = phpVersionInitializationError(
-				message.params?.initializationOptions
+				initializationOptions(message)
 			);
 			queueMicrotask(() =>
 				this.reply({
@@ -172,7 +183,7 @@ describe('PHPantom Monaco lifecycle', () => {
 			onStatus: vi.fn(),
 		});
 
-		expect(firstWorker.sent[0].params?.initializationOptions).toEqual({
+		expect(initializationOptions(firstWorker.sent[0])).toEqual({
 			phpVersion: '8.5',
 		});
 		expect(monaco.getActive()).toHaveLength(3);
@@ -216,9 +227,9 @@ describe('PHPantom Monaco lifecycle', () => {
 				onStatus: vi.fn(),
 			})
 		).rejects.toThrow(/received 8\.4/i);
-		expect(unsupportedWorker.sent[0].params?.initializationOptions).toEqual(
-			{ phpVersion: '8.4' }
-		);
+		expect(initializationOptions(unsupportedWorker.sent[0])).toEqual({
+			phpVersion: '8.4',
+		});
 		expect(monaco.getActive()).toHaveLength(0);
 		expect(unsupportedWorker.terminated).toBe(true);
 
@@ -230,7 +241,7 @@ describe('PHPantom Monaco lifecycle', () => {
 			phpVersion: '8.5',
 			onStatus: vi.fn(),
 		});
-		expect(restoredWorker.sent[0].params?.initializationOptions).toEqual({
+		expect(initializationOptions(restoredWorker.sent[0])).toEqual({
 			phpVersion: '8.5',
 		});
 		expect(monaco.getActive()).toHaveLength(3);

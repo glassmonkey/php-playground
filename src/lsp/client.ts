@@ -9,7 +9,57 @@ type RpcMessage = {
 	error?: { code: number; message: string; data?: unknown };
 };
 
-type RpcResult = Record<string, any>;
+type LspPosition = { line: number; character: number };
+type LspRange = { start: LspPosition; end: LspPosition };
+type LspMarkupContent = { kind: 'markdown' | 'plaintext'; value: string };
+type LspDocumentation = string | LspMarkupContent;
+type LspTextEdit =
+	| { range: LspRange; newText: string }
+	| { insert: LspRange; replace: LspRange; newText: string };
+type LspCommand = {
+	command: string;
+	title: string;
+	arguments?: unknown[];
+};
+type LspCompletionItem = {
+	[key: string]: unknown;
+	label: string;
+	kind?: number;
+	detail?: string;
+	documentation?: LspDocumentation;
+	filterText?: string;
+	sortText?: string;
+	insertText?: string;
+	insertTextFormat?: number;
+	textEdit?: LspTextEdit;
+	command?: LspCommand;
+};
+type LspCompletionList = {
+	items: LspCompletionItem[];
+	isIncomplete?: boolean;
+};
+type LspHoverContent =
+	| string
+	| LspMarkupContent
+	| { language: string; value: string };
+type LspHover = {
+	contents?: LspHoverContent | LspHoverContent[];
+	range?: LspRange;
+};
+type LspParameterInformation = {
+	label: string | [number, number];
+	documentation?: LspDocumentation;
+};
+type LspSignatureInformation = {
+	label: string;
+	documentation?: LspDocumentation;
+	parameters?: LspParameterInformation[];
+};
+type LspSignatureHelp = {
+	signatures: LspSignatureInformation[];
+	activeSignature?: number;
+	activeParameter?: number;
+};
 type ClientStatus = 'loading' | 'ready' | 'error';
 type ClientOptions = {
 	worker: Worker;
@@ -26,16 +76,19 @@ function rpcError(message: RpcMessage): Error {
 	return new Error(message.error?.message ?? 'LSP request failed.');
 }
 
-function lspRangeToMonaco(
-	range: RpcResult,
-	monaco: typeof Monaco
-): Monaco.IRange {
+function lspRangeToMonaco(range: LspRange): Monaco.IRange {
 	return {
 		startLineNumber: range.start.line + 1,
 		startColumn: range.start.character + 1,
 		endLineNumber: range.end.line + 1,
 		endColumn: range.end.character + 1,
 	};
+}
+
+function documentationText(documentation: LspDocumentation | undefined) {
+	return typeof documentation === 'string'
+		? documentation
+		: documentation?.value;
 }
 
 function completionKind(
@@ -77,11 +130,11 @@ export class LspClient {
 	private nextId = 1;
 	private readonly pending = new Map<
 		number,
-		{ resolve: (value: RpcResult) => void; reject: (error: Error) => void }
+		{ resolve: (value: unknown) => void; reject: (error: Error) => void }
 	>();
 	private readonly completionData = new WeakMap<
 		Monaco.languages.CompletionItem,
-		unknown
+		LspCompletionItem
 	>();
 	private readonly disposables: Monaco.IDisposable[] = [];
 	private readonly uri: string;
@@ -129,7 +182,7 @@ export class LspClient {
 		if (!pending) return;
 		this.pending.delete(message.id);
 		if (message.error) pending.reject(rpcError(message));
-		else pending.resolve((message.result ?? {}) as RpcResult);
+		else pending.resolve(message.result ?? {});
 	};
 
 	private readonly handleWorkerError = (event: Event) => {
@@ -142,11 +195,11 @@ export class LspClient {
 		if (event instanceof ErrorEvent) event.preventDefault();
 	};
 
-	private request(method: string, params: unknown): Promise<RpcResult> {
+	private request<T>(method: string, params: unknown): Promise<T> {
 		if (this.disposed)
 			return Promise.reject(new Error('LSP client disposed.'));
 		const id = this.nextId++;
-		return new Promise((resolve, reject) => {
+		return new Promise<T>((resolve, reject) => {
 			const timer = window.setTimeout(() => {
 				this.pending.delete(id);
 				reject(
@@ -156,7 +209,7 @@ export class LspClient {
 			this.pending.set(id, {
 				resolve: (value) => {
 					window.clearTimeout(timer);
-					resolve(value);
+					resolve(value as T);
 				},
 				reject: (error) => {
 					window.clearTimeout(timer);
@@ -225,13 +278,12 @@ export class LspClient {
 							return { suggestions: [] };
 						const version = requestedModel.getVersionId();
 						try {
-							const result = await this.request(
-								'textDocument/completion',
-								{
-									textDocument: { uri: this.uri },
-									position: currentPosition(position),
-								}
-							);
+							const result = await this.request<
+								LspCompletionList | LspCompletionItem[]
+							>('textDocument/completion', {
+								textDocument: { uri: this.uri },
+								position: currentPosition(position),
+							});
 							if (
 								!isCurrentModel(requestedModel) ||
 								requestedModel.getVersionId() !== version
@@ -241,13 +293,14 @@ export class LspClient {
 								? { items: result }
 								: result;
 							const suggestions = (list.items ?? []).flatMap(
-								(item: RpcResult) => {
+								(item) => {
 									if (typeof item.label !== 'string')
 										return [];
-									const range =
-										item.textEdit?.range ??
-										item.textEdit?.replace ??
-										item.textEdit?.insert;
+									const range = item.textEdit
+										? 'range' in item.textEdit
+											? item.textEdit.range
+											: item.textEdit.replace
+										: undefined;
 									const insertText =
 										item.textEdit?.newText ??
 										item.insertText ??
@@ -257,7 +310,7 @@ export class LspClient {
 											position
 										);
 									const insertRange = range
-										? lspRangeToMonaco(range, monaco)
+										? lspRangeToMonaco(range)
 										: {
 												startLineNumber:
 													position.lineNumber,
@@ -274,11 +327,9 @@ export class LspClient {
 												monaco
 											),
 											detail: item.detail,
-											documentation:
-												typeof item.documentation ===
-												'string'
-													? item.documentation
-													: item.documentation?.value,
+											documentation: documentationText(
+												item.documentation
+											),
 											filterText: item.filterText,
 											sortText: item.sortText,
 											insertText,
@@ -289,7 +340,9 @@ export class LspClient {
 															.InsertAsSnippet
 													: undefined,
 											range: insertRange,
-											command: item.command,
+											command: item.command as
+												| Monaco.languages.Command
+												| undefined,
 										};
 									this.completionData.set(suggestion, item);
 									return [suggestion];
@@ -312,16 +365,15 @@ export class LspClient {
 						const data = this.completionData.get(item);
 						if (data === undefined) return item;
 						try {
-							const resolved = await this.request(
-								'completionItem/resolve',
-								data as RpcResult
-							);
+							const resolved =
+								await this.request<LspCompletionItem>(
+									'completionItem/resolve',
+									data
+								);
 							item.detail = resolved.detail ?? item.detail;
 							item.documentation =
-								typeof resolved.documentation === 'string'
-									? resolved.documentation
-									: (resolved.documentation?.value ??
-										item.documentation);
+								documentationText(resolved.documentation) ??
+								item.documentation;
 							return item;
 						} catch {
 							return item;
@@ -337,7 +389,7 @@ export class LspClient {
 					if (!isCurrentModel(requestedModel)) return null;
 					const version = requestedModel.getVersionId();
 					try {
-						const result = await this.request(
+						const result = await this.request<LspHover>(
 							'textDocument/hover',
 							{
 								textDocument: { uri: this.uri },
@@ -354,14 +406,13 @@ export class LspClient {
 							? result.contents
 							: [result.contents];
 						return {
-							contents: contents.map(
-								(content: RpcResult | string) =>
-									typeof content === 'string'
-										? { value: content }
-										: { value: content.value ?? '' }
+							contents: contents.map((content) =>
+								typeof content === 'string'
+									? { value: content }
+									: { value: content.value }
 							),
 							range: result.range
-								? lspRangeToMonaco(result.range, monaco)
+								? lspRangeToMonaco(result.range)
 								: undefined,
 						};
 					} catch {
@@ -381,7 +432,7 @@ export class LspClient {
 						if (!isCurrentModel(requestedModel)) return null;
 						const version = requestedModel.getVersionId();
 						try {
-							const result = await this.request(
+							const result = await this.request<LspSignatureHelp>(
 								'textDocument/signatureHelp',
 								{
 									textDocument: { uri: this.uri },
@@ -397,23 +448,21 @@ export class LspClient {
 							return {
 								value: {
 									signatures: result.signatures.map(
-										(signature: RpcResult) => ({
+										(signature) => ({
 											label: signature.label,
-											documentation:
+											documentation: documentationText(
 												signature.documentation
-													?.value ??
-												signature.documentation,
+											),
 											parameters:
 												signature.parameters?.map(
-													(parameter: RpcResult) => ({
+													(parameter) => ({
 														label: parameter.label,
 														documentation:
-															parameter
-																.documentation
-																?.value ??
-															parameter.documentation,
+															documentationText(
+																parameter.documentation
+															),
 													})
-												),
+												) as Monaco.languages.SignatureInformation['parameters'],
 										})
 									),
 									activeSignature:
