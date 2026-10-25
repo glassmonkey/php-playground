@@ -251,9 +251,50 @@ def run_build(args, *, context: Path, repo_revision: str, context_tree_sha: str,
     command = build_command(args, context, php_version, php_source_sha, tag, no_cache, raw_path)
     started = datetime.now(timezone.utc).isoformat()
     load_at_start = host_load_average()
+    launch_path = raw_path.with_suffix(".launch.json")
+    launch_record = {
+        "kind": "buildx-launch-record",
+        "schema_version": 1,
+        "run_id": run_id,
+        "sample_id": slug,
+        "spawn_attempt_started_at_utc": started,
+        "cwd": os.getcwd(),
+        "argv": command,
+        "command": shlex.join(command),
+        "tag": tag,
+        "repo_revision": repo_revision,
+        "context_tree_sha": context_tree_sha,
+        "context_archive_sha256": context_archive_sha,
+        "php_version": php_version,
+        "php_source_sha": php_source_sha,
+        "emsdk_version": args.emsdk_version,
+        "emsdk_repo_sha": args.emsdk_repo_sha,
+        "base_image_digest": args.base_image_digest,
+        "platform": args.platform,
+        "builder": args.builder,
+        "cpu_allocation": getattr(args, "cpu_allocation", None),
+        "memory_allocation": getattr(args, "memory_allocation", None),
+        "host_load_average_at_start": load_at_start,
+    }
+    write_json_atomically(launch_path, launch_record, exclusive=True)
     begin = time.perf_counter()
     proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
-    with raw_path.open("w", encoding="utf-8") as raw_log:
+    spawned_at = datetime.now(timezone.utc).isoformat()
+    started_path = raw_path.with_suffix(".started.json")
+    started_record = {
+        "kind": "buildx-process-started",
+        "schema_version": 1,
+        "run_id": run_id,
+        "sample_id": slug,
+        "spawn_attempt_started_at_utc": started,
+        "process_spawn_observed_at_utc": spawned_at,
+        "pid": proc.pid,
+        "launch_record": str(launch_path.relative_to(output)),
+        "argv": command,
+        "cwd": os.getcwd(),
+    }
+    write_json_atomically(started_path, started_record, exclusive=True)
+    with raw_path.open("w", encoding="utf-8") as raw_log, proc.stdout:
         for line in proc.stdout:
             raw_log.write(line)
             raw_log.flush()
@@ -285,6 +326,10 @@ def run_build(args, *, context: Path, repo_revision: str, context_tree_sha: str,
         "context": str(context),
         "tag": tag,
         "command": shlex.join(command),
+        "launch_record": str(launch_path.relative_to(output)),
+        "launch_record_sha256": sha256_file(launch_path),
+        "started_record": str(started_path.relative_to(output)),
+        "started_record_sha256": sha256_file(started_path),
         "raw_log": str(raw_path.relative_to(output)),
         "metadata_file": str(raw_path.with_suffix(".metadata.json").relative_to(output)),
         "transition": transition or {},

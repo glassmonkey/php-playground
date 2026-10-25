@@ -50,6 +50,12 @@ elif a[:2] == ["buildx", "build"]:
     manifest = metadata.parent.parent / "inputs.json"
     if not manifest.is_file():
         print("inputs.json missing before build", file=sys.stderr); raise SystemExit(9)
+    launch = metadata.with_name(metadata.name.replace(".metadata.json", ".launch.json"))
+    if not launch.is_file():
+        print("launch record missing before build", file=sys.stderr); raise SystemExit(10)
+    launch_record = json.loads(launch.read_text())
+    if launch_record["argv"][1:] != a:
+        print("launch argv does not match build invocation", file=sys.stderr); raise SystemExit(11)
     metadata.write_text("{}")
     print("#1 [stage] RUN cached CACHED")
     print("#2 [stage] RUN compile DONE 0.1s")
@@ -91,6 +97,19 @@ else: raise SystemExit("unexpected fake Docker argv: " + repr(a))
             self.assertEqual(inputs["planned_runs"][0]["tag"], result["runs"][0]["tag"])
             self.assertEqual(inputs["planned_runs"][0]["raw_log"], result["runs"][0]["raw_log"])
             self.assertEqual(result["inputs_manifest_sha256"], benchmark.sha256_file(output / "inputs.json"))
+            launch = output / result["runs"][0]["launch_record"]
+            started = output / result["runs"][0]["started_record"]
+            self.assertTrue(launch.is_file())
+            self.assertTrue(started.is_file())
+            launch_record = json.loads(launch.read_text())
+            started_record = json.loads(started.read_text())
+            self.assertEqual(launch_record["argv"], inputs["planned_runs"][0]["argv"])
+            self.assertEqual(launch_record["command"], result["runs"][0]["command"])
+            self.assertTrue(launch_record["spawn_attempt_started_at_utc"])
+            self.assertTrue(started_record["process_spawn_observed_at_utc"])
+            self.assertGreater(started_record["pid"], 0)
+            self.assertEqual(result["runs"][0]["launch_record_sha256"], benchmark.sha256_file(launch))
+            self.assertEqual(result["runs"][0]["started_record_sha256"], benchmark.sha256_file(started))
             self.assertEqual(result["runs"][0]["cache_misses"], 1)
             self.assertTrue(result["runs"][0]["ended_at"])
             self.assertEqual(result["summary"]["variability_status"], "insufficient_samples")
@@ -244,7 +263,7 @@ else: raise SystemExit("unexpected fake Docker argv: " + repr(a))
             output = root / "results"
             output.mkdir()
             fake = SimpleNamespace(stdout="#1 [compile 1/1] RUN make FAILED\n", returncode=23)
-            fake_process = SimpleNamespace(stdout=io.StringIO(fake.stdout), wait=lambda: fake.returncode)
+            fake_process = SimpleNamespace(stdout=io.StringIO(fake.stdout), wait=lambda: fake.returncode, pid=12345)
             with patch.object(benchmark.subprocess, "Popen", return_value=fake_process):
                 record = benchmark.run_build(
                     args, context=context, repo_revision="a" * 40, context_tree_sha="b" * 40,
