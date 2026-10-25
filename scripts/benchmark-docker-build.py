@@ -44,6 +44,28 @@ def sha256_text(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
+def write_json_atomically(path: Path, value: dict, *, exclusive: bool = False) -> None:
+    if exclusive and path.exists():
+        raise FileExistsError(f"immutable input manifest already exists: {path}")
+    temporary = path.with_name(f".{path.name}.{uuid.uuid4().hex}.tmp")
+    with temporary.open("x", encoding="utf-8") as destination:
+        json.dump(value, destination, indent=2)
+        destination.write("\n")
+        destination.flush()
+        os.fsync(destination.fileno())
+    if exclusive and path.exists():
+        temporary.unlink()
+        raise FileExistsError(f"immutable input manifest already exists: {path}")
+    os.replace(temporary, path)
+
+
+def host_load_average() -> list[float] | None:
+    try:
+        return list(os.getloadavg())
+    except (AttributeError, OSError):
+        return None
+
+
 def parse_build_args(items: list[str]) -> dict[str, str]:
     values = {}
     for item in items:
@@ -175,6 +197,7 @@ def parse_build_events(log: str) -> dict:
     return {
         "events": events,
         "cache_hits": sum(event["state"] == "cached" for event in events),
+        "cache_misses": sum(event["state"] == "done" for event in events),
         "completed_steps": sum(event["state"] == "done" for event in events),
     }
 
@@ -213,6 +236,10 @@ def build_command(args, context: Path, php_version: str, php_source_sha: str, ta
     return command
 
 
+def build_tag(args, run_id: str, phase: str, sample: int) -> str:
+    return f"{args.tag_prefix}:{run_id[:12]}-{phase}-{sample:02d}"
+
+
 def run_build(args, *, context: Path, repo_revision: str, context_tree_sha: str,
               context_archive_sha: str, input_tree_sha: str, php_version: str, php_source_sha: str,
               phase: str, sample: int, no_cache: bool, output: Path, run_id: str,
@@ -220,9 +247,10 @@ def run_build(args, *, context: Path, repo_revision: str, context_tree_sha: str,
     slug = f"{phase}-{sample:02d}"
     raw_path = output / "raw" / f"{slug}.log"
     raw_path.parent.mkdir(parents=True, exist_ok=True)
-    tag = f"{args.tag_prefix}:{run_id[:12]}-{slug}"
+    tag = build_tag(args, run_id, phase, sample)
     command = build_command(args, context, php_version, php_source_sha, tag, no_cache, raw_path)
     started = datetime.now(timezone.utc).isoformat()
+    load_at_start = host_load_average()
     begin = time.perf_counter()
     proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
     with raw_path.open("w", encoding="utf-8") as raw_log:
@@ -232,6 +260,8 @@ def run_build(args, *, context: Path, repo_revision: str, context_tree_sha: str,
             print(line, end="", flush=True)
         return_code = proc.wait()
     elapsed = time.perf_counter() - begin
+    ended = datetime.now(timezone.utc).isoformat()
+    load_at_end = host_load_average()
     log_text = raw_path.read_text(encoding="utf-8")
     events = parse_build_events(log_text)
     return {
@@ -241,6 +271,9 @@ def run_build(args, *, context: Path, repo_revision: str, context_tree_sha: str,
         "status": "succeeded" if return_code == 0 else "failed",
         "exit_code": return_code,
         "started_at": started,
+        "ended_at": ended,
+        "host_load_average_at_start": load_at_start,
+        "host_load_average_at_end": load_at_end,
         "duration_seconds": round(elapsed, 3),
         "cache_policy": "disabled" if no_cache else "builder-cache",
         "php_version": php_version,
@@ -257,6 +290,9 @@ def run_build(args, *, context: Path, repo_revision: str, context_tree_sha: str,
         "transition": transition or {},
         "feature_build_args": feature_build_args or {},
         "feature_signature_sha256": sha256_text(json.dumps(feature_build_args or {}, sort_keys=True, separators=(",", ":"))),
+        "cache_hits": events["cache_hits"],
+        "cache_misses": events["cache_misses"],
+        "completed_steps": events["completed_steps"],
         **events,
     }
 
@@ -266,11 +302,19 @@ def summarize(records: list[dict]) -> dict:
     failed = [record for record in records if record["status"] != "succeeded"]
     if failed:
         return {"status": "failed", "reason": "one or more prime or measured builds failed", "failed_runs": [run["id"] for run in failed]}
+    durations = [run["duration_seconds"] for run in measured]
+    median_duration = statistics.median(durations)
     return {
         "status": "succeeded",
         "sample_count": len(measured),
-        "median_duration_seconds": statistics.median(run["duration_seconds"] for run in measured),
+        "median_duration_seconds": median_duration,
+        "minimum_duration_seconds": min(durations),
+        "maximum_duration_seconds": max(durations),
+        "duration_range_seconds": max(durations) - min(durations),
+        "median_absolute_deviation_seconds": statistics.median(abs(value - median_duration) for value in durations),
+        "variability_status": "reported" if len(durations) >= 3 else "insufficient_samples",
         "median_cache_hits": statistics.median(run["cache_hits"] for run in measured),
+        "median_cache_misses": statistics.median(run.get("cache_misses", run["completed_steps"]) for run in measured),
         "median_completed_steps": statistics.median(run["completed_steps"] for run in measured),
     }
 
@@ -458,6 +502,10 @@ def main() -> int:
 
     output.mkdir(parents=True, exist_ok=True)
     run_id = str(uuid.uuid4())
+    harness_revision = subprocess.run(
+        ["git", "-C", str(repo_root), "rev-parse", "HEAD"], capture_output=True, text=True, check=True,
+    ).stdout.strip()
+    harness_script_sha256 = sha256_file(Path(__file__).resolve())
     records = []
     target_export = export_context(repo_root, args.repo_revision, args.context_path, output, "target")
     if not (target_export["context"] / dockerfile).is_file():
@@ -481,6 +529,7 @@ def main() -> int:
         "emsdk_version": args.emsdk_version,
         "base_image_digest": args.base_image_digest,
     }
+    input_manifest_sha256 = None
     try:
         for key, command in (("docker_version", [args.docker, "version", "--format", "{{.Client.Version}}"]),
                              ("buildx_version", [args.docker, "buildx", "version"])):
@@ -508,6 +557,70 @@ def main() -> int:
             raise RuntimeError(f"dedicated builder limits mismatch: {observed_limits}")
         if "max-parallelism = 1" not in inspect.stdout:
             raise RuntimeError("dedicated builder must enforce one parallel BuildKit step")
+        planned_runs = []
+        for operation in schedule:
+            operation_revision = operation["repo_revision"]
+            exported = target_export if operation_revision == args.repo_revision else warmup_export
+            if exported is None:
+                raise RuntimeError(f"no exported context for scheduled revision {operation_revision}")
+            slug = f"{operation['phase']}-{operation['sample']:02d}"
+            raw_path = output / "raw" / f"{slug}.log"
+            tag = build_tag(args, run_id, operation["phase"], operation["sample"])
+            command = build_command(
+                args, exported["context"], operation["php_version"], operation["php_source_sha"],
+                tag, operation["no_cache"], raw_path,
+            )
+            planned_runs.append({
+                **operation,
+                "tag": tag,
+                "context": str(exported["context"]),
+                "context_archive": str(exported["archive"].relative_to(output)),
+                "context_archive_sha256": exported["archive_sha256"],
+                "raw_log": str(raw_path.relative_to(output)),
+                "metadata_file": str(raw_path.with_suffix(".metadata.json").relative_to(output)),
+                "argv": command,
+                "command": shlex.join(command),
+            })
+        inputs_path = output / "inputs.json"
+        input_manifest = {
+            "schema_version": 1,
+            "status": "frozen-before-build",
+            "run_id": run_id,
+            "harness_revision": harness_revision,
+            "harness_script_sha256": harness_script_sha256,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "mode": args.mode,
+            "repo_revision": args.repo_revision,
+            "context_tree_sha": context_tree_sha,
+            "context_archive": str(target_export["archive"].relative_to(output)),
+            "context_archive_sha256": target_export["archive_sha256"],
+            "linked_input_tree_sha": input_tree_sha,
+            "php_source_sha": args.php_source_sha,
+            "emsdk_repo_sha": args.emsdk_repo_sha,
+            "emsdk_version": args.emsdk_version,
+            "base_image": args.base_image,
+            "base_image_digest": args.base_image_digest,
+            "php_version": args.php_version,
+            "platform": args.platform,
+            "host": args.host,
+            "host_arch": args.host_arch,
+            "cpu_allocation": args.cpu_allocation,
+            "memory_allocation": args.memory_allocation,
+            "build_resources": args.build_resource,
+            "builder": args.builder,
+            "builder_cpu_set": args.builder_cpu_set,
+            "builder_cpu_quota": args.builder_cpu_quota,
+            "builder_memory_bytes": args.builder_memory_bytes,
+            "feature_build_args": feature_build_args,
+            "feature_signature_sha256": feature_signature,
+            "linked_input_change": linked_change,
+            "target_context": str(target_export["context"]),
+            "warmup_context": str(warmup_export["context"]) if warmup_export else None,
+            "environment_readback_before_build": env,
+            "planned_runs": planned_runs,
+        }
+        write_json_atomically(inputs_path, input_manifest, exclusive=True)
+        input_manifest_sha256 = sha256_file(inputs_path)
         successful_versions = set()
         last_successful_prime = None
         for operation in schedule:
@@ -561,12 +674,16 @@ def main() -> int:
     result = {
         "schema_version": 2,
         "run_id": run_id,
+        "harness_revision": harness_revision,
+        "harness_script_sha256": harness_script_sha256,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "mode": args.mode,
         "feature_build_args": feature_build_args,
         "feature_signature_sha256": feature_signature,
         "schedule": schedule,
         "link_input_variant_id": args.link_input_variant_id or None,
+        "inputs_manifest": "inputs.json" if input_manifest_sha256 else None,
+        "inputs_manifest_sha256": input_manifest_sha256,
         "linked_input_change": linked_change,
         "inputs": {
             "repo_revision": args.repo_revision, "context_tree_sha": context_tree_sha,
@@ -583,7 +700,7 @@ def main() -> int:
         "summary": summary,
         "raw_log_manifest_sha256": sha256_text("\n".join(run["raw_log"] for run in records)),
     }
-    (output / "results.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+    write_json_atomically(output / "results.json", result, exclusive=True)
     print(json.dumps({"results": str(output / "results.json"), "summary": summary}, indent=2))
     if "setup_error" in env or summary["status"] != "succeeded":
         return 1

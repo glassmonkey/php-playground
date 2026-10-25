@@ -3,6 +3,7 @@
 
 import importlib.util
 import io
+import json
 import subprocess
 import tempfile
 from types import SimpleNamespace
@@ -17,6 +18,16 @@ SPEC.loader.exec_module(benchmark)
 
 
 class BenchmarkHarnessContractTest(unittest.TestCase):
+    def test_immutable_input_manifest_is_atomic_and_not_overwritten(self):
+        with tempfile.TemporaryDirectory() as directory:
+            manifest = Path(directory) / "inputs.json"
+            value = {"status": "frozen-before-build", "argv": ["docker", "buildx", "build"]}
+            benchmark.write_json_atomically(manifest, value, exclusive=True)
+            self.assertEqual(json.loads(manifest.read_text()), value)
+            with self.assertRaisesRegex(FileExistsError, "immutable input manifest"):
+                benchmark.write_json_atomically(manifest, {"status": "different"}, exclusive=True)
+            self.assertEqual(json.loads(manifest.read_text()), value)
+
     def test_repeatable_sampling_modes_enforce_protocol_counts(self):
         benchmark.validate_sampling_mode("cold", 1)
         for mode in ("warm", "php-version"):
@@ -130,6 +141,7 @@ class BenchmarkHarnessContractTest(unittest.TestCase):
             "#4 exporting to image DONE 0.1s\n"
         )
         self.assertEqual(parsed["cache_hits"], 1)
+        self.assertEqual(parsed["cache_misses"], 2)
         self.assertEqual(parsed["completed_steps"], 2)
         self.assertEqual(parsed["events"][0]["detail"], "[base 1/4] RUN apt-get update CACHED")
 
@@ -193,6 +205,12 @@ class BenchmarkHarnessContractTest(unittest.TestCase):
         ])
         self.assertEqual(summary["median_duration_seconds"], 9)
         self.assertEqual(summary["sample_count"], 3)
+        self.assertEqual(summary["minimum_duration_seconds"], 8)
+        self.assertEqual(summary["maximum_duration_seconds"], 10)
+        self.assertEqual(summary["duration_range_seconds"], 2)
+        self.assertEqual(summary["median_absolute_deviation_seconds"], 1)
+        self.assertEqual(summary["variability_status"], "reported")
+        self.assertEqual(summary["median_cache_misses"], 2)
 
     def test_warm_and_cold_policies_are_explicitly_separate(self):
         args = SimpleNamespace(
@@ -218,6 +236,7 @@ class BenchmarkHarnessContractTest(unittest.TestCase):
             {"id": "measured-03", "phase": "measured", "status": "succeeded", "duration_seconds": 6, "cache_hits": 6, "completed_steps": 2},
         ])
         self.assertEqual(cold["sample_count"], 1)
+        self.assertEqual(cold["variability_status"], "insufficient_samples")
         self.assertEqual(warm["sample_count"], 3)
 
 

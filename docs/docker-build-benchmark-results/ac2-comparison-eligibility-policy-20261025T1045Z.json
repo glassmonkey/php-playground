@@ -1,0 +1,63 @@
+{
+  "kind": "measurement-comparison-eligibility-policy",
+  "status": "applied",
+  "purpose": "Separate raw build measurements from claims of a clean baseline/candidate speedup.",
+  "fixed_pair_inputs": [
+    "same full PHP source commit",
+    "same emsdk manager commit and emsdk version",
+    "same base image digest",
+    "same platform and immutable src/wasm context tree for the side being measured",
+    "same explicit web feature args/signature",
+    "same host and dedicated builder limits"
+  ],
+  "resource_contract": {
+    "host_cpu_count": 8,
+    "vm_cpu_count": 2,
+    "vm_memory_bytes": 6209429504,
+    "builder": "gla96-a3c1",
+    "builder_cpuset": "0-1",
+    "builder_cpu_quota": "200000/100000",
+    "builder_memory_bytes": 5368709120,
+    "build_step_memory": "4g",
+    "buildkit_parallelism": 1
+  },
+  "clean_speed_claim_eligibility": {
+    "all_required": [
+      "Builder remains running/RW and exact resource readback matches the resource_contract for each run.",
+      "No active shared-host bulk cleanup/backup or other heavy build overlaps the paired measurement window.",
+      "Host load averages (1, 5, 15 minute) are sampled immediately before and after each run; each is <=4.0 on this 8-CPU host.",
+      "For each baseline/candidate pair, corresponding load averages differ by <=2.0; otherwise report the pair as noisy/reference only.",
+      "Baseline/candidate order alternates across representative PHP versions and repeat blocks; both sides use identical PHP source/tool/base/features/resources.",
+      "For repeated cases n>=3, report all samples, median, median absolute deviation, cache hits/misses and completed/rebuilt stages; keep cold separate from warm."
+    ],
+    "policy_effect": "These are analytical eligibility criteria, not permission to start or stop builds. Runs may proceed when they fail; such durations remain reference-only and cannot support a clean speed claim."
+  },
+  "schedule_order": {
+    "cold": "Pair baseline/candidate per PHP version; baseline first for5.6, candidate first for7.4, baseline first for8.5.",
+    "warm": "At least one excluded prime then3 measured cached target builds per side/version; alternate which side is run first across PHP versions.",
+    "php-version": "Before each of3 measured samples, prime the other pinned PHP version; use identical transition/source pair on both sides; alternate side order across versions.",
+    "link-input-change": "Three distinct comment-only immutable variants, each with unchanged-parent prime; identical patch variant on both sides; alternate baseline/candidate first across variants."
+  },
+  "current_run_check": {
+    "run_directory": "docs/docker-build-benchmark-results/ac2-cold-baseline-5.6-20261025T1040Z",
+    "host_load_observed_utc": "2026-10-25T10:36:09Z",
+    "load_average": [
+      182.529296875,
+      282.87744140625,
+      325.384765625
+    ],
+    "eligible_for_clean_speed_claim": false,
+    "reason": "Load averages materially exceed the <=4.0 threshold; retain as contended/reference evidence only.",
+    "load_observations": [
+      {
+        "observed_utc": "2026-10-25T10:43:57Z",
+        "load_average": [
+          65.2998046875,
+          125.2880859375,
+          225.05126953125
+        ],
+        "eligible_for_clean_speed_claim": false
+      }
+    ]
+  }
+}
