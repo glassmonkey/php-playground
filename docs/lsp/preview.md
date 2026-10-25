@@ -24,11 +24,14 @@ npm ci
 npm run dev -- --host 127.0.0.1 --port 7260 --strictPort --open false
 ```
 
-Open <http://127.0.0.1:7260/>. Select PHP version **8.5**, then select
-**PHPantom (preview)** in the LSP preview menu. The status changes to
-“PHPantom ready” after the Worker initializes. Turning the menu off stops that
-Worker. Switching PHP version restarts analysis with the selected version; only
-8.5 is currently accepted.
+Open <http://127.0.0.1:7260/>. Select PHP version **8.5**, then turn on
+**PHPantom completion**. The status changes to “PHPantom ready” after the
+Worker initializes. Turning the switch off stops that Worker and removes its
+providers. With the switch still on, change the execution version to **8.4**:
+the status reports that PHPantom 0.11.1 WASI does not support 8.4, and no LSP
+completion provider remains active. Change back to **8.5** while the switch is
+still on; the Worker initializes again. The existing PHP execution version
+selector remains available and is not changed by the preview.
 
 The WASM file is a pinned upstream release asset and is deliberately not in Git.
 The fetch script verifies its SHA-256 and writes
@@ -74,6 +77,7 @@ the URL.
 | `npm run build`                                              | Passed (exit 0)                 | Vite production build; existing Sandpack `eval` and large-chunk warnings remain.                                                                           |
 | `node scripts/lsp/phpantom/smoke-test.mjs`                   | Passed                          | Actual release WASM/WASI exercised completion, hover, signature help, resolve, request IDs, errors, and PHP-version policy.                                |
 | `npx vitest run src/workers/__test__/usePHP.spec.ts`         | Passed (3 tests)                | Existing PHP-version change behavior.                                                                                                                      |
+| `npx vitest run src/lsp/__test__/client.spec.ts`             | Passed (1 test)                 | Checks stale completion rejection, provider disposal, PHP 8.4 refusal, and PHP 8.5 reinitialization.                                                       |
 | `npm run test:ci`                                            | Failed (33 passed, 6 timed out) | Existing `php-worker.spec.ts` WASM startup cases for PHP 5.6 and 7.0–7.4 exceeded the configured 5-second timeout.                                         |
 | `npm run test:ci -- src/workers/__test__/php-worker.spec.ts` | Failed (28 passed, 4 timed out) | Isolated run timed out on PHP 5.6, 7.0, 7.1, and 7.2.                                                                                                      |
 | Same isolated worker test at base `be516894`                 | Failed (30 passed, 2 timed out) | Unchanged base also timed out on PHP 5.6 and 7.0, indicating this failure exists outside the preview changes; the failing version set varied between runs. |
@@ -82,5 +86,6 @@ the URL.
 The browser Worker and editor UI have not been verified by the implementer. A
 successful local HTTP response only confirms that Vite serves the page and WASM
 asset; it does not confirm browser WASI startup or Monaco provider behavior.
-Please verify the steps above in the browser. PHP versions other than 8.5 are
-explicitly unsupported by PHPantom 0.11.1 WASI.
+Please verify the steps above in the browser. PHP 8.4 is intentionally rejected
+by PHPantom 0.11.1 WASI for this preview; PHP 8.5 is the supported analysis
+version.

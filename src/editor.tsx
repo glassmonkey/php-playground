@@ -6,7 +6,7 @@ import {
 	useSandpack,
 } from '@codesandbox/sandpack-react';
 import { usePHP } from './workers/client';
-import { Box, Center, Flex, Select, Spinner, Text } from '@chakra-ui/react';
+import { Box, Center, Flex, Spinner, Switch, Text } from '@chakra-ui/react';
 import type { ReactElement } from 'react';
 import * as React from 'react';
 import MonacoEditor, {
@@ -19,7 +19,6 @@ import { Preview } from './preview';
 import type { PreviewTheme } from './preview-theme';
 import { LspClient } from './lsp/client';
 
-type LspMode = 'off' | 'phpantom';
 type LspStatus = {
 	state: 'off' | 'loading' | 'ready' | 'error';
 	message?: string;
@@ -36,7 +35,7 @@ function LoadSpinner() {
 function PhpEditor(params: {
 	theme: PreviewTheme;
 	version: Version;
-	lspMode: LspMode;
+	lspEnabled: boolean;
 	onLspStatus: (status: LspStatus) => void;
 }) {
 	const { code, updateCode } = useActiveCode();
@@ -57,7 +56,7 @@ function PhpEditor(params: {
 	};
 
 	React.useEffect(() => {
-		if (params.lspMode === 'off' || !editorInstance || !monacoInstance) {
+		if (!params.lspEnabled || !editorInstance || !monacoInstance) {
 			params.onLspStatus({ state: 'off' });
 			return;
 		}
@@ -104,7 +103,7 @@ function PhpEditor(params: {
 			else worker?.terminate();
 		};
 	}, [
-		params.lspMode,
+		params.lspEnabled,
 		params.version,
 		editorInstance,
 		monacoInstance,
@@ -162,26 +161,23 @@ function EditorLayout(params: {
 	Editor: ReactElement;
 	Preview: ReactElement;
 	theme: PreviewTheme;
-	lspMode: LspMode;
+	lspEnabled: boolean;
 	lspStatus: LspStatus;
-	onLspModeChange: (mode: LspMode) => void;
+	onLspEnabledChange: (enabled: boolean) => void;
 }) {
 	return (
 		<Flex direction="column" padding="3" bg="gray.800" height="100%">
 			<Flex align="center" gap="3" paddingBottom="3" flexWrap="wrap">
-				<Text fontSize="sm">LSP preview:</Text>
-				<Select
-					aria-label="LSP preview mode"
-					value={params.lspMode}
+				<Text fontSize="sm">PHPantom completion:</Text>
+				<Switch
+					aria-label="PHPantom completion"
+					variant="colormodeSwitcher"
+					size="lg"
+					isChecked={params.lspEnabled}
 					onChange={(event) =>
-						params.onLspModeChange(event.target.value as LspMode)
+						params.onLspEnabledChange(event.target.checked)
 					}
-					width="180px"
-					size="sm"
-				>
-					<option value="off">Off</option>
-					<option value="phpantom">PHPantom (preview)</option>
-				</Select>
+				/>
 				<Text fontSize="sm" role="status" aria-live="polite">
 					{params.lspStatus.state === 'off' && 'Off'}
 					{params.lspStatus.state === 'loading' &&
@@ -190,10 +186,9 @@ function EditorLayout(params: {
 					{params.lspStatus.state === 'error' &&
 						`PHPantom error: ${params.lspStatus.message}`}
 				</Text>
-				{params.lspMode === 'phpantom' &&
-					params.lspStatus.state === 'ready' && (
-						<Text fontSize="xs">PHP 8.5 analysis only</Text>
-					)}
+				{params.lspEnabled && params.lspStatus.state === 'ready' && (
+					<Text fontSize="xs">PHP 8.5 analysis</Text>
+				)}
 			</Flex>
 			<Flex
 				justify="space-between"
@@ -245,7 +240,7 @@ export function Editor(params: {
 	// SandpackProvider resets its files whenever this object changes, which
 	// discards edits still waiting for the debounce. Keep the first one.
 	const [files] = React.useState(() => ({ '/app.php': params.initCode }));
-	const [lspMode, setLspMode] = React.useState<LspMode>('off');
+	const [lspEnabled, setLspEnabled] = React.useState(false);
 	const [lspStatus, setLspStatus] = React.useState<LspStatus>({
 		state: 'off',
 	});
@@ -265,14 +260,14 @@ export function Editor(params: {
 		>
 			<EditorLayout
 				theme={params.theme}
-				lspMode={lspMode}
+				lspEnabled={lspEnabled}
 				lspStatus={lspStatus}
-				onLspModeChange={setLspMode}
+				onLspEnabledChange={setLspEnabled}
 				Editor={
 					<PhpEditor
 						theme={params.theme}
 						version={params.version}
-						lspMode={lspMode}
+						lspEnabled={lspEnabled}
 						onLspStatus={onLspStatus}
 					/>
 				}
