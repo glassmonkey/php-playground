@@ -1,0 +1,13 @@
+
+> php-playground@0.1.0 test:ci
+> vitest run --exclude docs/docker-build-benchmark-results/** src/php-wasm/__tests__/php-response.test.ts src/php-wasm/__tests__/enabled-libs-8.5.transient.test.ts src/workers/__test__/php-worker.spec.ts -t PHP response body bytes|enabled extensions through the public runtime API|version: 8.5
+
+
+ RUN  v4.1.10 /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure
+
+
+ Test Files  3 passed (3)
+      Tests  7 passed | 307 skipped (314)
+   Start at  00:59:31
+   Duration  396ms (transform 315ms, setup 46ms, import 328ms, tests 448ms, environment 0ms)
+

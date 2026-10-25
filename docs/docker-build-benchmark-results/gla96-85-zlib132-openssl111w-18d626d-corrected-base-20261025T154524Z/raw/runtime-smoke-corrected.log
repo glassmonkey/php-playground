@@ -1,0 +1,40 @@
+
+> php-playground@0.1.0 test:ci
+> vitest run src/php-wasm/__tests__/php-response.test.ts src/php-wasm/__tests__/enabled-libs-8.5.transient.test.ts
+
+
+ RUN  v4.1.10 /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure
+
+stdout | src/php-wasm/__tests__/enabled-libs-8.5.transient.test.ts > runs PHP 8.5 enabled extensions through the public runtime API
+{"exitCode":0,"errors":"PHP Deprecated:  Function imagedestroy() is deprecated since 8.5, as it has no effect since PHP 8.0 in php-wasm run script on line 4\n","output":"<br />\n<b>Deprecated</b>:  Function imagedestroy() is deprecated since 8.5, as it has no effect since PHP 8.0 in <b>php-wasm run script</b> on line <b>4</b><br />\n{\"version\":\"8.5.13-dev\",\"gd\":true,\"sqlite\":true,\"zip\":true,\"openssl\":true,\"xml\":true,\"mbstring\":true}"}
+
+ ❯ src/php-wasm/__tests__/enabled-libs-8.5.transient.test.ts (1 test | 1 failed) 184ms
+   × runs PHP 8.5 enabled extensions through the public runtime API 183ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/php-wasm/__tests__/enabled-libs-8.5.transient.test.ts > runs PHP 8.5 enabled extensions through the public runtime API
+AssertionError: expected 'PHP Deprecated:  Function imagedestro…' to be '' // Object.is equality
+
+- Expected
++ Received
+
++ PHP Deprecated:  Function imagedestroy() is deprecated since 8.5, as it has no effect since PHP 8.0 in php-wasm run script on line 4
++
+
+ ❯ src/php-wasm/__tests__/enabled-libs-8.5.transient.test.ts:44:27
+     42|   console.log(JSON.stringify({exitCode: response.exitCode, errors: res…
+     43|   expect(response.exitCode).toBe(0);
+     44|   expect(response.errors).toBe('');
+       |                           ^
+     45|   expect(JSON.parse(new TextDecoder().decode(response.body))).toEqual({
+     46|     version: '8.5.13-dev', gd: true, sqlite: true, zip: true, openssl:…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 3 passed (4)
+      Tests  1 failed | 12 passed (13)
+   Start at  00:57:58
+   Duration  511ms (transform 566ms, setup 70ms, import 683ms, tests 704ms, environment 0ms)
+

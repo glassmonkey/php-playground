@@ -1,0 +1,13 @@
+
+> php-playground@0.1.0 test:ci
+> vitest run --exclude docs/docker-build-benchmark-results/** src/workers/__test__/php-worker.spec.ts -t version: 8.5
+
+
+ RUN  v4.1.10 /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed | 307 skipped (309)
+   Start at  00:59:08
+   Duration  300ms (transform 80ms, setup 14ms, import 48ms, tests 154ms, environment 0ms)
+
