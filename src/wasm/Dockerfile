@@ -290,7 +290,7 @@ RUN if [ "$WITH_OPENSSL" = "yes" ]; then \
     echo "$OPENSSL_SHA256  openssl-$OPENSSL_VERSION.tar.gz" | sha256sum -c - && \
     tar xf openssl-$OPENSSL_VERSION.tar.gz && \
     cd openssl-$OPENSSL_VERSION && \
-    emconfigure ./Configure linux-generic32 no-asm -DHAVE_FORK=0 -DOPENSSL_NO_AFALGENG=1 no-threads --prefix=/root/lib && \
+    emconfigure ./Configure linux-generic32 no-asm no-shared -DHAVE_FORK=0 -DOPENSSL_NO_AFALGENG=1 no-threads --prefix=/root/lib && \
     sed -i 's|^CROSS_COMPILE.*$|CROSS_COMPILE=|g' Makefile && \
     EMCC_FLAGS=" -sSIDE_MODULE " EMCC_SKIP="-lz" emmake make -j 12 build_generated libssl.a libcrypto.a && \
     cp -RL include/openssl /root/lib/include && \
