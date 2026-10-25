@@ -7,8 +7,6 @@ import {
 	type PHP,
 } from '../../php-wasm/php';
 import * as phpLoader from '../../wasm-assets/php-8.5.js';
-// @ts-ignore The generated Emscripten loader is intentionally kept beside its data asset, outside src/rootDir.
-import * as phpactorDataLoader from '../../../assets/lsp/phpactor/phpactor-loader.js';
 
 type JsonRpcId = string | number | null;
 type JsonRpcMessage = {
@@ -147,7 +145,7 @@ async function dispatch(message: JsonRpcMessage): Promise<unknown> {
 
 async function startPhpactor(): Promise<void> {
 	const wasmUrl = new URL(
-		`/assets/${phpLoader.dependencyFilename ?? 'php-8.5.wasm'}`,
+		`/${phpLoader.dependencyFilename ?? 'php-8.5.wasm'}`,
 		scope.location.origin
 	);
 	const wasmResponse = await fetch(wasmUrl);
@@ -163,7 +161,13 @@ async function startPhpactor(): Promise<void> {
 	const phpactorReady = new Promise<void>((resolve) => {
 		releasePhpactorReady = resolve;
 	});
-	const dataLoader = phpactorDataLoader as unknown as DataDependencyModule;
+	const dataLoaderUrl = new URL(
+		'/lsp/phpactor/phpactor-loader.js',
+		scope.location.origin
+	);
+	const dataLoader = (await import(
+		/* @vite-ignore */ dataLoaderUrl.href
+	)) as unknown as DataDependencyModule;
 	const delayedDataModule = {
 		dependenciesTotalSize: dataLoader.dependenciesTotalSize,
 		dependencyFilename: dataLoader.dependencyFilename,
@@ -184,7 +188,7 @@ async function startPhpactor(): Promise<void> {
 			locateFile: (filename: string) => {
 				if (filename === 'phpactor.data') {
 					return new URL(
-						'/assets/lsp/phpactor/phpactor.data',
+						'/lsp/phpactor/phpactor.data',
 						scope.location.origin
 					).href;
 				}

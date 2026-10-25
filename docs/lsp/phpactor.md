@@ -11,6 +11,7 @@ From the repository root:
 ```sh
 scripts/lsp/phpactor/build-assets.sh
 node --experimental-strip-types scripts/lsp/phpactor/verify-wasm.mjs
+node --experimental-strip-types scripts/lsp/phpactor/verify-vite.mjs
 ```
 
 The asset builder downloads the pinned Phpactor PHAR, verifies its SHA-256, extracts the PHAR, creates Phpactor's WorseReflection PhpStorm-stub map on the host, rewrites those cache paths for the Emscripten filesystem, then packages the extracted application and cache into `assets/lsp/phpactor/phpactor.data`. It uses the existing `src/wasm/Dockerfile` Emscripten 4.0.22 target to run `file_packager.py`; it does not modify that Dockerfile or the existing PHP-WASM assets. If the `phpactor-emscripten:4.0.22` image is absent, Docker builds it with `src/wasm` as its context.
@@ -25,6 +26,20 @@ Current packaged asset measurements:
 | `assets/lsp/phpactor/phpactor-loader.js` |    586,971 |     73,201 | `d3d58a40f11748e46eff97ce2ae12e300147f42cf702944478dca4ac54705060` |
 
 The existing PHP 8.5 WASM binary is 6.7 MiB and is shared with the existing PHP-WASM package; it is not duplicated in this lane. The new raw data package is below GitHub's 100 MB per-file limit.
+
+## Vite worker and public asset check
+
+The application sets `publicDir: 'assets'`, so these files are served from site-root URLs: `/php-8.5.wasm`, `/lsp/phpactor/phpactor.data`, and `/lsp/phpactor/phpactor-loader.js`. The worker follows the existing PHP worker's root WASM convention and uses those root paths. The generated Emscripten data loader is imported at runtime from the public JS URL; it is not statically imported into the worker bundle.
+
+`verify-vite.mjs` creates a temporary app entry that imports `createWorker()`, builds it with the repository Vite configuration, and serves the built output with Vite preview on the worktree's `PORT` (9303 in this worktree). It checks the emitted worker references the root data/loader URLs, checks that public assets were copied, then GETs each asset and compares the response size and Content-Type:
+
+| URL                                | HTTP | Content-Type       |      Bytes |
+| ---------------------------------- | ---: | ------------------ | ---------: |
+| `/php-8.5.wasm`                    |  200 | `application/wasm` |  7,039,920 |
+| `/lsp/phpactor/phpactor.data`      |  200 | not set            | 21,851,151 |
+| `/lsp/phpactor/phpactor-loader.js` |  200 | `text/javascript`  |    586,971 |
+
+The data response has no Content-Type under Vite preview, but it returns the exact packaged bytes; Phpactor's Emscripten file loader reads the response as a byte stream and does not branch on Content-Type. The emitted worker was 85,798 bytes. Before switching the public loader to a runtime import, a real Vite worker build bundled the 586,971-byte loader into the worker and warned that Node's `module` import was externalized for browser compatibility; the current build keeps the loader separate and removes that warning. This validates Vite bundling and static asset delivery, not browser execution or editor integration.
 
 ## Runtime and request path
 
