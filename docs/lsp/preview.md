@@ -13,7 +13,7 @@ The preview was prepared in this worktree:
 - Branch: `gla-115-lsp-preview`
 - Base: `be516894ac2dd0ff76b4e436684e0db53a350eff`
 - PHPantom adapter commit: `159d15ee50dd65dddef6dabb2c3044ece668ce6d`
-- Integrated preview implementation commit: `c3a651d3cb0d1920a9a628d0680ff1de694f15a7` (the submitted branch adds a documentation-only commit after this revision).
+- Integrated preview implementation commit: `817d2e26282dbf04f144776645327ef34c007560` (the submitted branch adds a documentation-only commit after this revision).
 - Port: `7260`
 
 From that directory, run:
