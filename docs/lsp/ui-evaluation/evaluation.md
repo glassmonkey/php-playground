@@ -182,3 +182,7 @@ traceには全postMessageとtimestamp、response、文書version、位置、raw 
 ### 次に活かすこと
 
 再測定では見た目だけでケースを対応付けず、全文/version/position/request IDを結ぶ。Worker RTTと入力から表示までの時間を別々に記録し、raw候補、Monaco filter後の行、Monaco補助候補を区別する。実装構造から未測定の高速化効果を断定しない。
+
+### WIP UI snapshot（比較runから分離）
+
+managerの#424 GitHub readback後、PHPantom `863c1337...` とPhpactor WIP head `3e9f56893ea5373b456b8fa12ede89fdc4b37776` をagent-browser `0.39.1`の隔離sessionで各1回開き、PHP 8.5 / Completion ON / 共通fixture末尾への自然`str_`入力後の画面を保存した。両方でSuggest widgetが見え、Phpactorでは選択候補のsignature detailも画面に出た。詳細trace・性能値・候補件数を取る比較runではなく、安定性や1.8秒ACの再判定に使わない。入力手順、head/asset識別、失敗setupの除外、スクリーンショットと未確認範囲は[WIP snapshot記録](evidence/wip-snapshot-2026-10-25T15-20-51Z/README.md)を参照。

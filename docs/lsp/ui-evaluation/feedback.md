@@ -96,3 +96,10 @@ Phpactor用runnerが8.5を選択できたと誤認したが、保存画面では
 - **残りの比較:** `strl` 6→1 (`strlen`)、`$gre` 2→2、`$greeter->` 3→3、`Greeter::` 2→2。OFFおよびPHP8.4中はwidget非表示・completion要求0を観測、ONおよび8.5復帰後の自然入力で最新prefix要求が回復。OFF時にholdした応答はharnessがdropしたため製品の応答guardの証拠ではない。
 - **原因/負担:** raw `str_`候補19件が確認され、候補本体の不在を示す証拠ではない。今回のslow遅延はadapter/UIの要求時点・古いversion応答の破棄とretry、およびWorker応答待ちを含む経路で観測した。Phpactor boot寄与は未分離。1.8秒を必須にするなら追加のtrigger/settle・in-flight応答・retry調整とブラウザ回帰確認が必要になるが、変更範囲・工数・効果は未測定。candidate rankingを調整する根拠はない。
 - **次手/制約:** 新head待ちの再測定は行わず、現有証拠で一次選定材料を締める。修正後再測定には前項の自然入力harnessを使い、1.8秒時点と延長後の最新応答を別run条件として記録する。比較baselineはPHPantom `863c133...`、Phpactor旧head `ee48f473...`のまま保持し、修正head結果を原比較へ混ぜない。採用判断はユーザー。
+
+## 2026-10-26 00:22 JST — WIP 2画面snapshot
+
+- **対象head:** PHPantom `gla-115-lsp-preview` / `863c1337adb05a339dbbd6eb20a9c26eb7b63316` clean。Phpactor `gla-115-lsp-phpactor-preview` / WIP `3e9f56893ea5373b456b8fa12ede89fdc4b37776` clean、managerの#424 readbackに一致。
+- **再現と事実:** agent-browser `0.39.1`の専用session `gla115-ui-snapshot-7845ddba0ec6`で、両URLをPHP 8.5 / Completion ONで開いた。共通fixture本文をページ内Monaco modelへセットし、末尾`str_`のみkeyboard typeで入力（Ctrl+Spaceなし）。各ページでSuggest widgetが可視。Phpactor選択rowには`str_contains`のFunction/signature detailが出た。画像と詳細条件は`docs/lsp/ui-evaluation/evidence/wip-snapshot-2026-10-25T15-20-51Z/README.md`。
+- **未確認:** raw response、provider origin、request/version/cursor相関、正確な初回表示時刻/1.8秒AC、候補件数、repeatability、host browser version、PHPantom asset hash。これは現WIP画面の短いsnapshotであり、比較traceや安定修正の根拠に置換しない。
+- **初回setupの除外:** PHPantomで最初のfill操作後に旧サンプル文が残ったため、その表示は無効として証拠に含めず、Monaco model APIでfixture全体を初期化してから1回だけ有効観察。これ以外の追加試行はしていない。browser sessionは作業後close。
