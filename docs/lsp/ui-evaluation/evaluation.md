@@ -114,6 +114,16 @@ OFF caseはhover応答を待つ間にcheckbox操作がWorkerをterminateした�
 | `$greeter->`、80ms/文字 | 3→3 (`create`, `greet`, `message`) | version 12 / line 7 character 10。Worker RTT 178ms。 |
 | `Greeter::`、80ms/文字 | 2→2 (`class`, `create`) | version 11 / line 7 character 9。Worker RTT 180ms。 |
 
+### 一次選定で見る差と対応負担
+
+- **候補本体/adapterの切り分け:** `str_`最新prefixのPhpactor raw responseは19 itemsあり、そのうち12行が表示された。1.8秒時点で表示がないrunは、最新prefix要求が候補0件を返した事実ではなく、途中の`s`要求だけが送られ、その応答もまだ届いていなかった状態。長時間runでは`s`への168 item応答をversion不一致で破棄し、最新の`str_`を再要求した。この観測はcandidate setの欠落より、UI/adapterの要求時点・in-flight stale応答処理とWorker応答時間を含む経路の遅れを示す。Worker RTT中のPhpactor boot寄与は未分離であり、言語サーバ本体の限界とは断定できない。
+- **追加対応負担:** 自然入力で遅い要求を捨てた後に最新versionを再要求する機構は入っているが、160ms/文字条件では最終表示まで約4.35秒だった。1.8秒以内の表示をACとする場合、現修正headは未達。候補ranking調整の根拠はなく、入力trigger/settle・cancellation・in-flight queue/retry・遅延表示を対象に追加調整とブラウザ回帰確認が必要になる。修正範囲や作業量はまだ見積もっていない。
+- **未解決:** 10ms/160ms各1回のため、入力速度境界、Worker初回/反復負荷、複数連続responseやCPU競合時の表示時間は不明。DOM visibleはphysical paintを保証しない。PHPantom新headとの再比較も行っていない。どのlatency budgetを採るかはユーザー判断。
+
+### 報告時点のsource状態
+
+実ブラウザ測定時のPhpactor source headは`4fd516045ee6aa958bb01c78be5cb76205537894`でclean、asset `/src/lsp/client.ts`のhashも上記traceに保存した。その後の報告時read-only確認ではbranch `gla-115-lsp-phpactor-preview` のHEADは同じだが、`src/editor.tsx`, `src/lsp/client.ts`, `src/lsp/__test__/client.spec.ts`に未commit変更、`docs/lsp/phpactor-preview/evidence/completion-quick-suggest-v8/`に未追跡証跡があった。このdirty状態のコードは今回のブラウザ評価対象ではなく、追加測定していない。PHPantom worktreeは`863c1337adb05a339dbbd6eb20a9c26eb7b63316`でclean。
+
 low/fast `str_`結果とsource traceは[run 14-35](evidence/phpactor-natural-after-fix-2026-10-25T14-35-23-888Z/trace.json)。各case traceには全`didChange` version、completion request/response id、cursor rect、スクリーンショット、ロードscript/styleのURL/status/ETag/SHA-256を保存した。特にロードされた`/src/lsp/client.ts`はSHA-256 `dac9df3998920ccfc6ac62de3bbd781851477b7ec1a8a3ed55c07d4671e92e77`。今後の修正head再測定では、harnessが入力停止1.8秒時点と、最終request/response後の状態を別々に記録する。candidate visibleはMutationObserver後のanimation frameでwidget rowとrect/styleを確認したDOM計測であり、physical paint完了の保証ではない。ページ/console errorはなかった。
 
 修正headのPhpactor内部traceではslow `str_`の旧応答を返却後、version不一致として破棄し、最新versionへのretryを起動していた。fast `str_`では入力中にmodel versionが進み、settle後にfinal versionを使う1 requestとなった。
