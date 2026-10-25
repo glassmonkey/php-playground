@@ -1,0 +1,122 @@
+#!/usr/bin/env python3
+"""Docker-free subprocess tests for direct-build terminal recording."""
+
+from __future__ import annotations
+
+import importlib.util
+import json
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+import unittest
+
+
+RUNNER = Path(__file__).with_name("direct-buildx-runner.py")
+SPEC = importlib.util.spec_from_file_location("direct_buildx_runner", RUNNER)
+assert SPEC and SPEC.loader
+runner = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(runner)
+
+
+class DirectBuildxRunnerTest(unittest.TestCase):
+	def make_spec(self, root: Path, exit_code: int) -> Path:
+		(root / "raw").mkdir()
+		spec_path = root / "raw" / "runner.spec.json"
+		spec_path.write_text(
+			json.dumps(
+				{
+					"run_id": f"exit-{exit_code}",
+					"run_dir": str(root),
+					"argv": [sys.executable, "-c", f"print('child-output'); raise SystemExit({exit_code})"],
+					"cwd": str(root),
+					"raw_log": "raw/build.log",
+					"started_record": "raw/build.started.json",
+					"results_record": "results.json",
+					"terminal_record": "terminal-result.json",
+					"inputs_sha256": "a" * 64,
+					"repo_revision": "b" * 40,
+					"php_source_sha": "c" * 40,
+					"image_tag": "test:tag",
+				},
+				indent=2,
+				),
+			encoding="utf-8",
+		)
+		return spec_path
+
+	def test_success_exit_and_end_survive_public_launcher(self) -> None:
+		with tempfile.TemporaryDirectory() as temp:
+			root = Path(temp)
+			result = subprocess.run(
+				[sys.executable, str(RUNNER), str(self.make_spec(root, 0))],
+				capture_output=True,
+				text=True,
+				check=False,
+			)
+			self.assertEqual(result.returncode, 0, result.stderr)
+			receipt = json.loads((root / "results.json").read_text())
+			self.assertEqual(receipt["exit_code"], 0)
+			self.assertEqual(receipt["status"], "succeeded")
+			self.assertIsNotNone(receipt["observed_start_utc"])
+			self.assertIsNotNone(receipt["ended_at_utc"])
+			self.assertEqual(receipt["raw_log_sha256"], runner.sha256_file(root / "raw/build.log"))
+			self.assertIn("child-output", (root / "raw/build.log").read_text())
+			self.assertEqual(json.loads((root / "terminal-result.json").read_text()), receipt)
+
+	def test_child_failure_exit_and_end_survive_public_launcher(self) -> None:
+		with tempfile.TemporaryDirectory() as temp:
+			root = Path(temp)
+			result = subprocess.run(
+				[sys.executable, str(RUNNER), str(self.make_spec(root, 7))],
+				capture_output=True,
+				text=True,
+				check=False,
+			)
+			self.assertEqual(result.returncode, 7, result.stderr)
+			receipt = json.loads((root / "results.json").read_text())
+			self.assertEqual(receipt["exit_code"], 7)
+			self.assertEqual(receipt["status"], "failed")
+			self.assertIsNotNone(receipt["ended_at_utc"])
+			self.assertTrue(receipt["raw_log_sha256"])
+			self.assertEqual(json.loads((root / "terminal-result.json").read_text()), receipt)
+
+	def test_optional_log_hash_reporting_error_keeps_child_terminal(self) -> None:
+		with tempfile.TemporaryDirectory() as temp:
+			root = Path(temp)
+			spec = self.make_spec(root, 3)
+			original_hash = runner.sha256_file
+			try:
+				runner.sha256_file = lambda _path: (_ for _ in ()).throw(OSError("injected hash failure"))
+				self.assertEqual(runner.execute(spec), 3)
+			finally:
+				runner.sha256_file = original_hash
+			receipt = json.loads((root / "results.json").read_text())
+			self.assertEqual(receipt["exit_code"], 3)
+			self.assertEqual(receipt["status"], "failed")
+			self.assertTrue(receipt["ended_at_utc"])
+			self.assertIn("reporting_error", receipt)
+
+	def test_start_record_reporting_error_does_not_abandon_child(self) -> None:
+		with tempfile.TemporaryDirectory() as temp:
+			root = Path(temp)
+			spec = self.make_spec(root, 0)
+			original_write = runner.atomic_json
+			def fail_start_record(path: Path, value: dict) -> None:
+				if path.name == "build.started.json":
+					raise OSError("injected start-record failure")
+				original_write(path, value)
+			try:
+				runner.atomic_json = fail_start_record
+				self.assertEqual(runner.execute(spec), 0)
+			finally:
+				runner.atomic_json = original_write
+			receipt = json.loads((root / "results.json").read_text())
+			self.assertEqual(receipt["exit_code"], 0)
+			self.assertEqual(receipt["status"], "succeeded")
+			self.assertIn("start record", receipt["reporting_error"])
+			self.assertIn("child-output", (root / "raw/build.log").read_text())
+
+
+if __name__ == "__main__":
+	unittest.main(verbosity=2)
