@@ -344,11 +344,11 @@ def run_build(args, *, context: Path, repo_revision: str, context_tree_sha: str,
 
 def summarize(records: list[dict]) -> dict:
     measured = [record for record in records if record["phase"] == "measured"]
-    if not measured and not records:
-        return {"status": "failed", "reason": "no measured build records were produced"}
     failed = [record for record in records if record["status"] != "succeeded"]
     if failed:
         return {"status": "failed", "reason": "one or more prime or measured builds failed", "failed_runs": [run["id"] for run in failed]}
+    if not measured:
+        return {"status": "failed", "reason": "no measured build records were produced"}
     durations = [run["duration_seconds"] for run in measured]
     median_duration = statistics.median(durations)
     return {
