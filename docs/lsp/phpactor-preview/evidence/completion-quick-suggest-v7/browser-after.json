@@ -1,0 +1,690 @@
+{
+  "url": "http://127.0.0.1:3471/?c=DwfgDgFmBQDGA2BDAzsgBAcQE4FMcBccs0BvNMAVwCN4BLWNZfRfetAMwoDtZWB7LmgDmuAgAoAlAC5G%2BLLS5DSaXPgpZBAIgi1NAbjQBfI9Gx5CWKVKA&v=8.5&f=html",
+  "httpStatus": 200,
+  "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+  "phpVersion": "8.5",
+  "completion": true,
+  "cases": [
+    {
+      "name": "str_-slow-150ms",
+      "text": [
+        "<?php",
+        "str_"
+      ],
+      "rows": [
+        "str_containsstr_contains(string $haystack, string $needle): bool",
+        "str_decrementstr_decrement(string $string): string",
+        "str_ends_withstr_ends_with(string $haystack, string $needle): bool",
+        "str_getcsvstr_getcsv(string $string, string $separator = ',', string $enclosure = '\"', string $escape = '\\\\\\\\'): array",
+        "str_incrementstr_increment(string $string): string",
+        "str_ireplacestr_ireplace(mixed $search, array|string $replace, array|string $subject, $count = NULL): string|string[]",
+        "str_padstr_pad(string $string, int $length, string $pad_string = ' ', int $pad_type = 1): string",
+        "str_repeatstr_repeat(string $string, int $times): string",
+        "str_replacestr_replace(string|string[] $search, string|string[] $replace, string|string[] $subject, $count = NULL): string|string[]",
+        "str_rot13str_rot13(string $string): string",
+        "str_shufflestr_shuffle(string $string): string",
+        "str_splitstr_split(string $string, int $length = 1): string[]|false"
+      ],
+      "traces": [
+        {
+          "at_ms": 5779,
+          "event": "provider-invoked",
+          "completion_id": 1,
+          "trigger_kind": 0,
+          "model_version": 4
+        },
+        {
+          "at_ms": 5779,
+          "event": "automatic-trigger-settle-started",
+          "completion_id": 1,
+          "delay_ms": 100
+        },
+        {
+          "at_ms": 5881,
+          "event": "rpc-sent",
+          "completion_id": 1,
+          "trigger_kind": 0,
+          "model_version": 4,
+          "position": {
+            "line": 1,
+            "column": 4
+          },
+          "wait_before_send_ms": 103
+        },
+        {
+          "at_ms": 6230,
+          "event": "provider-discarded",
+          "completion_id": 1,
+          "reason": "cancelled-in-flight; worker-request-continues"
+        },
+        {
+          "at_ms": 6331,
+          "event": "automatic-retry-triggered",
+          "completion_id": 1,
+          "model_version": 7
+        },
+        {
+          "at_ms": 6331,
+          "event": "provider-invoked",
+          "completion_id": 2,
+          "trigger_kind": 0,
+          "model_version": 7
+        },
+        {
+          "at_ms": 6331,
+          "event": "automatic-trigger-settle-started",
+          "completion_id": 2,
+          "delay_ms": 100
+        },
+        {
+          "at_ms": 6489,
+          "event": "automatic-trigger-waiting-for-inflight",
+          "completion_id": 2
+        },
+        {
+          "at_ms": 7711,
+          "event": "rpc-response",
+          "completion_id": 1,
+          "elapsed_ms": 1829,
+          "cancelled": true
+        },
+        {
+          "at_ms": 7711,
+          "event": "rpc-sent",
+          "completion_id": 2,
+          "trigger_kind": 0,
+          "model_version": 11,
+          "position": {
+            "line": 2,
+            "column": 5
+          },
+          "wait_before_send_ms": 1380
+        },
+        {
+          "at_ms": 8105,
+          "event": "rpc-response",
+          "completion_id": 2,
+          "elapsed_ms": 394,
+          "cancelled": false
+        },
+        {
+          "at_ms": 8105,
+          "event": "provider-adopted",
+          "completion_id": 2,
+          "candidate_count": 19,
+          "model_version": 11,
+          "total_ms": 1774
+        }
+      ]
+    },
+    {
+      "name": "str_-fast-40ms",
+      "text": [
+        "<?php",
+        "str_"
+      ],
+      "rows": [
+        "str_containsstr_contains(string $haystack, string $needle): bool",
+        "str_decrementstr_decrement(string $string): string",
+        "str_ends_withstr_ends_with(string $haystack, string $needle): bool",
+        "str_getcsvstr_getcsv(string $string, string $separator = ',', string $enclosure = '\"', string $escape = '\\\\\\\\'): array",
+        "str_incrementstr_increment(string $string): string",
+        "str_ireplacestr_ireplace(mixed $search, array|string $replace, array|string $subject, $count = NULL): string|string[]",
+        "str_padstr_pad(string $string, int $length, string $pad_string = ' ', int $pad_type = 1): string",
+        "str_repeatstr_repeat(string $string, int $times): string",
+        "str_replacestr_replace(string|string[] $search, string|string[] $replace, string|string[] $subject, $count = NULL): string|string[]",
+        "str_rot13str_rot13(string $string): string",
+        "str_shufflestr_shuffle(string $string): string",
+        "str_splitstr_split(string $string, int $length = 1): string[]|false"
+      ],
+      "traces": [
+        {
+          "at_ms": 20140,
+          "event": "provider-invoked",
+          "completion_id": 3,
+          "trigger_kind": 0,
+          "model_version": 14
+        },
+        {
+          "at_ms": 20140,
+          "event": "automatic-trigger-settle-started",
+          "completion_id": 3,
+          "delay_ms": 100
+        },
+        {
+          "at_ms": 20254,
+          "event": "provider-discarded",
+          "completion_id": 3,
+          "reason": "cancelled-before-dispatch",
+          "settle_ms": 115
+        },
+        {
+          "at_ms": 20308,
+          "event": "provider-invoked",
+          "completion_id": 4,
+          "trigger_kind": 0,
+          "model_version": 18
+        },
+        {
+          "at_ms": 20308,
+          "event": "automatic-trigger-settle-started",
+          "completion_id": 4,
+          "delay_ms": 100
+        },
+        {
+          "at_ms": 20523,
+          "event": "rpc-sent",
+          "completion_id": 4,
+          "trigger_kind": 0,
+          "model_version": 21,
+          "position": {
+            "line": 2,
+            "column": 5
+          },
+          "wait_before_send_ms": 215
+        },
+        {
+          "at_ms": 20906,
+          "event": "rpc-response",
+          "completion_id": 4,
+          "elapsed_ms": 383,
+          "cancelled": false
+        },
+        {
+          "at_ms": 20906,
+          "event": "provider-adopted",
+          "completion_id": 4,
+          "candidate_count": 19,
+          "model_version": 21,
+          "total_ms": 598
+        }
+      ]
+    },
+    {
+      "name": "strl",
+      "text": [
+        "<?php",
+        "strl"
+      ],
+      "rows": [
+        "strlenstrlen(string $string): int<0, max>"
+      ],
+      "traces": [
+        {
+          "at_ms": 28606,
+          "event": "provider-invoked",
+          "completion_id": 5,
+          "trigger_kind": 0,
+          "model_version": 24
+        },
+        {
+          "at_ms": 28606,
+          "event": "automatic-trigger-settle-started",
+          "completion_id": 5,
+          "delay_ms": 100
+        },
+        {
+          "at_ms": 28722,
+          "event": "provider-discarded",
+          "completion_id": 5,
+          "reason": "cancelled-before-dispatch",
+          "settle_ms": 116
+        },
+        {
+          "at_ms": 28782,
+          "event": "provider-invoked",
+          "completion_id": 6,
+          "trigger_kind": 0,
+          "model_version": 28
+        },
+        {
+          "at_ms": 28782,
+          "event": "automatic-trigger-settle-started",
+          "completion_id": 6,
+          "delay_ms": 100
+        },
+        {
+          "at_ms": 28993,
+          "event": "rpc-sent",
+          "completion_id": 6,
+          "trigger_kind": 0,
+          "model_version": 31,
+          "position": {
+            "line": 2,
+            "column": 5
+          },
+          "wait_before_send_ms": 211
+        },
+        {
+          "at_ms": 29046,
+          "event": "rpc-response",
+          "completion_id": 6,
+          "elapsed_ms": 53,
+          "cancelled": false
+        },
+        {
+          "at_ms": 29046,
+          "event": "provider-adopted",
+          "completion_id": 6,
+          "candidate_count": 6,
+          "model_version": 31,
+          "total_ms": 264
+        }
+      ]
+    },
+    {
+      "name": "$gre",
+      "text": [
+        "<?php",
+        "$greeting = \"hello\";",
+        "$gre"
+      ],
+      "rows": [
+        "$greeting\"hello\""
+      ],
+      "traces": [
+        {
+          "at_ms": 37056,
+          "event": "provider-invoked",
+          "completion_id": 7,
+          "trigger_kind": 0,
+          "model_version": 34
+        },
+        {
+          "at_ms": 37056,
+          "event": "automatic-trigger-settle-started",
+          "completion_id": 7,
+          "delay_ms": 100
+        },
+        {
+          "at_ms": 37174,
+          "event": "provider-discarded",
+          "completion_id": 7,
+          "reason": "cancelled-before-dispatch",
+          "settle_ms": 118
+        },
+        {
+          "at_ms": 37232,
+          "event": "provider-invoked",
+          "completion_id": 8,
+          "trigger_kind": 0,
+          "model_version": 38
+        },
+        {
+          "at_ms": 37232,
+          "event": "automatic-trigger-settle-started",
+          "completion_id": 8,
+          "delay_ms": 100
+        },
+        {
+          "at_ms": 38061,
+          "event": "provider-discarded",
+          "completion_id": 8,
+          "reason": "cancelled-before-dispatch",
+          "settle_ms": 829
+        },
+        {
+          "at_ms": 38115,
+          "event": "provider-invoked",
+          "completion_id": 9,
+          "trigger_kind": 0,
+          "model_version": 59
+        },
+        {
+          "at_ms": 38115,
+          "event": "automatic-trigger-settle-started",
+          "completion_id": 9,
+          "delay_ms": 100
+        },
+        {
+          "at_ms": 38332,
+          "event": "rpc-sent",
+          "completion_id": 9,
+          "trigger_kind": 0,
+          "model_version": 62,
+          "position": {
+            "line": 3,
+            "column": 5
+          },
+          "wait_before_send_ms": 217
+        },
+        {
+          "at_ms": 38379,
+          "event": "rpc-response",
+          "completion_id": 9,
+          "elapsed_ms": 48,
+          "cancelled": false
+        },
+        {
+          "at_ms": 38380,
+          "event": "provider-adopted",
+          "completion_id": 9,
+          "candidate_count": 1,
+          "model_version": 62,
+          "total_ms": 265
+        }
+      ]
+    },
+    {
+      "name": "->",
+      "text": [
+        "<?php",
+        "class Greeter { public function greet(): string { return \"hi\"; } }",
+        "$greeter = new Greeter();",
+        "$greeter->"
+      ],
+      "rows": [
+        "greetpub greet(): string"
+      ],
+      "traces": [
+        {
+          "at_ms": 46404,
+          "event": "provider-invoked",
+          "completion_id": 10,
+          "trigger_kind": 0,
+          "model_version": 65
+        },
+        {
+          "at_ms": 46404,
+          "event": "automatic-trigger-settle-started",
+          "completion_id": 10,
+          "delay_ms": 100
+        },
+        {
+          "at_ms": 46517,
+          "event": "provider-discarded",
+          "completion_id": 10,
+          "reason": "cancelled-before-dispatch",
+          "settle_ms": 113
+        },
+        {
+          "at_ms": 46571,
+          "event": "provider-invoked",
+          "completion_id": 11,
+          "trigger_kind": 0,
+          "model_version": 69
+        },
+        {
+          "at_ms": 46571,
+          "event": "automatic-trigger-settle-started",
+          "completion_id": 11,
+          "delay_ms": 100
+        },
+        {
+          "at_ms": 48205,
+          "event": "provider-invoked",
+          "completion_id": 12,
+          "trigger_kind": 1,
+          "trigger_character": ":",
+          "model_version": 108
+        },
+        {
+          "at_ms": 48205,
+          "event": "automatic-trigger-settle-started",
+          "completion_id": 12,
+          "delay_ms": 100
+        },
+        {
+          "at_ms": 48205,
+          "event": "provider-discarded",
+          "completion_id": 11,
+          "reason": "cancelled-before-dispatch",
+          "settle_ms": 1634
+        },
+        {
+          "at_ms": 49345,
+          "event": "provider-discarded",
+          "completion_id": 12,
+          "reason": "cancelled-before-dispatch",
+          "settle_ms": 1140
+        },
+        {
+          "at_ms": 49398,
+          "event": "provider-invoked",
+          "completion_id": 13,
+          "trigger_kind": 0,
+          "model_version": 136
+        },
+        {
+          "at_ms": 49398,
+          "event": "automatic-trigger-settle-started",
+          "completion_id": 13,
+          "delay_ms": 100
+        },
+        {
+          "at_ms": 50444,
+          "event": "provider-discarded",
+          "completion_id": 13,
+          "reason": "cancelled-before-dispatch",
+          "settle_ms": 1046
+        },
+        {
+          "at_ms": 50498,
+          "event": "provider-invoked",
+          "completion_id": 14,
+          "trigger_kind": 0,
+          "model_version": 162
+        },
+        {
+          "at_ms": 50498,
+          "event": "automatic-trigger-settle-started",
+          "completion_id": 14,
+          "delay_ms": 100
+        },
+        {
+          "at_ms": 50868,
+          "event": "provider-invoked",
+          "completion_id": 15,
+          "trigger_kind": 1,
+          "trigger_character": ">",
+          "model_version": 171
+        },
+        {
+          "at_ms": 50868,
+          "event": "automatic-trigger-settle-started",
+          "completion_id": 15,
+          "delay_ms": 100
+        },
+        {
+          "at_ms": 50869,
+          "event": "provider-discarded",
+          "completion_id": 14,
+          "reason": "cancelled-before-dispatch",
+          "settle_ms": 371
+        },
+        {
+          "at_ms": 50969,
+          "event": "rpc-sent",
+          "completion_id": 15,
+          "trigger_kind": 1,
+          "model_version": 171,
+          "position": {
+            "line": 4,
+            "column": 11
+          },
+          "wait_before_send_ms": 101
+        },
+        {
+          "at_ms": 51041,
+          "event": "rpc-response",
+          "completion_id": 15,
+          "elapsed_ms": 71,
+          "cancelled": false
+        },
+        {
+          "at_ms": 51041,
+          "event": "provider-adopted",
+          "completion_id": 15,
+          "candidate_count": 1,
+          "model_version": 171,
+          "total_ms": 173
+        }
+      ]
+    },
+    {
+      "name": "::",
+      "text": [
+        "<?php",
+        "class Greeter { public static function greet(): string { return \"hi\"; } }",
+        "Greeter::"
+      ],
+      "rows": [
+        "classGreeter",
+        "greetpub greet(): string"
+      ],
+      "traces": [
+        {
+          "at_ms": 59036,
+          "event": "provider-invoked",
+          "completion_id": 16,
+          "trigger_kind": 0,
+          "model_version": 174
+        },
+        {
+          "at_ms": 59036,
+          "event": "automatic-trigger-settle-started",
+          "completion_id": 16,
+          "delay_ms": 100
+        },
+        {
+          "at_ms": 59152,
+          "event": "provider-discarded",
+          "completion_id": 16,
+          "reason": "cancelled-before-dispatch",
+          "settle_ms": 117
+        },
+        {
+          "at_ms": 59205,
+          "event": "provider-invoked",
+          "completion_id": 17,
+          "trigger_kind": 0,
+          "model_version": 178
+        },
+        {
+          "at_ms": 59205,
+          "event": "automatic-trigger-settle-started",
+          "completion_id": 17,
+          "delay_ms": 100
+        },
+        {
+          "at_ms": 61129,
+          "event": "provider-invoked",
+          "completion_id": 18,
+          "trigger_kind": 1,
+          "trigger_character": ":",
+          "model_version": 224
+        },
+        {
+          "at_ms": 61129,
+          "event": "automatic-trigger-settle-started",
+          "completion_id": 18,
+          "delay_ms": 100
+        },
+        {
+          "at_ms": 61129,
+          "event": "provider-discarded",
+          "completion_id": 17,
+          "reason": "cancelled-before-dispatch",
+          "settle_ms": 1924
+        },
+        {
+          "at_ms": 62276,
+          "event": "provider-discarded",
+          "completion_id": 18,
+          "reason": "cancelled-before-dispatch",
+          "settle_ms": 1147
+        },
+        {
+          "at_ms": 62329,
+          "event": "provider-invoked",
+          "completion_id": 19,
+          "trigger_kind": 0,
+          "model_version": 252
+        },
+        {
+          "at_ms": 62329,
+          "event": "automatic-trigger-settle-started",
+          "completion_id": 19,
+          "delay_ms": 100
+        },
+        {
+          "at_ms": 62613,
+          "event": "provider-invoked",
+          "completion_id": 20,
+          "trigger_kind": 1,
+          "trigger_character": ":",
+          "model_version": 259
+        },
+        {
+          "at_ms": 62613,
+          "event": "automatic-trigger-settle-started",
+          "completion_id": 20,
+          "delay_ms": 100
+        },
+        {
+          "at_ms": 62613,
+          "event": "provider-discarded",
+          "completion_id": 19,
+          "reason": "cancelled-before-dispatch",
+          "settle_ms": 284
+        },
+        {
+          "at_ms": 62656,
+          "event": "provider-invoked",
+          "completion_id": 21,
+          "trigger_kind": 1,
+          "trigger_character": ":",
+          "model_version": 260
+        },
+        {
+          "at_ms": 62656,
+          "event": "automatic-trigger-settle-started",
+          "completion_id": 21,
+          "delay_ms": 100
+        },
+        {
+          "at_ms": 62656,
+          "event": "provider-discarded",
+          "completion_id": 20,
+          "reason": "cancelled-before-dispatch",
+          "settle_ms": 43
+        },
+        {
+          "at_ms": 62758,
+          "event": "rpc-sent",
+          "completion_id": 21,
+          "trigger_kind": 1,
+          "model_version": 260,
+          "position": {
+            "line": 3,
+            "column": 10
+          },
+          "wait_before_send_ms": 102
+        },
+        {
+          "at_ms": 62820,
+          "event": "rpc-response",
+          "completion_id": 21,
+          "elapsed_ms": 62,
+          "cancelled": false
+        },
+        {
+          "at_ms": 62820,
+          "event": "provider-adopted",
+          "completion_id": 21,
+          "candidate_count": 2,
+          "model_version": 260,
+          "total_ms": 164
+        }
+      ]
+    }
+  ],
+  "errors": [
+    "SecurityError: Failed to read the 'localStorage' property from 'Window': The document is sandboxed and lacks the 'allow-same-origin' flag.",
+    "SecurityError: Failed to read the 'localStorage' property from 'Window': The document is sandboxed and lacks the 'allow-same-origin' flag.",
+    "SecurityError: Failed to read the 'localStorage' property from 'Window': The document is sandboxed and lacks the 'allow-same-origin' flag.",
+    "SecurityError: Failed to read the 'localStorage' property from 'Window': The document is sandboxed and lacks the 'allow-same-origin' flag.",
+    "SecurityError: Failed to read the 'localStorage' property from 'Window': The document is sandboxed and lacks the 'allow-same-origin' flag.",
+    "SecurityError: Failed to read the 'localStorage' property from 'Window': The document is sandboxed and lacks the 'allow-same-origin' flag."
+  ]
+}

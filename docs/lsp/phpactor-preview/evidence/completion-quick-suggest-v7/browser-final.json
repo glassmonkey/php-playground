@@ -1,0 +1,208 @@
+{
+  "url": "http://127.0.0.1:3471/?c=DwfgDgFmBQDOAuAnA%2BkA&v=8.5&f=html",
+  "httpStatus": 200,
+  "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+  "version": "8.5",
+  "completionOn": true,
+  "cases": [
+    {
+      "name": "slow-150ms",
+      "lines": [
+        "<?php",
+        "str_"
+      ],
+      "rows": [
+        "str_containsstr_contains(string $haystack, string $needle): bool",
+        "str_decrementstr_decrement(string $string): string",
+        "str_ends_withstr_ends_with(string $haystack, string $needle): bool",
+        "str_getcsvstr_getcsv(string $string, string $separator = ',', string $enclosure = '\"', string $escape = '\\\\\\\\'): array",
+        "str_incrementstr_increment(string $string): string",
+        "str_ireplacestr_ireplace(mixed $search, array|string $replace, array|string $subject, $count = NULL): string|string[]",
+        "str_padstr_pad(string $string, int $length, string $pad_string = ' ', int $pad_type = 1): string",
+        "str_repeatstr_repeat(string $string, int $times): string",
+        "str_replacestr_replace(string|string[] $search, string|string[] $replace, string|string[] $subject, $count = NULL): string|string[]",
+        "str_rot13str_rot13(string $string): string",
+        "str_shufflestr_shuffle(string $string): string",
+        "str_splitstr_split(string $string, int $length = 1): string[]|false"
+      ],
+      "trace": [
+        {
+          "at_ms": 5263,
+          "event": "provider-invoked",
+          "completion_id": 1,
+          "trigger_kind": 0,
+          "model_version": 4
+        },
+        {
+          "at_ms": 5263,
+          "event": "automatic-trigger-settle-started",
+          "completion_id": 1,
+          "delay_ms": 100
+        },
+        {
+          "at_ms": 5365,
+          "event": "rpc-sent",
+          "completion_id": 1,
+          "trigger_kind": 0,
+          "model_version": 4,
+          "position": {
+            "line": 1,
+            "column": 4
+          },
+          "wait_before_send_ms": 103
+        },
+        {
+          "at_ms": 5711,
+          "event": "provider-discarded",
+          "completion_id": 1,
+          "reason": "cancelled-in-flight; worker-request-continues"
+        },
+        {
+          "at_ms": 5814,
+          "event": "automatic-retry-triggered",
+          "completion_id": 1,
+          "model_version": 7
+        },
+        {
+          "at_ms": 5814,
+          "event": "provider-invoked",
+          "completion_id": 2,
+          "trigger_kind": 0,
+          "model_version": 7
+        },
+        {
+          "at_ms": 5814,
+          "event": "automatic-trigger-settle-started",
+          "completion_id": 2,
+          "delay_ms": 100
+        },
+        {
+          "at_ms": 5965,
+          "event": "automatic-trigger-waiting-for-inflight",
+          "completion_id": 2
+        },
+        {
+          "at_ms": 7206,
+          "event": "rpc-response",
+          "completion_id": 1,
+          "elapsed_ms": 1841,
+          "cancelled": true
+        },
+        {
+          "at_ms": 7206,
+          "event": "rpc-sent",
+          "completion_id": 2,
+          "trigger_kind": 0,
+          "model_version": 11,
+          "position": {
+            "line": 2,
+            "column": 5
+          },
+          "wait_before_send_ms": 1392
+        },
+        {
+          "at_ms": 7576,
+          "event": "rpc-response",
+          "completion_id": 2,
+          "elapsed_ms": 370,
+          "cancelled": false
+        },
+        {
+          "at_ms": 7577,
+          "event": "provider-adopted",
+          "completion_id": 2,
+          "candidate_count": 19,
+          "model_version": 11,
+          "total_ms": 1763
+        }
+      ]
+    },
+    {
+      "name": "fast-40ms",
+      "lines": [
+        "<?php",
+        "str_"
+      ],
+      "rows": [
+        "str_containsstr_contains(string $haystack, string $needle): bool",
+        "str_decrementstr_decrement(string $string): string",
+        "str_ends_withstr_ends_with(string $haystack, string $needle): bool",
+        "str_getcsvstr_getcsv(string $string, string $separator = ',', string $enclosure = '\"', string $escape = '\\\\\\\\'): array",
+        "str_incrementstr_increment(string $string): string",
+        "str_ireplacestr_ireplace(mixed $search, array|string $replace, array|string $subject, $count = NULL): string|string[]",
+        "str_padstr_pad(string $string, int $length, string $pad_string = ' ', int $pad_type = 1): string",
+        "str_repeatstr_repeat(string $string, int $times): string",
+        "str_replacestr_replace(string|string[] $search, string|string[] $replace, string|string[] $subject, $count = NULL): string|string[]",
+        "str_rot13str_rot13(string $string): string",
+        "str_shufflestr_shuffle(string $string): string",
+        "str_splitstr_split(string $string, int $length = 1): string[]|false"
+      ],
+      "trace": [
+        {
+          "at_ms": 17606,
+          "event": "provider-invoked",
+          "completion_id": 3,
+          "trigger_kind": 0,
+          "model_version": 14
+        },
+        {
+          "at_ms": 17606,
+          "event": "automatic-trigger-settle-started",
+          "completion_id": 3,
+          "delay_ms": 100
+        },
+        {
+          "at_ms": 17723,
+          "event": "provider-discarded",
+          "completion_id": 3,
+          "reason": "cancelled-before-dispatch",
+          "settle_ms": 117
+        },
+        {
+          "at_ms": 17776,
+          "event": "provider-invoked",
+          "completion_id": 4,
+          "trigger_kind": 0,
+          "model_version": 18
+        },
+        {
+          "at_ms": 17776,
+          "event": "automatic-trigger-settle-started",
+          "completion_id": 4,
+          "delay_ms": 100
+        },
+        {
+          "at_ms": 17994,
+          "event": "rpc-sent",
+          "completion_id": 4,
+          "trigger_kind": 0,
+          "model_version": 21,
+          "position": {
+            "line": 2,
+            "column": 5
+          },
+          "wait_before_send_ms": 218
+        },
+        {
+          "at_ms": 18378,
+          "event": "rpc-response",
+          "completion_id": 4,
+          "elapsed_ms": 384,
+          "cancelled": false
+        },
+        {
+          "at_ms": 18378,
+          "event": "provider-adopted",
+          "completion_id": 4,
+          "candidate_count": 19,
+          "model_version": 21,
+          "total_ms": 602
+        }
+      ]
+    }
+  ],
+  "errors": [
+    "SecurityError: Failed to read the 'localStorage' property from 'Window': The document is sandboxed and lacks the 'allow-same-origin' flag.",
+    "SecurityError: Failed to read the 'localStorage' property from 'Window': The document is sandboxed and lacks the 'allow-same-origin' flag."
+  ]
+}

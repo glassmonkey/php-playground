@@ -1,0 +1,707 @@
+{
+  "app": "phpactor",
+  "url": "http://127.0.0.1:3471/?v=8.5&f=html",
+  "head": "ee48f4733c802fa39fc3abd54441dd9737017ee8",
+  "browser": "156.0.8078.47",
+  "assets": {
+    "assets/lsp/phpactor/phpactor.data": "2834909a34fa62d0fa98e88df6fbac6ace489ae445ac05bfa91781dc05ebc075",
+    "assets/lsp/phpactor/phpactor-loader.js": "d3d58a40f11748e46eff97ce2ae12e300147f42cf702944478dca4ac54705060",
+    "docs/lsp/phpactor.md": "c5daf6c4d674fe679243e23f16412a82232c4f92a29905bae75a1831777ea887"
+  },
+  "steps": [
+    {
+      "name": "str_",
+      "mode": "natural-key",
+      "trigger": "str_",
+      "expectedText": "<?php\nstr_",
+      "actualText": "<?php\nstr_",
+      "actualVersion": 6,
+      "waitedResponses": [
+        {
+          "id": 2,
+          "responseSeen": true
+        }
+      ],
+      "events": [
+        {
+          "direction": "ui->worker",
+          "at": 1446.5,
+          "method": "textDocument/didChange",
+          "version": 3,
+          "text": "<?php\ns",
+          "itemCount": 0,
+          "items": []
+        },
+        {
+          "direction": "ui->worker",
+          "at": 1459.5,
+          "id": 2,
+          "method": "textDocument/completion",
+          "position": {
+            "line": 1,
+            "character": 1
+          },
+          "itemCount": 0,
+          "items": []
+        },
+        {
+          "direction": "ui->worker",
+          "at": 1530.800000011921,
+          "method": "textDocument/didChange",
+          "version": 4,
+          "text": "<?php\nst",
+          "itemCount": 0,
+          "items": []
+        },
+        {
+          "direction": "ui->worker",
+          "at": 1627.6000000238419,
+          "method": "textDocument/didChange",
+          "version": 5,
+          "text": "<?php\nstr",
+          "itemCount": 0,
+          "items": []
+        },
+        {
+          "direction": "ui->worker",
+          "at": 1713.1000000238419,
+          "method": "textDocument/didChange",
+          "version": 6,
+          "text": "<?php\nstr_",
+          "itemCount": 0,
+          "items": []
+        },
+        {
+          "direction": "worker->ui",
+          "at": 5532.200000017881,
+          "id": 2,
+          "itemCount": 168,
+          "items": [
+            {
+              "label": "strlen",
+              "insertText": "strlen(${1:\\$string})${0}",
+              "kind": 3,
+              "detail": "strlen(string $string): int<0, max>"
+            },
+            {
+              "label": "strcmp",
+              "insertText": "strcmp(${1:\\$string1}, ${2:\\$string2})${0}",
+              "kind": 3,
+              "detail": "strcmp(string $string1, string $string2): int"
+            },
+            {
+              "label": "strncmp",
+              "insertText": "strncmp(${1:\\$string1}, ${2:\\$string2}, ${3:\\$length})${0}",
+              "kind": 3,
+              "detail": "strncmp(string $string1, string $string2, int $length): int"
+            },
+            {
+              "label": "strcasecmp",
+              "insertText": "strcasecmp(${1:\\$string1}, ${2:\\$string2})${0}",
+              "kind": 3,
+              "detail": "strcasecmp(string $string1, string $string2): int"
+            },
+            {
+              "label": "strncasecmp",
+              "insertText": "strncasecmp(${1:\\$string1}, ${2:\\$string2}, ${3:\\$length})${0}",
+              "kind": 3,
+              "detail": "strncasecmp(string $string1, string $string2, int $length): int"
+            },
+            {
+              "label": "set_error_handler",
+              "insertText": "set_error_handler(${1:\\$callback})${0}",
+              "kind": 3,
+              "detail": "set_error_handler(callable()|null $callback, int $error_levels = 30719): callable()|null"
+            },
+            {
+              "label": "set_exception_handler",
+              "insertText": "set_exception_handler(${1:\\$callback})${0}",
+              "kind": 3,
+              "detail": "set_exception_handler(callable()|null $callback): callable()|null"
+            },
+            {
+              "label": "strtotime",
+              "insertText": "strtotime(${1:\\$datetime})${0}",
+              "kind": 3,
+              "detail": "strtotime(string $datetime, int|null $baseTimestamp = NULL): int|false"
+            },
+            {
+              "label": "strftime",
+              "insertText": "strftime(${1:\\$format})${0}",
+              "kind": 3,
+              "detail": "strftime(string $format, int|null $timestamp = NULL): string|false"
+            },
+            {
+              "label": "srand",
+              "insertText": "srand(${1})${0}",
+              "kind": 3,
+              "detail": "srand(int|null $seed = NULL, int $mode = 0): void"
+            },
+            {
+              "label": "set_time_limit",
+              "insertText": "set_time_limit(${1:\\$seconds})${0}",
+              "kind": 3,
+              "detail": "set_time_limit(int $seconds): bool"
+            },
+            {
+              "label": "stream_wrapper_register",
+              "insertText": "stream_wrapper_register(${1:\\$protocol}, ${2:\\$class})${0}",
+              "kind": 3,
+              "detail": "stream_wrapper_register(string $protocol, string $class, int $flags = 0): bool"
+            },
+            {
+              "label": "stream_register_wrapper",
+              "insertText": "stream_register_wrapper(${1:\\$protocol}, ${2:\\$class})${0}",
+              "kind": 3,
+              "detail": "stream_register_wrapper(string $protocol, string $class, int $flags = 0): bool"
+            },
+            {
+              "label": "stream_wrapper_unregister",
+              "insertText": "stream_wrapper_unregister(${1:\\$protocol})${0}",
+              "kind": 3,
+              "detail": "stream_wrapper_unregister(string $protocol): bool"
+            },
+            {
+              "label": "stream_wrapper_restore",
+              "insertText": "stream_wrapper_restore(${1:\\$protocol})${0}",
+              "kind": 3,
+              "detail": "stream_wrapper_restore(string $protocol): bool"
+            },
+            {
+              "label": "sizeof",
+              "insertText": "sizeof(${1:\\$value})${0}",
+              "kind": 3,
+              "detail": "sizeof(array|Countable $value, int $mode = 0): int<0, max>"
+            },
+            {
+              "label": "sort",
+              "insertText": "sort(${1:\\$array})${0}",
+              "kind": 3,
+              "detail": "sort(array $array, int $flags = 0)"
+            },
+            {
+              "label": "shuffle",
+              "insertText": "shuffle(${1:\\$array})${0}",
+              "kind": 3,
+              "detail": "shuffle(array $array)"
+            },
+            {
+              "label": "sleep",
+              "insertText": "sleep(${1:\\$seconds})${0}",
+              "kind": 3,
+              "detail": "sleep(int<0, max> $seconds): int"
+            },
+            {
+              "label": "show_source",
+              "insertText": "show_source(${1:\\$filename})${0}",
+              "kind": 3,
+              "detail": "show_source(string $filename, bool $return = false): string|bool"
+            },
+            {
+              "label": "set_include_path",
+              "insertText": "set_include_path(${1:\\$include_path})${0}",
+              "kind": 3,
+              "detail": "set_include_path(string $include_path): string|false"
+            },
+            {
+              "label": "sys_getloadavg",
+              "insertText": "sys_getloadavg()",
+              "kind": 3,
+              "detail": "sys_getloadavg(): array{float,float,float}|false"
+            },
+            {
+              "label": "strptime",
+              "insertText": "strptime(${1:\\$timestamp}, ${2:\\$format})${0}",
+              "kind": 3,
+              "detail": "strptime(string $timestamp, string $format): array|false"
+            },
+            {
+              "label": "sha1",
+              "insertText": "sha1(${1:\\$string})${0}",
+              "kind": 3,
+              "detail": "sha1(string $string, bool $binary = false): string"
+            },
+            {
+              "label": "sha1_file",
+              "insertText": "sha1_file(${1:\\$filename})${0}",
+              "kind": 3,
+              "detail": "sha1_file(string $filename, bool $binary = false): string|false"
+            },
+            {
+              "label": "syslog",
+              "insertText": "syslog(${1:\\$priority}, ${2:\\$message})${0}",
+              "kind": 3,
+              "detail": "syslog(int $priority, string $message)"
+            },
+            {
+              "label": "setrawcookie",
+              "insertText": "setrawcookie(${1:\\$name})${0}",
+              "kind": 3,
+              "detail": "setrawcookie(string $name, string $value = '', array $options = array ()): bool"
+            },
+            {
+              "label": "setcookie",
+              "insertText": "setcookie(${1:\\$name})${0}",
+              "kind": 3,
+              "detail": "setcookie(string $name, string $value = '', array $options = array ()): bool"
+            },
+            {
+              "label": "strspn",
+              "insertText": "strspn(${1:\\$string}, ${2:\\$characters})${0}",
+              "kind": 3,
+              "detail": "strspn(string $string, string $characters, int $offset = 0, int|null $length = NULL): int"
+            },
+            {
+              "label": "strcspn",
+              "insertText": "strcspn(${1:\\$string}, ${2:\\$characters})${0}",
+              "kind": 3,
+              "detail": "strcspn(string $string, string $characters, int $offset = 0, int|null $length = NULL): int"
+            }
+          ]
+        }
+      ],
+      "rows": {
+        "visible": false,
+        "rows": []
+      }
+    },
+    {
+      "name": "str_",
+      "mode": "Ctrl+Space",
+      "trigger": "str_",
+      "expectedText": "<?php\nstr_",
+      "actualText": "<?php\nstr_",
+      "actualVersion": 6,
+      "waitedResponses": [
+        {
+          "id": 3,
+          "responseSeen": true
+        }
+      ],
+      "events": [
+        {
+          "direction": "ui->worker",
+          "at": 5855.200000017881,
+          "id": 3,
+          "method": "textDocument/completion",
+          "position": {
+            "line": 1,
+            "character": 4
+          },
+          "itemCount": 0,
+          "items": []
+        },
+        {
+          "direction": "worker->ui",
+          "at": 6303.600000023842,
+          "id": 3,
+          "itemCount": 19,
+          "items": [
+            {
+              "label": "str_increment",
+              "insertText": "str_increment(${1:\\$string})${0}",
+              "kind": 3,
+              "detail": "str_increment(string $string): string"
+            },
+            {
+              "label": "str_decrement",
+              "insertText": "str_decrement(${1:\\$string})${0}",
+              "kind": 3,
+              "detail": "str_decrement(string $string): string"
+            },
+            {
+              "label": "str_contains",
+              "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "kind": 3,
+              "detail": "str_contains(string $haystack, string $needle): bool"
+            },
+            {
+              "label": "str_starts_with",
+              "insertText": "str_starts_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "kind": 3,
+              "detail": "str_starts_with(string $haystack, string $needle): bool"
+            },
+            {
+              "label": "str_ends_with",
+              "insertText": "str_ends_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "kind": 3,
+              "detail": "str_ends_with(string $haystack, string $needle): bool"
+            },
+            {
+              "label": "str_replace",
+              "insertText": "str_replace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+              "kind": 3,
+              "detail": "str_replace(string|string[] $search, string|string[] $replace, string|string[] $subject, $count = NULL): string|string[]"
+            },
+            {
+              "label": "str_ireplace",
+              "insertText": "str_ireplace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+              "kind": 3,
+              "detail": "str_ireplace(mixed $search, array|string $replace, array|string $subject, $count = NULL): string|string[]"
+            },
+            {
+              "label": "str_getcsv",
+              "insertText": "str_getcsv(${1:\\$string})${0}",
+              "kind": 3,
+              "detail": "str_getcsv(string $string, string $separator = ',', string $enclosure = '\"', string $escape = '\\\\\\\\'): array"
+            },
+            {
+              "label": "str_repeat",
+              "insertText": "str_repeat(${1:\\$string}, ${2:\\$times})${0}",
+              "kind": 3,
+              "detail": "str_repeat(string $string, int $times): string"
+            },
+            {
+              "label": "str_pad",
+              "insertText": "str_pad(${1:\\$string}, ${2:\\$length})${0}",
+              "kind": 3,
+              "detail": "str_pad(string $string, int $length, string $pad_string = ' ', int $pad_type = 1): string"
+            },
+            {
+              "label": "str_rot13",
+              "insertText": "str_rot13(${1:\\$string})${0}",
+              "kind": 3,
+              "detail": "str_rot13(string $string): string"
+            },
+            {
+              "label": "str_shuffle",
+              "insertText": "str_shuffle(${1:\\$string})${0}",
+              "kind": 3,
+              "detail": "str_shuffle(string $string): string"
+            },
+            {
+              "label": "str_word_count",
+              "insertText": "str_word_count(${1:\\$string})${0}",
+              "kind": 3,
+              "detail": "str_word_count(string $string, int $format = 0, string|null $characters = NULL): string[]|int"
+            },
+            {
+              "label": "str_split",
+              "insertText": "str_split(${1:\\$string})${0}",
+              "kind": 3,
+              "detail": "str_split(string $string, int $length = 1): string[]|false"
+            },
+            {
+              "label": "class ",
+              "insertText": "class ",
+              "kind": 14,
+              "detail": ""
+            },
+            {
+              "label": "enum ",
+              "insertText": "enum ",
+              "kind": 14,
+              "detail": ""
+            },
+            {
+              "label": "trait ",
+              "insertText": "trait ",
+              "kind": 14,
+              "detail": ""
+            },
+            {
+              "label": "function ",
+              "insertText": "function ",
+              "kind": 14,
+              "detail": ""
+            },
+            {
+              "label": "interface ",
+              "insertText": "interface ",
+              "kind": 14,
+              "detail": ""
+            }
+          ]
+        },
+        {
+          "direction": "worker->ui",
+          "at": 6312.5,
+          "id": 4,
+          "itemCount": 0,
+          "items": []
+        }
+      ],
+      "rows": {
+        "visible": true,
+        "rows": [
+          {
+            "label": "str_contains, Function",
+            "text": "str_contains\nstr_contains(string $haystack, string $needle): bool"
+          },
+          {
+            "label": "str_decrement, Function",
+            "text": "str_decrement"
+          },
+          {
+            "label": "str_ends_with, Function",
+            "text": "str_ends_with"
+          },
+          {
+            "label": "str_getcsv, Function",
+            "text": "str_getcsv"
+          },
+          {
+            "label": "str_increment, Function",
+            "text": "str_increment"
+          },
+          {
+            "label": "str_ireplace, Function",
+            "text": "str_ireplace"
+          },
+          {
+            "label": "str_pad, Function",
+            "text": "str_pad"
+          },
+          {
+            "label": "str_repeat, Function",
+            "text": "str_repeat"
+          },
+          {
+            "label": "str_replace, Function",
+            "text": "str_replace"
+          },
+          {
+            "label": "str_rot13, Function",
+            "text": "str_rot13"
+          },
+          {
+            "label": "str_shuffle, Function",
+            "text": "str_shuffle"
+          },
+          {
+            "label": "str_split, Function",
+            "text": "str_split"
+          }
+        ]
+      }
+    },
+    {
+      "name": "typed-arrow",
+      "mode": "natural-key",
+      "trigger": "->",
+      "expectedText": "<?php\nclass Greeter { public function greet(): string { return \"hi\"; } }\n$greeter = new Greeter();\n$greeter->",
+      "actualText": "<?php\nclass Greeter { public function greet(): string { return \"hi\"; } }\n$greeter = new Greeter();\n$greeter->",
+      "actualVersion": 9,
+      "waitedResponses": [
+        {
+          "id": 5,
+          "responseSeen": true
+        }
+      ],
+      "events": [
+        {
+          "direction": "ui->worker",
+          "at": 7312.300000011921,
+          "method": "textDocument/didChange",
+          "version": 8,
+          "text": "<?php\nclass Greeter { public function greet(): string { return \"hi\"; } }\n$greeter = new Greeter();\n$greeter-",
+          "itemCount": 0,
+          "items": []
+        },
+        {
+          "direction": "ui->worker",
+          "at": 7402.800000011921,
+          "method": "textDocument/didChange",
+          "version": 9,
+          "text": "<?php\nclass Greeter { public function greet(): string { return \"hi\"; } }\n$greeter = new Greeter();\n$greeter->",
+          "itemCount": 0,
+          "items": []
+        },
+        {
+          "direction": "ui->worker",
+          "at": 7506.5,
+          "id": 5,
+          "method": "textDocument/completion",
+          "position": {
+            "line": 3,
+            "character": 10
+          },
+          "itemCount": 0,
+          "items": []
+        },
+        {
+          "direction": "worker->ui",
+          "at": 7632.100000023842,
+          "id": 5,
+          "itemCount": 1,
+          "items": [
+            {
+              "label": "greet",
+              "insertText": "greet()",
+              "kind": 2,
+              "detail": "pub greet(): string"
+            }
+          ]
+        },
+        {
+          "direction": "worker->ui",
+          "at": 7636.4000000059605,
+          "id": 6,
+          "itemCount": 0,
+          "items": []
+        }
+      ],
+      "rows": {
+        "visible": true,
+        "rows": [
+          {
+            "label": "greet, Method",
+            "text": "greet\npub greet(): string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "typed-arrow",
+      "mode": "Ctrl+Space",
+      "trigger": "->",
+      "expectedText": "<?php\nclass Greeter { public function greet(): string { return \"hi\"; } }\n$greeter = new Greeter();\n$greeter->",
+      "actualText": "<?php\nclass Greeter { public function greet(): string { return \"hi\"; } }\n$greeter = new Greeter();\n$greeter->",
+      "actualVersion": 9,
+      "waitedResponses": [
+        {
+          "id": 7,
+          "responseSeen": true
+        }
+      ],
+      "events": [
+        {
+          "direction": "ui->worker",
+          "at": 8338.200000017881,
+          "id": 7,
+          "method": "textDocument/completion",
+          "position": {
+            "line": 3,
+            "character": 10
+          },
+          "itemCount": 0,
+          "items": []
+        },
+        {
+          "direction": "worker->ui",
+          "at": 8438.40000000596,
+          "id": 7,
+          "itemCount": 1,
+          "items": [
+            {
+              "label": "greet",
+              "insertText": "greet()",
+              "kind": 2,
+              "detail": "pub greet(): string"
+            }
+          ]
+        },
+        {
+          "direction": "worker->ui",
+          "at": 8441.5,
+          "id": 8,
+          "itemCount": 0,
+          "items": []
+        }
+      ],
+      "rows": {
+        "visible": true,
+        "rows": [
+          {
+            "label": "greet, Method",
+            "text": "greet\npub greet(): string"
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "consoleErrors": [],
+  "responses": [
+    {
+      "url": "http://127.0.0.1:3471/src/lsp/phpactor-version.ts",
+      "status": 200,
+      "contentType": "text/javascript"
+    },
+    {
+      "url": "http://127.0.0.1:3471/php-8.5.wasm?71391ca5d549168013368a524a6f9116",
+      "status": 200,
+      "contentType": "application/wasm"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/lsp/phpactor/index.ts",
+      "status": 200,
+      "contentType": "text/javascript"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/lsp/phpactor/phpactor-worker.ts?worker_file&type=module",
+      "status": 200,
+      "contentType": "text/javascript"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/lsp/phpactor/dispatch.php?import&raw",
+      "status": 200,
+      "contentType": "text/javascript"
+    },
+    {
+      "url": "http://127.0.0.1:3471/php-8.5.wasm?71391ca5d549168013368a524a6f9116",
+      "status": 200,
+      "contentType": "application/wasm"
+    },
+    {
+      "url": "http://127.0.0.1:3471/lsp/phpactor/phpactor-loader.js",
+      "status": 200,
+      "contentType": "text/javascript"
+    },
+    {
+      "url": "http://127.0.0.1:3471/lsp/phpactor/phpactor.data",
+      "status": 200,
+      "contentType": null
+    },
+    {
+      "url": "http://127.0.0.1:3471/php-8.5.wasm?71391ca5d549168013368a524a6f9116",
+      "status": 200,
+      "contentType": "application/wasm"
+    },
+    {
+      "url": "http://127.0.0.1:3471/php-8.5.wasm?71391ca5d549168013368a524a6f9116",
+      "status": 200,
+      "contentType": "application/wasm"
+    }
+  ],
+  "httpStatus": 200,
+  "completionInitiallyOn": false,
+  "phpVersion": "8.5",
+  "completionChecked": true,
+  "initialize": [
+    {
+      "direction": "ui->worker",
+      "at": 914.9000000059605,
+      "id": 1,
+      "method": "initialize",
+      "params": {
+        "processId": null,
+        "rootUri": null,
+        "capabilities": {
+          "general": {
+            "positionEncodings": [
+              "utf-16"
+            ]
+          },
+          "textDocument": {
+            "completion": {
+              "completionItem": {
+                "snippetSupport": true
+              }
+            },
+            "hover": {
+              "contentFormat": [
+                "markdown",
+                "plaintext"
+              ]
+            }
+          }
+        },
+        "initializationOptions": {
+          "phpVersion": "8.5"
+        }
+      }
+    }
+  ],
+  "statusText": []
+}

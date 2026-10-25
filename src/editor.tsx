@@ -67,6 +67,9 @@ function PhpEditor(params: {
 	const [editorInstance, setEditorInstance] = React.useState<
 		Parameters<OnMount>[0] | null
 	>(null);
+	const manualCompletionShortcutAt = React.useRef<number | undefined>(
+		undefined
+	);
 
 	const onChangeCode: OnChange = debounce((value) => {
 		updateCode(value || '');
@@ -79,6 +82,7 @@ function PhpEditor(params: {
 				event.keyCode === monaco.KeyCode.Space &&
 				(event.ctrlKey || event.metaKey)
 			) {
+				manualCompletionShortcutAt.current = performance.now();
 				traceManualCompletionShortcut('Ctrl/Command+Space');
 			} else if (
 				event.keyCode === monaco.KeyCode.Escape &&
@@ -90,6 +94,7 @@ function PhpEditor(params: {
 	};
 
 	React.useEffect(() => {
+		manualCompletionShortcutAt.current = undefined;
 		if (!params.lspEnabled || !editorInstance || !monacoInstance) {
 			params.onLspStatus({ state: 'off' });
 			return;
@@ -121,6 +126,22 @@ function PhpEditor(params: {
 					monaco: monacoInstance,
 					phpVersion: params.version,
 					getPosition: () => editorInstance.getPosition(),
+					consumeManualCompletionShortcut: () => {
+						const requestedAt = manualCompletionShortcutAt.current;
+						manualCompletionShortcutAt.current = undefined;
+						return (
+							requestedAt !== undefined &&
+							performance.now() - requestedAt < 500
+						);
+					},
+					triggerCompletion: () => {
+						if (editorInstance.hasTextFocus())
+							editorInstance.trigger(
+								'phpactor-lsp',
+								'editor.action.triggerSuggest',
+								null
+							);
+					},
 					onStatus: (state, message) => {
 						if (!cancelled) params.onLspStatus({ state, message });
 					},
