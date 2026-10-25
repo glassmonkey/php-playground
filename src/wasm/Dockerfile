@@ -434,10 +434,6 @@ COPY --from=emscripten-sqlite3 /root/lib /root/lib-sqlite3
 RUN if [ "$WITH_SQLITE" = "yes" ]; \
     then \
         bash /root/copy-lib.sh lib-sqlite3 && \
-        # Configure executes Emscripten conftest under Node from /root/php-src;
-        # make the linked SQLite side module available from that working directory.
-        test -f /root/lib/lib/libsqlite3.so && \
-        ln -sf /root/lib/lib/libsqlite3.so /root/php-src/libsqlite3.so && \
         echo -n ' --with-sqlite3 --enable-pdo --with-pdo-sqlite ' >> /root/.php-configure-flags && \
         echo -n ' -I ext/pdo_sqlite ' >> /root/.emcc-php-wasm-flags; \
         if [[ "${PHP_VERSION:0:1}" -eq "7" && "${PHP_VERSION:2:1}" -ge "4" ]] || [ "${PHP_VERSION:0:1}" -eq "8" ]; then \
@@ -514,6 +510,17 @@ RUN if [ "$WITH_MYSQL" = "yes" ]; then \
 
 # Build the patched PHP
 WORKDIR /root/php-src
+# Emscripten configure checks execute their test modules under Node from this
+# working directory. Make linked side modules discoverable from the test CWD.
+RUN set -eu; \
+    for library in /root/lib/lib/*.so; do \
+        [ -f "$library" ] || continue; \
+        module="/root/php-src/${library##*/}"; \
+        if [ ! -e "$module" ] && [ ! -L "$module" ]; then \
+            ln -s "$library" "$module"; \
+        fi; \
+    done
+
 RUN source /root/emsdk/emsdk_env.sh && \
     emconfigure ./configure \
     PKG_CONFIG_PATH=$PKG_CONFIG_PATH \
