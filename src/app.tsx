@@ -8,15 +8,19 @@ import {
 	Link,
 	Center,
 	Button,
+	Checkbox,
 	Switch,
 	useColorMode,
+	useColorModeValue,
+	Tooltip,
+	VisuallyHidden,
 } from '@chakra-ui/react';
 import { useSearchParams } from 'react-router-dom';
 import * as lzstring from 'lz-string';
 
 import { Version, asVersion, defaultVersion } from './php-wasm/php';
 import SelectPHP from './select';
-import { Editor } from './editor';
+import { Editor, type LspStatus } from './editor';
 import { BellIcon } from '@chakra-ui/icons';
 import { Format, SelectFormat } from './format';
 import { previewThemeFor } from './preview-theme';
@@ -29,6 +33,14 @@ type UrlState = {
 
 export default function App() {
 	const [searchParams, setSearchParams] = useSearchParams();
+	const [completionEnabled, setCompletionEnabled] = React.useState(false);
+	const [completionStatus, setCompletionStatus] = React.useState<LspStatus>({
+		state: 'off',
+	});
+	const onCompletionStatusChange = React.useCallback(
+		(status: LspStatus) => setCompletionStatus(status),
+		[]
+	);
 	const initCode =
 		lzstring.decompressFromEncodedURIComponent(
 			searchParams.get('c') ?? ''
@@ -41,6 +53,13 @@ export default function App() {
 
 	const currentFormat: Format =
 		searchParams.get('f') === 'console' ? 'console' : 'html';
+	const completionError =
+		completionStatus.state !== 'error'
+			? undefined
+			: (completionStatus.message ??
+				'PHP completion could not be initialized.');
+	const completionErrorId = 'completion-error-description';
+	const completionErrorColor = useColorModeValue('orange.600', 'orange.300');
 
 	function updateVersion(v: Version) {
 		const currentState = history.state as UrlState | null;
@@ -165,6 +184,39 @@ export default function App() {
 						format={currentFormat}
 						updateFormat={updateFormat}
 					/>
+					<Checkbox
+						data-testid="checkbox-completion"
+						isChecked={completionEnabled}
+						aria-describedby={
+							completionError ? completionErrorId : undefined
+						}
+						onChange={(event) =>
+							setCompletionEnabled(event.target.checked)
+						}
+					>
+						Completion
+					</Checkbox>
+					{completionError && (
+						<>
+							<Tooltip label={completionError} placement="top">
+								<Text
+									as="span"
+									aria-hidden="true"
+									color={completionErrorColor}
+									cursor="help"
+								>
+									!
+								</Text>
+							</Tooltip>
+							<VisuallyHidden
+								id={completionErrorId}
+								role="status"
+								aria-live="polite"
+							>
+								{completionError}
+							</VisuallyHidden>
+						</>
+					)}
 				</Flex>
 			</Flex>
 			<Editor
@@ -172,6 +224,8 @@ export default function App() {
 				version={currentVersion}
 				format={currentFormat}
 				theme={previewTheme}
+				lspEnabled={completionEnabled}
+				onLspStatusChange={onCompletionStatusChange}
 				onChangeCode={function (code: string) {
 					setHistory(code, currentVersion, currentFormat);
 				}}

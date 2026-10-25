@@ -27,6 +27,8 @@ yarn-debug.log*
 yarn-error.log*
 
 assets/index.js
+/assets/lsp/phpactor/phpactor.data
+/assets/lsp/phpactor/phpactor-loader.js
 
 build-types
 *.tsbuildinfo
