@@ -67,3 +67,12 @@ Phpactor用runnerが8.5を選択できたと誤認したが、保存画面では
 - **未特定点:** Completion OFFでも出る`new Gre`のword suggestionsはprovider IDを未特定。可能ならUI担当に最小instrumentationで識別可能か質問してほしいが、provider internals探索は広げない。
 - **原因仮説・確度:** hover非表示の旧判定はDOM timing/sample境界の取り違え（高）。stale completionを現画面へ再表示しなかった事実は高、内部でどのguardが抑止したかはsource/担当回答待ち。Phpactor `->`の入力→request間が約188–191ms、sourceの100ms settleに相当する可能性はあるが、入力/React/Monacoなど他要因も含みboot寄与とは分離していない。
 - **提出:** 同専用branch/lane、一次commit `d9a2ce9`を保持し、追加commitとDraft PR更新でmanagerレビューへ提出する。
+
+## 2026-10-25 22:35 JST — `str_`実試用の独立確認とguard範囲訂正
+
+- **対象head:** PHPantom `863c1337adb05a339dbbd6eb20a9c26eb7b63316`、Phpactor `ee48f4733c802fa39fc3abd54441dd9737017ee8`。隔離Chrome `156.0.8078.47`、同fixture / PHP 8.5 / Completion ON。
+- **`str_`観測:** 貼付け全文後のCtrl+Spaceと、`str`から`_`を実キー入力した自動条件を分離。両方で全文change/version/line7 char4が一致するcompletion request/responseを観測し、今回条件では「候補非表示」を再現しなかった。PHPantom raw32→画面13、Phpactor raw19→画面12（Phpactor rawにはkeyword5件、画面に出ない）。`strl` controlはPHPantom raw4→画面4、Phpactor raw6→画面1 (`strlen`)で、manual/auto間の件数は同じ。trace: [PHPantom](evidence/phpantom-str-prefix-2026-10-25T13-35-08-284Z/trace.json), [Phpactor](evidence/phpactor-str-prefix-2026-10-25T13-35-19-537Z/trace.json)。PHPantom `str_` auto rawにはsignature labelがある一方、manual rawは一部labelがbare function nameだった。候補集合は同じに見え、metadata差の原因は未確定。
+- **確認依頼（manager経由UI担当）:** 現制御fixtureでは表示されるため、p7の実試用診断を継続し、報告操作・実文書version・実カーソル/selection/focus/checkbox・raw requestとの相違を確認してほしい。PHPantom `str_` auto/manual response metadata差の生成/resolve境界も説明可能なら教えてほしい。変更依頼なし。
+- **遅延応答/guardの訂正:** 文書変更後のcompletion旧responseは両方でharnessから同じWorker response eventとして遅延再配送し、現在候補が維持された。sourceはPHPantom completion/hoverのcurrent-model+document-version確認、Phpactor completionのCancellationToken/raceCompletionCancellation+current-model/version確認、hoverのcurrent-model/version確認。確認範囲に明示的per-request generation counterは見つけていない。一方、Completion OFF caseはterminate後にharnessが古いhover responseを再配送せずdropしたため、製品のgeneration/version guardを検証した結果ではない。ここを報告本文で分離して修正。
+- **未特定:** `new Gre`のMonaco補助候補exact provider IDは、この画面/Worker境界の観測では未特定。provider internals探索は拡張せず、UI担当の最小識別回答待ち。
+- **一次報告:** [evaluation.md](evaluation.md)に`str_`/`strl` manual/auto表とguard source/behaviorの境界を追加。UI/Worker source、server、owner状態の変更なし。

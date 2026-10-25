@@ -1,0 +1,1846 @@
+{
+  "app": "phpactor",
+  "runId": "2026-10-25T13-35-19-537Z",
+  "url": "http://127.0.0.1:3471/?v=8.5&f=html",
+  "browser": "156.0.8078.47",
+  "phpVersion": "8.5",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "fixture": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n",
+  "inputSpeed": "Playwright keyboard.type delay=80ms per naturally typed character; manual Ctrl+Space uses the same exact prefix after full document synchronization",
+  "methods": "Worker request/response postMessage capture; screen rows from Monaco suggest widget after request/settle window",
+  "results": [
+    {
+      "name": "manual-str-underscore",
+      "prefix": "str_",
+      "typed": "",
+      "mode": "manual",
+      "fullText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_",
+      "baseVersion": 2,
+      "changeVersion": 2,
+      "changeAt": 1026.5,
+      "expectedPosition": {
+        "line": 7,
+        "character": 4
+      },
+      "request": {
+        "direction": "ui->worker",
+        "at": 1044.5,
+        "id": 2,
+        "method": "textDocument/completion",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1"
+          },
+          "position": {
+            "line": 7,
+            "character": 4
+          }
+        }
+      },
+      "response": {
+        "direction": "worker->ui",
+        "at": 1632.1000000238419,
+        "id": 2,
+        "result": {
+          "isIncomplete": false,
+          "items": [
+            {
+              "label": "str_increment",
+              "insertText": "str_increment(${1:\\$string})${0}",
+              "detail": "str_increment(string $string): string",
+              "documentation": "\n\n\nIncrement an alphanumeric string\n\nReturns the incremented alphanumeric ASCII string.\n\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_decrement",
+              "insertText": "str_decrement(${1:\\$string})${0}",
+              "detail": "str_decrement(string $string): string",
+              "documentation": "\n\n\nDecrement an alphanumeric string\n\nReturns the decremented alphanumeric ASCII string.\n\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_contains",
+              "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "str_contains(string $haystack, string $needle): bool",
+              "documentation": "\n\n\nChecks if $needle is found in $haystack and returns a boolean value\n(true/false) whether or not the $needle was found.\n\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_starts_with",
+              "insertText": "str_starts_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "str_starts_with(string $haystack, string $needle): bool",
+              "documentation": "\n\n\nThe function returns {",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_ends_with",
+              "insertText": "str_ends_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "str_ends_with(string $haystack, string $needle): bool",
+              "documentation": "\n\n\nThe function returns {",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_replace",
+              "insertText": "str_replace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+              "detail": "str_replace(string|string[] $search, string|string[] $replace, string|string[] $subject, $count = NULL): string|string[]",
+              "documentation": "\n\n\nReplace all occurrences of the search string with the replacement string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_ireplace",
+              "insertText": "str_ireplace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+              "detail": "str_ireplace(mixed $search, array|string $replace, array|string $subject, $count = NULL): string|string[]",
+              "documentation": "\n\n\nCase-insensitive version of <function>str_replace</function>.\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_getcsv",
+              "insertText": "str_getcsv(${1:\\$string})${0}",
+              "detail": "str_getcsv(string $string, string $separator = ',', string $enclosure = '\"', string $escape = '\\\\\\\\'): array",
+              "documentation": "\n\n\nParse a CSV string into an array\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_repeat",
+              "insertText": "str_repeat(${1:\\$string}, ${2:\\$times})${0}",
+              "detail": "str_repeat(string $string, int $times): string",
+              "documentation": "\n\n\nRepeat a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_pad",
+              "insertText": "str_pad(${1:\\$string}, ${2:\\$length})${0}",
+              "detail": "str_pad(string $string, int $length, string $pad_string = ' ', int $pad_type = 1): string",
+              "documentation": "\n\n\nPad a string to a certain length with another string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_rot13",
+              "insertText": "str_rot13(${1:\\$string})${0}",
+              "detail": "str_rot13(string $string): string",
+              "documentation": "\n\n\nPerform the rot13 transform on a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_shuffle",
+              "insertText": "str_shuffle(${1:\\$string})${0}",
+              "detail": "str_shuffle(string $string): string",
+              "documentation": "\n\n\nRandomly shuffles a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_word_count",
+              "insertText": "str_word_count(${1:\\$string})${0}",
+              "detail": "str_word_count(string $string, int $format = 0, string|null $characters = NULL): string[]|int",
+              "documentation": "\n\n\nReturn information about words used in a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_split",
+              "insertText": "str_split(${1:\\$string})${0}",
+              "detail": "str_split(string $string, int $length = 1): string[]|false",
+              "documentation": "\n\n\nConvert a string to an array\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "class ",
+              "insertText": "class ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "enum ",
+              "insertText": "enum ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "trait ",
+              "insertText": "trait ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "function ",
+              "insertText": "function ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "interface ",
+              "insertText": "interface ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            }
+          ]
+        }
+      },
+      "rawResult": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "str_increment",
+            "insertText": "str_increment(${1:\\$string})${0}",
+            "detail": "str_increment(string $string): string",
+            "documentation": "\n\n\nIncrement an alphanumeric string\n\nReturns the incremented alphanumeric ASCII string.\n\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_decrement",
+            "insertText": "str_decrement(${1:\\$string})${0}",
+            "detail": "str_decrement(string $string): string",
+            "documentation": "\n\n\nDecrement an alphanumeric string\n\nReturns the decremented alphanumeric ASCII string.\n\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_contains",
+            "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})${0}",
+            "detail": "str_contains(string $haystack, string $needle): bool",
+            "documentation": "\n\n\nChecks if $needle is found in $haystack and returns a boolean value\n(true/false) whether or not the $needle was found.\n\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_starts_with",
+            "insertText": "str_starts_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+            "detail": "str_starts_with(string $haystack, string $needle): bool",
+            "documentation": "\n\n\nThe function returns {",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_ends_with",
+            "insertText": "str_ends_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+            "detail": "str_ends_with(string $haystack, string $needle): bool",
+            "documentation": "\n\n\nThe function returns {",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_replace",
+            "insertText": "str_replace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+            "detail": "str_replace(string|string[] $search, string|string[] $replace, string|string[] $subject, $count = NULL): string|string[]",
+            "documentation": "\n\n\nReplace all occurrences of the search string with the replacement string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_ireplace",
+            "insertText": "str_ireplace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+            "detail": "str_ireplace(mixed $search, array|string $replace, array|string $subject, $count = NULL): string|string[]",
+            "documentation": "\n\n\nCase-insensitive version of <function>str_replace</function>.\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_getcsv",
+            "insertText": "str_getcsv(${1:\\$string})${0}",
+            "detail": "str_getcsv(string $string, string $separator = ',', string $enclosure = '\"', string $escape = '\\\\\\\\'): array",
+            "documentation": "\n\n\nParse a CSV string into an array\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_repeat",
+            "insertText": "str_repeat(${1:\\$string}, ${2:\\$times})${0}",
+            "detail": "str_repeat(string $string, int $times): string",
+            "documentation": "\n\n\nRepeat a string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_pad",
+            "insertText": "str_pad(${1:\\$string}, ${2:\\$length})${0}",
+            "detail": "str_pad(string $string, int $length, string $pad_string = ' ', int $pad_type = 1): string",
+            "documentation": "\n\n\nPad a string to a certain length with another string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_rot13",
+            "insertText": "str_rot13(${1:\\$string})${0}",
+            "detail": "str_rot13(string $string): string",
+            "documentation": "\n\n\nPerform the rot13 transform on a string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_shuffle",
+            "insertText": "str_shuffle(${1:\\$string})${0}",
+            "detail": "str_shuffle(string $string): string",
+            "documentation": "\n\n\nRandomly shuffles a string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_word_count",
+            "insertText": "str_word_count(${1:\\$string})${0}",
+            "detail": "str_word_count(string $string, int $format = 0, string|null $characters = NULL): string[]|int",
+            "documentation": "\n\n\nReturn information about words used in a string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_split",
+            "insertText": "str_split(${1:\\$string})${0}",
+            "detail": "str_split(string $string, int $length = 1): string[]|false",
+            "documentation": "\n\n\nConvert a string to an array\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "class ",
+            "insertText": "class ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "enum ",
+            "insertText": "enum ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "trait ",
+            "insertText": "trait ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "function ",
+            "insertText": "function ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "interface ",
+            "insertText": "interface ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          }
+        ]
+      },
+      "visibleRows": [
+        "str_contains\nstr_contains(string $haystack, string $needle): bool",
+        "str_decrement",
+        "str_ends_with",
+        "str_getcsv",
+        "str_increment",
+        "str_ireplace",
+        "str_pad",
+        "str_repeat",
+        "str_replace",
+        "str_rot13",
+        "str_shuffle",
+        "str_split"
+      ],
+      "suggestionVisible": true,
+      "state": {
+        "editorText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_",
+        "activeElement": {
+          "tag": "DIV",
+          "className": "native-edit-context"
+        },
+        "phpVersion": "8.5",
+        "completionChecked": true,
+        "suggest": {
+          "visible": true,
+          "rows": [
+            "str_contains\nstr_contains(string $haystack, string $needle): bool",
+            "str_decrement",
+            "str_ends_with",
+            "str_getcsv",
+            "str_increment",
+            "str_ireplace",
+            "str_pad",
+            "str_repeat",
+            "str_replace",
+            "str_rot13",
+            "str_shuffle",
+            "str_split"
+          ]
+        }
+      },
+      "orderValid": true,
+      "screenshot": "manual-str-underscore.png"
+    },
+    {
+      "name": "auto-str-underscore",
+      "prefix": "str",
+      "typed": "_",
+      "mode": "auto",
+      "fullText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_",
+      "baseVersion": 3,
+      "changeVersion": 4,
+      "changeAt": 2006,
+      "expectedPosition": {
+        "line": 7,
+        "character": 4
+      },
+      "request": {
+        "direction": "ui->worker",
+        "at": 2018.2000000178814,
+        "id": 4,
+        "method": "textDocument/completion",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1"
+          },
+          "position": {
+            "line": 7,
+            "character": 4
+          }
+        }
+      },
+      "response": {
+        "direction": "worker->ui",
+        "at": 2457.7000000178814,
+        "id": 4,
+        "result": {
+          "isIncomplete": false,
+          "items": [
+            {
+              "label": "str_increment",
+              "insertText": "str_increment(${1:\\$string})${0}",
+              "detail": "str_increment(string $string): string",
+              "documentation": "\n\n\nIncrement an alphanumeric string\n\nReturns the incremented alphanumeric ASCII string.\n\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_decrement",
+              "insertText": "str_decrement(${1:\\$string})${0}",
+              "detail": "str_decrement(string $string): string",
+              "documentation": "\n\n\nDecrement an alphanumeric string\n\nReturns the decremented alphanumeric ASCII string.\n\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_contains",
+              "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "str_contains(string $haystack, string $needle): bool",
+              "documentation": "\n\n\nChecks if $needle is found in $haystack and returns a boolean value\n(true/false) whether or not the $needle was found.\n\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_starts_with",
+              "insertText": "str_starts_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "str_starts_with(string $haystack, string $needle): bool",
+              "documentation": "\n\n\nThe function returns {",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_ends_with",
+              "insertText": "str_ends_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "str_ends_with(string $haystack, string $needle): bool",
+              "documentation": "\n\n\nThe function returns {",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_replace",
+              "insertText": "str_replace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+              "detail": "str_replace(string|string[] $search, string|string[] $replace, string|string[] $subject, $count = NULL): string|string[]",
+              "documentation": "\n\n\nReplace all occurrences of the search string with the replacement string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_ireplace",
+              "insertText": "str_ireplace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+              "detail": "str_ireplace(mixed $search, array|string $replace, array|string $subject, $count = NULL): string|string[]",
+              "documentation": "\n\n\nCase-insensitive version of <function>str_replace</function>.\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_getcsv",
+              "insertText": "str_getcsv(${1:\\$string})${0}",
+              "detail": "str_getcsv(string $string, string $separator = ',', string $enclosure = '\"', string $escape = '\\\\\\\\'): array",
+              "documentation": "\n\n\nParse a CSV string into an array\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_repeat",
+              "insertText": "str_repeat(${1:\\$string}, ${2:\\$times})${0}",
+              "detail": "str_repeat(string $string, int $times): string",
+              "documentation": "\n\n\nRepeat a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_pad",
+              "insertText": "str_pad(${1:\\$string}, ${2:\\$length})${0}",
+              "detail": "str_pad(string $string, int $length, string $pad_string = ' ', int $pad_type = 1): string",
+              "documentation": "\n\n\nPad a string to a certain length with another string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_rot13",
+              "insertText": "str_rot13(${1:\\$string})${0}",
+              "detail": "str_rot13(string $string): string",
+              "documentation": "\n\n\nPerform the rot13 transform on a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_shuffle",
+              "insertText": "str_shuffle(${1:\\$string})${0}",
+              "detail": "str_shuffle(string $string): string",
+              "documentation": "\n\n\nRandomly shuffles a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_word_count",
+              "insertText": "str_word_count(${1:\\$string})${0}",
+              "detail": "str_word_count(string $string, int $format = 0, string|null $characters = NULL): string[]|int",
+              "documentation": "\n\n\nReturn information about words used in a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_split",
+              "insertText": "str_split(${1:\\$string})${0}",
+              "detail": "str_split(string $string, int $length = 1): string[]|false",
+              "documentation": "\n\n\nConvert a string to an array\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "class ",
+              "insertText": "class ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "enum ",
+              "insertText": "enum ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "trait ",
+              "insertText": "trait ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "function ",
+              "insertText": "function ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "interface ",
+              "insertText": "interface ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            }
+          ]
+        }
+      },
+      "rawResult": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "str_increment",
+            "insertText": "str_increment(${1:\\$string})${0}",
+            "detail": "str_increment(string $string): string",
+            "documentation": "\n\n\nIncrement an alphanumeric string\n\nReturns the incremented alphanumeric ASCII string.\n\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_decrement",
+            "insertText": "str_decrement(${1:\\$string})${0}",
+            "detail": "str_decrement(string $string): string",
+            "documentation": "\n\n\nDecrement an alphanumeric string\n\nReturns the decremented alphanumeric ASCII string.\n\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_contains",
+            "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})${0}",
+            "detail": "str_contains(string $haystack, string $needle): bool",
+            "documentation": "\n\n\nChecks if $needle is found in $haystack and returns a boolean value\n(true/false) whether or not the $needle was found.\n\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_starts_with",
+            "insertText": "str_starts_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+            "detail": "str_starts_with(string $haystack, string $needle): bool",
+            "documentation": "\n\n\nThe function returns {",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_ends_with",
+            "insertText": "str_ends_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+            "detail": "str_ends_with(string $haystack, string $needle): bool",
+            "documentation": "\n\n\nThe function returns {",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_replace",
+            "insertText": "str_replace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+            "detail": "str_replace(string|string[] $search, string|string[] $replace, string|string[] $subject, $count = NULL): string|string[]",
+            "documentation": "\n\n\nReplace all occurrences of the search string with the replacement string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_ireplace",
+            "insertText": "str_ireplace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+            "detail": "str_ireplace(mixed $search, array|string $replace, array|string $subject, $count = NULL): string|string[]",
+            "documentation": "\n\n\nCase-insensitive version of <function>str_replace</function>.\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_getcsv",
+            "insertText": "str_getcsv(${1:\\$string})${0}",
+            "detail": "str_getcsv(string $string, string $separator = ',', string $enclosure = '\"', string $escape = '\\\\\\\\'): array",
+            "documentation": "\n\n\nParse a CSV string into an array\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_repeat",
+            "insertText": "str_repeat(${1:\\$string}, ${2:\\$times})${0}",
+            "detail": "str_repeat(string $string, int $times): string",
+            "documentation": "\n\n\nRepeat a string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_pad",
+            "insertText": "str_pad(${1:\\$string}, ${2:\\$length})${0}",
+            "detail": "str_pad(string $string, int $length, string $pad_string = ' ', int $pad_type = 1): string",
+            "documentation": "\n\n\nPad a string to a certain length with another string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_rot13",
+            "insertText": "str_rot13(${1:\\$string})${0}",
+            "detail": "str_rot13(string $string): string",
+            "documentation": "\n\n\nPerform the rot13 transform on a string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_shuffle",
+            "insertText": "str_shuffle(${1:\\$string})${0}",
+            "detail": "str_shuffle(string $string): string",
+            "documentation": "\n\n\nRandomly shuffles a string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_word_count",
+            "insertText": "str_word_count(${1:\\$string})${0}",
+            "detail": "str_word_count(string $string, int $format = 0, string|null $characters = NULL): string[]|int",
+            "documentation": "\n\n\nReturn information about words used in a string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_split",
+            "insertText": "str_split(${1:\\$string})${0}",
+            "detail": "str_split(string $string, int $length = 1): string[]|false",
+            "documentation": "\n\n\nConvert a string to an array\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "class ",
+            "insertText": "class ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "enum ",
+            "insertText": "enum ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "trait ",
+            "insertText": "trait ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "function ",
+            "insertText": "function ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "interface ",
+            "insertText": "interface ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          }
+        ]
+      },
+      "visibleRows": [
+        "str_contains\nstr_contains(string $haystack, string $needle): bool",
+        "str_decrement",
+        "str_ends_with",
+        "str_getcsv",
+        "str_increment",
+        "str_ireplace",
+        "str_pad",
+        "str_repeat",
+        "str_replace",
+        "str_rot13",
+        "str_shuffle",
+        "str_split"
+      ],
+      "suggestionVisible": true,
+      "state": {
+        "editorText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_",
+        "activeElement": {
+          "tag": "DIV",
+          "className": "native-edit-context"
+        },
+        "phpVersion": "8.5",
+        "completionChecked": true,
+        "suggest": {
+          "visible": true,
+          "rows": [
+            "str_contains\nstr_contains(string $haystack, string $needle): bool",
+            "str_decrement",
+            "str_ends_with",
+            "str_getcsv",
+            "str_increment",
+            "str_ireplace",
+            "str_pad",
+            "str_repeat",
+            "str_replace",
+            "str_rot13",
+            "str_shuffle",
+            "str_split"
+          ]
+        }
+      },
+      "orderValid": true,
+      "screenshot": "auto-str-underscore.png"
+    },
+    {
+      "name": "manual-strl",
+      "prefix": "strl",
+      "typed": "",
+      "mode": "manual",
+      "fullText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstrl",
+      "baseVersion": 5,
+      "changeVersion": 5,
+      "changeAt": 2773.2000000178814,
+      "expectedPosition": {
+        "line": 7,
+        "character": 4
+      },
+      "request": {
+        "direction": "ui->worker",
+        "at": 2793.800000011921,
+        "id": 6,
+        "method": "textDocument/completion",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1"
+          },
+          "position": {
+            "line": 7,
+            "character": 4
+          }
+        }
+      },
+      "response": {
+        "direction": "worker->ui",
+        "at": 2852.7000000178814,
+        "id": 6,
+        "result": {
+          "isIncomplete": false,
+          "items": [
+            {
+              "label": "strlen",
+              "insertText": "strlen(${1:\\$string})${0}",
+              "detail": "strlen(string $string): int<0, max>",
+              "documentation": "\n\n\nGet string length\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "class ",
+              "insertText": "class ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "enum ",
+              "insertText": "enum ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "trait ",
+              "insertText": "trait ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "function ",
+              "insertText": "function ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "interface ",
+              "insertText": "interface ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            }
+          ]
+        }
+      },
+      "rawResult": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "strlen",
+            "insertText": "strlen(${1:\\$string})${0}",
+            "detail": "strlen(string $string): int<0, max>",
+            "documentation": "\n\n\nGet string length\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "class ",
+            "insertText": "class ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "enum ",
+            "insertText": "enum ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "trait ",
+            "insertText": "trait ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "function ",
+            "insertText": "function ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "interface ",
+            "insertText": "interface ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          }
+        ]
+      },
+      "visibleRows": [
+        "strlen\nstrlen(string $string): int<0, max>"
+      ],
+      "suggestionVisible": true,
+      "state": {
+        "editorText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstrl",
+        "activeElement": {
+          "tag": "DIV",
+          "className": "native-edit-context"
+        },
+        "phpVersion": "8.5",
+        "completionChecked": true,
+        "suggest": {
+          "visible": true,
+          "rows": [
+            "strlen\nstrlen(string $string): int<0, max>"
+          ]
+        }
+      },
+      "orderValid": true,
+      "screenshot": "manual-strl.png"
+    },
+    {
+      "name": "auto-strl",
+      "prefix": "str",
+      "typed": "l",
+      "mode": "auto",
+      "fullText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstrl",
+      "baseVersion": 6,
+      "changeVersion": 7,
+      "changeAt": 3194.4000000059605,
+      "expectedPosition": {
+        "line": 7,
+        "character": 4
+      },
+      "request": {
+        "direction": "ui->worker",
+        "at": 3205.4000000059605,
+        "id": 8,
+        "method": "textDocument/completion",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1"
+          },
+          "position": {
+            "line": 7,
+            "character": 4
+          }
+        }
+      },
+      "response": {
+        "direction": "worker->ui",
+        "at": 3261.2000000178814,
+        "id": 8,
+        "result": {
+          "isIncomplete": false,
+          "items": [
+            {
+              "label": "strlen",
+              "insertText": "strlen(${1:\\$string})${0}",
+              "detail": "strlen(string $string): int<0, max>",
+              "documentation": "\n\n\nGet string length\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "class ",
+              "insertText": "class ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "enum ",
+              "insertText": "enum ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "trait ",
+              "insertText": "trait ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "function ",
+              "insertText": "function ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "interface ",
+              "insertText": "interface ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            }
+          ]
+        }
+      },
+      "rawResult": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "strlen",
+            "insertText": "strlen(${1:\\$string})${0}",
+            "detail": "strlen(string $string): int<0, max>",
+            "documentation": "\n\n\nGet string length\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "class ",
+            "insertText": "class ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "enum ",
+            "insertText": "enum ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "trait ",
+            "insertText": "trait ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "function ",
+            "insertText": "function ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "interface ",
+            "insertText": "interface ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          }
+        ]
+      },
+      "visibleRows": [
+        "strlen\nstrlen(string $string): int<0, max>"
+      ],
+      "suggestionVisible": true,
+      "state": {
+        "editorText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstrl",
+        "activeElement": {
+          "tag": "DIV",
+          "className": "native-edit-context"
+        },
+        "phpVersion": "8.5",
+        "completionChecked": true,
+        "suggest": {
+          "visible": true,
+          "rows": [
+            "strlen\nstrlen(string $string): int<0, max>"
+          ]
+        }
+      },
+      "orderValid": true,
+      "screenshot": "auto-strl.png"
+    }
+  ],
+  "allEvents": [
+    {
+      "direction": "ui->worker",
+      "at": 812.4000000059605,
+      "id": 1,
+      "method": "initialize",
+      "params": {
+        "processId": null,
+        "rootUri": null,
+        "capabilities": {
+          "general": {
+            "positionEncodings": [
+              "utf-16"
+            ]
+          },
+          "textDocument": {
+            "completion": {
+              "completionItem": {
+                "snippetSupport": true
+              }
+            },
+            "hover": {
+              "contentFormat": [
+                "markdown",
+                "plaintext"
+              ]
+            }
+          }
+        },
+        "initializationOptions": {
+          "phpVersion": "8.5"
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 946.5,
+      "id": 1,
+      "result": {
+        "capabilities": {
+          "textDocumentSync": {
+            "openClose": true,
+            "change": 1
+          },
+          "completionProvider": {
+            "resolveProvider": false,
+            "triggerCharacters": [
+              "$",
+              ">",
+              ":"
+            ]
+          },
+          "signatureHelpProvider": {
+            "triggerCharacters": [
+              "(",
+              ","
+            ]
+          },
+          "hoverProvider": true
+        },
+        "serverInfo": {
+          "name": "phpactor-wasm",
+          "version": "2026.10.07.0"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 946.6000000238419,
+      "method": "textDocument/didOpen",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "languageId": "php",
+          "version": 1,
+          "text": "<?php\n// example code\nphpinfo();"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 1026.5,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 2
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 1044.5,
+      "id": 2,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 4
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 1632.1000000238419,
+      "id": 2,
+      "result": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "str_increment",
+            "insertText": "str_increment(${1:\\$string})${0}",
+            "detail": "str_increment(string $string): string",
+            "documentation": "\n\n\nIncrement an alphanumeric string\n\nReturns the incremented alphanumeric ASCII string.\n\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_decrement",
+            "insertText": "str_decrement(${1:\\$string})${0}",
+            "detail": "str_decrement(string $string): string",
+            "documentation": "\n\n\nDecrement an alphanumeric string\n\nReturns the decremented alphanumeric ASCII string.\n\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_contains",
+            "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})${0}",
+            "detail": "str_contains(string $haystack, string $needle): bool",
+            "documentation": "\n\n\nChecks if $needle is found in $haystack and returns a boolean value\n(true/false) whether or not the $needle was found.\n\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_starts_with",
+            "insertText": "str_starts_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+            "detail": "str_starts_with(string $haystack, string $needle): bool",
+            "documentation": "\n\n\nThe function returns {",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_ends_with",
+            "insertText": "str_ends_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+            "detail": "str_ends_with(string $haystack, string $needle): bool",
+            "documentation": "\n\n\nThe function returns {",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_replace",
+            "insertText": "str_replace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+            "detail": "str_replace(string|string[] $search, string|string[] $replace, string|string[] $subject, $count = NULL): string|string[]",
+            "documentation": "\n\n\nReplace all occurrences of the search string with the replacement string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_ireplace",
+            "insertText": "str_ireplace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+            "detail": "str_ireplace(mixed $search, array|string $replace, array|string $subject, $count = NULL): string|string[]",
+            "documentation": "\n\n\nCase-insensitive version of <function>str_replace</function>.\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_getcsv",
+            "insertText": "str_getcsv(${1:\\$string})${0}",
+            "detail": "str_getcsv(string $string, string $separator = ',', string $enclosure = '\"', string $escape = '\\\\\\\\'): array",
+            "documentation": "\n\n\nParse a CSV string into an array\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_repeat",
+            "insertText": "str_repeat(${1:\\$string}, ${2:\\$times})${0}",
+            "detail": "str_repeat(string $string, int $times): string",
+            "documentation": "\n\n\nRepeat a string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_pad",
+            "insertText": "str_pad(${1:\\$string}, ${2:\\$length})${0}",
+            "detail": "str_pad(string $string, int $length, string $pad_string = ' ', int $pad_type = 1): string",
+            "documentation": "\n\n\nPad a string to a certain length with another string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_rot13",
+            "insertText": "str_rot13(${1:\\$string})${0}",
+            "detail": "str_rot13(string $string): string",
+            "documentation": "\n\n\nPerform the rot13 transform on a string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_shuffle",
+            "insertText": "str_shuffle(${1:\\$string})${0}",
+            "detail": "str_shuffle(string $string): string",
+            "documentation": "\n\n\nRandomly shuffles a string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_word_count",
+            "insertText": "str_word_count(${1:\\$string})${0}",
+            "detail": "str_word_count(string $string, int $format = 0, string|null $characters = NULL): string[]|int",
+            "documentation": "\n\n\nReturn information about words used in a string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_split",
+            "insertText": "str_split(${1:\\$string})${0}",
+            "detail": "str_split(string $string, int $length = 1): string[]|false",
+            "documentation": "\n\n\nConvert a string to an array\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "class ",
+            "insertText": "class ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "enum ",
+            "insertText": "enum ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "trait ",
+            "insertText": "trait ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "function ",
+            "insertText": "function ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "interface ",
+            "insertText": "interface ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 1638.6000000238419,
+      "id": 3,
+      "method": "completionItem/resolve",
+      "params": {
+        "label": "str_contains",
+        "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})${0}",
+        "detail": "str_contains(string $haystack, string $needle): bool",
+        "documentation": "\n\n\nChecks if $needle is found in $haystack and returns a boolean value\n(true/false) whether or not the $needle was found.\n\n",
+        "kind": 3,
+        "insertTextFormat": 2
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 1644.5,
+      "id": 3,
+      "result": {
+        "label": "str_contains",
+        "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})${0}",
+        "detail": "str_contains(string $haystack, string $needle): bool",
+        "documentation": "\n\n\nChecks if $needle is found in $haystack and returns a boolean value\n(true/false) whether or not the $needle was found.\n\n",
+        "kind": 3,
+        "insertTextFormat": 2
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 1973.5,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 3
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 2006,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 4
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 2018.2000000178814,
+      "id": 4,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 4
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 2457.7000000178814,
+      "id": 4,
+      "result": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "str_increment",
+            "insertText": "str_increment(${1:\\$string})${0}",
+            "detail": "str_increment(string $string): string",
+            "documentation": "\n\n\nIncrement an alphanumeric string\n\nReturns the incremented alphanumeric ASCII string.\n\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_decrement",
+            "insertText": "str_decrement(${1:\\$string})${0}",
+            "detail": "str_decrement(string $string): string",
+            "documentation": "\n\n\nDecrement an alphanumeric string\n\nReturns the decremented alphanumeric ASCII string.\n\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_contains",
+            "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})${0}",
+            "detail": "str_contains(string $haystack, string $needle): bool",
+            "documentation": "\n\n\nChecks if $needle is found in $haystack and returns a boolean value\n(true/false) whether or not the $needle was found.\n\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_starts_with",
+            "insertText": "str_starts_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+            "detail": "str_starts_with(string $haystack, string $needle): bool",
+            "documentation": "\n\n\nThe function returns {",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_ends_with",
+            "insertText": "str_ends_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+            "detail": "str_ends_with(string $haystack, string $needle): bool",
+            "documentation": "\n\n\nThe function returns {",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_replace",
+            "insertText": "str_replace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+            "detail": "str_replace(string|string[] $search, string|string[] $replace, string|string[] $subject, $count = NULL): string|string[]",
+            "documentation": "\n\n\nReplace all occurrences of the search string with the replacement string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_ireplace",
+            "insertText": "str_ireplace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+            "detail": "str_ireplace(mixed $search, array|string $replace, array|string $subject, $count = NULL): string|string[]",
+            "documentation": "\n\n\nCase-insensitive version of <function>str_replace</function>.\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_getcsv",
+            "insertText": "str_getcsv(${1:\\$string})${0}",
+            "detail": "str_getcsv(string $string, string $separator = ',', string $enclosure = '\"', string $escape = '\\\\\\\\'): array",
+            "documentation": "\n\n\nParse a CSV string into an array\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_repeat",
+            "insertText": "str_repeat(${1:\\$string}, ${2:\\$times})${0}",
+            "detail": "str_repeat(string $string, int $times): string",
+            "documentation": "\n\n\nRepeat a string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_pad",
+            "insertText": "str_pad(${1:\\$string}, ${2:\\$length})${0}",
+            "detail": "str_pad(string $string, int $length, string $pad_string = ' ', int $pad_type = 1): string",
+            "documentation": "\n\n\nPad a string to a certain length with another string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_rot13",
+            "insertText": "str_rot13(${1:\\$string})${0}",
+            "detail": "str_rot13(string $string): string",
+            "documentation": "\n\n\nPerform the rot13 transform on a string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_shuffle",
+            "insertText": "str_shuffle(${1:\\$string})${0}",
+            "detail": "str_shuffle(string $string): string",
+            "documentation": "\n\n\nRandomly shuffles a string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_word_count",
+            "insertText": "str_word_count(${1:\\$string})${0}",
+            "detail": "str_word_count(string $string, int $format = 0, string|null $characters = NULL): string[]|int",
+            "documentation": "\n\n\nReturn information about words used in a string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_split",
+            "insertText": "str_split(${1:\\$string})${0}",
+            "detail": "str_split(string $string, int $length = 1): string[]|false",
+            "documentation": "\n\n\nConvert a string to an array\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "class ",
+            "insertText": "class ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "enum ",
+            "insertText": "enum ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "trait ",
+            "insertText": "trait ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "function ",
+            "insertText": "function ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "interface ",
+            "insertText": "interface ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 2459,
+      "id": 5,
+      "method": "completionItem/resolve",
+      "params": {
+        "label": "str_contains",
+        "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})${0}",
+        "detail": "str_contains(string $haystack, string $needle): bool",
+        "documentation": "\n\n\nChecks if $needle is found in $haystack and returns a boolean value\n(true/false) whether or not the $needle was found.\n\n",
+        "kind": 3,
+        "insertTextFormat": 2
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 2459.2000000178814,
+      "id": 5,
+      "result": {
+        "label": "str_contains",
+        "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})${0}",
+        "detail": "str_contains(string $haystack, string $needle): bool",
+        "documentation": "\n\n\nChecks if $needle is found in $haystack and returns a boolean value\n(true/false) whether or not the $needle was found.\n\n",
+        "kind": 3,
+        "insertTextFormat": 2
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 2773.2000000178814,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 5
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstrl"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 2793.800000011921,
+      "id": 6,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 4
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 2852.7000000178814,
+      "id": 6,
+      "result": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "strlen",
+            "insertText": "strlen(${1:\\$string})${0}",
+            "detail": "strlen(string $string): int<0, max>",
+            "documentation": "\n\n\nGet string length\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "class ",
+            "insertText": "class ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "enum ",
+            "insertText": "enum ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "trait ",
+            "insertText": "trait ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "function ",
+            "insertText": "function ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "interface ",
+            "insertText": "interface ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 2853.9000000059605,
+      "id": 7,
+      "method": "completionItem/resolve",
+      "params": {
+        "label": "strlen",
+        "insertText": "strlen(${1:\\$string})${0}",
+        "detail": "strlen(string $string): int<0, max>",
+        "documentation": "\n\n\nGet string length\n",
+        "kind": 3,
+        "insertTextFormat": 2
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 2854.2000000178814,
+      "id": 7,
+      "result": {
+        "label": "strlen",
+        "insertText": "strlen(${1:\\$string})${0}",
+        "detail": "strlen(string $string): int<0, max>",
+        "documentation": "\n\n\nGet string length\n",
+        "kind": 3,
+        "insertTextFormat": 2
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 3173.600000023842,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 6
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 3194.4000000059605,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 7
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstrl"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 3205.4000000059605,
+      "id": 8,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 4
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 3261.2000000178814,
+      "id": 8,
+      "result": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "strlen",
+            "insertText": "strlen(${1:\\$string})${0}",
+            "detail": "strlen(string $string): int<0, max>",
+            "documentation": "\n\n\nGet string length\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "class ",
+            "insertText": "class ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "enum ",
+            "insertText": "enum ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "trait ",
+            "insertText": "trait ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "function ",
+            "insertText": "function ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "interface ",
+            "insertText": "interface ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 3262,
+      "id": 9,
+      "method": "completionItem/resolve",
+      "params": {
+        "label": "strlen",
+        "insertText": "strlen(${1:\\$string})${0}",
+        "detail": "strlen(string $string): int<0, max>",
+        "documentation": "\n\n\nGet string length\n",
+        "kind": 3,
+        "insertTextFormat": 2
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 3262.2000000178814,
+      "id": 9,
+      "result": {
+        "label": "strlen",
+        "insertText": "strlen(${1:\\$string})${0}",
+        "detail": "strlen(string $string): int<0, max>",
+        "documentation": "\n\n\nGet string length\n",
+        "kind": 3,
+        "insertTextFormat": 2
+      }
+    }
+  ],
+  "pageErrors": [],
+  "consoleErrors": []
+}

@@ -1,0 +1,3994 @@
+{
+  "app": "phpantom",
+  "runId": "2026-10-25T13-34-08-709Z",
+  "url": "http://127.0.0.1:7260/?v=8.5&f=html",
+  "browser": "156.0.8078.47",
+  "phpVersion": "8.5",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "fixture": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n",
+  "inputSpeed": "Playwright keyboard.type delay=80ms per naturally typed character; manual Ctrl+Space uses the same exact prefix after full document synchronization",
+  "methods": "Worker request/response postMessage capture; screen rows from Monaco suggest widget after request/settle window",
+  "results": [
+    {
+      "name": "manual-str-underscore",
+      "prefix": "str_",
+      "typed": "",
+      "mode": "manual",
+      "fullText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_",
+      "baseVersion": 2,
+      "changeVersion": 2,
+      "changeAt": 968.5,
+      "expectedPosition": {
+        "line": 7,
+        "character": 4
+      },
+      "request": {
+        "direction": "ui->worker",
+        "at": 989.4000000059605,
+        "id": 2,
+        "method": "textDocument/completion",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1"
+          },
+          "position": {
+            "line": 7,
+            "character": 4
+          }
+        }
+      },
+      "response": {
+        "direction": "worker->ui",
+        "at": 999.5999999940395,
+        "id": 2,
+        "result": {
+          "isIncomplete": false,
+          "items": [
+            {
+              "label": "STR_PAD_RIGHT",
+              "kind": 21,
+              "sortText": "b01_str_pad_right",
+              "filterText": "STR_PAD_RIGHT",
+              "insertText": "STR_PAD_RIGHT",
+              "data": {
+                "c": "",
+                "m": "STR_PAD_RIGHT",
+                "k": "global_constant",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "YAML_STR_TAG",
+              "kind": 21,
+              "sortText": "c01_yaml_str_tag",
+              "filterText": "YAML_STR_TAG",
+              "insertText": "YAML_STR_TAG",
+              "data": {
+                "c": "",
+                "m": "YAML_STR_TAG",
+                "k": "global_constant",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "STR_PAD_BOTH",
+              "kind": 21,
+              "sortText": "b01_str_pad_both",
+              "filterText": "STR_PAD_BOTH",
+              "insertText": "STR_PAD_BOTH",
+              "data": {
+                "c": "",
+                "m": "STR_PAD_BOTH",
+                "k": "global_constant",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "STR_PAD_LEFT",
+              "kind": 21,
+              "sortText": "b01_str_pad_left",
+              "filterText": "STR_PAD_LEFT",
+              "insertText": "STR_PAD_LEFT",
+              "data": {
+                "c": "",
+                "m": "STR_PAD_LEFT",
+                "k": "global_constant",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "sodium_crypto_pwhash_scryptsalsa208sha256_str_verify",
+              "kind": 3,
+              "sortText": "c01_sodium_crypto_pwhash_scryptsalsa208sha256_str_verify",
+              "filterText": "sodium_crypto_pwhash_scryptsalsa208sha256_str_verify",
+              "insertText": "sodium_crypto_pwhash_scryptsalsa208sha256_str_verify()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "sodium_crypto_pwhash_scryptsalsa208sha256_str_verify",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_getcsv",
+              "kind": 3,
+              "sortText": "b01_str_getcsv",
+              "filterText": "str_getcsv",
+              "insertText": "str_getcsv()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_getcsv",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_rot13",
+              "kind": 3,
+              "sortText": "b01_str_rot13",
+              "filterText": "str_rot13",
+              "insertText": "str_rot13()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_rot13",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "mb_substr_count",
+              "kind": 3,
+              "sortText": "c01_mb_substr_count",
+              "filterText": "mb_substr_count",
+              "insertText": "mb_substr_count()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "mb_substr_count",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "crypto_pwhash_str_verify",
+              "kind": 3,
+              "sortText": "c01_crypto_pwhash_str_verify",
+              "filterText": "crypto_pwhash_str_verify",
+              "insertText": "crypto_pwhash_str_verify()$0",
+              "insertTextFormat": 2,
+              "additionalTextEdits": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 1,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 1,
+                      "character": 0
+                    }
+                  },
+                  "newText": "use function Sodium\\crypto_pwhash_str_verify;\n"
+                }
+              ],
+              "data": {
+                "c": "",
+                "m": "Sodium\\crypto_pwhash_str_verify",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_starts_with",
+              "kind": 3,
+              "sortText": "b01_str_starts_with",
+              "filterText": "str_starts_with",
+              "insertText": "str_starts_with()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_starts_with",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "substr_replace",
+              "kind": 3,
+              "sortText": "c01_substr_replace",
+              "filterText": "substr_replace",
+              "insertText": "substr_replace()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "substr_replace",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "substr_count",
+              "kind": 3,
+              "sortText": "c01_substr_count",
+              "filterText": "substr_count",
+              "insertText": "substr_count()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "substr_count",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_replace",
+              "kind": 3,
+              "sortText": "b01_str_replace",
+              "filterText": "str_replace",
+              "insertText": "str_replace()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_replace",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "substr_compare",
+              "kind": 3,
+              "sortText": "c01_substr_compare",
+              "filterText": "substr_compare",
+              "insertText": "substr_compare()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "substr_compare",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_decrement",
+              "kind": 3,
+              "sortText": "b01_str_decrement",
+              "filterText": "str_decrement",
+              "insertText": "str_decrement()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_decrement",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_shuffle",
+              "kind": 3,
+              "sortText": "b01_str_shuffle",
+              "filterText": "str_shuffle",
+              "insertText": "str_shuffle()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_shuffle",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_split",
+              "kind": 3,
+              "sortText": "b01_str_split",
+              "filterText": "str_split",
+              "insertText": "str_split()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_split",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_repeat",
+              "kind": 3,
+              "sortText": "b01_str_repeat",
+              "filterText": "str_repeat",
+              "insertText": "str_repeat()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_repeat",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "crypto_pwhash_scryptsalsa208sha256_str_verify",
+              "kind": 3,
+              "sortText": "c01_crypto_pwhash_scryptsalsa208sha256_str_verify",
+              "filterText": "crypto_pwhash_scryptsalsa208sha256_str_verify",
+              "insertText": "crypto_pwhash_scryptsalsa208sha256_str_verify()$0",
+              "insertTextFormat": 2,
+              "additionalTextEdits": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 1,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 1,
+                      "character": 0
+                    }
+                  },
+                  "newText": "use function Sodium\\crypto_pwhash_scryptsalsa208sha256_str_verify;\n"
+                }
+              ],
+              "data": {
+                "c": "",
+                "m": "Sodium\\crypto_pwhash_scryptsalsa208sha256_str_verify",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_increment",
+              "kind": 3,
+              "sortText": "b01_str_increment",
+              "filterText": "str_increment",
+              "insertText": "str_increment()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_increment",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_pad",
+              "kind": 3,
+              "sortText": "b01_str_pad",
+              "filterText": "str_pad",
+              "insertText": "str_pad()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_pad",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_contains",
+              "kind": 3,
+              "sortText": "b01_str_contains",
+              "filterText": "str_contains",
+              "insertText": "str_contains()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_contains",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "sodium_crypto_pwhash_str_needs_rehash",
+              "kind": 3,
+              "sortText": "c01_sodium_crypto_pwhash_str_needs_rehash",
+              "filterText": "sodium_crypto_pwhash_str_needs_rehash",
+              "insertText": "sodium_crypto_pwhash_str_needs_rehash()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "sodium_crypto_pwhash_str_needs_rehash",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_word_count",
+              "kind": 3,
+              "sortText": "b01_str_word_count",
+              "filterText": "str_word_count",
+              "insertText": "str_word_count()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_word_count",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "mb_str_pad",
+              "kind": 3,
+              "sortText": "c01_mb_str_pad",
+              "filterText": "mb_str_pad",
+              "insertText": "mb_str_pad()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "mb_str_pad",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "swoole_substr_json_decode",
+              "kind": 3,
+              "sortText": "c01_swoole_substr_json_decode",
+              "filterText": "swoole_substr_json_decode",
+              "insertText": "swoole_substr_json_decode()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "swoole_substr_json_decode",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "sodium_crypto_pwhash_str_verify",
+              "kind": 3,
+              "sortText": "c01_sodium_crypto_pwhash_str_verify",
+              "filterText": "sodium_crypto_pwhash_str_verify",
+              "insertText": "sodium_crypto_pwhash_str_verify()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "sodium_crypto_pwhash_str_verify",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "grapheme_str_split",
+              "kind": 3,
+              "sortText": "c01_grapheme_str_split",
+              "filterText": "grapheme_str_split",
+              "insertText": "grapheme_str_split()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "grapheme_str_split",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_ends_with",
+              "kind": 3,
+              "sortText": "b01_str_ends_with",
+              "filterText": "str_ends_with",
+              "insertText": "str_ends_with()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_ends_with",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_ireplace",
+              "kind": 3,
+              "sortText": "b01_str_ireplace",
+              "filterText": "str_ireplace",
+              "insertText": "str_ireplace()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_ireplace",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "mb_str_split",
+              "kind": 3,
+              "sortText": "c01_mb_str_split",
+              "filterText": "mb_str_split",
+              "insertText": "mb_str_split()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "mb_str_split",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "swoole_substr_unserialize",
+              "kind": 3,
+              "sortText": "c01_swoole_substr_unserialize",
+              "filterText": "swoole_substr_unserialize",
+              "insertText": "swoole_substr_unserialize()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "swoole_substr_unserialize",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            }
+          ]
+        }
+      },
+      "rawResult": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "STR_PAD_RIGHT",
+            "kind": 21,
+            "sortText": "b01_str_pad_right",
+            "filterText": "STR_PAD_RIGHT",
+            "insertText": "STR_PAD_RIGHT",
+            "data": {
+              "c": "",
+              "m": "STR_PAD_RIGHT",
+              "k": "global_constant",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "YAML_STR_TAG",
+            "kind": 21,
+            "sortText": "c01_yaml_str_tag",
+            "filterText": "YAML_STR_TAG",
+            "insertText": "YAML_STR_TAG",
+            "data": {
+              "c": "",
+              "m": "YAML_STR_TAG",
+              "k": "global_constant",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "STR_PAD_BOTH",
+            "kind": 21,
+            "sortText": "b01_str_pad_both",
+            "filterText": "STR_PAD_BOTH",
+            "insertText": "STR_PAD_BOTH",
+            "data": {
+              "c": "",
+              "m": "STR_PAD_BOTH",
+              "k": "global_constant",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "STR_PAD_LEFT",
+            "kind": 21,
+            "sortText": "b01_str_pad_left",
+            "filterText": "STR_PAD_LEFT",
+            "insertText": "STR_PAD_LEFT",
+            "data": {
+              "c": "",
+              "m": "STR_PAD_LEFT",
+              "k": "global_constant",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "sodium_crypto_pwhash_scryptsalsa208sha256_str_verify",
+            "kind": 3,
+            "sortText": "c01_sodium_crypto_pwhash_scryptsalsa208sha256_str_verify",
+            "filterText": "sodium_crypto_pwhash_scryptsalsa208sha256_str_verify",
+            "insertText": "sodium_crypto_pwhash_scryptsalsa208sha256_str_verify()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "sodium_crypto_pwhash_scryptsalsa208sha256_str_verify",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_getcsv",
+            "kind": 3,
+            "sortText": "b01_str_getcsv",
+            "filterText": "str_getcsv",
+            "insertText": "str_getcsv()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_getcsv",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_rot13",
+            "kind": 3,
+            "sortText": "b01_str_rot13",
+            "filterText": "str_rot13",
+            "insertText": "str_rot13()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_rot13",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "mb_substr_count",
+            "kind": 3,
+            "sortText": "c01_mb_substr_count",
+            "filterText": "mb_substr_count",
+            "insertText": "mb_substr_count()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "mb_substr_count",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "crypto_pwhash_str_verify",
+            "kind": 3,
+            "sortText": "c01_crypto_pwhash_str_verify",
+            "filterText": "crypto_pwhash_str_verify",
+            "insertText": "crypto_pwhash_str_verify()$0",
+            "insertTextFormat": 2,
+            "additionalTextEdits": [
+              {
+                "range": {
+                  "start": {
+                    "line": 1,
+                    "character": 0
+                  },
+                  "end": {
+                    "line": 1,
+                    "character": 0
+                  }
+                },
+                "newText": "use function Sodium\\crypto_pwhash_str_verify;\n"
+              }
+            ],
+            "data": {
+              "c": "",
+              "m": "Sodium\\crypto_pwhash_str_verify",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_starts_with",
+            "kind": 3,
+            "sortText": "b01_str_starts_with",
+            "filterText": "str_starts_with",
+            "insertText": "str_starts_with()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_starts_with",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "substr_replace",
+            "kind": 3,
+            "sortText": "c01_substr_replace",
+            "filterText": "substr_replace",
+            "insertText": "substr_replace()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "substr_replace",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "substr_count",
+            "kind": 3,
+            "sortText": "c01_substr_count",
+            "filterText": "substr_count",
+            "insertText": "substr_count()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "substr_count",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_replace",
+            "kind": 3,
+            "sortText": "b01_str_replace",
+            "filterText": "str_replace",
+            "insertText": "str_replace()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_replace",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "substr_compare",
+            "kind": 3,
+            "sortText": "c01_substr_compare",
+            "filterText": "substr_compare",
+            "insertText": "substr_compare()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "substr_compare",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_decrement",
+            "kind": 3,
+            "sortText": "b01_str_decrement",
+            "filterText": "str_decrement",
+            "insertText": "str_decrement()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_decrement",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_shuffle",
+            "kind": 3,
+            "sortText": "b01_str_shuffle",
+            "filterText": "str_shuffle",
+            "insertText": "str_shuffle()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_shuffle",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_split",
+            "kind": 3,
+            "sortText": "b01_str_split",
+            "filterText": "str_split",
+            "insertText": "str_split()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_split",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_repeat",
+            "kind": 3,
+            "sortText": "b01_str_repeat",
+            "filterText": "str_repeat",
+            "insertText": "str_repeat()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_repeat",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "crypto_pwhash_scryptsalsa208sha256_str_verify",
+            "kind": 3,
+            "sortText": "c01_crypto_pwhash_scryptsalsa208sha256_str_verify",
+            "filterText": "crypto_pwhash_scryptsalsa208sha256_str_verify",
+            "insertText": "crypto_pwhash_scryptsalsa208sha256_str_verify()$0",
+            "insertTextFormat": 2,
+            "additionalTextEdits": [
+              {
+                "range": {
+                  "start": {
+                    "line": 1,
+                    "character": 0
+                  },
+                  "end": {
+                    "line": 1,
+                    "character": 0
+                  }
+                },
+                "newText": "use function Sodium\\crypto_pwhash_scryptsalsa208sha256_str_verify;\n"
+              }
+            ],
+            "data": {
+              "c": "",
+              "m": "Sodium\\crypto_pwhash_scryptsalsa208sha256_str_verify",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_increment",
+            "kind": 3,
+            "sortText": "b01_str_increment",
+            "filterText": "str_increment",
+            "insertText": "str_increment()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_increment",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_pad",
+            "kind": 3,
+            "sortText": "b01_str_pad",
+            "filterText": "str_pad",
+            "insertText": "str_pad()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_pad",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_contains",
+            "kind": 3,
+            "sortText": "b01_str_contains",
+            "filterText": "str_contains",
+            "insertText": "str_contains()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_contains",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "sodium_crypto_pwhash_str_needs_rehash",
+            "kind": 3,
+            "sortText": "c01_sodium_crypto_pwhash_str_needs_rehash",
+            "filterText": "sodium_crypto_pwhash_str_needs_rehash",
+            "insertText": "sodium_crypto_pwhash_str_needs_rehash()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "sodium_crypto_pwhash_str_needs_rehash",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_word_count",
+            "kind": 3,
+            "sortText": "b01_str_word_count",
+            "filterText": "str_word_count",
+            "insertText": "str_word_count()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_word_count",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "mb_str_pad",
+            "kind": 3,
+            "sortText": "c01_mb_str_pad",
+            "filterText": "mb_str_pad",
+            "insertText": "mb_str_pad()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "mb_str_pad",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "swoole_substr_json_decode",
+            "kind": 3,
+            "sortText": "c01_swoole_substr_json_decode",
+            "filterText": "swoole_substr_json_decode",
+            "insertText": "swoole_substr_json_decode()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "swoole_substr_json_decode",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "sodium_crypto_pwhash_str_verify",
+            "kind": 3,
+            "sortText": "c01_sodium_crypto_pwhash_str_verify",
+            "filterText": "sodium_crypto_pwhash_str_verify",
+            "insertText": "sodium_crypto_pwhash_str_verify()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "sodium_crypto_pwhash_str_verify",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "grapheme_str_split",
+            "kind": 3,
+            "sortText": "c01_grapheme_str_split",
+            "filterText": "grapheme_str_split",
+            "insertText": "grapheme_str_split()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "grapheme_str_split",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_ends_with",
+            "kind": 3,
+            "sortText": "b01_str_ends_with",
+            "filterText": "str_ends_with",
+            "insertText": "str_ends_with()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_ends_with",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_ireplace",
+            "kind": 3,
+            "sortText": "b01_str_ireplace",
+            "filterText": "str_ireplace",
+            "insertText": "str_ireplace()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_ireplace",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "mb_str_split",
+            "kind": 3,
+            "sortText": "c01_mb_str_split",
+            "filterText": "mb_str_split",
+            "insertText": "mb_str_split()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "mb_str_split",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "swoole_substr_unserialize",
+            "kind": 3,
+            "sortText": "c01_swoole_substr_unserialize",
+            "filterText": "swoole_substr_unserialize",
+            "insertText": "swoole_substr_unserialize()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "swoole_substr_unserialize",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          }
+        ]
+      },
+      "visibleRows": [
+        "str_contains",
+        "str_decrement",
+        "str_ends_with",
+        "str_getcsv",
+        "str_increment",
+        "str_ireplace",
+        "str_pad",
+        "str_repeat",
+        "str_replace",
+        "str_rot13",
+        "str_shuffle",
+        "str_split",
+        "str_starts_with"
+      ],
+      "suggestionVisible": true,
+      "state": {
+        "editorText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_",
+        "activeElement": {
+          "tag": "TEXTAREA",
+          "className": "inputarea monaco-mouse-cursor-text"
+        },
+        "phpVersion": "8.5",
+        "completionChecked": true,
+        "suggest": {
+          "visible": true,
+          "rows": [
+            "str_contains",
+            "str_decrement",
+            "str_ends_with",
+            "str_getcsv",
+            "str_increment",
+            "str_ireplace",
+            "str_pad",
+            "str_repeat",
+            "str_replace",
+            "str_rot13",
+            "str_shuffle",
+            "str_split",
+            "str_starts_with"
+          ]
+        }
+      },
+      "orderValid": true,
+      "screenshot": "manual-str-underscore.png"
+    },
+    {
+      "name": "auto-str-underscore",
+      "prefix": "str",
+      "typed": "_",
+      "mode": "auto",
+      "fullText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_",
+      "baseVersion": 3,
+      "changeVersion": 4,
+      "changeAt": 2022.4000000059605,
+      "expectedPosition": {
+        "line": 7,
+        "character": 4
+      },
+      "request": {
+        "direction": "ui->worker",
+        "at": 2033.4000000059605,
+        "id": 4,
+        "method": "textDocument/completion",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1"
+          },
+          "position": {
+            "line": 7,
+            "character": 4
+          }
+        }
+      },
+      "response": {
+        "direction": "worker->ui",
+        "at": 2035.800000011921,
+        "id": 4,
+        "result": {
+          "isIncomplete": false,
+          "items": [
+            {
+              "label": "STR_PAD_RIGHT",
+              "kind": 21,
+              "sortText": "b01_str_pad_right",
+              "filterText": "STR_PAD_RIGHT",
+              "insertText": "STR_PAD_RIGHT",
+              "data": {
+                "c": "",
+                "m": "STR_PAD_RIGHT",
+                "k": "global_constant",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "YAML_STR_TAG",
+              "kind": 21,
+              "sortText": "c01_yaml_str_tag",
+              "filterText": "YAML_STR_TAG",
+              "insertText": "YAML_STR_TAG",
+              "data": {
+                "c": "",
+                "m": "YAML_STR_TAG",
+                "k": "global_constant",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "STR_PAD_BOTH",
+              "kind": 21,
+              "sortText": "b01_str_pad_both",
+              "filterText": "STR_PAD_BOTH",
+              "insertText": "STR_PAD_BOTH",
+              "data": {
+                "c": "",
+                "m": "STR_PAD_BOTH",
+                "k": "global_constant",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "STR_PAD_LEFT",
+              "kind": 21,
+              "sortText": "b01_str_pad_left",
+              "filterText": "STR_PAD_LEFT",
+              "insertText": "STR_PAD_LEFT",
+              "data": {
+                "c": "",
+                "m": "STR_PAD_LEFT",
+                "k": "global_constant",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_ends_with($haystack, $needle)",
+              "kind": 3,
+              "detail": "bool",
+              "sortText": "b01_str_ends_with",
+              "filterText": "str_ends_with",
+              "insertText": "str_ends_with(${1:\\$haystack}, ${2:\\$needle})$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_ends_with",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_contains($haystack, $needle)",
+              "kind": 3,
+              "detail": "bool",
+              "sortText": "b01_str_contains",
+              "filterText": "str_contains",
+              "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_contains",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_decrement($string)",
+              "kind": 3,
+              "detail": "string",
+              "sortText": "b01_str_decrement",
+              "filterText": "str_decrement",
+              "insertText": "str_decrement(${1:\\$string})$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_decrement",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_starts_with($haystack, $needle)",
+              "kind": 3,
+              "detail": "bool",
+              "sortText": "b01_str_starts_with",
+              "filterText": "str_starts_with",
+              "insertText": "str_starts_with(${1:\\$haystack}, ${2:\\$needle})$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_starts_with",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_increment($string)",
+              "kind": 3,
+              "detail": "string",
+              "sortText": "b01_str_increment",
+              "filterText": "str_increment",
+              "insertText": "str_increment(${1:\\$string})$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_increment",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "sodium_crypto_pwhash_scryptsalsa208sha256_str_verify",
+              "kind": 3,
+              "sortText": "c01_sodium_crypto_pwhash_scryptsalsa208sha256_str_verify",
+              "filterText": "sodium_crypto_pwhash_scryptsalsa208sha256_str_verify",
+              "insertText": "sodium_crypto_pwhash_scryptsalsa208sha256_str_verify()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "sodium_crypto_pwhash_scryptsalsa208sha256_str_verify",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_getcsv",
+              "kind": 3,
+              "sortText": "b01_str_getcsv",
+              "filterText": "str_getcsv",
+              "insertText": "str_getcsv()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_getcsv",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_rot13",
+              "kind": 3,
+              "sortText": "b01_str_rot13",
+              "filterText": "str_rot13",
+              "insertText": "str_rot13()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_rot13",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "mb_substr_count",
+              "kind": 3,
+              "sortText": "c01_mb_substr_count",
+              "filterText": "mb_substr_count",
+              "insertText": "mb_substr_count()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "mb_substr_count",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "crypto_pwhash_str_verify",
+              "kind": 3,
+              "sortText": "c01_crypto_pwhash_str_verify",
+              "filterText": "crypto_pwhash_str_verify",
+              "insertText": "crypto_pwhash_str_verify()$0",
+              "insertTextFormat": 2,
+              "additionalTextEdits": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 1,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 1,
+                      "character": 0
+                    }
+                  },
+                  "newText": "use function Sodium\\crypto_pwhash_str_verify;\n"
+                }
+              ],
+              "data": {
+                "c": "",
+                "m": "Sodium\\crypto_pwhash_str_verify",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "substr_replace",
+              "kind": 3,
+              "sortText": "c01_substr_replace",
+              "filterText": "substr_replace",
+              "insertText": "substr_replace()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "substr_replace",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "substr_count",
+              "kind": 3,
+              "sortText": "c01_substr_count",
+              "filterText": "substr_count",
+              "insertText": "substr_count()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "substr_count",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_replace",
+              "kind": 3,
+              "sortText": "b01_str_replace",
+              "filterText": "str_replace",
+              "insertText": "str_replace()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_replace",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "substr_compare",
+              "kind": 3,
+              "sortText": "c01_substr_compare",
+              "filterText": "substr_compare",
+              "insertText": "substr_compare()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "substr_compare",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_shuffle",
+              "kind": 3,
+              "sortText": "b01_str_shuffle",
+              "filterText": "str_shuffle",
+              "insertText": "str_shuffle()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_shuffle",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_split",
+              "kind": 3,
+              "sortText": "b01_str_split",
+              "filterText": "str_split",
+              "insertText": "str_split()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_split",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_repeat",
+              "kind": 3,
+              "sortText": "b01_str_repeat",
+              "filterText": "str_repeat",
+              "insertText": "str_repeat()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_repeat",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "crypto_pwhash_scryptsalsa208sha256_str_verify",
+              "kind": 3,
+              "sortText": "c01_crypto_pwhash_scryptsalsa208sha256_str_verify",
+              "filterText": "crypto_pwhash_scryptsalsa208sha256_str_verify",
+              "insertText": "crypto_pwhash_scryptsalsa208sha256_str_verify()$0",
+              "insertTextFormat": 2,
+              "additionalTextEdits": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 1,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 1,
+                      "character": 0
+                    }
+                  },
+                  "newText": "use function Sodium\\crypto_pwhash_scryptsalsa208sha256_str_verify;\n"
+                }
+              ],
+              "data": {
+                "c": "",
+                "m": "Sodium\\crypto_pwhash_scryptsalsa208sha256_str_verify",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_pad",
+              "kind": 3,
+              "sortText": "b01_str_pad",
+              "filterText": "str_pad",
+              "insertText": "str_pad()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_pad",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "sodium_crypto_pwhash_str_needs_rehash",
+              "kind": 3,
+              "sortText": "c01_sodium_crypto_pwhash_str_needs_rehash",
+              "filterText": "sodium_crypto_pwhash_str_needs_rehash",
+              "insertText": "sodium_crypto_pwhash_str_needs_rehash()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "sodium_crypto_pwhash_str_needs_rehash",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_word_count",
+              "kind": 3,
+              "sortText": "b01_str_word_count",
+              "filterText": "str_word_count",
+              "insertText": "str_word_count()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_word_count",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "mb_str_pad",
+              "kind": 3,
+              "sortText": "c01_mb_str_pad",
+              "filterText": "mb_str_pad",
+              "insertText": "mb_str_pad()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "mb_str_pad",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "swoole_substr_json_decode",
+              "kind": 3,
+              "sortText": "c01_swoole_substr_json_decode",
+              "filterText": "swoole_substr_json_decode",
+              "insertText": "swoole_substr_json_decode()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "swoole_substr_json_decode",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "sodium_crypto_pwhash_str_verify",
+              "kind": 3,
+              "sortText": "c01_sodium_crypto_pwhash_str_verify",
+              "filterText": "sodium_crypto_pwhash_str_verify",
+              "insertText": "sodium_crypto_pwhash_str_verify()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "sodium_crypto_pwhash_str_verify",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "grapheme_str_split",
+              "kind": 3,
+              "sortText": "c01_grapheme_str_split",
+              "filterText": "grapheme_str_split",
+              "insertText": "grapheme_str_split()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "grapheme_str_split",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "str_ireplace",
+              "kind": 3,
+              "sortText": "b01_str_ireplace",
+              "filterText": "str_ireplace",
+              "insertText": "str_ireplace()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "str_ireplace",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "mb_str_split",
+              "kind": 3,
+              "sortText": "c01_mb_str_split",
+              "filterText": "mb_str_split",
+              "insertText": "mb_str_split()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "mb_str_split",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "swoole_substr_unserialize",
+              "kind": 3,
+              "sortText": "c01_swoole_substr_unserialize",
+              "filterText": "swoole_substr_unserialize",
+              "insertText": "swoole_substr_unserialize()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "swoole_substr_unserialize",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            }
+          ]
+        }
+      },
+      "rawResult": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "STR_PAD_RIGHT",
+            "kind": 21,
+            "sortText": "b01_str_pad_right",
+            "filterText": "STR_PAD_RIGHT",
+            "insertText": "STR_PAD_RIGHT",
+            "data": {
+              "c": "",
+              "m": "STR_PAD_RIGHT",
+              "k": "global_constant",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "YAML_STR_TAG",
+            "kind": 21,
+            "sortText": "c01_yaml_str_tag",
+            "filterText": "YAML_STR_TAG",
+            "insertText": "YAML_STR_TAG",
+            "data": {
+              "c": "",
+              "m": "YAML_STR_TAG",
+              "k": "global_constant",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "STR_PAD_BOTH",
+            "kind": 21,
+            "sortText": "b01_str_pad_both",
+            "filterText": "STR_PAD_BOTH",
+            "insertText": "STR_PAD_BOTH",
+            "data": {
+              "c": "",
+              "m": "STR_PAD_BOTH",
+              "k": "global_constant",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "STR_PAD_LEFT",
+            "kind": 21,
+            "sortText": "b01_str_pad_left",
+            "filterText": "STR_PAD_LEFT",
+            "insertText": "STR_PAD_LEFT",
+            "data": {
+              "c": "",
+              "m": "STR_PAD_LEFT",
+              "k": "global_constant",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_ends_with($haystack, $needle)",
+            "kind": 3,
+            "detail": "bool",
+            "sortText": "b01_str_ends_with",
+            "filterText": "str_ends_with",
+            "insertText": "str_ends_with(${1:\\$haystack}, ${2:\\$needle})$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_ends_with",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_contains($haystack, $needle)",
+            "kind": 3,
+            "detail": "bool",
+            "sortText": "b01_str_contains",
+            "filterText": "str_contains",
+            "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_contains",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_decrement($string)",
+            "kind": 3,
+            "detail": "string",
+            "sortText": "b01_str_decrement",
+            "filterText": "str_decrement",
+            "insertText": "str_decrement(${1:\\$string})$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_decrement",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_starts_with($haystack, $needle)",
+            "kind": 3,
+            "detail": "bool",
+            "sortText": "b01_str_starts_with",
+            "filterText": "str_starts_with",
+            "insertText": "str_starts_with(${1:\\$haystack}, ${2:\\$needle})$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_starts_with",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_increment($string)",
+            "kind": 3,
+            "detail": "string",
+            "sortText": "b01_str_increment",
+            "filterText": "str_increment",
+            "insertText": "str_increment(${1:\\$string})$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_increment",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "sodium_crypto_pwhash_scryptsalsa208sha256_str_verify",
+            "kind": 3,
+            "sortText": "c01_sodium_crypto_pwhash_scryptsalsa208sha256_str_verify",
+            "filterText": "sodium_crypto_pwhash_scryptsalsa208sha256_str_verify",
+            "insertText": "sodium_crypto_pwhash_scryptsalsa208sha256_str_verify()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "sodium_crypto_pwhash_scryptsalsa208sha256_str_verify",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_getcsv",
+            "kind": 3,
+            "sortText": "b01_str_getcsv",
+            "filterText": "str_getcsv",
+            "insertText": "str_getcsv()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_getcsv",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_rot13",
+            "kind": 3,
+            "sortText": "b01_str_rot13",
+            "filterText": "str_rot13",
+            "insertText": "str_rot13()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_rot13",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "mb_substr_count",
+            "kind": 3,
+            "sortText": "c01_mb_substr_count",
+            "filterText": "mb_substr_count",
+            "insertText": "mb_substr_count()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "mb_substr_count",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "crypto_pwhash_str_verify",
+            "kind": 3,
+            "sortText": "c01_crypto_pwhash_str_verify",
+            "filterText": "crypto_pwhash_str_verify",
+            "insertText": "crypto_pwhash_str_verify()$0",
+            "insertTextFormat": 2,
+            "additionalTextEdits": [
+              {
+                "range": {
+                  "start": {
+                    "line": 1,
+                    "character": 0
+                  },
+                  "end": {
+                    "line": 1,
+                    "character": 0
+                  }
+                },
+                "newText": "use function Sodium\\crypto_pwhash_str_verify;\n"
+              }
+            ],
+            "data": {
+              "c": "",
+              "m": "Sodium\\crypto_pwhash_str_verify",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "substr_replace",
+            "kind": 3,
+            "sortText": "c01_substr_replace",
+            "filterText": "substr_replace",
+            "insertText": "substr_replace()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "substr_replace",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "substr_count",
+            "kind": 3,
+            "sortText": "c01_substr_count",
+            "filterText": "substr_count",
+            "insertText": "substr_count()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "substr_count",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_replace",
+            "kind": 3,
+            "sortText": "b01_str_replace",
+            "filterText": "str_replace",
+            "insertText": "str_replace()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_replace",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "substr_compare",
+            "kind": 3,
+            "sortText": "c01_substr_compare",
+            "filterText": "substr_compare",
+            "insertText": "substr_compare()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "substr_compare",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_shuffle",
+            "kind": 3,
+            "sortText": "b01_str_shuffle",
+            "filterText": "str_shuffle",
+            "insertText": "str_shuffle()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_shuffle",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_split",
+            "kind": 3,
+            "sortText": "b01_str_split",
+            "filterText": "str_split",
+            "insertText": "str_split()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_split",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_repeat",
+            "kind": 3,
+            "sortText": "b01_str_repeat",
+            "filterText": "str_repeat",
+            "insertText": "str_repeat()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_repeat",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "crypto_pwhash_scryptsalsa208sha256_str_verify",
+            "kind": 3,
+            "sortText": "c01_crypto_pwhash_scryptsalsa208sha256_str_verify",
+            "filterText": "crypto_pwhash_scryptsalsa208sha256_str_verify",
+            "insertText": "crypto_pwhash_scryptsalsa208sha256_str_verify()$0",
+            "insertTextFormat": 2,
+            "additionalTextEdits": [
+              {
+                "range": {
+                  "start": {
+                    "line": 1,
+                    "character": 0
+                  },
+                  "end": {
+                    "line": 1,
+                    "character": 0
+                  }
+                },
+                "newText": "use function Sodium\\crypto_pwhash_scryptsalsa208sha256_str_verify;\n"
+              }
+            ],
+            "data": {
+              "c": "",
+              "m": "Sodium\\crypto_pwhash_scryptsalsa208sha256_str_verify",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_pad",
+            "kind": 3,
+            "sortText": "b01_str_pad",
+            "filterText": "str_pad",
+            "insertText": "str_pad()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_pad",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "sodium_crypto_pwhash_str_needs_rehash",
+            "kind": 3,
+            "sortText": "c01_sodium_crypto_pwhash_str_needs_rehash",
+            "filterText": "sodium_crypto_pwhash_str_needs_rehash",
+            "insertText": "sodium_crypto_pwhash_str_needs_rehash()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "sodium_crypto_pwhash_str_needs_rehash",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_word_count",
+            "kind": 3,
+            "sortText": "b01_str_word_count",
+            "filterText": "str_word_count",
+            "insertText": "str_word_count()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_word_count",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "mb_str_pad",
+            "kind": 3,
+            "sortText": "c01_mb_str_pad",
+            "filterText": "mb_str_pad",
+            "insertText": "mb_str_pad()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "mb_str_pad",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "swoole_substr_json_decode",
+            "kind": 3,
+            "sortText": "c01_swoole_substr_json_decode",
+            "filterText": "swoole_substr_json_decode",
+            "insertText": "swoole_substr_json_decode()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "swoole_substr_json_decode",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "sodium_crypto_pwhash_str_verify",
+            "kind": 3,
+            "sortText": "c01_sodium_crypto_pwhash_str_verify",
+            "filterText": "sodium_crypto_pwhash_str_verify",
+            "insertText": "sodium_crypto_pwhash_str_verify()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "sodium_crypto_pwhash_str_verify",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "grapheme_str_split",
+            "kind": 3,
+            "sortText": "c01_grapheme_str_split",
+            "filterText": "grapheme_str_split",
+            "insertText": "grapheme_str_split()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "grapheme_str_split",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_ireplace",
+            "kind": 3,
+            "sortText": "b01_str_ireplace",
+            "filterText": "str_ireplace",
+            "insertText": "str_ireplace()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_ireplace",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "mb_str_split",
+            "kind": 3,
+            "sortText": "c01_mb_str_split",
+            "filterText": "mb_str_split",
+            "insertText": "mb_str_split()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "mb_str_split",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "swoole_substr_unserialize",
+            "kind": 3,
+            "sortText": "c01_swoole_substr_unserialize",
+            "filterText": "swoole_substr_unserialize",
+            "insertText": "swoole_substr_unserialize()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "swoole_substr_unserialize",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          }
+        ]
+      },
+      "visibleRows": [
+        "str_contains($haystack, $needle)\nbool",
+        "str_decrement($string)",
+        "str_ends_with($haystack, $needle)",
+        "str_getcsv",
+        "str_increment($string)",
+        "str_ireplace",
+        "str_pad",
+        "str_repeat",
+        "str_replace",
+        "str_rot13",
+        "str_shuffle",
+        "str_split",
+        "str_starts_with($haystack, $needle)"
+      ],
+      "suggestionVisible": true,
+      "state": {
+        "editorText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_",
+        "activeElement": {
+          "tag": "TEXTAREA",
+          "className": "inputarea monaco-mouse-cursor-text"
+        },
+        "phpVersion": "8.5",
+        "completionChecked": true,
+        "suggest": {
+          "visible": true,
+          "rows": [
+            "str_contains($haystack, $needle)\nbool",
+            "str_decrement($string)",
+            "str_ends_with($haystack, $needle)",
+            "str_getcsv",
+            "str_increment($string)",
+            "str_ireplace",
+            "str_pad",
+            "str_repeat",
+            "str_replace",
+            "str_rot13",
+            "str_shuffle",
+            "str_split",
+            "str_starts_with($haystack, $needle)"
+          ]
+        }
+      },
+      "orderValid": true,
+      "screenshot": "auto-str-underscore.png"
+    },
+    {
+      "name": "manual-strl",
+      "prefix": "strl",
+      "typed": "",
+      "mode": "manual",
+      "fullText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstrl",
+      "baseVersion": 5,
+      "changeVersion": 5,
+      "changeAt": 3515.9000000059605,
+      "expectedPosition": {
+        "line": 7,
+        "character": 4
+      },
+      "request": {
+        "direction": "ui->worker",
+        "at": 3536.4000000059605,
+        "id": 6,
+        "method": "textDocument/completion",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1"
+          },
+          "position": {
+            "line": 7,
+            "character": 4
+          }
+        }
+      },
+      "response": {
+        "direction": "worker->ui",
+        "at": 3548.0999999940395,
+        "id": 6,
+        "result": {
+          "isIncomplete": false,
+          "items": [
+            {
+              "label": "strlen($string)",
+              "kind": 3,
+              "detail": "int<0, max>",
+              "sortText": "b01_strlen",
+              "filterText": "strlen",
+              "insertText": "strlen(${1:\\$string})$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "strlen",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "grapheme_strlen",
+              "kind": 3,
+              "sortText": "c01_grapheme_strlen",
+              "filterText": "grapheme_strlen",
+              "insertText": "grapheme_strlen()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "grapheme_strlen",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "iconv_strlen",
+              "kind": 3,
+              "sortText": "c01_iconv_strlen",
+              "filterText": "iconv_strlen",
+              "insertText": "iconv_strlen()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "iconv_strlen",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "mb_strlen",
+              "kind": 3,
+              "sortText": "c01_mb_strlen",
+              "filterText": "mb_strlen",
+              "insertText": "mb_strlen()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "mb_strlen",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            }
+          ]
+        }
+      },
+      "rawResult": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "strlen($string)",
+            "kind": 3,
+            "detail": "int<0, max>",
+            "sortText": "b01_strlen",
+            "filterText": "strlen",
+            "insertText": "strlen(${1:\\$string})$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "grapheme_strlen",
+            "kind": 3,
+            "sortText": "c01_grapheme_strlen",
+            "filterText": "grapheme_strlen",
+            "insertText": "grapheme_strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "grapheme_strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "iconv_strlen",
+            "kind": 3,
+            "sortText": "c01_iconv_strlen",
+            "filterText": "iconv_strlen",
+            "insertText": "iconv_strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "iconv_strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "mb_strlen",
+            "kind": 3,
+            "sortText": "c01_mb_strlen",
+            "filterText": "mb_strlen",
+            "insertText": "mb_strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "mb_strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          }
+        ]
+      },
+      "visibleRows": [
+        "strlen($string)\nint<0, max>",
+        "mb_strlen",
+        "iconv_strlen",
+        "grapheme_strlen"
+      ],
+      "suggestionVisible": true,
+      "state": {
+        "editorText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstrl",
+        "activeElement": {
+          "tag": "TEXTAREA",
+          "className": "inputarea monaco-mouse-cursor-text"
+        },
+        "phpVersion": "8.5",
+        "completionChecked": true,
+        "suggest": {
+          "visible": true,
+          "rows": [
+            "strlen($string)\nint<0, max>",
+            "mb_strlen",
+            "iconv_strlen",
+            "grapheme_strlen"
+          ]
+        }
+      },
+      "orderValid": true,
+      "screenshot": "manual-strl.png"
+    },
+    {
+      "name": "auto-strl",
+      "prefix": "str",
+      "typed": "l",
+      "mode": "auto",
+      "fullText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstrl",
+      "baseVersion": 6,
+      "changeVersion": 7,
+      "changeAt": 4570.699999988079,
+      "expectedPosition": {
+        "line": 7,
+        "character": 4
+      },
+      "request": {
+        "direction": "ui->worker",
+        "at": 4581.5999999940395,
+        "id": 8,
+        "method": "textDocument/completion",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1"
+          },
+          "position": {
+            "line": 7,
+            "character": 4
+          }
+        }
+      },
+      "response": {
+        "direction": "worker->ui",
+        "at": 4583.300000011921,
+        "id": 8,
+        "result": {
+          "isIncomplete": false,
+          "items": [
+            {
+              "label": "strlen($string)",
+              "kind": 3,
+              "detail": "int<0, max>",
+              "sortText": "b01_strlen",
+              "filterText": "strlen",
+              "insertText": "strlen(${1:\\$string})$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "strlen",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "grapheme_strlen",
+              "kind": 3,
+              "sortText": "c01_grapheme_strlen",
+              "filterText": "grapheme_strlen",
+              "insertText": "grapheme_strlen()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "grapheme_strlen",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "iconv_strlen",
+              "kind": 3,
+              "sortText": "c01_iconv_strlen",
+              "filterText": "iconv_strlen",
+              "insertText": "iconv_strlen()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "iconv_strlen",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "mb_strlen",
+              "kind": 3,
+              "sortText": "c01_mb_strlen",
+              "filterText": "mb_strlen",
+              "insertText": "mb_strlen()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "",
+                "m": "mb_strlen",
+                "k": "function",
+                "u": "inmemory://model/1"
+              }
+            }
+          ]
+        }
+      },
+      "rawResult": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "strlen($string)",
+            "kind": 3,
+            "detail": "int<0, max>",
+            "sortText": "b01_strlen",
+            "filterText": "strlen",
+            "insertText": "strlen(${1:\\$string})$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "grapheme_strlen",
+            "kind": 3,
+            "sortText": "c01_grapheme_strlen",
+            "filterText": "grapheme_strlen",
+            "insertText": "grapheme_strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "grapheme_strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "iconv_strlen",
+            "kind": 3,
+            "sortText": "c01_iconv_strlen",
+            "filterText": "iconv_strlen",
+            "insertText": "iconv_strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "iconv_strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "mb_strlen",
+            "kind": 3,
+            "sortText": "c01_mb_strlen",
+            "filterText": "mb_strlen",
+            "insertText": "mb_strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "mb_strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          }
+        ]
+      },
+      "visibleRows": [
+        "strlen($string)\nint<0, max>",
+        "mb_strlen",
+        "iconv_strlen",
+        "grapheme_strlen"
+      ],
+      "suggestionVisible": true,
+      "state": {
+        "editorText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstrl",
+        "activeElement": {
+          "tag": "TEXTAREA",
+          "className": "inputarea monaco-mouse-cursor-text"
+        },
+        "phpVersion": "8.5",
+        "completionChecked": true,
+        "suggest": {
+          "visible": true,
+          "rows": [
+            "strlen($string)\nint<0, max>",
+            "mb_strlen",
+            "iconv_strlen",
+            "grapheme_strlen"
+          ]
+        }
+      },
+      "orderValid": true,
+      "screenshot": "auto-strl.png"
+    }
+  ],
+  "allEvents": [
+    {
+      "direction": "ui->worker",
+      "at": 776.8000000119209,
+      "id": 1,
+      "method": "initialize",
+      "params": {
+        "processId": null,
+        "rootUri": null,
+        "capabilities": {
+          "general": {
+            "positionEncodings": [
+              "utf-16"
+            ]
+          },
+          "textDocument": {
+            "completion": {
+              "completionItem": {
+                "snippetSupport": true
+              }
+            },
+            "hover": {
+              "contentFormat": [
+                "markdown",
+                "plaintext"
+              ]
+            }
+          }
+        },
+        "initializationOptions": {
+          "phpVersion": "8.5"
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 868.5,
+      "id": 1,
+      "result": {
+        "capabilities": {
+          "textDocumentSync": 1,
+          "completionProvider": {
+            "triggerCharacters": [
+              ">",
+              ":",
+              "$",
+              "\\"
+            ],
+            "resolveProvider": true
+          },
+          "hoverProvider": true,
+          "definitionProvider": true,
+          "documentHighlightProvider": true,
+          "renameProvider": true,
+          "signatureHelpProvider": {
+            "triggerCharacters": [
+              "(",
+              ","
+            ]
+          }
+        },
+        "serverInfo": {
+          "name": "PHPantom",
+          "version": "0.11.1"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 868.5999999940395,
+      "method": "textDocument/didOpen",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "languageId": "php",
+          "version": 1,
+          "text": "<?php\n// example code\nphpinfo();"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 968.5,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 2
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 989.4000000059605,
+      "id": 2,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 4
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 999.5999999940395,
+      "id": 2,
+      "result": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "STR_PAD_RIGHT",
+            "kind": 21,
+            "sortText": "b01_str_pad_right",
+            "filterText": "STR_PAD_RIGHT",
+            "insertText": "STR_PAD_RIGHT",
+            "data": {
+              "c": "",
+              "m": "STR_PAD_RIGHT",
+              "k": "global_constant",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "YAML_STR_TAG",
+            "kind": 21,
+            "sortText": "c01_yaml_str_tag",
+            "filterText": "YAML_STR_TAG",
+            "insertText": "YAML_STR_TAG",
+            "data": {
+              "c": "",
+              "m": "YAML_STR_TAG",
+              "k": "global_constant",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "STR_PAD_BOTH",
+            "kind": 21,
+            "sortText": "b01_str_pad_both",
+            "filterText": "STR_PAD_BOTH",
+            "insertText": "STR_PAD_BOTH",
+            "data": {
+              "c": "",
+              "m": "STR_PAD_BOTH",
+              "k": "global_constant",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "STR_PAD_LEFT",
+            "kind": 21,
+            "sortText": "b01_str_pad_left",
+            "filterText": "STR_PAD_LEFT",
+            "insertText": "STR_PAD_LEFT",
+            "data": {
+              "c": "",
+              "m": "STR_PAD_LEFT",
+              "k": "global_constant",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "sodium_crypto_pwhash_scryptsalsa208sha256_str_verify",
+            "kind": 3,
+            "sortText": "c01_sodium_crypto_pwhash_scryptsalsa208sha256_str_verify",
+            "filterText": "sodium_crypto_pwhash_scryptsalsa208sha256_str_verify",
+            "insertText": "sodium_crypto_pwhash_scryptsalsa208sha256_str_verify()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "sodium_crypto_pwhash_scryptsalsa208sha256_str_verify",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_getcsv",
+            "kind": 3,
+            "sortText": "b01_str_getcsv",
+            "filterText": "str_getcsv",
+            "insertText": "str_getcsv()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_getcsv",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_rot13",
+            "kind": 3,
+            "sortText": "b01_str_rot13",
+            "filterText": "str_rot13",
+            "insertText": "str_rot13()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_rot13",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "mb_substr_count",
+            "kind": 3,
+            "sortText": "c01_mb_substr_count",
+            "filterText": "mb_substr_count",
+            "insertText": "mb_substr_count()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "mb_substr_count",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "crypto_pwhash_str_verify",
+            "kind": 3,
+            "sortText": "c01_crypto_pwhash_str_verify",
+            "filterText": "crypto_pwhash_str_verify",
+            "insertText": "crypto_pwhash_str_verify()$0",
+            "insertTextFormat": 2,
+            "additionalTextEdits": [
+              {
+                "range": {
+                  "start": {
+                    "line": 1,
+                    "character": 0
+                  },
+                  "end": {
+                    "line": 1,
+                    "character": 0
+                  }
+                },
+                "newText": "use function Sodium\\crypto_pwhash_str_verify;\n"
+              }
+            ],
+            "data": {
+              "c": "",
+              "m": "Sodium\\crypto_pwhash_str_verify",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_starts_with",
+            "kind": 3,
+            "sortText": "b01_str_starts_with",
+            "filterText": "str_starts_with",
+            "insertText": "str_starts_with()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_starts_with",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "substr_replace",
+            "kind": 3,
+            "sortText": "c01_substr_replace",
+            "filterText": "substr_replace",
+            "insertText": "substr_replace()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "substr_replace",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "substr_count",
+            "kind": 3,
+            "sortText": "c01_substr_count",
+            "filterText": "substr_count",
+            "insertText": "substr_count()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "substr_count",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_replace",
+            "kind": 3,
+            "sortText": "b01_str_replace",
+            "filterText": "str_replace",
+            "insertText": "str_replace()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_replace",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "substr_compare",
+            "kind": 3,
+            "sortText": "c01_substr_compare",
+            "filterText": "substr_compare",
+            "insertText": "substr_compare()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "substr_compare",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_decrement",
+            "kind": 3,
+            "sortText": "b01_str_decrement",
+            "filterText": "str_decrement",
+            "insertText": "str_decrement()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_decrement",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_shuffle",
+            "kind": 3,
+            "sortText": "b01_str_shuffle",
+            "filterText": "str_shuffle",
+            "insertText": "str_shuffle()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_shuffle",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_split",
+            "kind": 3,
+            "sortText": "b01_str_split",
+            "filterText": "str_split",
+            "insertText": "str_split()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_split",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_repeat",
+            "kind": 3,
+            "sortText": "b01_str_repeat",
+            "filterText": "str_repeat",
+            "insertText": "str_repeat()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_repeat",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "crypto_pwhash_scryptsalsa208sha256_str_verify",
+            "kind": 3,
+            "sortText": "c01_crypto_pwhash_scryptsalsa208sha256_str_verify",
+            "filterText": "crypto_pwhash_scryptsalsa208sha256_str_verify",
+            "insertText": "crypto_pwhash_scryptsalsa208sha256_str_verify()$0",
+            "insertTextFormat": 2,
+            "additionalTextEdits": [
+              {
+                "range": {
+                  "start": {
+                    "line": 1,
+                    "character": 0
+                  },
+                  "end": {
+                    "line": 1,
+                    "character": 0
+                  }
+                },
+                "newText": "use function Sodium\\crypto_pwhash_scryptsalsa208sha256_str_verify;\n"
+              }
+            ],
+            "data": {
+              "c": "",
+              "m": "Sodium\\crypto_pwhash_scryptsalsa208sha256_str_verify",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_increment",
+            "kind": 3,
+            "sortText": "b01_str_increment",
+            "filterText": "str_increment",
+            "insertText": "str_increment()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_increment",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_pad",
+            "kind": 3,
+            "sortText": "b01_str_pad",
+            "filterText": "str_pad",
+            "insertText": "str_pad()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_pad",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_contains",
+            "kind": 3,
+            "sortText": "b01_str_contains",
+            "filterText": "str_contains",
+            "insertText": "str_contains()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_contains",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "sodium_crypto_pwhash_str_needs_rehash",
+            "kind": 3,
+            "sortText": "c01_sodium_crypto_pwhash_str_needs_rehash",
+            "filterText": "sodium_crypto_pwhash_str_needs_rehash",
+            "insertText": "sodium_crypto_pwhash_str_needs_rehash()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "sodium_crypto_pwhash_str_needs_rehash",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_word_count",
+            "kind": 3,
+            "sortText": "b01_str_word_count",
+            "filterText": "str_word_count",
+            "insertText": "str_word_count()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_word_count",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "mb_str_pad",
+            "kind": 3,
+            "sortText": "c01_mb_str_pad",
+            "filterText": "mb_str_pad",
+            "insertText": "mb_str_pad()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "mb_str_pad",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "swoole_substr_json_decode",
+            "kind": 3,
+            "sortText": "c01_swoole_substr_json_decode",
+            "filterText": "swoole_substr_json_decode",
+            "insertText": "swoole_substr_json_decode()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "swoole_substr_json_decode",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "sodium_crypto_pwhash_str_verify",
+            "kind": 3,
+            "sortText": "c01_sodium_crypto_pwhash_str_verify",
+            "filterText": "sodium_crypto_pwhash_str_verify",
+            "insertText": "sodium_crypto_pwhash_str_verify()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "sodium_crypto_pwhash_str_verify",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "grapheme_str_split",
+            "kind": 3,
+            "sortText": "c01_grapheme_str_split",
+            "filterText": "grapheme_str_split",
+            "insertText": "grapheme_str_split()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "grapheme_str_split",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_ends_with",
+            "kind": 3,
+            "sortText": "b01_str_ends_with",
+            "filterText": "str_ends_with",
+            "insertText": "str_ends_with()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_ends_with",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_ireplace",
+            "kind": 3,
+            "sortText": "b01_str_ireplace",
+            "filterText": "str_ireplace",
+            "insertText": "str_ireplace()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_ireplace",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "mb_str_split",
+            "kind": 3,
+            "sortText": "c01_mb_str_split",
+            "filterText": "mb_str_split",
+            "insertText": "mb_str_split()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "mb_str_split",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "swoole_substr_unserialize",
+            "kind": 3,
+            "sortText": "c01_swoole_substr_unserialize",
+            "filterText": "swoole_substr_unserialize",
+            "insertText": "swoole_substr_unserialize()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "swoole_substr_unserialize",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 1007.5,
+      "id": 3,
+      "method": "completionItem/resolve",
+      "params": {
+        "label": "str_contains",
+        "kind": 3,
+        "sortText": "b01_str_contains",
+        "filterText": "str_contains",
+        "insertText": "str_contains()$0",
+        "insertTextFormat": 2,
+        "data": {
+          "c": "",
+          "m": "str_contains",
+          "k": "function",
+          "u": "inmemory://model/1"
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 1025.300000011921,
+      "id": 3,
+      "result": {
+        "label": "str_contains",
+        "kind": 3,
+        "documentation": {
+          "kind": "markdown",
+          "value": "Checks if $needle is found in $haystack and returns a boolean value\n(true/false) whether or not the $needle was found.\n\n[https://php.net/manual/en/function.str-contains.php](https://php.net/manual/en/function.str-contains.php)\n\n```php\n<?php\nfunction str_contains(string $haystack, string $needle): bool;\n```\n\n🟣 `PHP`"
+        },
+        "sortText": "b01_str_contains",
+        "filterText": "str_contains",
+        "insertText": "str_contains()$0",
+        "insertTextFormat": 2,
+        "data": {
+          "c": "",
+          "m": "str_contains",
+          "k": "function",
+          "u": "inmemory://model/1"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 2000.4000000059605,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 3
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 2022.4000000059605,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 4
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 2033.4000000059605,
+      "id": 4,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 4
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 2035.800000011921,
+      "id": 4,
+      "result": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "STR_PAD_RIGHT",
+            "kind": 21,
+            "sortText": "b01_str_pad_right",
+            "filterText": "STR_PAD_RIGHT",
+            "insertText": "STR_PAD_RIGHT",
+            "data": {
+              "c": "",
+              "m": "STR_PAD_RIGHT",
+              "k": "global_constant",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "YAML_STR_TAG",
+            "kind": 21,
+            "sortText": "c01_yaml_str_tag",
+            "filterText": "YAML_STR_TAG",
+            "insertText": "YAML_STR_TAG",
+            "data": {
+              "c": "",
+              "m": "YAML_STR_TAG",
+              "k": "global_constant",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "STR_PAD_BOTH",
+            "kind": 21,
+            "sortText": "b01_str_pad_both",
+            "filterText": "STR_PAD_BOTH",
+            "insertText": "STR_PAD_BOTH",
+            "data": {
+              "c": "",
+              "m": "STR_PAD_BOTH",
+              "k": "global_constant",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "STR_PAD_LEFT",
+            "kind": 21,
+            "sortText": "b01_str_pad_left",
+            "filterText": "STR_PAD_LEFT",
+            "insertText": "STR_PAD_LEFT",
+            "data": {
+              "c": "",
+              "m": "STR_PAD_LEFT",
+              "k": "global_constant",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_ends_with($haystack, $needle)",
+            "kind": 3,
+            "detail": "bool",
+            "sortText": "b01_str_ends_with",
+            "filterText": "str_ends_with",
+            "insertText": "str_ends_with(${1:\\$haystack}, ${2:\\$needle})$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_ends_with",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_contains($haystack, $needle)",
+            "kind": 3,
+            "detail": "bool",
+            "sortText": "b01_str_contains",
+            "filterText": "str_contains",
+            "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_contains",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_decrement($string)",
+            "kind": 3,
+            "detail": "string",
+            "sortText": "b01_str_decrement",
+            "filterText": "str_decrement",
+            "insertText": "str_decrement(${1:\\$string})$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_decrement",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_starts_with($haystack, $needle)",
+            "kind": 3,
+            "detail": "bool",
+            "sortText": "b01_str_starts_with",
+            "filterText": "str_starts_with",
+            "insertText": "str_starts_with(${1:\\$haystack}, ${2:\\$needle})$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_starts_with",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_increment($string)",
+            "kind": 3,
+            "detail": "string",
+            "sortText": "b01_str_increment",
+            "filterText": "str_increment",
+            "insertText": "str_increment(${1:\\$string})$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_increment",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "sodium_crypto_pwhash_scryptsalsa208sha256_str_verify",
+            "kind": 3,
+            "sortText": "c01_sodium_crypto_pwhash_scryptsalsa208sha256_str_verify",
+            "filterText": "sodium_crypto_pwhash_scryptsalsa208sha256_str_verify",
+            "insertText": "sodium_crypto_pwhash_scryptsalsa208sha256_str_verify()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "sodium_crypto_pwhash_scryptsalsa208sha256_str_verify",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_getcsv",
+            "kind": 3,
+            "sortText": "b01_str_getcsv",
+            "filterText": "str_getcsv",
+            "insertText": "str_getcsv()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_getcsv",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_rot13",
+            "kind": 3,
+            "sortText": "b01_str_rot13",
+            "filterText": "str_rot13",
+            "insertText": "str_rot13()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_rot13",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "mb_substr_count",
+            "kind": 3,
+            "sortText": "c01_mb_substr_count",
+            "filterText": "mb_substr_count",
+            "insertText": "mb_substr_count()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "mb_substr_count",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "crypto_pwhash_str_verify",
+            "kind": 3,
+            "sortText": "c01_crypto_pwhash_str_verify",
+            "filterText": "crypto_pwhash_str_verify",
+            "insertText": "crypto_pwhash_str_verify()$0",
+            "insertTextFormat": 2,
+            "additionalTextEdits": [
+              {
+                "range": {
+                  "start": {
+                    "line": 1,
+                    "character": 0
+                  },
+                  "end": {
+                    "line": 1,
+                    "character": 0
+                  }
+                },
+                "newText": "use function Sodium\\crypto_pwhash_str_verify;\n"
+              }
+            ],
+            "data": {
+              "c": "",
+              "m": "Sodium\\crypto_pwhash_str_verify",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "substr_replace",
+            "kind": 3,
+            "sortText": "c01_substr_replace",
+            "filterText": "substr_replace",
+            "insertText": "substr_replace()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "substr_replace",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "substr_count",
+            "kind": 3,
+            "sortText": "c01_substr_count",
+            "filterText": "substr_count",
+            "insertText": "substr_count()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "substr_count",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_replace",
+            "kind": 3,
+            "sortText": "b01_str_replace",
+            "filterText": "str_replace",
+            "insertText": "str_replace()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_replace",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "substr_compare",
+            "kind": 3,
+            "sortText": "c01_substr_compare",
+            "filterText": "substr_compare",
+            "insertText": "substr_compare()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "substr_compare",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_shuffle",
+            "kind": 3,
+            "sortText": "b01_str_shuffle",
+            "filterText": "str_shuffle",
+            "insertText": "str_shuffle()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_shuffle",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_split",
+            "kind": 3,
+            "sortText": "b01_str_split",
+            "filterText": "str_split",
+            "insertText": "str_split()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_split",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_repeat",
+            "kind": 3,
+            "sortText": "b01_str_repeat",
+            "filterText": "str_repeat",
+            "insertText": "str_repeat()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_repeat",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "crypto_pwhash_scryptsalsa208sha256_str_verify",
+            "kind": 3,
+            "sortText": "c01_crypto_pwhash_scryptsalsa208sha256_str_verify",
+            "filterText": "crypto_pwhash_scryptsalsa208sha256_str_verify",
+            "insertText": "crypto_pwhash_scryptsalsa208sha256_str_verify()$0",
+            "insertTextFormat": 2,
+            "additionalTextEdits": [
+              {
+                "range": {
+                  "start": {
+                    "line": 1,
+                    "character": 0
+                  },
+                  "end": {
+                    "line": 1,
+                    "character": 0
+                  }
+                },
+                "newText": "use function Sodium\\crypto_pwhash_scryptsalsa208sha256_str_verify;\n"
+              }
+            ],
+            "data": {
+              "c": "",
+              "m": "Sodium\\crypto_pwhash_scryptsalsa208sha256_str_verify",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_pad",
+            "kind": 3,
+            "sortText": "b01_str_pad",
+            "filterText": "str_pad",
+            "insertText": "str_pad()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_pad",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "sodium_crypto_pwhash_str_needs_rehash",
+            "kind": 3,
+            "sortText": "c01_sodium_crypto_pwhash_str_needs_rehash",
+            "filterText": "sodium_crypto_pwhash_str_needs_rehash",
+            "insertText": "sodium_crypto_pwhash_str_needs_rehash()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "sodium_crypto_pwhash_str_needs_rehash",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_word_count",
+            "kind": 3,
+            "sortText": "b01_str_word_count",
+            "filterText": "str_word_count",
+            "insertText": "str_word_count()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_word_count",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "mb_str_pad",
+            "kind": 3,
+            "sortText": "c01_mb_str_pad",
+            "filterText": "mb_str_pad",
+            "insertText": "mb_str_pad()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "mb_str_pad",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "swoole_substr_json_decode",
+            "kind": 3,
+            "sortText": "c01_swoole_substr_json_decode",
+            "filterText": "swoole_substr_json_decode",
+            "insertText": "swoole_substr_json_decode()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "swoole_substr_json_decode",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "sodium_crypto_pwhash_str_verify",
+            "kind": 3,
+            "sortText": "c01_sodium_crypto_pwhash_str_verify",
+            "filterText": "sodium_crypto_pwhash_str_verify",
+            "insertText": "sodium_crypto_pwhash_str_verify()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "sodium_crypto_pwhash_str_verify",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "grapheme_str_split",
+            "kind": 3,
+            "sortText": "c01_grapheme_str_split",
+            "filterText": "grapheme_str_split",
+            "insertText": "grapheme_str_split()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "grapheme_str_split",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "str_ireplace",
+            "kind": 3,
+            "sortText": "b01_str_ireplace",
+            "filterText": "str_ireplace",
+            "insertText": "str_ireplace()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "str_ireplace",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "mb_str_split",
+            "kind": 3,
+            "sortText": "c01_mb_str_split",
+            "filterText": "mb_str_split",
+            "insertText": "mb_str_split()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "mb_str_split",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "swoole_substr_unserialize",
+            "kind": 3,
+            "sortText": "c01_swoole_substr_unserialize",
+            "filterText": "swoole_substr_unserialize",
+            "insertText": "swoole_substr_unserialize()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "swoole_substr_unserialize",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 2037.800000011921,
+      "id": 5,
+      "method": "completionItem/resolve",
+      "params": {
+        "label": "str_contains($haystack, $needle)",
+        "kind": 3,
+        "detail": "bool",
+        "sortText": "b01_str_contains",
+        "filterText": "str_contains",
+        "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})$0",
+        "insertTextFormat": 2,
+        "data": {
+          "c": "",
+          "m": "str_contains",
+          "k": "function",
+          "u": "inmemory://model/1"
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 2038.199999988079,
+      "id": 5,
+      "result": {
+        "label": "str_contains($haystack, $needle)",
+        "kind": 3,
+        "detail": "bool",
+        "documentation": {
+          "kind": "markdown",
+          "value": "Checks if $needle is found in $haystack and returns a boolean value\n(true/false) whether or not the $needle was found.\n\n[https://php.net/manual/en/function.str-contains.php](https://php.net/manual/en/function.str-contains.php)\n\n```php\n<?php\nfunction str_contains(string $haystack, string $needle): bool;\n```\n\n🟣 `PHP`"
+        },
+        "sortText": "b01_str_contains",
+        "filterText": "str_contains",
+        "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})$0",
+        "insertTextFormat": 2,
+        "data": {
+          "c": "",
+          "m": "str_contains",
+          "k": "function",
+          "u": "inmemory://model/1"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 3515.9000000059605,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 5
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstrl"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 3536.4000000059605,
+      "id": 6,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 4
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 3548.0999999940395,
+      "id": 6,
+      "result": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "strlen($string)",
+            "kind": 3,
+            "detail": "int<0, max>",
+            "sortText": "b01_strlen",
+            "filterText": "strlen",
+            "insertText": "strlen(${1:\\$string})$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "grapheme_strlen",
+            "kind": 3,
+            "sortText": "c01_grapheme_strlen",
+            "filterText": "grapheme_strlen",
+            "insertText": "grapheme_strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "grapheme_strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "iconv_strlen",
+            "kind": 3,
+            "sortText": "c01_iconv_strlen",
+            "filterText": "iconv_strlen",
+            "insertText": "iconv_strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "iconv_strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "mb_strlen",
+            "kind": 3,
+            "sortText": "c01_mb_strlen",
+            "filterText": "mb_strlen",
+            "insertText": "mb_strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "mb_strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 3548.800000011921,
+      "id": 7,
+      "method": "completionItem/resolve",
+      "params": {
+        "label": "strlen($string)",
+        "kind": 3,
+        "detail": "int<0, max>",
+        "sortText": "b01_strlen",
+        "filterText": "strlen",
+        "insertText": "strlen(${1:\\$string})$0",
+        "insertTextFormat": 2,
+        "data": {
+          "c": "",
+          "m": "strlen",
+          "k": "function",
+          "u": "inmemory://model/1"
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 3549,
+      "id": 7,
+      "result": {
+        "label": "strlen($string)",
+        "kind": 3,
+        "detail": "int<0, max>",
+        "documentation": {
+          "kind": "markdown",
+          "value": "Get string length\n\n[https://php.net/manual/en/function.strlen.php](https://php.net/manual/en/function.strlen.php)\n\n**$string** The string being measured for length.\n\n**return** `int<0, max>`  \n    The length of the string on success, and 0 if the string is empty.\n\n```php\n<?php\nfunction strlen(string $string): int;\n```\n\n🟣 `PHP`"
+        },
+        "sortText": "b01_strlen",
+        "filterText": "strlen",
+        "insertText": "strlen(${1:\\$string})$0",
+        "insertTextFormat": 2,
+        "data": {
+          "c": "",
+          "m": "strlen",
+          "k": "function",
+          "u": "inmemory://model/1"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 4549.5999999940395,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 6
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 4570.699999988079,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 7
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstrl"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 4581.5999999940395,
+      "id": 8,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 4
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 4583.300000011921,
+      "id": 8,
+      "result": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "strlen($string)",
+            "kind": 3,
+            "detail": "int<0, max>",
+            "sortText": "b01_strlen",
+            "filterText": "strlen",
+            "insertText": "strlen(${1:\\$string})$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "grapheme_strlen",
+            "kind": 3,
+            "sortText": "c01_grapheme_strlen",
+            "filterText": "grapheme_strlen",
+            "insertText": "grapheme_strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "grapheme_strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "iconv_strlen",
+            "kind": 3,
+            "sortText": "c01_iconv_strlen",
+            "filterText": "iconv_strlen",
+            "insertText": "iconv_strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "iconv_strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "mb_strlen",
+            "kind": 3,
+            "sortText": "c01_mb_strlen",
+            "filterText": "mb_strlen",
+            "insertText": "mb_strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "mb_strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 4584.699999988079,
+      "id": 9,
+      "method": "completionItem/resolve",
+      "params": {
+        "label": "strlen($string)",
+        "kind": 3,
+        "detail": "int<0, max>",
+        "sortText": "b01_strlen",
+        "filterText": "strlen",
+        "insertText": "strlen(${1:\\$string})$0",
+        "insertTextFormat": 2,
+        "data": {
+          "c": "",
+          "m": "strlen",
+          "k": "function",
+          "u": "inmemory://model/1"
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 4584.800000011921,
+      "id": 9,
+      "result": {
+        "label": "strlen($string)",
+        "kind": 3,
+        "detail": "int<0, max>",
+        "documentation": {
+          "kind": "markdown",
+          "value": "Get string length\n\n[https://php.net/manual/en/function.strlen.php](https://php.net/manual/en/function.strlen.php)\n\n**$string** The string being measured for length.\n\n**return** `int<0, max>`  \n    The length of the string on success, and 0 if the string is empty.\n\n```php\n<?php\nfunction strlen(string $string): int;\n```\n\n🟣 `PHP`"
+        },
+        "sortText": "b01_strlen",
+        "filterText": "strlen",
+        "insertText": "strlen(${1:\\$string})$0",
+        "insertTextFormat": 2,
+        "data": {
+          "c": "",
+          "m": "strlen",
+          "k": "function",
+          "u": "inmemory://model/1"
+        }
+      }
+    }
+  ],
+  "pageErrors": [],
+  "consoleErrors": []
+}

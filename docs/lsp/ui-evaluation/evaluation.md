@@ -19,6 +19,17 @@
 | `new Gre` + Ctrl+Space | raw 5件 → 画面2行（`Greeter`, `IntlGregorianCalendar`） | raw `items: []` → 画面5行（`Greeter`, `greet`, `greetUser`, `$greeter`, `$greeting`） | PHPantomはWorker候補のうち画面に2件。Phpactorの画面5行はCompletion OFFでも同じ5行、JSON-RPC 0件で再現。Monaco word suggestions由来を強く支持するがexact provider IDは未確認。5行をPhpactor LSP候補とは数えない。 |
 | `greetUser(` / `strlen(` + Ctrl+Space | named argument 1件ずつ表示 | local変数とnamed parameterの2件を表示 | これはcompletion候補でありsignature helpではない。Phpactorでは同位置でも既存変数`$greeting`が混ざった。 |
 
+### `str_`と`strl`の手動/自動追試
+
+追加の同一fixture追試で`str_`を貼り付けてCtrl+Space、また`str`から`_`を自然入力する操作を分けた。両方の自動入力でversion一致の`textDocument/completion` requestとresponseがあり、この制御条件では`str_`候補が非表示になる現象を再現しなかった。ユーザー実試用時の入力履歴やfocusが異なれば結果は別になり得る。
+
+| 入力 | PHPantom manual / auto | Phpactor manual / auto |
+|---|---|---|
+| `str_` | raw 32 / 32 → visible 13 / 13。例: `str_contains`, `str_starts_with`, `str_replace` | raw 19 / 19 → visible 12 / 12。rawには`class`, `enum`, `trait`, `function`, `interface`も含むが画面には出ない。 |
+| `strl` | raw 4 / 4 → visible 4 / 4 | raw 6 / 6 → visible 1 / 1（`strlen`。5 keyword itemsは非表示） |
+
+同じtraceの手動/自動順にrequest ID・文書version・line 7 / character 4を保存した。[PHPantom trace](evidence/phpantom-str-prefix-2026-10-25T13-35-08-284Z/trace.json)、[Phpactor trace](evidence/phpactor-str-prefix-2026-10-25T13-35-19-537Z/trace.json)。PHPantomでは`str_`の自動raw itemに`str_contains($haystack, $needle)`等のsignature labelがある一方、手動raw labelは関数名のみの候補が含まれた。画面も自動側ではdetailが見える項目があり、同じ候補集合でもmetadata/表示詳細に差があった。原因は未確定。
+
 ### Worker RTT
 
 単位ms。各値は手動completionのrequest postMessageから対応response受信までで、候補の意味・画面反映・人の入力待ちは含まない。各2回のみで統計的な代表値ではない。
@@ -74,7 +85,8 @@ Completion checkboxをOFFにするとWorkerが終了し、ONで再初期化す�
 応答遅延は隔離ページのWorker message capture listenerで注入した。指定methodのresponseをapp listenerへ渡す前に`stopImmediatePropagation()`で保留し、1.4秒後に同じdataのMessageEventを隔離ページ内でdispatchした。server、product Worker/sourceは変更していない。
 
 - **入力変更後の旧completion:** 両方で`$greeter->`要求（line 7 / character 10）のresponseを1.4秒保留し、文書を`$greeter->g`へ変更してCtrl+Spaceを別requestとして実行。PHPantomは現在候補`greet()`、Phpactorは`greet`を表示。旧3-item responseを解放した後も現在候補1件が維持され、旧候補一覧に戻らなかった。[PHPantom trace](evidence/phpantom-delay-2026-10-25T13-21-21-192Z/trace.json)、[Phpactor trace](evidence/phpactor-delay-2026-10-25T13-20-55-536Z/trace.json)。2要求は別request ID / 文書versionとして記録。
-- **hover保留中にCompletion OFF/ON:** hover responseを同じ1.4秒保留中にCompletion OFF。両方でWorker terminateを観測し、保留応答はterminate済みWorkerへ再配送せずdropした。古いtooltipは表示されず、ON後の再initialize/didOpen後に新hover requestを送り、tooltip `Greeter`（Phpactor）/code block（PHPantom）が再表示された。同traceにOFF/ON状態とrequest/responseを記録。これはWorker終了後にresponseが届くよう偽装せず、隔離計測器が配送を破棄した条件である。
+
+OFF caseはhover応答を待つ間にcheckbox操作がWorkerをterminateした。隔離harnessは後から応答を再配送しなかったため、これは製品側のgeneration/version guardが古い応答を拒否した証拠ではない。観測できたのはWorker終了と配送なし、ON後の再initialize/didOpen、新しいhoverの成功まで。
 
 初回表示計測は[Phpactor](evidence/phpactor-first-visible-2026-10-25T13-26-48-949Z/trace.json)と[PHPantom](evidence/phpantom-first-visible-2026-10-25T13-26-59-591Z/trace.json)で別々に実行。各アプリ/ケースはfresh BrowserContextを作り、同じ8.5 fixtureで`$greeter->`と`strl`を自然キー入力で各3回実施。r1はそのcontextの初completion request、r2/r3は同Worker内の反復。text/version/request position/response idは全有効runで一致。UIの「first DOM visible」はMutationObserver後の次animation frameに、widgetにrowがあり、rectが正、display/visibilityが有効、opacity>0となった最初のDOM/styleサンプル。physical paint完了までは保証しない。
 
@@ -97,6 +109,8 @@ Completion checkboxをOFFにするとWorkerが終了し、ONで再初期化す�
 | 実行方式とrequest処理 | PHPantom Workerは持続WASI上で`lsp_handle`をqueue処理。Phpactor Workerは`startPHP()`後、各`php.run`でdispatch include→`Phpactor::boot()`→config/extensions/container構築→request shutdown。 | source構造は高。Phpactor worker担当によればこれは現adapterの同期方式の負担でPhpactor必須制約ではない。persistent request/containerやlight bootは未実装・未検証で、今回RTT内のboot寄与も未分離。効果や改善量は未確定。 |
 | UI/client timingと変換 | Phpactor側に100ms settle、cancellation、completion barrier。rawと画面行の数が異なるケースを観測。React/Monaco frontend dependency baselineも両branchで異なる。 | source上の差は高。通常入力の体感への寄与率は中〜低。`new Gre` 5行はMonaco由来が強いがprovider ID不明。画面計時にはReact/Monaco表示処理も混ざる。 |
 
+遅延completion入力変更caseでは隔離ページが旧responseを同じidでapp listenerへ後から再配送した後も、現在文書の候補が維持された。source上、PHPantomはcompletion response後にrequested modelがcurrentかつversion不変か確認し、hoverも同様にmodel/versionを確認する。PhpactorはcompletionでCancellationTokenと`raceCompletionCancellation`を使い、キャンセル時はprovider候補を空で返すほかresponse後もmodel/versionを確認する。hoverもmodel/version確認を持つ。ここで確認した範囲には明示的なper-request generation counterは見当たらない。これはsource構造の記述であり、OFF/terminate時のruntime配送guardとは分ける。
+
 Phpactor host CompleteHandlerの`new Gre`もraw空だったとの担当報告があり、ブラウザWorkerだけの障害という解釈は支持されない。担当からは該当completer source位置として`WorseClassMemberCompletor.php:124`が示された。初回host command exit 255はworkspace欠落で、temporary workspaceでは成功したとの回答であり、ブラウザ機能失敗には一般化しない。
 
 ## 再現手順と証拠
@@ -111,7 +125,7 @@ traceには全postMessageとtimestamp、response、文書version、位置、raw 
 
 ## 未確認と小さな追加実験案
 
-- 今回は入力変更後のold completionを一度ずつ解放して現候補が維持されることを観測した。さらに遅い/逆順の複数response列、PHP 8.4切替時の保留response、HTML Preview unmount等は未測定。
+- 今回は入力変更後のold completionを一度ずつ解放して現候補が維持されることを観測した。さらに遅い/逆順の複数response列、PHP 8.4切替時の保留response、HTML Preview unmount等は未測定。Completion OFF後のhover responseは製品guardを通す試験になっていない。
 - Word suggestion exact provider IDは未確認。Completion OFF時も同じ行/JSON-RPC 0で再現したためMonaco側由来は強く支持するが、provider内部IDの帰属はこの隔離測定からは分からない。
 - Phpactorのlocal `greetUser(` signature helpは全文/version/positionが相関したresponse `null` とtooltipなしを確認した。これがserver feature limitかadapter/runtime差かは特定していない。
 - 初期化やCPU競合を揃えた多数回の統計、各内部処理段階の時間、Worker queue待ち、Phpactor boot単独時間は測っていない。2回値から性能一般やboot改善効果を推定しない。
