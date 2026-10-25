@@ -135,6 +135,27 @@ def validate_buildx_preflight(argv: list[str], cwd: Path, preflight: dict[str, A
 		raise ValueError(
 			f"preflight Dockerfile {requested_dockerfile} does not match Buildx argv Dockerfile {command_dockerfile}"
 		)
+	target = None
+	for index, arg in enumerate(argv):
+		if arg == "--target":
+			if index + 1 >= len(argv):
+				raise ValueError("--target requires a named Dockerfile stage")
+			target = argv[index + 1]
+		elif arg.startswith("--target="):
+			target = arg.split("=", 1)[1]
+		if target == "":
+			raise ValueError("--target requires a named Dockerfile stage")
+	if target:
+		stage_names = {
+			match.group(1)
+			for line in command_dockerfile.read_text(encoding="utf-8").splitlines()
+			if (match := re.match(r"^\s*FROM\b.*\s+AS\s+([^\s#]+)", line, re.IGNORECASE))
+		}
+		if target not in stage_names:
+			raise ValueError(
+				f"Buildx target {target!r} is not a named stage in {command_dockerfile}; "
+				f"available stages: {', '.join(sorted(stage_names))}"
+			)
 	return preflight_copy_sources(command_dockerfile, command_context)
 
 

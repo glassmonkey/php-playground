@@ -1044,3 +1044,10 @@ RUN \
         # Rename the build files to their final names
         mv /root/output/php-module.js "/root/output/$JS_FILENAME" && \
         mv /root/output/php.wasm "/root/output/$WASM_FILENAME"
+
+# Export generated JS/Wasm artifacts without copying the toolchain filesystem.
+FROM scratch AS php-artifacts
+COPY --from=emscripten-php /root/output/ /
+
+# Keep the default build target and its complete image filesystem unchanged.
+FROM emscripten-php AS default

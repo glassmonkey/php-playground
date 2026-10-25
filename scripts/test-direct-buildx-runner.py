@@ -20,6 +20,22 @@ SPEC.loader.exec_module(runner)
 
 
 class DirectBuildxRunnerTest(unittest.TestCase):
+	def test_artifact_target_is_output_only_and_default_stage_is_explicit(self) -> None:
+		dockerfile = RUNNER.parents[1] / "src/wasm/Dockerfile"
+		instructions = [
+			line.strip()
+			for line in dockerfile.read_text(encoding="utf-8").splitlines()
+			if line.strip() and not line.lstrip().startswith("#")
+		]
+		artifact_stage = instructions.index("FROM scratch AS php-artifacts")
+		default_stage = instructions.index("FROM emscripten-php AS default")
+		self.assertEqual(
+			instructions[artifact_stage + 1 : default_stage],
+			["COPY --from=emscripten-php /root/output/ /"],
+		)
+		self.assertEqual(instructions[-1], "FROM emscripten-php AS default")
+		self.assertEqual(default_stage, len(instructions) - 1)
+
 	def make_spec(self, root: Path, exit_code: int) -> Path:
 		(root / "raw").mkdir(parents=True, exist_ok=True)
 		spec_path = root / "raw" / "runner.spec.json"
@@ -172,6 +188,8 @@ class DirectBuildxRunnerTest(unittest.TestCase):
 				sys.executable,
 				"-c",
 				f"from pathlib import Path; Path({str(marker)!r}).write_text('spawned')",
+				"--target",
+				"build",
 				"--file",
 				str(dockerfile),
 				str(context),
@@ -192,6 +210,40 @@ class DirectBuildxRunnerTest(unittest.TestCase):
 				[item["source"] for item in preflight["checks"]],
 				["build-assets/ncurses.patch", "build-assets/phpwasm-emscripten-library.js"],
 			)
+
+	def test_dockerfile_copy_preflight_rejects_unknown_target_before_spawn(self) -> None:
+		with tempfile.TemporaryDirectory() as temp:
+			root = Path(temp)
+			context = root / "repo/src/wasm"
+			dockerfile, _ = self.make_copy_preflight_case(root, context)
+			run_dir = root / "unknown-target-run"
+			spec_path = self.make_spec(run_dir, 0)
+			spec = json.loads(spec_path.read_text())
+			marker = root / "child-ran.txt"
+			spec["argv"] = [
+				sys.executable,
+				"-c",
+				f"from pathlib import Path; Path({str(marker)!r}).write_text('spawned')",
+				"--target=php-artifactz",
+				"--file",
+				str(dockerfile),
+				str(context),
+			]
+			spec["preflight"] = {"dockerfile": str(dockerfile), "context": str(context)}
+			spec_path.write_text(json.dumps(spec), encoding="utf-8")
+			result = subprocess.run(
+				[sys.executable, str(RUNNER), str(spec_path)],
+				capture_output=True,
+				text=True,
+				check=False,
+			)
+			self.assertEqual(result.returncode, 1, result.stderr)
+			self.assertFalse(marker.exists())
+			receipt = json.loads((run_dir / "results.json").read_text())
+			self.assertEqual(receipt["status"], "unknown")
+			self.assertIsNone(receipt["exit_code"])
+			self.assertIn("php-artifactz", receipt["preflight_error"])
+			self.assertIn("available stages: build", receipt["preflight_error"])
 
 	def test_optional_log_hash_reporting_error_keeps_child_terminal(self) -> None:
 		with tempfile.TemporaryDirectory() as temp:
