@@ -1,0 +1,1266 @@
+{
+  "app": "phpactor",
+  "runId": "2026-10-25T13-17-20-597Z",
+  "startedAt": "2026-10-25T13:17:21.495Z",
+  "url": "http://127.0.0.1:3471/?c=DwfgDgFmBQBmCuA7AxgFwJYHtEAIDmATgKZGoCqAzkQQBQWoHqJ44AkiAhgLZE4C8OAOQBxeEXqCAlAC4c9RsxwBvHMVTwCuQQAkiAGz2YhOAHRtOPANw4AvnCRosuDgBMXAOXhcARtQo0mVDY9IlhUABocQLZGPAhUGSjEIJU1DVxWELCcAGoY9DjUaztkPQ4KChxhYlJqZRwweG89dGQ5BiYWVh4Kjjwia0bm1pwEFAxsfBrUGkT5Tvq0zSEIdEFihqaWtvoODDaxx0nkYj2iWdkqPVhF0nScRCIAdzl9WFmNu1ZCEgxFAR%2BpEo1BoggAglJLNBvtM6gJHi9qr8QZIoewvL4CPwcABGKFAA&v=8.5&f=html",
+  "browser": "156.0.8078.47",
+  "phpVersion": "8.5",
+  "fixture": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n",
+  "symbolLine": "$greeter = new Greeter();",
+  "pointerTarget": {
+    "x": 115,
+    "y": 299.1875
+  },
+  "pointer": {
+    "name": "pointer-hover",
+    "startedAt": 3019.800000011921,
+    "request": {
+      "direction": "ui->worker",
+      "at": 3303,
+      "id": 2,
+      "method": "textDocument/hover",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 5,
+          "character": 3
+        }
+      }
+    },
+    "response": {
+      "direction": "worker->ui",
+      "at": 3417.5999999940395,
+      "id": 2,
+      "result": {
+        "contents": {
+          "kind": "markdown",
+          "value": "Greeter"
+        }
+      }
+    },
+    "requestToResponseMs": 114.59999999403954,
+    "state": {
+      "visibleText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;",
+      "activeElement": {
+        "tag": "DIV",
+        "className": "native-edit-context",
+        "ariaLabel": "Editor content"
+      },
+      "cursorStyle": "height: 18px; top: 126px; left: 0px; font-family: Menlo, Monaco, \"Courier New\", monospace; font-weight: normal; font-size: 12px; font-feature-settings: \"liga\" 0, \"calt\" 0; font-variation-settings: normal; line-height: 18px; letter-spacing: 0px; display: block; visibility: hidden; padding-left: 0px; width: 2px;",
+      "phpVersion": "8.5",
+      "completionChecked": true,
+      "hover": {
+        "className": "monaco-hover fade-in",
+        "text": "Greeter",
+        "visible": true,
+        "rect": {
+          "x": 92,
+          "y": 263.1875,
+          "width": 61,
+          "height": 26,
+          "top": 263.1875,
+          "right": 153,
+          "bottom": 289.1875,
+          "left": 92
+        }
+      }
+    },
+    "hoverMutationsAfterStart": [
+      {
+        "at": 3464,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "slider",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "slider",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "slider",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "slider",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.0999999940395,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "slider",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "slider",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "slider",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "slider",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3464.2000000178814,
+        "className": "slider",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      }
+    ],
+    "screenshot": "pointer-hover.png"
+  },
+  "keyboard": {
+    "name": "keyboard-hover",
+    "startedAt": 5253,
+    "request": {
+      "direction": "ui->worker",
+      "at": 5265.700000017881,
+      "id": 3,
+      "method": "textDocument/hover",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 5,
+          "character": 3
+        }
+      }
+    },
+    "response": {
+      "direction": "worker->ui",
+      "at": 5323.300000011921,
+      "id": 3,
+      "result": {
+        "contents": {
+          "kind": "markdown",
+          "value": "Greeter"
+        }
+      }
+    },
+    "requestToResponseMs": 57.599999994039536,
+    "state": {
+      "visibleText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;",
+      "activeElement": {
+        "tag": "DIV",
+        "className": "native-edit-context",
+        "ariaLabel": "Editor content"
+      },
+      "cursorStyle": "height: 18px; top: 90px; left: 21px; font-family: Menlo, Monaco, \"Courier New\", monospace; font-weight: normal; font-size: 12px; font-feature-settings: \"liga\" 0, \"calt\" 0; font-variation-settings: normal; line-height: 18px; letter-spacing: 0px; display: block; visibility: inherit; padding-left: 1px; width: 2px;",
+      "phpVersion": "8.5",
+      "completionChecked": true,
+      "hover": {
+        "className": "monaco-hover fade-in",
+        "text": "Greeter",
+        "visible": true,
+        "rect": {
+          "x": 92,
+          "y": 263.1875,
+          "width": 61,
+          "height": 26,
+          "top": 263.1875,
+          "right": 153,
+          "bottom": 289.1875,
+          "left": 92
+        }
+      }
+    },
+    "hoverMutationsAfterStart": [
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "slider",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "slider",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "slider",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "slider",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.700000017881,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.800000011921,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.800000011921,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.800000011921,
+        "className": "slider",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.800000011921,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5326.800000011921,
+        "className": "slider",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.4000000059605,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.4000000059605,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.4000000059605,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 5328.4000000059605,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 5328.4000000059605,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.4000000059605,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.4000000059605,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.4000000059605,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.4000000059605,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.4000000059605,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.4000000059605,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.4000000059605,
+        "className": "slider",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.4000000059605,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 5328.4000000059605,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 5328.4000000059605,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.4000000059605,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.4000000059605,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.4000000059605,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.4000000059605,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.4000000059605,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.5,
+        "className": "slider",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.5,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.5,
+        "className": "slider",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.5,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 5328.5,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 5328.5,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.5,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.5,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.5,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.5,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.5,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.5,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.5,
+        "className": "slider",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.5,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 5328.5,
+        "className": "monaco-resizable-hover",
+        "hoverText": "Greeter",
+        "hoverVisible": false
+      },
+      {
+        "at": 5328.5,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.5,
+        "className": "monaco-hover fade-in",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.5,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.5,
+        "className": "monaco-scrollable-element  mac",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.5,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.5,
+        "className": "monaco-hover-content",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.5,
+        "className": "slider",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.5,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 5328.5,
+        "className": "slider",
+        "hoverText": "Greeter",
+        "hoverVisible": true
+      }
+    ],
+    "screenshot": "keyboard-hover.png"
+  },
+  "pageErrors": [],
+  "consoleErrors": [],
+  "allEvents": [
+    {
+      "direction": "ui->worker",
+      "at": 2404.300000011921,
+      "id": 1,
+      "method": "initialize",
+      "params": {
+        "processId": null,
+        "rootUri": null,
+        "capabilities": {
+          "general": {
+            "positionEncodings": [
+              "utf-16"
+            ]
+          },
+          "textDocument": {
+            "completion": {
+              "completionItem": {
+                "snippetSupport": true
+              }
+            },
+            "hover": {
+              "contentFormat": [
+                "markdown",
+                "plaintext"
+              ]
+            }
+          }
+        },
+        "initializationOptions": {
+          "phpVersion": "8.5"
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 2600.7000000178814,
+      "id": 1,
+      "result": {
+        "capabilities": {
+          "textDocumentSync": {
+            "openClose": true,
+            "change": 1
+          },
+          "completionProvider": {
+            "resolveProvider": false,
+            "triggerCharacters": [
+              "$",
+              ">",
+              ":"
+            ]
+          },
+          "signatureHelpProvider": {
+            "triggerCharacters": [
+              "(",
+              ","
+            ]
+          },
+          "hoverProvider": true
+        },
+        "serverInfo": {
+          "name": "phpactor-wasm",
+          "version": "2026.10.07.0"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 2600.9000000059605,
+      "method": "textDocument/didOpen",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "languageId": "php",
+          "version": 1,
+          "text": "<?php\n// example code\nphpinfo();"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 2687.2000000178814,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 2
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 3303,
+      "id": 2,
+      "method": "textDocument/hover",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 5,
+          "character": 3
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 3417.5999999940395,
+      "id": 2,
+      "result": {
+        "contents": {
+          "kind": "markdown",
+          "value": "Greeter"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 4736.200000017881,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 3
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 5265.700000017881,
+      "id": 3,
+      "method": "textDocument/hover",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 5,
+          "character": 3
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 5323.300000011921,
+      "id": 3,
+      "result": {
+        "contents": {
+          "kind": "markdown",
+          "value": "Greeter"
+        }
+      }
+    }
+  ]
+}

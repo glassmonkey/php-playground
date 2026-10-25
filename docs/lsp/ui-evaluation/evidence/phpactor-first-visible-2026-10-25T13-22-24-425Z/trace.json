@@ -1,0 +1,210 @@
+{
+  "app": "phpactor",
+  "runId": "2026-10-25T13-22-24-425Z",
+  "browser": "156.0.8078.47",
+  "phpVersion": "8.5 selected per isolated context",
+  "timingDefinition": "Input-to-first-DOM-visible is measured from immediately before Playwright key input to first requestAnimationFrame sample with suggest widget rect, nonempty rows, display not none, visibility not hidden, opacity > 0. This is DOM/style visibility sampling, not a guarantee of physical paint completion.",
+  "cases": [
+    {
+      "scenario": "member-arrow",
+      "round": 1,
+      "cacheLabel": "first-request-after-initialize",
+      "trialId": "member-arrow-r1",
+      "inputAt": 1062.0999999940395,
+      "typedAt": 1062.0999999940395,
+      "typedText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n$greeter->",
+      "expectedPosition": {
+        "line": 7,
+        "character": 10
+      },
+      "documentVersion": 4,
+      "changeAt": 1150.7000000178814,
+      "requestAt": 1252.800000011921,
+      "requestId": 2,
+      "requestPosition": {
+        "line": 7,
+        "character": 10
+      },
+      "responseAt": 1419.5,
+      "rpcRoundTripMs": 166.69999998807907,
+      "firstVisibleAt": 1428.0999999940395,
+      "inputToRequestMs": 190.7000000178814,
+      "inputToFirstDomVisibleMs": 366,
+      "requestToFirstDomVisibleMs": 175.2999999821186,
+      "visibleCriteria": {
+        "rowCount": 3,
+        "width": 430,
+        "height": 56,
+        "display": "block",
+        "visibility": "visible",
+        "opacity": "1"
+      },
+      "rowsAtFirstVisible": [
+        "create\npub create(): self(Greeter)",
+        "greet",
+        "message"
+      ],
+      "responseBeforeFirstVisible": true,
+      "orderValid": true,
+      "screenshot": "phpactor-member-arrow-r1.png"
+    },
+    {
+      "scenario": "member-arrow",
+      "round": 2,
+      "cacheLabel": "same-worker-repeat",
+      "trialId": "member-arrow-r2",
+      "inputAt": 1569.7000000178814,
+      "typedAt": 1569.7000000178814,
+      "typedText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n$greeter->",
+      "expectedPosition": {
+        "line": 7,
+        "character": 10
+      },
+      "documentVersion": 4,
+      "changeAt": 1150.7000000178814,
+      "requestAt": null,
+      "requestId": null,
+      "requestPosition": null,
+      "responseAt": null,
+      "rpcRoundTripMs": null,
+      "firstVisibleAt": null,
+      "inputToRequestMs": null,
+      "inputToFirstDomVisibleMs": null,
+      "requestToFirstDomVisibleMs": null,
+      "visibleCriteria": null,
+      "rowsAtFirstVisible": [],
+      "responseBeforeFirstVisible": false,
+      "orderValid": false,
+      "screenshot": "phpactor-member-arrow-r2.png"
+    },
+    {
+      "scenario": "member-arrow",
+      "round": 3,
+      "cacheLabel": "same-worker-repeat",
+      "trialId": "member-arrow-r3",
+      "inputAt": 19834.40000000596,
+      "typedAt": 19834.40000000596,
+      "typedText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n$greeter->",
+      "expectedPosition": {
+        "line": 7,
+        "character": 10
+      },
+      "documentVersion": 4,
+      "changeAt": 1150.7000000178814,
+      "requestAt": null,
+      "requestId": null,
+      "requestPosition": null,
+      "responseAt": null,
+      "rpcRoundTripMs": null,
+      "firstVisibleAt": null,
+      "inputToRequestMs": null,
+      "inputToFirstDomVisibleMs": null,
+      "requestToFirstDomVisibleMs": null,
+      "visibleCriteria": null,
+      "rowsAtFirstVisible": [],
+      "responseBeforeFirstVisible": false,
+      "orderValid": false,
+      "screenshot": "phpactor-member-arrow-r3.png"
+    },
+    {
+      "scenario": "builtin-strl",
+      "round": 1,
+      "cacheLabel": "first-request-after-initialize",
+      "trialId": "builtin-strl-r1",
+      "inputAt": 898.4000000059605,
+      "typedAt": 898.4000000059605,
+      "typedText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstrl",
+      "expectedPosition": {
+        "line": 7,
+        "character": 4
+      },
+      "documentVersion": 3,
+      "changeAt": 902,
+      "requestAt": 913.7000000178814,
+      "requestId": 2,
+      "requestPosition": {
+        "line": 7,
+        "character": 4
+      },
+      "responseAt": 1060.9000000059605,
+      "rpcRoundTripMs": 147.19999998807907,
+      "firstVisibleAt": 1070.0999999940395,
+      "inputToRequestMs": 15.300000011920929,
+      "inputToFirstDomVisibleMs": 171.69999998807907,
+      "requestToFirstDomVisibleMs": 156.39999997615814,
+      "visibleCriteria": {
+        "rowCount": 1,
+        "width": 430,
+        "height": 20,
+        "display": "block",
+        "visibility": "visible",
+        "opacity": "1"
+      },
+      "rowsAtFirstVisible": [
+        "strlen\nstrlen(string $string): int<0, max>"
+      ],
+      "responseBeforeFirstVisible": true,
+      "orderValid": true,
+      "screenshot": "phpactor-builtin-strl-r1.png"
+    },
+    {
+      "scenario": "builtin-strl",
+      "round": 2,
+      "cacheLabel": "same-worker-repeat",
+      "trialId": "builtin-strl-r2",
+      "inputAt": 1188.5,
+      "typedAt": 1188.5,
+      "typedText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstrl",
+      "expectedPosition": {
+        "line": 7,
+        "character": 4
+      },
+      "documentVersion": 3,
+      "changeAt": 902,
+      "requestAt": null,
+      "requestId": null,
+      "requestPosition": null,
+      "responseAt": null,
+      "rpcRoundTripMs": null,
+      "firstVisibleAt": null,
+      "inputToRequestMs": null,
+      "inputToFirstDomVisibleMs": null,
+      "requestToFirstDomVisibleMs": null,
+      "visibleCriteria": null,
+      "rowsAtFirstVisible": [],
+      "responseBeforeFirstVisible": false,
+      "orderValid": false,
+      "screenshot": "phpactor-builtin-strl-r2.png"
+    },
+    {
+      "scenario": "builtin-strl",
+      "round": 3,
+      "cacheLabel": "same-worker-repeat",
+      "trialId": "builtin-strl-r3",
+      "inputAt": 19370.59999999404,
+      "typedAt": 19370.59999999404,
+      "typedText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstrl",
+      "expectedPosition": {
+        "line": 7,
+        "character": 4
+      },
+      "documentVersion": 3,
+      "changeAt": 902,
+      "requestAt": null,
+      "requestId": null,
+      "requestPosition": null,
+      "responseAt": null,
+      "rpcRoundTripMs": null,
+      "firstVisibleAt": null,
+      "inputToRequestMs": null,
+      "inputToFirstDomVisibleMs": null,
+      "requestToFirstDomVisibleMs": null,
+      "visibleCriteria": null,
+      "rowsAtFirstVisible": [],
+      "responseBeforeFirstVisible": false,
+      "orderValid": false,
+      "screenshot": "phpactor-builtin-strl-r3.png"
+    }
+  ],
+  "pageErrors": []
+}

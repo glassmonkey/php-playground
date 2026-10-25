@@ -1,0 +1,928 @@
+{
+  "app": "phpantom",
+  "runId": "2026-10-25T13-21-21-192Z",
+  "startedAt": "2026-10-25T13:21:21.957Z",
+  "url": "http://127.0.0.1:7260/?c=DwfgDgFmBQBmCuA7AxgFwJYHtEAIDmATgKZGoCqAzkQQBQWoHqJ44AkiAhgLZE4C8OAOQBxeEXqCAlAC4c9RsxwBvHMVTwCuQQAkiAGz2YhOAHRtOPANw4AvnCRosuDgBMXAOXhcARtQo0mVDY9IlhUABocQLZGPAhUGSjEIJU1DVxWELCcAGoY9DjUaztkPQ4KChxhYlJqZRwweG89dGQ5BiYWVh4Kjjwia0bm1pwEFAxsfBrUGkT5Tvq0zSEIdEFihqaWtvoODDaxx0nkYj2iWdkqPVhF0nScRCIAdzl9WFmNu1ZCEgxFAR%2BpEo1BoggAglJLNBvtM6gJHi9qr8QZIoewvL4CPwcABGKFAA&v=8.5&f=html",
+  "browser": "156.0.8078.47",
+  "phpVersion": "8.5 (UI selected)",
+  "fixture": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n",
+  "injectionBoundary": "Isolated page Worker message capture-phase listener delays a selected response before app listeners; no product Worker/server/source modified.",
+  "inputChangeCase": {
+    "name": "old-completion-after-input-change",
+    "naturalInputAt": 857.3000000119209,
+    "oldRequest": {
+      "direction": "ui->worker",
+      "at": 953.2000000178814,
+      "id": 2,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 10
+        }
+      }
+    },
+    "oldResponse": [
+      {
+        "label": "message",
+        "labelDetails": {
+          "description": "Greeter"
+        },
+        "kind": 10,
+        "detail": "string",
+        "sortText": "00000",
+        "filterText": "message",
+        "insertText": "message",
+        "data": {
+          "c": "Greeter",
+          "m": "message",
+          "k": "property",
+          "u": "inmemory://model/1"
+        }
+      },
+      {
+        "label": "create()",
+        "labelDetails": {
+          "description": "Greeter"
+        },
+        "kind": 2,
+        "detail": "self",
+        "sortText": "00001",
+        "filterText": "create",
+        "insertText": "create()$0",
+        "insertTextFormat": 2,
+        "data": {
+          "c": "Greeter",
+          "m": "create",
+          "k": "method",
+          "u": "inmemory://model/1"
+        }
+      },
+      {
+        "label": "greet()",
+        "labelDetails": {
+          "description": "Greeter"
+        },
+        "kind": 2,
+        "detail": "string",
+        "sortText": "00002",
+        "filterText": "greet",
+        "insertText": "greet()$0",
+        "insertTextFormat": 2,
+        "data": {
+          "c": "Greeter",
+          "m": "greet",
+          "k": "method",
+          "u": "inmemory://model/1"
+        }
+      }
+    ],
+    "oldResponseInterceptedAt": 971.2000000178814,
+    "delayMs": 1400,
+    "textAtOldResponse": {
+      "editorText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n$greeter->",
+      "activeElement": {
+        "tag": "TEXTAREA",
+        "className": "inputarea monaco-mouse-cursor-text",
+        "ariaLabel": "Editor content;Press Alt+F1 for Accessibility Options."
+      },
+      "cursorStyle": "height: 18px; top: 126px; left: 71px; font-family: Menlo, Monaco, \"Courier New\", monospace; font-weight: normal; font-size: 12px; font-feature-settings: \"liga\" 0, \"calt\" 0; font-variation-settings: normal; line-height: 18px; letter-spacing: 0px; display: block; visibility: inherit; padding-left: 1px; width: 2px;",
+      "phpVersion": "8.5",
+      "completionChecked": true,
+      "suggest": null,
+      "hover": {
+        "visible": false,
+        "text": ""
+      }
+    },
+    "currentText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n$greeter->g",
+    "currentPosition": {
+      "line": 7,
+      "character": 11
+    },
+    "currentRequest": {
+      "direction": "ui->worker",
+      "at": 1090.4000000059605,
+      "id": 3,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 11
+        }
+      }
+    },
+    "currentResponse": {
+      "direction": "worker->ui",
+      "at": 1099.4000000059605,
+      "id": 3,
+      "method": "textDocument/completion",
+      "result": [
+        {
+          "label": "message",
+          "labelDetails": {
+            "description": "Greeter"
+          },
+          "kind": 10,
+          "detail": "string",
+          "sortText": "00000",
+          "filterText": "message",
+          "insertText": "message",
+          "data": {
+            "c": "Greeter",
+            "m": "message",
+            "k": "property",
+            "u": "inmemory://model/1"
+          }
+        },
+        {
+          "label": "create()",
+          "labelDetails": {
+            "description": "Greeter"
+          },
+          "kind": 2,
+          "detail": "self",
+          "sortText": "00001",
+          "filterText": "create",
+          "insertText": "create()$0",
+          "insertTextFormat": 2,
+          "data": {
+            "c": "Greeter",
+            "m": "create",
+            "k": "method",
+            "u": "inmemory://model/1"
+          }
+        },
+        {
+          "label": "greet()",
+          "labelDetails": {
+            "description": "Greeter"
+          },
+          "kind": 2,
+          "detail": "string",
+          "sortText": "00002",
+          "filterText": "greet",
+          "insertText": "greet()$0",
+          "insertTextFormat": 2,
+          "data": {
+            "c": "Greeter",
+            "m": "greet",
+            "k": "method",
+            "u": "inmemory://model/1"
+          }
+        }
+      ],
+      "delayed": false
+    },
+    "currentRowsBeforeOld": {
+      "editorText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n$greeter->g",
+      "activeElement": {
+        "tag": "TEXTAREA",
+        "className": "inputarea monaco-mouse-cursor-text",
+        "ariaLabel": "Editor content;Press Alt+F1 for Accessibility Options."
+      },
+      "cursorStyle": "height: 18px; top: 126px; left: 78px; font-family: Menlo, Monaco, \"Courier New\", monospace; font-weight: normal; font-size: 12px; font-feature-settings: \"liga\" 0, \"calt\" 0; font-variation-settings: normal; line-height: 18px; letter-spacing: 0px; display: block; visibility: inherit; padding-left: 1px; width: 2px;",
+      "phpVersion": "8.5",
+      "completionChecked": true,
+      "suggest": {
+        "visible": true,
+        "rows": [
+          "greet()\nstring"
+        ]
+      },
+      "hover": {
+        "visible": false,
+        "text": ""
+      }
+    },
+    "afterOldResponse": {
+      "editorText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n$greeter->g",
+      "activeElement": {
+        "tag": "TEXTAREA",
+        "className": "inputarea monaco-mouse-cursor-text",
+        "ariaLabel": "Editor content;Press Alt+F1 for Accessibility Options."
+      },
+      "cursorStyle": "height: 18px; top: 126px; left: 78px; font-family: Menlo, Monaco, \"Courier New\", monospace; font-weight: normal; font-size: 12px; font-feature-settings: \"liga\" 0, \"calt\" 0; font-variation-settings: normal; line-height: 18px; letter-spacing: 0px; display: block; visibility: inherit; padding-left: 1px; width: 2px;",
+      "phpVersion": "8.5",
+      "completionChecked": true,
+      "suggest": {
+        "visible": true,
+        "rows": [
+          "greet()\nstring"
+        ]
+      },
+      "hover": {
+        "visible": false,
+        "text": ""
+      }
+    },
+    "screenshotBefore": "input-change-before-old-response.png",
+    "screenshotAfter": "input-change-after-old-response.png"
+  },
+  "checkboxCase": {
+    "name": "hover-response-after-completion-off",
+    "hoverStart": 2857.2000000178814,
+    "oldRequest": {
+      "direction": "ui->worker",
+      "at": 3016.0999999940395,
+      "id": 5,
+      "method": "textDocument/hover",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 5,
+          "character": 3
+        }
+      }
+    },
+    "oldResponse": {
+      "contents": {
+        "kind": "markdown",
+        "value": "```php\n<?php\n$greeter = Greeter\n```"
+      },
+      "range": {
+        "start": {
+          "line": 5,
+          "character": 0
+        },
+        "end": {
+          "line": 5,
+          "character": 8
+        }
+      }
+    },
+    "delayMs": 1400,
+    "hoverWhileHeld": {
+      "editorText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;",
+      "activeElement": {
+        "tag": "TEXTAREA",
+        "className": "inputarea monaco-mouse-cursor-text",
+        "ariaLabel": "Editor content;Press Alt+F1 for Accessibility Options."
+      },
+      "cursorStyle": "height: 18px; top: 126px; left: 0px; font-family: Menlo, Monaco, \"Courier New\", monospace; font-weight: normal; font-size: 12px; font-feature-settings: \"liga\" 0, \"calt\" 0; font-variation-settings: normal; line-height: 18px; letter-spacing: 0px; display: block; visibility: inherit; padding-left: 0px; width: 2px;",
+      "phpVersion": "8.5",
+      "completionChecked": true,
+      "suggest": {
+        "visible": false,
+        "rows": []
+      },
+      "hover": {
+        "visible": false,
+        "text": ""
+      }
+    },
+    "terminated": true,
+    "hoverAfterOff": {
+      "editorText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;",
+      "activeElement": {
+        "tag": "INPUT",
+        "className": "chakra-checkbox__input",
+        "ariaLabel": null
+      },
+      "cursorStyle": "height: 18px; top: 126px; left: 0px; font-family: Menlo, Monaco, \"Courier New\", monospace; font-weight: normal; font-size: 12px; font-feature-settings: \"liga\" 0, \"calt\" 0; font-variation-settings: normal; line-height: 18px; letter-spacing: 0px; display: block; visibility: hidden; padding-left: 0px; width: 2px;",
+      "phpVersion": "8.5",
+      "completionChecked": false,
+      "suggest": {
+        "visible": false,
+        "rows": []
+      },
+      "hover": {
+        "visible": false,
+        "text": ""
+      }
+    },
+    "initBeforeRecovery": 1,
+    "recoveryRequest": {
+      "direction": "ui->worker",
+      "at": 4947.700000017881,
+      "id": 2,
+      "method": "textDocument/hover",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 5,
+          "character": 3
+        }
+      }
+    },
+    "hoverAfterRecovery": {
+      "editorText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;",
+      "activeElement": {
+        "tag": "INPUT",
+        "className": "chakra-checkbox__input",
+        "ariaLabel": null
+      },
+      "cursorStyle": "height: 18px; top: 126px; left: 0px; font-family: Menlo, Monaco, \"Courier New\", monospace; font-weight: normal; font-size: 12px; font-feature-settings: \"liga\" 0, \"calt\" 0; font-variation-settings: normal; line-height: 18px; letter-spacing: 0px; display: block; visibility: hidden; padding-left: 0px; width: 2px;",
+      "phpVersion": "8.5",
+      "completionChecked": true,
+      "suggest": {
+        "visible": false,
+        "rows": []
+      },
+      "hover": {
+        "visible": true,
+        "text": "<?php\n$greeter = Greeter"
+      }
+    },
+    "screenshots": [
+      "checkbox-off-during-hover.png",
+      "checkbox-on-hover-recovery.png"
+    ]
+  },
+  "pageErrors": [],
+  "allEvents": [
+    {
+      "direction": "terminated",
+      "at": 551.5
+    },
+    {
+      "direction": "ui->worker",
+      "at": 723.4000000059605,
+      "id": 1,
+      "method": "initialize",
+      "params": {
+        "processId": null,
+        "rootUri": null,
+        "capabilities": {
+          "general": {
+            "positionEncodings": [
+              "utf-16"
+            ]
+          },
+          "textDocument": {
+            "completion": {
+              "completionItem": {
+                "snippetSupport": true
+              }
+            },
+            "hover": {
+              "contentFormat": [
+                "markdown",
+                "plaintext"
+              ]
+            }
+          }
+        },
+        "initializationOptions": {
+          "phpVersion": "8.5"
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 795.2000000178814,
+      "id": 1,
+      "method": "initialize",
+      "result": {
+        "capabilities": {
+          "textDocumentSync": 1,
+          "completionProvider": {
+            "triggerCharacters": [
+              ">",
+              ":",
+              "$",
+              "\\"
+            ],
+            "resolveProvider": true
+          },
+          "hoverProvider": true,
+          "definitionProvider": true,
+          "documentHighlightProvider": true,
+          "renameProvider": true,
+          "signatureHelpProvider": {
+            "triggerCharacters": [
+              "(",
+              ","
+            ]
+          }
+        },
+        "serverInfo": {
+          "name": "PHPantom",
+          "version": "0.11.1"
+        }
+      },
+      "delayed": false
+    },
+    {
+      "direction": "ui->worker",
+      "at": 795.3000000119209,
+      "method": "textDocument/didOpen",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "languageId": "php",
+          "version": 1,
+          "text": "<?php\n// example code\nphpinfo();"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 851.9000000059605,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 2
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n$greeter"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 861.5,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 3
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n$greeter-"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 952.0999999940395,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 4
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n$greeter->"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 953.2000000178814,
+      "id": 2,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 10
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 1066.4000000059605,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 5
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n$greeter->g"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 1090.4000000059605,
+      "id": 3,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 11
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 1099.4000000059605,
+      "id": 3,
+      "method": "textDocument/completion",
+      "result": [
+        {
+          "label": "message",
+          "labelDetails": {
+            "description": "Greeter"
+          },
+          "kind": 10,
+          "detail": "string",
+          "sortText": "00000",
+          "filterText": "message",
+          "insertText": "message",
+          "data": {
+            "c": "Greeter",
+            "m": "message",
+            "k": "property",
+            "u": "inmemory://model/1"
+          }
+        },
+        {
+          "label": "create()",
+          "labelDetails": {
+            "description": "Greeter"
+          },
+          "kind": 2,
+          "detail": "self",
+          "sortText": "00001",
+          "filterText": "create",
+          "insertText": "create()$0",
+          "insertTextFormat": 2,
+          "data": {
+            "c": "Greeter",
+            "m": "create",
+            "k": "method",
+            "u": "inmemory://model/1"
+          }
+        },
+        {
+          "label": "greet()",
+          "labelDetails": {
+            "description": "Greeter"
+          },
+          "kind": 2,
+          "detail": "string",
+          "sortText": "00002",
+          "filterText": "greet",
+          "insertText": "greet()$0",
+          "insertTextFormat": 2,
+          "data": {
+            "c": "Greeter",
+            "m": "greet",
+            "k": "method",
+            "u": "inmemory://model/1"
+          }
+        }
+      ],
+      "delayed": false
+    },
+    {
+      "direction": "ui->worker",
+      "at": 1103.800000011921,
+      "id": 4,
+      "method": "completionItem/resolve",
+      "params": {
+        "label": "greet()",
+        "labelDetails": {
+          "description": "Greeter"
+        },
+        "kind": 2,
+        "detail": "string",
+        "sortText": "00002",
+        "filterText": "greet",
+        "insertText": "greet()$0",
+        "insertTextFormat": 2,
+        "data": {
+          "c": "Greeter",
+          "m": "greet",
+          "k": "method",
+          "u": "inmemory://model/1"
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 1105.2000000178814,
+      "id": 4,
+      "method": "completionItem/resolve",
+      "result": {
+        "label": "greet()",
+        "labelDetails": {
+          "description": "Greeter"
+        },
+        "kind": 2,
+        "detail": "string",
+        "documentation": {
+          "kind": "markdown",
+          "value": "```php\n<?php\nclass Greeter {\n    public function greet(): string;\n}\n```"
+        },
+        "sortText": "00002",
+        "filterText": "greet",
+        "insertText": "greet()$0",
+        "insertTextFormat": 2,
+        "data": {
+          "c": "Greeter",
+          "m": "greet",
+          "k": "method",
+          "u": "inmemory://model/1"
+        }
+      },
+      "delayed": false
+    },
+    {
+      "direction": "terminated",
+      "at": 1504.5999999940395
+    },
+    {
+      "direction": "ui->worker",
+      "at": 2615.7000000178814,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 6
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 3016.0999999940395,
+      "id": 5,
+      "method": "textDocument/hover",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 5,
+          "character": 3
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 3072.4000000059605,
+      "method": "textDocument/didClose",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        }
+      }
+    },
+    {
+      "direction": "terminated",
+      "at": 3072.800000011921
+    },
+    {
+      "direction": "ui->worker",
+      "at": 4534.5999999940395,
+      "id": 1,
+      "method": "initialize",
+      "params": {
+        "processId": null,
+        "rootUri": null,
+        "capabilities": {
+          "general": {
+            "positionEncodings": [
+              "utf-16"
+            ]
+          },
+          "textDocument": {
+            "completion": {
+              "completionItem": {
+                "snippetSupport": true
+              }
+            },
+            "hover": {
+              "contentFormat": [
+                "markdown",
+                "plaintext"
+              ]
+            }
+          }
+        },
+        "initializationOptions": {
+          "phpVersion": "8.5"
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 4659.800000011921,
+      "id": 1,
+      "method": "initialize",
+      "result": {
+        "capabilities": {
+          "textDocumentSync": 1,
+          "completionProvider": {
+            "triggerCharacters": [
+              ">",
+              ":",
+              "$",
+              "\\"
+            ],
+            "resolveProvider": true
+          },
+          "hoverProvider": true,
+          "definitionProvider": true,
+          "documentHighlightProvider": true,
+          "renameProvider": true,
+          "signatureHelpProvider": {
+            "triggerCharacters": [
+              "(",
+              ","
+            ]
+          }
+        },
+        "serverInfo": {
+          "name": "PHPantom",
+          "version": "0.11.1"
+        }
+      },
+      "delayed": false
+    },
+    {
+      "direction": "ui->worker",
+      "at": 4659.9000000059605,
+      "method": "textDocument/didOpen",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "languageId": "php",
+          "version": 6,
+          "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 4947.700000017881,
+      "id": 2,
+      "method": "textDocument/hover",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 5,
+          "character": 3
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 4956.5999999940395,
+      "id": 2,
+      "method": "textDocument/hover",
+      "result": {
+        "contents": {
+          "kind": "markdown",
+          "value": "```php\n<?php\n$greeter = Greeter\n```"
+        },
+        "range": {
+          "start": {
+            "line": 5,
+            "character": 0
+          },
+          "end": {
+            "line": 5,
+            "character": 8
+          }
+        }
+      },
+      "delayed": false
+    }
+  ],
+  "injections": [
+    {
+      "type": "intercepted",
+      "request": {
+        "direction": "ui->worker",
+        "at": 953.2000000178814,
+        "id": 2,
+        "method": "textDocument/completion",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1"
+          },
+          "position": {
+            "line": 7,
+            "character": 10
+          }
+        }
+      },
+      "responseId": 2,
+      "result": [
+        {
+          "label": "message",
+          "labelDetails": {
+            "description": "Greeter"
+          },
+          "kind": 10,
+          "detail": "string",
+          "sortText": "00000",
+          "filterText": "message",
+          "insertText": "message",
+          "data": {
+            "c": "Greeter",
+            "m": "message",
+            "k": "property",
+            "u": "inmemory://model/1"
+          }
+        },
+        {
+          "label": "create()",
+          "labelDetails": {
+            "description": "Greeter"
+          },
+          "kind": 2,
+          "detail": "self",
+          "sortText": "00001",
+          "filterText": "create",
+          "insertText": "create()$0",
+          "insertTextFormat": 2,
+          "data": {
+            "c": "Greeter",
+            "m": "create",
+            "k": "method",
+            "u": "inmemory://model/1"
+          }
+        },
+        {
+          "label": "greet()",
+          "labelDetails": {
+            "description": "Greeter"
+          },
+          "kind": 2,
+          "detail": "string",
+          "sortText": "00002",
+          "filterText": "greet",
+          "insertText": "greet()$0",
+          "insertTextFormat": 2,
+          "data": {
+            "c": "Greeter",
+            "m": "greet",
+            "k": "method",
+            "u": "inmemory://model/1"
+          }
+        }
+      ],
+      "interceptedAt": 971.2000000178814,
+      "delayMs": 1400,
+      "terminatedAtIntercept": false,
+      "delivery": "replayed-to-ui",
+      "finishedAt": 2374.0999999940395
+    },
+    {
+      "type": "intercepted",
+      "request": {
+        "direction": "ui->worker",
+        "at": 3016.0999999940395,
+        "id": 5,
+        "method": "textDocument/hover",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1"
+          },
+          "position": {
+            "line": 5,
+            "character": 3
+          }
+        }
+      },
+      "responseId": 5,
+      "result": {
+        "contents": {
+          "kind": "markdown",
+          "value": "```php\n<?php\n$greeter = Greeter\n```"
+        },
+        "range": {
+          "start": {
+            "line": 5,
+            "character": 0
+          },
+          "end": {
+            "line": 5,
+            "character": 8
+          }
+        }
+      },
+      "interceptedAt": 3018,
+      "delayMs": 1400,
+      "terminatedAtIntercept": false,
+      "delivery": "dropped-after-worker-termination",
+      "finishedAt": 4419.200000017881
+    }
+  ]
+}

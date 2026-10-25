@@ -1,0 +1,1529 @@
+{
+  "app": "phpantom",
+  "runId": "2026-10-25T13-17-33-198Z",
+  "startedAt": "2026-10-25T13:17:33.848Z",
+  "url": "http://127.0.0.1:7260/?c=DwfgDgFmBQBmCuA7AxgFwJYHtEAIDmATgKZGoCqAzkQQBQWoHqJ44AkiAhgLZE4C8OAOQBxeEXqCAlAC4c9RsxwBvHMVTwCuQQAkiAGz2YhOAHRtOPANw4AvnCRosuDgBMXAOXhcARtQo0mVDY9IlhUABocQLZGPAhUGSjEIJU1DVxWELCcAGoY9DjUaztkPQ4KChxhYlJqZRwweG89dGQ5BiYWVh4Kjjwia0bm1pwEFAxsfBrUGkT5Tvq0zSEIdEFihqaWtvoODDaxx0nkYj2iWdkqPVhF0nScRCIAdzl9WFmNu1ZCEgxFAR%2BpEo1BoggAglJLNBvtM6gJHi9qr8QZIoewvL4CPwcABGKFAA&v=8.5&f=html",
+  "browser": "156.0.8078.47",
+  "phpVersion": "8.5",
+  "fixture": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n",
+  "symbolLine": "$greeter = new Greeter();",
+  "pointerTarget": {
+    "x": 115,
+    "y": 299.1875
+  },
+  "pointer": {
+    "name": "pointer-hover",
+    "startedAt": 1196.0999999940395,
+    "request": {
+      "direction": "ui->worker",
+      "at": 1468.3999999761581,
+      "id": 2,
+      "method": "textDocument/hover",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 5,
+          "character": 3
+        }
+      }
+    },
+    "response": {
+      "direction": "worker->ui",
+      "at": 1476.8999999761581,
+      "id": 2,
+      "result": {
+        "contents": {
+          "kind": "markdown",
+          "value": "```php\n<?php\n$greeter = Greeter\n```"
+        },
+        "range": {
+          "start": {
+            "line": 5,
+            "character": 0
+          },
+          "end": {
+            "line": 5,
+            "character": 8
+          }
+        }
+      }
+    },
+    "requestToResponseMs": 8.5,
+    "state": {
+      "visibleText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;",
+      "activeElement": {
+        "tag": "TEXTAREA",
+        "className": "inputarea monaco-mouse-cursor-text",
+        "ariaLabel": "Editor content;Press Alt+F1 for Accessibility Options."
+      },
+      "cursorStyle": "height: 18px; top: 126px; left: 0px; font-family: Menlo, Monaco, \"Courier New\", monospace; font-weight: normal; font-size: 12px; font-feature-settings: \"liga\" 0, \"calt\" 0; font-variation-settings: normal; line-height: 18px; letter-spacing: 0px; display: block; visibility: hidden; padding-left: 0px; width: 2px;",
+      "phpVersion": "8.5",
+      "completionChecked": true,
+      "hover": {
+        "className": "monaco-hover",
+        "text": "<?php\n$greeter = Greeter",
+        "visible": true,
+        "rect": {
+          "x": 91,
+          "y": 244.1875,
+          "width": 148,
+          "height": 46,
+          "top": 244.1875,
+          "right": 239,
+          "bottom": 290.1875,
+          "left": 91
+        }
+      }
+    },
+    "hoverMutationsAfterStart": [
+      {
+        "at": 1625.199999988079,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.8999999761581,
+        "className": "",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.8999999761581,
+        "className": "",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.8999999761581,
+        "className": "hover-contents code-hover-contents",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.8999999761581,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.8999999761581,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.8999999761581,
+        "className": "monaco-hover",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1625.8999999761581,
+        "className": "monaco-hover",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1626,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1626,
+        "className": "slider",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1626,
+        "className": "slider",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1626,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1626,
+        "className": "slider",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1626,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1626,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1626,
+        "className": "monaco-hover",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1626,
+        "className": "monaco-hover",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1626,
+        "className": "slider",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1626,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1626,
+        "className": "slider",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1626,
+        "className": "slider",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1626,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 1626,
+        "className": "slider",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      }
+    ],
+    "screenshot": "pointer-hover.png"
+  },
+  "keyboard": {
+    "name": "keyboard-hover",
+    "startedAt": 3300.199999988079,
+    "request": {
+      "direction": "ui->worker",
+      "at": 3306.0999999940395,
+      "id": 3,
+      "method": "textDocument/hover",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 5,
+          "character": 3
+        }
+      }
+    },
+    "response": {
+      "direction": "worker->ui",
+      "at": 3315,
+      "id": 3,
+      "result": {
+        "contents": {
+          "kind": "markdown",
+          "value": "```php\n<?php\n$greeter = Greeter\n```"
+        },
+        "range": {
+          "start": {
+            "line": 5,
+            "character": 0
+          },
+          "end": {
+            "line": 5,
+            "character": 8
+          }
+        }
+      }
+    },
+    "requestToResponseMs": 8.900000005960464,
+    "state": {
+      "visibleText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;",
+      "activeElement": {
+        "tag": "TEXTAREA",
+        "className": "inputarea monaco-mouse-cursor-text",
+        "ariaLabel": "Editor content;Press Alt+F1 for Accessibility Options."
+      },
+      "cursorStyle": "height: 18px; top: 90px; left: 21px; font-family: Menlo, Monaco, \"Courier New\", monospace; font-weight: normal; font-size: 12px; font-feature-settings: \"liga\" 0, \"calt\" 0; font-variation-settings: normal; line-height: 18px; letter-spacing: 0px; display: block; visibility: inherit; padding-left: 1px; width: 2px;",
+      "phpVersion": "8.5",
+      "completionChecked": true,
+      "hover": {
+        "className": "monaco-hover",
+        "text": "<?php\n$greeter = Greeter",
+        "visible": true,
+        "rect": {
+          "x": 91,
+          "y": 244.1875,
+          "width": 148,
+          "height": 46,
+          "top": 244.1875,
+          "right": 239,
+          "bottom": 290.1875,
+          "left": 91
+        }
+      }
+    },
+    "hoverMutationsAfterStart": [
+      {
+        "at": 3317.399999976158,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.399999976158,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.5,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.5,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.5,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.5,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.5,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.5,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.5,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.5,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.5,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3317.5,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3318,
+        "className": "",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3318,
+        "className": "",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3318,
+        "className": "hover-contents code-hover-contents",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3318,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3318,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3318,
+        "className": "monaco-hover",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3318,
+        "className": "monaco-hover",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3318,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3318,
+        "className": "slider",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3318,
+        "className": "slider",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3318,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3318,
+        "className": "slider",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3318,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3318,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3318,
+        "className": "monaco-hover",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3318,
+        "className": "monaco-hover",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3318,
+        "className": "slider",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3318,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3318,
+        "className": "slider",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3318,
+        "className": "slider",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3318,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3318,
+        "className": "slider",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "monaco-hover",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.2999999821186,
+        "className": "slider",
+        "hoverText": "<?php $greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.699999988079,
+        "className": "",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.699999988079,
+        "className": "",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.699999988079,
+        "className": "hover-contents code-hover-contents",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.699999988079,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.699999988079,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.699999988079,
+        "className": "monaco-hover",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.699999988079,
+        "className": "monaco-hover",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.699999988079,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.699999988079,
+        "className": "slider",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.699999988079,
+        "className": "slider",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.699999988079,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.699999988079,
+        "className": "slider",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.699999988079,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.699999988079,
+        "className": "monaco-hover-content",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.699999988079,
+        "className": "monaco-hover",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.699999988079,
+        "className": "monaco-hover",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.699999988079,
+        "className": "slider",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.699999988079,
+        "className": "invisible scrollbar horizontal",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.699999988079,
+        "className": "slider",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.699999988079,
+        "className": "slider",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.699999988079,
+        "className": "invisible scrollbar vertical",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      },
+      {
+        "at": 3319.699999988079,
+        "className": "slider",
+        "hoverText": "<?php\n$greeter = Greeter",
+        "hoverVisible": true
+      }
+    ],
+    "screenshot": "keyboard-hover.png"
+  },
+  "pageErrors": [],
+  "consoleErrors": [],
+  "allEvents": [
+    {
+      "direction": "ui->worker",
+      "at": 662.2999999821186,
+      "id": 1,
+      "method": "initialize",
+      "params": {
+        "processId": null,
+        "rootUri": null,
+        "capabilities": {
+          "general": {
+            "positionEncodings": [
+              "utf-16"
+            ]
+          },
+          "textDocument": {
+            "completion": {
+              "completionItem": {
+                "snippetSupport": true
+              }
+            },
+            "hover": {
+              "contentFormat": [
+                "markdown",
+                "plaintext"
+              ]
+            }
+          }
+        },
+        "initializationOptions": {
+          "phpVersion": "8.5"
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 792.1999999880791,
+      "id": 1,
+      "result": {
+        "capabilities": {
+          "textDocumentSync": 1,
+          "completionProvider": {
+            "triggerCharacters": [
+              ">",
+              ":",
+              "$",
+              "\\"
+            ],
+            "resolveProvider": true
+          },
+          "hoverProvider": true,
+          "definitionProvider": true,
+          "documentHighlightProvider": true,
+          "renameProvider": true,
+          "signatureHelpProvider": {
+            "triggerCharacters": [
+              "(",
+              ","
+            ]
+          }
+        },
+        "serverInfo": {
+          "name": "PHPantom",
+          "version": "0.11.1"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 792.2999999821186,
+      "method": "textDocument/didOpen",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "languageId": "php",
+          "version": 1,
+          "text": "<?php\n// example code\nphpinfo();"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 867.5999999940395,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 2
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 1468.3999999761581,
+      "id": 2,
+      "method": "textDocument/hover",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 5,
+          "character": 3
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 1476.8999999761581,
+      "id": 2,
+      "result": {
+        "contents": {
+          "kind": "markdown",
+          "value": "```php\n<?php\n$greeter = Greeter\n```"
+        },
+        "range": {
+          "start": {
+            "line": 5,
+            "character": 0
+          },
+          "end": {
+            "line": 5,
+            "character": 8
+          }
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 2800.199999988079,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 3
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 3306.0999999940395,
+      "id": 3,
+      "method": "textDocument/hover",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 5,
+          "character": 3
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 3315,
+      "id": 3,
+      "result": {
+        "contents": {
+          "kind": "markdown",
+          "value": "```php\n<?php\n$greeter = Greeter\n```"
+        },
+        "range": {
+          "start": {
+            "line": 5,
+            "character": 0
+          },
+          "end": {
+            "line": 5,
+            "character": 8
+          }
+        }
+      }
+    }
+  ]
+}

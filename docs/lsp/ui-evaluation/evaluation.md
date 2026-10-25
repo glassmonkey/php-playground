@@ -55,17 +55,39 @@
 
 runnerはpaste後に`Control+End`で末尾へ移動するよう修正した。修正後run [trace](evidence/phpactor-2026-10-25T12-38-22-832Z/trace.json)では、`->`入力の全文を画面editorで確認し、document version 16の変更後、requestは`line 8, character 10`、対応responseまで192.1ms、表示候補は`create`, `greet`, `message`。キー操作開始→request 202.7ms。active elementはMonaco `native-edit-context` / “Editor content”、PHP 8.5、Completion checked、page errorなし。Ctrl+Spaceの`$greeter->` 2回は自然入力とは別scenarioに記録した。この訂正は評価runnerだけで、UI/Worker実装は変更していない。
 
-自然入力の時刻列（入力操作→request、request→response）はPHPantomが`->` 94.7+3.3ms、`::` 95.6+3.4ms、`strl` 16.4+4.2ms。Phpactorは`::` 199.3+198.9ms、`strl` 20.6+158.3ms。キー入力時刻はrunnerがキー操作を始めた時点、request/responseはWorker postMessage観測。画面rowはresponse後の確認で出たが、このauto測定では最初のDOM表示時刻を取っていない。従って数字はend-to-endの正確な画面表示時間ではない。
+修正runnerの自然入力時刻（入力操作→request、request→response）はPHPantomが`->` 94.7+3.3ms、`::` 95.6+3.4ms、`strl` 16.4+4.2ms。Phpactorは`->` 202.7+192.1ms、`::` 199.4+203.2ms、`strl` 19.7+152.1ms。キー時刻は入力操作直前、request/responseはWorker postMessage観測。この単発runはresponse後にrowを確認するまでで、初回DOM表示は次節で別計測した。
 
-Phpactor UI sourceには自動trigger前の100ms settle、request cancellation、completion barrierがある。通常入力時系列は、キー入力時刻からWorker requestまでだけでなく、その後の画面表示や応答破棄も含む。今回のrunnerは代表的な自然入力を実施したが、旧responseの遅延注入・逆順到着や長文連続typing中の表示時系列を統制していない。したがって100ms settleが見た目にどう寄与するか、古い候補をどこまで抑えるかは未評価。最新Phpactor runではsignature相関が有効になったlocal signature responseはnull/tooltipなし、builtin signatureはresponse/tooltipあり。
+Phpactor UI sourceには自動trigger前の100ms settle、request cancellation、completion barrierがある。下の遅延応答追試では、1.4秒保留した旧候補を文書変更後にUIへ解放したが、新しい`greet`行は維持された。連続typing中の全応答順序や settle の見た目への寄与までは測っていない。最新Phpactor runではsignature相関が有効になったlocal signature responseはnull/tooltipなし、builtin signatureはresponse/tooltipあり。
 
-別の有効な8.5 runでは、Phpactor builtin `strlen(`のsignature help tooltipが表示され、local `greetUser(`はresponse `null`・tooltipなしだった。PHPantomでは両方tooltipが表示され、local signatureは`(string $name = 'Guest'): string`、builtinは`(string $string): int<0, max>`。PHPantom hoverは`$greeter`で`Greeter`を表示。Phpactorは今回のpointer操作からhover request自体を観測していないため、server nullや未対応とは結論できない。証拠画像は各traceと同じdirectoryの`local-signature.png`、`builtin-signature-help.png`、`hover-local-variable.png`を参照。
+別の有効な8.5 runでは、Phpactor builtin `strlen(`のsignature help tooltipが表示され、local `greetUser(`はresponse `null`・tooltipなしだった。PHPantomでは両方tooltipが表示され、local signatureは`(string $name = 'Guest'): string`、builtinは`(string $string): int<0, max>`。
+
+同じ8.5 fixtureの`$greeter`でpointer hoverとMac Monaco shortcut `Meta+K`, `Meta+I`を別々に実行した。両方ともrequestはline 5 / character 3。PHPantomはWorker応答8.5/8.9ms、tooltipは`<?php $greeter = Greeter`を含むcode block。Phpactorは114.6/57.6ms、Worker `contents=Greeter`、tooltip text `Greeter`。request→最初の`.monaco-hover`可視DOM mutationはPHPantom 148.3/2.4ms、Phpactor 46.4/3.4ms（pointer/keyboard順）。両方法ともDOM上`.monaco-hover`を確認し、page/console errorなし。結果はPHPantom [hover trace](evidence/phpantom-hover-2026-10-25T13-17-33-198Z/trace.json)とPhpactor [hover trace](evidence/phpactor-hover-2026-10-25T13-17-20-597Z/trace.json)。先行runnerのPhpactor `visible=false`はtooltip非表示を示す証拠ではなく、pointer位置で撮った画像にはtooltipが写り、改良計測でpointer/keyboardとも表示を確認した。旧判定を訂正する。mutation値はpaint時刻ではない。
 
 ## 挿入・操作・設定
 
 両UIで`strl`候補をEnter選択すると`strlen($string)`がprefixを置換し、snippetの引数箇所へ移動した。Tabでplaceholderを抜けた後`;`を入力できた。`$gre`から`$greeter`を選んでも`$$greeter`にはならなかった。PHPantomは同じ候補行で`strlen($string)`と`int<0, max>`を見せ、Phpactorは`strlen`とsignature detailを表示した。結果画像は各同期runの`builtin-strl-insert.png`, `builtin-strl-tab.png`, `local-variable-insert.png`。
 
 Completion checkboxをOFFにするとWorkerが終了し、ONで再初期化することを両方で確認。PHPantomはPHP 8.4選択時に「PHP 8.5を使用」とエラー表示し、8.5へ戻すと再初期化した。Phpactorは8.4が未検証という警告を表示し、8.5へ戻した。light/dark切替とCompletion checkbox/HTML Previewの画面上の並びを確認した。keyboard/focusの網羅的なアクセシビリティ評価はしていない。
+
+## 追加追試: 遅延応答と初回DOM表示
+
+応答遅延は隔離ページのWorker message capture listenerで注入した。指定methodのresponseをapp listenerへ渡す前に`stopImmediatePropagation()`で保留し、1.4秒後に同じdataのMessageEventを隔離ページ内でdispatchした。server、product Worker/sourceは変更していない。
+
+- **入力変更後の旧completion:** 両方で`$greeter->`要求（line 7 / character 10）のresponseを1.4秒保留し、文書を`$greeter->g`へ変更してCtrl+Spaceを別requestとして実行。PHPantomは現在候補`greet()`、Phpactorは`greet`を表示。旧3-item responseを解放した後も現在候補1件が維持され、旧候補一覧に戻らなかった。[PHPantom trace](evidence/phpantom-delay-2026-10-25T13-21-21-192Z/trace.json)、[Phpactor trace](evidence/phpactor-delay-2026-10-25T13-20-55-536Z/trace.json)。2要求は別request ID / 文書versionとして記録。
+- **hover保留中にCompletion OFF/ON:** hover responseを同じ1.4秒保留中にCompletion OFF。両方でWorker terminateを観測し、保留応答はterminate済みWorkerへ再配送せずdropした。古いtooltipは表示されず、ON後の再initialize/didOpen後に新hover requestを送り、tooltip `Greeter`（Phpactor）/code block（PHPantom）が再表示された。同traceにOFF/ON状態とrequest/responseを記録。これはWorker終了後にresponseが届くよう偽装せず、隔離計測器が配送を破棄した条件である。
+
+初回表示計測は[Phpactor](evidence/phpactor-first-visible-2026-10-25T13-26-48-949Z/trace.json)と[PHPantom](evidence/phpantom-first-visible-2026-10-25T13-26-59-591Z/trace.json)で別々に実行。各アプリ/ケースはfresh BrowserContextを作り、同じ8.5 fixtureで`$greeter->`と`strl`を自然キー入力で各3回実施。r1はそのcontextの初completion request、r2/r3は同Worker内の反復。text/version/request position/response idは全有効runで一致。UIの「first DOM visible」はMutationObserver後の次animation frameに、widgetにrowがあり、rectが正、display/visibilityが有効、opacity>0となった最初のDOM/styleサンプル。physical paint完了までは保証しない。
+
+各行の時刻は`Worker RTT / input→request / input→first DOM visible`（ms）。入力時刻はキー送信直前、RTTはWorker postMessage境界。全試行でWorker responseがDOM-visible sampleより先だった。
+
+| UI / case | r1 first-after-init | r2 same-worker | r3 same-worker |
+|---|---:|---:|---:|
+| PHPantom `$greeter->` | 19.2 / 90.7 / 127.8 | 8.3 / 88.2 / 128.1 | 8.4 / 87.6 / 127.7 |
+| Phpactor `$greeter->` | 201.7 / 192.8 / 413.8 | 90.2 / 189.2 / 297.5 | 84.2 / 188.4 / 280.0 |
+| PHPantom `strl` | 9.7 / 15.5 / 44.1 | 2.3 / 13.7 / 45.2 | 2.1 / 14.1 / 45.9 |
+| Phpactor `strl` | 182.7 / 17.5 / 213.9 | 86.6 / 14.8 / 110.9 | 71.3 / 15.9 / 89.9 |
+
+`first-after-init` is first completion request after LSP initialize in a new context; it excludes browser/server cold start and is not a process-cold benchmark. Phpactor `->` has source-level 100ms settle before request, reflected in input→request values. These small samples compare these two heads/cases only; no statistical or product-wide performance inference follows.
 
 ## 差の原因と確度
 
@@ -89,9 +111,9 @@ traceには全postMessageとtimestamp、response、文書version、位置、raw 
 
 ## 未確認と小さな追加実験案
 
-- 自然typing中に旧候補を画面に残すか、古いversionの遅延応答を破棄するかは未測定。固定sleepで同期を代用せず、キー時刻、各全文/version、request、response、候補表示時刻を1ケースずつ記録し、同じ遅延応答を隔離contextで再生すると切り分けられる。
-- PhpactorのhoverはMonaco hover操作がproviderを発火しWorkerへ送るところから再確認する必要がある。現状の「requestなし」をserver未対応とは扱わない。
-- signature helpは有効な過去の8.5 runの画面・response証拠を採用し、最新runの自動相関がfalseになった値は未確定として除外した。
+- 今回は入力変更後のold completionを一度ずつ解放して現候補が維持されることを観測した。さらに遅い/逆順の複数response列、PHP 8.4切替時の保留response、HTML Preview unmount等は未測定。
+- Word suggestion exact provider IDは未確認。Completion OFF時も同じ行/JSON-RPC 0で再現したためMonaco側由来は強く支持するが、provider内部IDの帰属はこの隔離測定からは分からない。
+- Phpactorのlocal `greetUser(` signature helpは全文/version/positionが相関したresponse `null` とtooltipなしを確認した。これがserver feature limitかadapter/runtime差かは特定していない。
 - 初期化やCPU競合を揃えた多数回の統計、各内部処理段階の時間、Worker queue待ち、Phpactor boot単独時間は測っていない。2回値から性能一般やboot改善効果を推定しない。
 - Completion OFFの診断からMonaco word providerまでは強く支持されるが、exact provider IDはinstrumentしていない。
 
@@ -99,11 +121,11 @@ traceには全postMessageとtimestamp、response、文書version、位置、raw 
 
 ### 確認できた範囲
 
-両UIの隔離ブラウザ操作、同期後のraw completion responseと表示行、少数回のWorker RTT、挿入/snippet、checkbox/version/theme、代表的な自動trigger、signature/hoverの一部を確認した。source読みはruntime/UI差の根拠整理に用いた。
+両UIの隔離ブラウザ操作、同期後のraw completion responseと表示行、Worker RTTとDOM-visible時刻（各代表ケース3試行）、pointer/keyboard hover、遅延response後の候補維持とcheckbox再初期化、挿入/snippet、version/themeを確認した。source読みはruntime/UI差の根拠整理に用いた。
 
 ### 反省点
 
-初期の手動runnerではdocument changeを待たずにrequestを送り、古いversionのresponseを新しい入力の結果と誤認した。Phpactor PHP versionも最初のrunで誤認した。いずれも初期結果を比較から撤回し、無効証拠は保全した。最新signature一部も相関検査がfalseで採用していない。
+初期runではdocument change race、Phpactor version/caret誤認、hover event待ち漏れ、delay injectionのcase相関漏れ、first-visible反復の古いchange再利用があった。いずれも修正runを別保存し、無効な測定値は比較から除外した。無効runも原因説明用に保持した。
 
 ### 次に活かすこと
 
