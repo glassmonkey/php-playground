@@ -284,8 +284,10 @@ RUN /root/copy-lib.sh lib-libz
 RUN if [ "$WITH_OPENSSL" = "yes" ]; then \
     set -euxo pipefail && \
     source /root/emsdk/emsdk_env.sh && \
-    export OPENSSL_VERSION=1.1.0h && \
-    wget https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz && \
+    export OPENSSL_VERSION=1.1.1w && \
+    export OPENSSL_SHA256=cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8 && \
+    wget -O openssl-$OPENSSL_VERSION.tar.gz https://mirror.openssl-library.org/source/old/1.1.1/openssl-$OPENSSL_VERSION.tar.gz && \
+    echo "$OPENSSL_SHA256  openssl-$OPENSSL_VERSION.tar.gz" | sha256sum -c - && \
     tar xf openssl-$OPENSSL_VERSION.tar.gz && \
     cd openssl-$OPENSSL_VERSION && \
     emconfigure ./Configure dist -DHAVE_FORK=0 -DOPENSSL_NO_AFALGENG=1 no-threads --prefix=/root/lib && \
