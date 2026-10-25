@@ -9,6 +9,7 @@ const repoRoot = path.resolve(
 	path.dirname(fileURLToPath(import.meta.url)),
 	'../../..'
 );
+const analysisPhpVersion = '8.5';
 const wasmBinary = fs.readFileSync(path.join(repoRoot, 'assets/php-8.5.wasm'));
 const phpactorData = fs.readFileSync(
 	path.join(repoRoot, 'assets/lsp/phpactor/phpactor.data')
@@ -138,18 +139,7 @@ for (const testCase of cases) {
 		'/tmp/phpactor-request.json',
 		JSON.stringify({
 			operation,
-			measurement:
-				testCase.operation === 'completion-warm'
-					? 'warm'
-					: testCase.operation === 'completion'
-						? 'cold'
-						: testCase.operation.startsWith('completion')
-							? 'fixture-check'
-							: testCase.operation ===
-								  'signatureHelp-local-function'
-								? 'same-host-limitation-case'
-								: 'one-shot',
-			phpVersion: '8.2',
+			phpVersion: analysisPhpVersion,
 			workspaceRoot: '/workspace',
 			textDocument: { text: testCase.source },
 			offset,
@@ -161,8 +151,17 @@ for (const testCase of cases) {
 	console.log(
 		JSON.stringify({
 			operation: testCase.operation,
+			measurement: testCase.operation.startsWith('completion')
+				? testCase.operation === 'completion'
+					? 'first-request'
+					: testCase.operation === 'completion-warm'
+						? 'warm'
+						: 'fixture-check'
+				: testCase.operation === 'signatureHelp-local-function'
+					? 'host-comparison-case'
+					: 'one-shot',
 			phpRuntime: '8.5',
-			analysisPhpVersion: '8.2',
+			analysisPhpVersion,
 			elapsedMs: Math.round(performance.now() - started),
 			result,
 			errors: response.errors,
