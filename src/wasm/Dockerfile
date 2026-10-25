@@ -134,14 +134,15 @@ RUN if [ "$WITH_LIBZIP" = "yes" ]; then cd libzip/build && \
         source /root/emsdk/emsdk_env.sh && \
         emcmake cmake \
             -DCMAKE_INSTALL_PREFIX=/root/lib \
+            -DBUILD_SHARED_LIBS=OFF \
             -DZLIB_LIBRARY=/root/lib/lib/libz.a \
             -DZLIB_INCLUDE_DIR=/root/lib/include \
             ..; \
     else \
         echo "WITH_LIBZIP=$WITH_LIBZIP; skipping libzip configure"; \
     fi
-RUN if [ "$WITH_LIBZIP" = "yes" ]; then cd libzip/build && source /root/emsdk/emsdk_env.sh && EMCC_SKIP="-lz" EMCC_FLAGS=" -sSIDE_MODULE " emmake make; else echo "WITH_LIBZIP=$WITH_LIBZIP; skipping libzip build"; fi
-RUN if [ "$WITH_LIBZIP" = "yes" ]; then cd libzip/build && source /root/emsdk/emsdk_env.sh && EMCC_SKIP="-lz" EMCC_FLAGS=" -sSIDE_MODULE " emmake make install; else echo "WITH_LIBZIP=$WITH_LIBZIP; skipping libzip install"; fi
+RUN if [ "$WITH_LIBZIP" = "yes" ]; then cd libzip/build && source /root/emsdk/emsdk_env.sh && EMCC_SKIP="-lz" emmake make; else echo "WITH_LIBZIP=$WITH_LIBZIP; skipping libzip build"; fi
+RUN if [ "$WITH_LIBZIP" = "yes" ]; then cd libzip/build && source /root/emsdk/emsdk_env.sh && EMCC_SKIP="-lz" emmake make install; else echo "WITH_LIBZIP=$WITH_LIBZIP; skipping libzip install"; fi
 
 # Compile ncurses
 FROM emscripten AS emscripten-ncurses

@@ -81,6 +81,32 @@ class DirectBuildxRunnerTest(unittest.TestCase):
 			self.assertTrue(receipt["raw_log_sha256"])
 			self.assertEqual(json.loads((root / "terminal-result.json").read_text()), receipt)
 
+	def test_pre_spawn_error_keeps_argv_attempt_end_and_error_receipt(self) -> None:
+		with tempfile.TemporaryDirectory() as temp:
+			root = Path(temp)
+			spec_path = self.make_spec(root, 0)
+			spec = json.loads(spec_path.read_text())
+			spec["argv"] = [str(root / "missing-executable"), "--version"]
+			spec_path.write_text(json.dumps(spec), encoding="utf-8")
+			result = subprocess.run(
+				[sys.executable, str(RUNNER), str(spec_path)],
+				capture_output=True,
+				text=True,
+				check=False,
+			)
+			self.assertEqual(result.returncode, 1, result.stderr)
+			receipt = json.loads((root / "results.json").read_text())
+			self.assertEqual(receipt["status"], "unknown")
+			self.assertIsNone(receipt["exit_code"])
+			self.assertEqual(receipt["argv"], spec["argv"])
+			self.assertEqual(receipt["cwd"], spec["cwd"])
+			self.assertIsNotNone(receipt["launch_attempted_at_utc"])
+			self.assertIsNone(receipt["observed_start_utc"])
+			self.assertIsNotNone(receipt["ended_at_utc"])
+			self.assertIn("FileNotFoundError", receipt["spawn_error"])
+			self.assertTrue(receipt["raw_log_sha256"])
+			self.assertEqual(json.loads((root / "terminal-result.json").read_text()), receipt)
+
 	def test_optional_log_hash_reporting_error_keeps_child_terminal(self) -> None:
 		with tempfile.TemporaryDirectory() as temp:
 			root = Path(temp)

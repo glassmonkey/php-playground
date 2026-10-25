@@ -52,6 +52,7 @@ def execute(spec_path: Path) -> int:
 	result_path = root / spec["results_record"]
 	terminal_path = root / spec["terminal_record"]
 	started = None
+	launch_attempted = None
 	ended = None
 	exit_code = None
 	spawn_error = None
@@ -61,6 +62,7 @@ def execute(spec_path: Path) -> int:
 	
 	try:
 		with log_path.open("wb") as log:
+			launch_attempted = utc_now()
 			try:
 				process = subprocess.Popen(
 					argv,
@@ -71,6 +73,21 @@ def execute(spec_path: Path) -> int:
 			except OSError as error:
 				spawn_error = f"{type(error).__name__}: {error}"
 				ended = utc_now()
+				log.flush()
+				os.fsync(log.fileno())
+				atomic_json(
+					result_path,
+					terminal_result(
+						spec,
+						pid,
+						started,
+						ended,
+						exit_code,
+						spawn_error,
+						wait_error,
+						launch_attempted,
+					),
+				)
 			else:
 				pid = process.pid
 				started = utc_now()
@@ -115,7 +132,16 @@ def execute(spec_path: Path) -> int:
 						wait_error = wait_error or f"log flush: {type(error).__name__}: {error}"
 					# Save child terminal status while the log is still open. Optional
 					# hashing/metadata/reporting below cannot erase the exit evidence.
-					core = terminal_result(spec, pid, started, ended, exit_code, spawn_error, wait_error)
+					core = terminal_result(
+						spec,
+						pid,
+						started,
+						ended,
+						exit_code,
+						spawn_error,
+						wait_error,
+						launch_attempted,
+					)
 					if reporting_error:
 						core["reporting_error"] = reporting_error
 					atomic_json(result_path, core)
@@ -123,7 +149,16 @@ def execute(spec_path: Path) -> int:
 		if ended is None:
 			ended = utc_now()
 		spawn_error = spawn_error or f"{type(error).__name__}: {error}"
-		core = terminal_result(spec, pid, started, ended, exit_code, spawn_error, wait_error)
+		core = terminal_result(
+			spec,
+			pid,
+			started,
+			ended,
+			exit_code,
+			spawn_error,
+			wait_error,
+			launch_attempted,
+		)
 		core["reporting_error"] = f"terminal capture: {type(error).__name__}: {error}"
 		atomic_json(result_path, core)
 
@@ -160,6 +195,7 @@ def terminal_result(
 	exit_code: int | None,
 	spawn_error: str | None,
 	wait_error: str | None,
+	launch_attempted: str | None,
 ) -> dict[str, Any]:
 	status = "unknown" if exit_code is None else ("succeeded" if exit_code == 0 else "failed")
 	result = {
@@ -169,6 +205,9 @@ def terminal_result(
 		"pid": pid,
 		"status": status,
 		"exit_code": exit_code,
+		"argv": spec["argv"],
+		"cwd": spec["cwd"],
+		"launch_attempted_at_utc": launch_attempted,
 		"observed_start_utc": started,
 		"ended_at_utc": ended,
 		"raw_log": spec["raw_log"],
