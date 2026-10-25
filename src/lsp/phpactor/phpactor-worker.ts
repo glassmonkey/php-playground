@@ -15,7 +15,17 @@ type JsonRpcMessage = {
 	jsonrpc: '2.0';
 	id?: JsonRpcId;
 	method?: string;
-	params?: any;
+	params?: unknown;
+};
+type JsonObject = Record<string, unknown>;
+type TextDocumentItem = {
+	uri: string;
+	text: string;
+	version: number;
+};
+type TextDocumentPositionParams = {
+	textDocument: { uri: string };
+	position: { line: number; character: number };
 };
 type OpenDocument = {
 	text: string;
@@ -62,7 +72,11 @@ async function handleMessage(message: JsonRpcMessage): Promise<void> {
 		if (isRequest(message)) {
 			sendError(
 				message.id!,
-				error instanceof MethodNotFound ? -32601 : -32603,
+				error instanceof MethodNotFound
+					? -32601
+					: error instanceof InvalidParams
+						? -32602
+						: -32603,
 				errorMessage(error)
 			);
 		}
@@ -70,14 +84,14 @@ async function handleMessage(message: JsonRpcMessage): Promise<void> {
 }
 
 async function dispatch(message: JsonRpcMessage): Promise<unknown> {
-	const params = message.params ?? {};
+	const params = getParams(message.params);
 	switch (message.method) {
 		case 'initialize':
 			if (initialized) {
 				throw new Error('Phpactor worker is already initialized');
 			}
 			phpVersion = selectPhpVersion(
-				params.initializationOptions?.phpVersion
+				getObject(params.initializationOptions)?.phpVersion
 			);
 			await startPhpactor();
 			initialized = true;
@@ -112,7 +126,7 @@ async function dispatch(message: JsonRpcMessage): Promise<unknown> {
 			return null;
 		case 'textDocument/didClose':
 			assertReady();
-			closeDocument(params.textDocument?.uri);
+			closeDocument(getObject(params.textDocument)?.uri);
 			return null;
 		case 'textDocument/completion':
 			return requestPhpactor('completion', params);
@@ -199,9 +213,9 @@ function selectPhpVersion(value: unknown): string {
 	throw new Error(`Unsupported PHP analysis version: ${String(value)}`);
 }
 
-function openDocument(document: any): void {
+function openDocument(document: unknown): void {
 	if (!validDocument(document)) {
-		throw new Error('Invalid textDocument/didOpen params');
+		throw new InvalidParams('Invalid textDocument/didOpen params');
 	}
 	const path = workspacePath(document.uri);
 	documents.set(document.uri, {
@@ -212,25 +226,34 @@ function openDocument(document: any): void {
 	writeDocument(path, document.text);
 }
 
-function changeDocument(params: any): void {
-	const uri = params.textDocument?.uri;
-	const current = documents.get(uri);
+function changeDocument(params: JsonObject): void {
+	const textDocument = getObject(params.textDocument);
+	const uri = textDocument?.uri;
 	const changes = params.contentChanges;
-	if (!current || !Array.isArray(changes) || !changes.length) {
+	if (
+		typeof uri !== 'string' ||
+		typeof textDocument?.version !== 'number' ||
+		!Array.isArray(changes)
+	) {
+		throw new InvalidParams('Invalid textDocument/didChange params');
+	}
+	const current = documents.get(uri);
+	if (!current || !changes.length) {
 		return;
 	}
-	const version = params.textDocument.version;
+	const version = textDocument.version;
 	if (typeof version === 'number' && version < current.version) {
 		return;
 	}
-	const text = changes[changes.length - 1].text;
-	if (typeof text !== 'string') {
-		return;
+	const lastChange = getObject(changes[changes.length - 1]);
+	if (typeof lastChange?.text !== 'string') {
+		throw new InvalidParams('Invalid textDocument/didChange content');
 	}
+	const text = lastChange.text;
 	const updated = {
 		...current,
 		text,
-		version: typeof version === 'number' ? version : current.version,
+		version,
 	};
 	documents.set(uri, updated);
 	writeDocument(updated.path, text);
@@ -249,19 +272,16 @@ function closeDocument(uri: unknown): void {
 
 async function requestPhpactor(
 	operation: string,
-	params: any
+	params: JsonObject
 ): Promise<unknown> {
 	assertReady();
-	const uri = params.textDocument?.uri;
+	if (!isTextDocumentPositionParams(params)) {
+		throw new InvalidParams('Invalid text document position params');
+	}
+	const uri = params.textDocument.uri;
 	const document = documents.get(uri);
-	if (
-		!document ||
-		typeof params.position?.line !== 'number' ||
-		typeof params.position?.character !== 'number'
-	) {
-		throw new Error(
-			'The requested PHP document is not open or its position is invalid'
-		);
+	if (!document) {
+		throw new Error('The requested PHP document is not open');
 	}
 	const text = document.text;
 	const offset = byteOffsetAt(
@@ -352,20 +372,60 @@ function assertReady(): PHP {
 	return php;
 }
 
-function validDocument(document: any): boolean {
+function validDocument(document: unknown): document is TextDocumentItem {
+	const value = getObject(document);
 	return (
-		document &&
-		typeof document.uri === 'string' &&
-		typeof document.text === 'string' &&
-		typeof document.version === 'number'
+		!!value &&
+		typeof value.uri === 'string' &&
+		typeof value.text === 'string' &&
+		typeof value.version === 'number'
 	);
 }
 
 function isJsonRpcMessage(value: unknown): value is JsonRpcMessage {
+	const message = getObject(value);
+	if (!message || message.jsonrpc !== '2.0') {
+		return false;
+	}
+	if ('id' in message && !isJsonRpcId(message.id)) {
+		return false;
+	}
+	return !('method' in message) || typeof message.method === 'string';
+}
+
+function isJsonRpcId(value: unknown): value is JsonRpcId {
 	return (
-		!!value &&
-		typeof value === 'object' &&
-		(value as JsonRpcMessage).jsonrpc === '2.0'
+		value === null || typeof value === 'string' || typeof value === 'number'
+	);
+}
+
+function getObject(value: unknown): JsonObject | undefined {
+	if (!value || typeof value !== 'object' || Array.isArray(value)) {
+		return undefined;
+	}
+	return value as JsonObject;
+}
+
+function getParams(value: unknown): JsonObject {
+	if (value === undefined) {
+		return {};
+	}
+	const params = getObject(value);
+	if (!params) {
+		throw new InvalidParams('JSON-RPC params must be an object');
+	}
+	return params;
+}
+
+function isTextDocumentPositionParams(
+	params: JsonObject
+): params is JsonObject & TextDocumentPositionParams {
+	const textDocument = getObject(params.textDocument);
+	const position = getObject(params.position);
+	return (
+		typeof textDocument?.uri === 'string' &&
+		typeof position?.line === 'number' &&
+		typeof position.character === 'number'
 	);
 }
 
@@ -388,5 +448,11 @@ function errorMessage(error: unknown): string {
 class MethodNotFound extends Error {
 	constructor(method: string) {
 		super(`Method not found: ${method}`);
+	}
+}
+
+class InvalidParams extends Error {
+	constructor(message: string) {
+		super(message);
 	}
 }
