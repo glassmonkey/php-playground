@@ -1,0 +1,408 @@
+{
+  "app": "phpactor",
+  "runId": "2026-10-25T14-25-48-583Z",
+  "sourceHead": "4fd516045ee6aa958bb01c78be5cb76205537894",
+  "sourceDirty": false,
+  "managerReadyRef": "manager-ready-2026-10-25",
+  "url": "http://127.0.0.1:3471/?v=8.5&f=html",
+  "browser": "156.0.8078.47",
+  "phpVersion": "8.5",
+  "fixture": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n",
+  "scenario": {
+    "name": "strl-natural",
+    "typedText": "strl",
+    "inputSpeedMsPerCharacter": 80,
+    "pauseAfterTypingMs": 1800,
+    "inputAt": 1323.9000000059605,
+    "typedAt": 1661.2000000178814,
+    "expectedPosition": {
+      "line": 8,
+      "character": 4
+    },
+    "baselineVersion": 2,
+    "versionsDuringInput": [
+      {
+        "at": 1327.800000011921,
+        "version": 3,
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\ns"
+          }
+        ]
+      },
+      {
+        "at": 1411.5999999940395,
+        "version": 4,
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nst"
+          }
+        ]
+      },
+      {
+        "at": 1494.7000000178814,
+        "version": 5,
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr"
+          }
+        ]
+      },
+      {
+        "at": 1577.7000000178814,
+        "version": 6,
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstrl"
+          }
+        ]
+      }
+    ],
+    "completionRequests": [
+      {
+        "direction": "ui->worker",
+        "at": 1679.5,
+        "id": 2,
+        "method": "textDocument/completion",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1"
+          },
+          "position": {
+            "line": 7,
+            "character": 4
+          }
+        }
+      }
+    ],
+    "finalRequest": null,
+    "finalResponse": null,
+    "rowsVisibleAfterPause": [
+      "strlen\nstrlen(string $string): int<0, max>"
+    ],
+    "visibleAtEndOfPause": true,
+    "visibleSnapshotsAfterInput": [
+      {
+        "at": 1851,
+        "visible": true,
+        "rows": [
+          "strlen\nstrlen(string $string): int<0, max>"
+        ],
+        "rect": {
+          "width": 430,
+          "height": 20
+        },
+        "style": {
+          "display": "block",
+          "visibility": "visible",
+          "opacity": "1"
+        }
+      }
+    ],
+    "finalState": {
+      "editorText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstrl",
+      "activeElement": {
+        "tag": "DIV",
+        "className": "native-edit-context"
+      },
+      "phpVersion": "8.5",
+      "completionChecked": true,
+      "suggest": {
+        "visible": true,
+        "rows": [
+          "strlen\nstrlen(string $string): int<0, max>"
+        ]
+      }
+    },
+    "requestAfterLatestInputChange": false,
+    "screenshot": "strl-natural.png"
+  },
+  "lspEvents": [
+    {
+      "direction": "ui->worker",
+      "at": 1134.7000000178814,
+      "id": 1,
+      "method": "initialize",
+      "params": {
+        "processId": null,
+        "rootUri": null,
+        "capabilities": {
+          "general": {
+            "positionEncodings": [
+              "utf-16"
+            ]
+          },
+          "textDocument": {
+            "completion": {
+              "completionItem": {
+                "snippetSupport": true
+              }
+            },
+            "hover": {
+              "contentFormat": [
+                "markdown",
+                "plaintext"
+              ]
+            }
+          }
+        },
+        "initializationOptions": {
+          "phpVersion": "8.5"
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 1245.0999999940395,
+      "id": 1,
+      "result": {
+        "capabilities": {
+          "textDocumentSync": {
+            "openClose": true,
+            "change": 1
+          },
+          "completionProvider": {
+            "resolveProvider": false,
+            "triggerCharacters": [
+              "$",
+              ">",
+              ":"
+            ]
+          },
+          "signatureHelpProvider": {
+            "triggerCharacters": [
+              "(",
+              ","
+            ]
+          },
+          "hoverProvider": true
+        },
+        "serverInfo": {
+          "name": "phpactor-wasm",
+          "version": "2026.10.07.0"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 1245.300000011921,
+      "method": "textDocument/didOpen",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "languageId": "php",
+          "version": 1,
+          "text": "<?php\n// example code\nphpinfo();"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 1307.4000000059605,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 2
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 1327.800000011921,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 3
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\ns"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 1411.5999999940395,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 4
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nst"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 1494.7000000178814,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 5
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 1577.7000000178814,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 6
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstrl"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 1679.5,
+      "id": 2,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 4
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 1842.4000000059605,
+      "id": 2,
+      "result": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "strlen",
+            "insertText": "strlen(${1:\\$string})${0}",
+            "detail": "strlen(string $string): int<0, max>",
+            "documentation": "\n\n\nGet string length\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "class ",
+            "insertText": "class ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "enum ",
+            "insertText": "enum ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "trait ",
+            "insertText": "trait ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "function ",
+            "insertText": "function ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "interface ",
+            "insertText": "interface ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 1847.4000000059605,
+      "id": 3,
+      "method": "completionItem/resolve",
+      "params": {
+        "label": "strlen",
+        "insertText": "strlen(${1:\\$string})${0}",
+        "detail": "strlen(string $string): int<0, max>",
+        "documentation": "\n\n\nGet string length\n",
+        "kind": 3,
+        "insertTextFormat": 2
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 1851.7000000178814,
+      "id": 3,
+      "result": {
+        "label": "strlen",
+        "insertText": "strlen(${1:\\$string})${0}",
+        "detail": "strlen(string $string): int<0, max>",
+        "documentation": "\n\n\nGet string length\n",
+        "kind": 3,
+        "insertTextFormat": 2
+      }
+    }
+  ],
+  "suggestSnapshots": [
+    {
+      "at": 12.099999994039536,
+      "visible": false,
+      "rows": [],
+      "rect": null,
+      "style": null
+    },
+    {
+      "at": 1851,
+      "visible": true,
+      "rows": [
+        "strlen\nstrlen(string $string): int<0, max>"
+      ],
+      "rect": {
+        "width": 430,
+        "height": 20
+      },
+      "style": {
+        "display": "block",
+        "visibility": "visible",
+        "opacity": "1"
+      }
+    }
+  ],
+  "workerUrls": [
+    "/src/workers/php-worker.ts?worker_file&type=module",
+    "blob:http://127.0.0.1:3471/76209b19-1628-4fe0-9742-4077445eefa6",
+    "http://127.0.0.1:3471/src/lsp/phpactor/phpactor-worker.ts?worker_file&type=module",
+    "/src/workers/php-worker.ts?worker_file&type=module"
+  ],
+  "pageErrors": [],
+  "consoleErrors": []
+}

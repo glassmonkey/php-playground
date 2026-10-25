@@ -1,0 +1,1774 @@
+{
+  "case": "completion-off-no-retry",
+  "sourceHead": "4fd516045ee6aa958bb01c78be5cb76205537894",
+  "managerReadyRef": "manager-ready-2026-10-25",
+  "url": "http://127.0.0.1:3471/?v=8.5&f=html",
+  "browser": "156.0.8078.47",
+  "phpVersion": "8.5",
+  "fixture": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n",
+  "state": {
+    "editorText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_",
+    "activeElement": "native-edit-context",
+    "version": "8.5",
+    "completionChecked": true,
+    "rows": [
+      "str_contains\nstr_contains(string $haystack, string $needle): bool",
+      "str_decrement",
+      "str_ends_with",
+      "str_getcsv",
+      "str_increment",
+      "str_ireplace",
+      "str_pad",
+      "str_repeat",
+      "str_replace",
+      "str_rot13",
+      "str_shuffle",
+      "str_split"
+    ],
+    "visible": true,
+    "cursor": {
+      "left": 119,
+      "top": 326.1875,
+      "width": 2,
+      "height": 18
+    }
+  },
+  "events": [
+    {
+      "direction": "ui->worker",
+      "at": 2039.199999988079,
+      "id": 1,
+      "method": "initialize",
+      "params": {
+        "processId": null,
+        "rootUri": null,
+        "capabilities": {
+          "general": {
+            "positionEncodings": [
+              "utf-16"
+            ]
+          },
+          "textDocument": {
+            "completion": {
+              "completionItem": {
+                "snippetSupport": true
+              }
+            },
+            "hover": {
+              "contentFormat": [
+                "markdown",
+                "plaintext"
+              ]
+            }
+          }
+        },
+        "initializationOptions": {
+          "phpVersion": "8.5"
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 2155.7999999821186,
+      "id": 1,
+      "result": {
+        "capabilities": {
+          "textDocumentSync": {
+            "openClose": true,
+            "change": 1
+          },
+          "completionProvider": {
+            "resolveProvider": false,
+            "triggerCharacters": [
+              "$",
+              ">",
+              ":"
+            ]
+          },
+          "signatureHelpProvider": {
+            "triggerCharacters": [
+              "(",
+              ","
+            ]
+          },
+          "hoverProvider": true
+        },
+        "serverInfo": {
+          "name": "phpactor-wasm",
+          "version": "2026.10.07.0"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 2156,
+      "method": "textDocument/didOpen",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "languageId": "php",
+          "version": 1,
+          "text": "<?php\n// example code\nphpinfo();"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 2227.7999999821186,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 2
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 2247.699999988079,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 3
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\ns"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 2360.5,
+      "id": 2,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 1
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 5933.299999982119,
+      "method": "textDocument/didClose",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 7414.699999988079,
+      "id": 1,
+      "method": "initialize",
+      "params": {
+        "processId": null,
+        "rootUri": null,
+        "capabilities": {
+          "general": {
+            "positionEncodings": [
+              "utf-16"
+            ]
+          },
+          "textDocument": {
+            "completion": {
+              "completionItem": {
+                "snippetSupport": true
+              }
+            },
+            "hover": {
+              "contentFormat": [
+                "markdown",
+                "plaintext"
+              ]
+            }
+          }
+        },
+        "initializationOptions": {
+          "phpVersion": "8.5"
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 7530.799999982119,
+      "id": 1,
+      "result": {
+        "capabilities": {
+          "textDocumentSync": {
+            "openClose": true,
+            "change": 1
+          },
+          "completionProvider": {
+            "resolveProvider": false,
+            "triggerCharacters": [
+              "$",
+              ">",
+              ":"
+            ]
+          },
+          "signatureHelpProvider": {
+            "triggerCharacters": [
+              "(",
+              ","
+            ]
+          },
+          "hoverProvider": true
+        },
+        "serverInfo": {
+          "name": "phpactor-wasm",
+          "version": "2026.10.07.0"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 7530.9000000059605,
+      "method": "textDocument/didOpen",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "languageId": "php",
+          "version": 5,
+          "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 7539.0999999940395,
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 6
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 7640,
+      "id": 2,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 4
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 8155.199999988079,
+      "id": 2,
+      "result": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "str_increment",
+            "insertText": "str_increment(${1:\\$string})${0}",
+            "detail": "str_increment(string $string): string",
+            "documentation": "\n\n\nIncrement an alphanumeric string\n\nReturns the incremented alphanumeric ASCII string.\n\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_decrement",
+            "insertText": "str_decrement(${1:\\$string})${0}",
+            "detail": "str_decrement(string $string): string",
+            "documentation": "\n\n\nDecrement an alphanumeric string\n\nReturns the decremented alphanumeric ASCII string.\n\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_contains",
+            "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})${0}",
+            "detail": "str_contains(string $haystack, string $needle): bool",
+            "documentation": "\n\n\nChecks if $needle is found in $haystack and returns a boolean value\n(true/false) whether or not the $needle was found.\n\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_starts_with",
+            "insertText": "str_starts_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+            "detail": "str_starts_with(string $haystack, string $needle): bool",
+            "documentation": "\n\n\nThe function returns {",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_ends_with",
+            "insertText": "str_ends_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+            "detail": "str_ends_with(string $haystack, string $needle): bool",
+            "documentation": "\n\n\nThe function returns {",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_replace",
+            "insertText": "str_replace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+            "detail": "str_replace(string|string[] $search, string|string[] $replace, string|string[] $subject, $count = NULL): string|string[]",
+            "documentation": "\n\n\nReplace all occurrences of the search string with the replacement string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_ireplace",
+            "insertText": "str_ireplace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+            "detail": "str_ireplace(mixed $search, array|string $replace, array|string $subject, $count = NULL): string|string[]",
+            "documentation": "\n\n\nCase-insensitive version of <function>str_replace</function>.\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_getcsv",
+            "insertText": "str_getcsv(${1:\\$string})${0}",
+            "detail": "str_getcsv(string $string, string $separator = ',', string $enclosure = '\"', string $escape = '\\\\\\\\'): array",
+            "documentation": "\n\n\nParse a CSV string into an array\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_repeat",
+            "insertText": "str_repeat(${1:\\$string}, ${2:\\$times})${0}",
+            "detail": "str_repeat(string $string, int $times): string",
+            "documentation": "\n\n\nRepeat a string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_pad",
+            "insertText": "str_pad(${1:\\$string}, ${2:\\$length})${0}",
+            "detail": "str_pad(string $string, int $length, string $pad_string = ' ', int $pad_type = 1): string",
+            "documentation": "\n\n\nPad a string to a certain length with another string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_rot13",
+            "insertText": "str_rot13(${1:\\$string})${0}",
+            "detail": "str_rot13(string $string): string",
+            "documentation": "\n\n\nPerform the rot13 transform on a string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_shuffle",
+            "insertText": "str_shuffle(${1:\\$string})${0}",
+            "detail": "str_shuffle(string $string): string",
+            "documentation": "\n\n\nRandomly shuffles a string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_word_count",
+            "insertText": "str_word_count(${1:\\$string})${0}",
+            "detail": "str_word_count(string $string, int $format = 0, string|null $characters = NULL): string[]|int",
+            "documentation": "\n\n\nReturn information about words used in a string\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "str_split",
+            "insertText": "str_split(${1:\\$string})${0}",
+            "detail": "str_split(string $string, int $length = 1): string[]|false",
+            "documentation": "\n\n\nConvert a string to an array\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "class ",
+            "insertText": "class ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "enum ",
+            "insertText": "enum ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "trait ",
+            "insertText": "trait ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "function ",
+            "insertText": "function ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "interface ",
+            "insertText": "interface ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 8156.5,
+      "id": 3,
+      "method": "completionItem/resolve",
+      "params": {
+        "label": "str_contains",
+        "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})${0}",
+        "detail": "str_contains(string $haystack, string $needle): bool",
+        "documentation": "\n\n\nChecks if $needle is found in $haystack and returns a boolean value\n(true/false) whether or not the $needle was found.\n\n",
+        "kind": 3,
+        "insertTextFormat": 2
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 8161.299999982119,
+      "id": 3,
+      "result": {
+        "label": "str_contains",
+        "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})${0}",
+        "detail": "str_contains(string $haystack, string $needle): bool",
+        "documentation": "\n\n\nChecks if $needle is found in $haystack and returns a boolean value\n(true/false) whether or not the $needle was found.\n\n",
+        "kind": 3,
+        "insertTextFormat": 2
+      }
+    }
+  ],
+  "workerEvents": [
+    {
+      "event": "worker-terminate",
+      "at": 691.2999999821186
+    },
+    {
+      "event": "worker-terminate",
+      "at": 2686.7999999821186
+    },
+    {
+      "event": "completion-response-held",
+      "at": 5881.299999982119,
+      "id": 2
+    },
+    {
+      "event": "worker-terminate",
+      "at": 5934
+    },
+    {
+      "event": "worker-terminate",
+      "at": 7841.5
+    },
+    {
+      "event": "worker-terminate",
+      "at": 7974.9000000059605
+    }
+  ],
+  "snapshots": [
+    {
+      "at": 11.699999988079071,
+      "visible": false,
+      "rows": []
+    },
+    {
+      "at": 7490,
+      "visible": false,
+      "rows": [
+        "",
+        ""
+      ]
+    },
+    {
+      "at": 7491.0999999940395,
+      "visible": true,
+      "rows": [
+        "static",
+        "string"
+      ]
+    },
+    {
+      "at": 7506.0999999940395,
+      "visible": true,
+      "rows": [
+        "string"
+      ]
+    },
+    {
+      "at": 8160.5999999940395,
+      "visible": true,
+      "rows": [
+        "str_contains\nstr_contains(string $haystack, string $needle): bool",
+        "str_decrement",
+        "str_ends_with",
+        "str_getcsv",
+        "str_increment",
+        "str_ireplace",
+        "str_pad",
+        "str_repeat",
+        "str_replace",
+        "str_rot13",
+        "str_shuffle",
+        "str_split"
+      ]
+    }
+  ],
+  "workerUrls": [
+    "/src/workers/php-worker.ts?worker_file&type=module",
+    "blob:http://127.0.0.1:3471/89a6d2df-87d7-4ad1-95ee-06dc0f5c87d3",
+    "http://127.0.0.1:3471/src/lsp/phpactor/phpactor-worker.ts?worker_file&type=module",
+    "/src/workers/php-worker.ts?worker_file&type=module",
+    "http://127.0.0.1:3471/src/lsp/phpactor/phpactor-worker.ts?worker_file&type=module",
+    "/src/workers/php-worker.ts?worker_file&type=module",
+    "/src/workers/php-worker.ts?worker_file&type=module"
+  ],
+  "assets": [
+    {
+      "url": "http://127.0.0.1:3471/src/index.tsx?t=1792937236597",
+      "status": 200,
+      "etag": "W/\"c44-RIVgkVapnhXKt7F4zGw8HJNp4Lg\"",
+      "lastModified": null,
+      "contentLength": 5455,
+      "sha256": "9ce31207d2235da412b621f1c8eb0995168671f6d96ef50795fc5024aa0b8f33"
+    },
+    {
+      "url": "http://127.0.0.1:3471/@vite/client",
+      "status": 200,
+      "etag": "W/\"9a80-wBoRBMymM1257v2XS3vHom3fVck\"",
+      "lastModified": null,
+      "contentLength": 209803,
+      "sha256": "174425328c7640a39450e9b6769ed657f023a5b7774559cbb710ffa6bf0f9277"
+    },
+    {
+      "url": "http://127.0.0.1:3471/@react-refresh",
+      "status": 200,
+      "etag": "W/\"5367-h8iO905IyT3hT92qDTgpgcseDiA\"",
+      "lastModified": null,
+      "contentLength": 111894,
+      "sha256": "fe633113388e056842f0b8df96ea422fcd97761329b79d39fddd71d1fee2f8c7"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/.vite/deps/react.js?v=67db634a",
+      "status": 200,
+      "etag": "W/\"9588-viWzeTIFr++2VGUJWcZCmEpWeAs\"",
+      "lastModified": null,
+      "contentLength": 130087,
+      "sha256": "66dc903911a9e00bd7547ed154b7820bd88246b2ed66a43b28cb408d6ccf642a"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/footer.tsx",
+      "status": 200,
+      "etag": "W/\"f2b-SZTEoiWpIESPsEL9YVdDi2CemEA\"",
+      "lastModified": null,
+      "contentLength": 5910,
+      "sha256": "011f17ef1c2a05b18c112efa93447bc2cd8175f418c1f45c59b4b6de353e80f7"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/manual.tsx",
+      "status": 200,
+      "etag": "W/\"2589-hLDUXl6lrtZ2cfaLlKmhscDZoDM\"",
+      "lastModified": null,
+      "contentLength": 17344,
+      "sha256": "4992edae82c9e9289e57600ff559d22dd9b5cec914bc9394800f137bf385ffe6"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/.vite/deps/react-dom_client.js?v=4fab89c6",
+      "status": 200,
+      "etag": "W/\"c86cc-7K37MHJhgWIvymfvG6EIX9svT/U\"",
+      "lastModified": null,
+      "contentLength": 2819303,
+      "sha256": "c621ba23eed5f32a0077dd363643fbb4ff6377ffc25640b5a952ac5cb391a882"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/app.tsx?t=1792937236597",
+      "status": 200,
+      "etag": "W/\"2e18-Bcu008L+AYMK7GUtl67i9VUizXg\"",
+      "lastModified": null,
+      "contentLength": 25359,
+      "sha256": "fde6c673e2980d41718d437537a53c2594dc6306ee5f9588e11ead16d305785b"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=67db634a",
+      "status": 200,
+      "etag": "W/\"2926-POawIsmHPQWmLFnZdykglzbI73c\"",
+      "lastModified": null,
+      "contentLength": 34713,
+      "sha256": "70ddb51c58435b8935731d5315d499b357d111aa91740bcdf61e51b2f6d15725"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/theme.tsx",
+      "status": 200,
+      "etag": "W/\"135-+SLlGKZerfbxLBVdh//lSUKffOU\"",
+      "lastModified": null,
+      "contentLength": 1104,
+      "sha256": "0c2e57a8946014145732243a2b0e36f6d301f6ec07a127384f269ab083d94a0e"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/.vite/deps/rolldown-runtime-FZ4Itg2g.js?v=cdc802a6",
+      "status": 200,
+      "etag": "W/\"6db-yDIz6sTKh4E0qq/TsLZzIWvN6a4\"",
+      "lastModified": null,
+      "contentLength": 9682,
+      "sha256": "56541247b3bd8a6522dec2f90cd0532e7d6d950345f8ef8427aa0c01e6ec4b46"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/.vite/deps/lz-string.js?v=bb1f80d0",
+      "status": 200,
+      "etag": "W/\"36da-UwPAlIGMSo0rTaVOGMPFp3RmTf4\"",
+      "lastModified": null,
+      "contentLength": 47429,
+      "sha256": "80d52ba46d3ddba476bca531dc0ad3f295944f5c8a1120018a750901aff40595"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/vite/dist/client/env.mjs",
+      "status": 200,
+      "etag": "W/\"25b-NXvTQjekUxXmNQLgbD2IPIxHeBM\"",
+      "lastModified": null,
+      "contentLength": 3478,
+      "sha256": "87a1e6adc3833b1e0d8fd872e39e822401c8f0d593d5358f7e142f34d335946a"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/header.tsx",
+      "status": 200,
+      "etag": "W/\"e2a-TMAA5Y/DsSf9/DspdO8f0X45B3o\"",
+      "lastModified": null,
+      "contentLength": 5213,
+      "sha256": "42797dc3abb8bb2cf0e82398d770a74c2425a3269be142d73f3e9ec35dc9e6d8"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/.vite/deps/react-dom.js?v=67db634a",
+      "status": 200,
+      "etag": "W/\"390b-enbwTbiOjVT8+Seq8CSPGD8ITZg\"",
+      "lastModified": null,
+      "contentLength": 48822,
+      "sha256": "308644f7e9a1ff08543eea3c24f0dbadd42c89cac8ce029398a28d15345001c2"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/php-wasm/php.ts",
+      "status": 200,
+      "etag": "W/\"3c47-O5YBrbdX97g37LyDQQQiuvB9Z5Q\"",
+      "lastModified": null,
+      "contentLength": 54026,
+      "sha256": "eff7879f42257a73a52fc3b5d251d493ad22e32d9152b3826944ac19395c7d48"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/.vite/deps/@chakra-ui_react.js?v=bdcea358",
+      "status": 200,
+      "etag": "W/\"eab7e-Wqmt7ldr3B3Mz+egmpPgTduxYw8\"",
+      "lastModified": null,
+      "contentLength": 3453201,
+      "sha256": "39cf3942d209d1ca18479c07b09169ba7cdb83a92ddd323c39e18c54dde86736"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/.vite/deps/react-router-dom.js?v=481371a6",
+      "status": 200,
+      "etag": "W/\"31294-tAPJlG327sfeDNEAveLXV0xonYc\"",
+      "lastModified": null,
+      "contentLength": 787483,
+      "sha256": "fc4b2f6491bf4ffe73c1f40d139136ba5dac23f487565d81d3d22e2c8ad46820"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/select.tsx",
+      "status": 200,
+      "etag": "W/\"b5a-dkujwLsXKuWRR8MJOSDBg2U4V4M\"",
+      "lastModified": null,
+      "contentLength": 5153,
+      "sha256": "f22c27baf8902937442389088b0082f48733475803e3ec5dc26fae8169db7fc7"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/editor.tsx?t=1792937236597",
+      "status": 200,
+      "etag": "W/\"2e5d-8G6feWezq2Dt2l5mzsbbATX0a6I\"",
+      "lastModified": null,
+      "contentLength": 29060,
+      "sha256": "b11870b86e4634dc27415e6595815fa7f24227a1e68f0cbf5a5401543ba95918"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/switch.tsx",
+      "status": 200,
+      "etag": "W/\"792-4k2Nhlg+HD/rtSbaCh7tL1OT14Y\"",
+      "lastModified": null,
+      "contentLength": 4505,
+      "sha256": "643393ed55eb1bdd90c9f42634eab9984ad6c9c62a32482d0cc27373ed0f428d"
+    },
+    {
+      "url": "https://www.googletagmanager.com/gtag/js?id=G-5PK4804V8H",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 534003,
+      "sha256": "b3aa1295c30e703cc7b389e8fe18f9f1d54f0b3cc468ac71947227115b34e2bf"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/preview-theme.ts",
+      "status": 200,
+      "etag": "W/\"f3-K4ot79Zm5m8mfeVE3Xdw2bG4ZwU\"",
+      "lastModified": null,
+      "contentLength": 1294,
+      "sha256": "b4af91647ac0f584f93de4632d2aabb085a87e8502cddc8d2597aefb84156e65"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/.vite/deps/@chakra-ui_icons.js?v=e40365ae",
+      "status": 200,
+      "etag": "W/\"932a-Kwur9UDZkAIQk5GzKT/5f5L6sC8\"",
+      "lastModified": null,
+      "contentLength": 109573,
+      "sha256": "50e1befdf4c27b08dfb33806b8069b4ce7cfecf7bb55394857dcb6d1952d91f5"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/format.tsx",
+      "status": 200,
+      "etag": "W/\"b2b-DctVONGbUzM+xnSTFP5OToeKCbw\"",
+      "lastModified": null,
+      "contentLength": 4250,
+      "sha256": "d5d0996f6b779f9a0b8d08e799f4b0d06d39d7a72d51564cd3246229ccca4f8e"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/.vite/deps/react_jsx-runtime.js?v=67db634a",
+      "status": 200,
+      "etag": "W/\"2a60-1JTCHfG4SfJSHKGTjRZqjN75Jqw\"",
+      "lastModified": null,
+      "contentLength": 35787,
+      "sha256": "6740ecbeb4e03dc43fcfc70576afd2178c346f7e5bad6e71afcdd0fc66982ece"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/.vite/deps/defineProperty-BtxmYdle.js?v=cdc802a6",
+      "status": 200,
+      "etag": "W/\"7a9-0DaUcYtyADwG+QfXUTbMe9CfQsU\"",
+      "lastModified": null,
+      "contentLength": 6692,
+      "sha256": "451c69ce0449f0da7f726c1fe704b5193f09efda95f7971644784609804a4a74"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/workers/client.ts",
+      "status": 200,
+      "etag": "W/\"f21-odh7iL6EhdNy1mTkl5niMbdFviY\"",
+      "lastModified": null,
+      "contentLength": 13392,
+      "sha256": "6a94b3bfcffc6073e7c285f5943aca639d3920a8718ae2c753d09b0040aaddff"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/.vite/deps/emotion-react.browser.development.esm-CA-CLfuA.js?v=cdc802a6",
+      "status": 200,
+      "etag": "W/\"125d5-yioE1KtJAjoefMsaOqNTnIXvwEs\"",
+      "lastModified": null,
+      "contentLength": 267908,
+      "sha256": "b76b690ce3815a1d98883d3964e7e88682746f36f1f5dd4cfe9fda1b2c86730f"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/.vite/deps/debounce.js?v=09f05392",
+      "status": 200,
+      "etag": "W/\"84f-O9tKGmVjucO+iFYjYnX7sfdDP4A\"",
+      "lastModified": null,
+      "contentLength": 6978,
+      "sha256": "79ccb413ecf76ab8d1d951848c21f5eac0eaa54731df4159f66d6eb2aed34789"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/preview.tsx",
+      "status": 200,
+      "etag": "W/\"11cc-uTs+bjK3FpV+34dDTYvgHc4AAX4\"",
+      "lastModified": null,
+      "contentLength": 10267,
+      "sha256": "2e6faddc5ffbf182f19e7ef76d105dd6e11d1ed1221638d803a481c1813c3a70"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/lsp/client.ts?t=1792937236597",
+      "status": 200,
+      "etag": "W/\"48c0-mTqG7sL+Lz+QqnboN7czNQ4BhPM\"",
+      "lastModified": null,
+      "contentLength": 72943,
+      "sha256": "dac9df3998920ccfc6ac62de3bbd781851477b7ec1a8a3ed55c07d4671e92e77"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/.vite/deps/chunk-DEQZ7DVA-DfMsqGYi.js?v=cdc802a6",
+      "status": 200,
+      "etag": "W/\"36712-iD6147GTMp44jF28QyxBrogexzM\"",
+      "lastModified": null,
+      "contentLength": 771037,
+      "sha256": "39c7924fe7889d1abe6f6313cd8f919ad35efdfd653077cee6c982203afe5e5d"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/.vite/deps/@monaco-editor_react.js?v=f63b1dc0",
+      "status": 200,
+      "etag": "W/\"5f97-0s7jol+8SMSeXjChKlY9fINvwBQ\"",
+      "lastModified": null,
+      "contentLength": 83650,
+      "sha256": "c87fa8b4af64d1661611062daec1c1a7e7f576bf958a8b82c0e044cae2bf16e8"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/lsp/phpactor-version.ts",
+      "status": 200,
+      "etag": "W/\"b2-Qta91A/cUfd0zRduf9gC9geZunc\"",
+      "lastModified": null,
+      "contentLength": 797,
+      "sha256": "4423e484c0318b11959800714230f7a2033b9c33937c8bc091e423f8df212141"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/.vite/deps/react-select.js?v=9850744d",
+      "status": 200,
+      "etag": "W/\"28a0e-G06E1JA3UR78RAqqCDlDNhwCVzw\"",
+      "lastModified": null,
+      "contentLength": 579357,
+      "sha256": "a54fec4cf9c0fb016d533ac92a7f6158634abe3ffc5a16a0514654f797e9c7b9"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/.vite/deps/@chakra-ui_anatomy.js?v=df0aef3c",
+      "status": 200,
+      "etag": "W/\"467-J1vhk5zy1EvyOf+ZZBa3EzXnpZs\"",
+      "lastModified": null,
+      "contentLength": 5050,
+      "sha256": "9fea321ea67fac0117213eb96d6525d69836c9f3fdb40cb4be4f2007e2e6e412"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/.vite/deps/react-icons_hi.js?v=e701f3de",
+      "status": 200,
+      "etag": "W/\"3bd46-yKgryu5jJ9/T4W9aPzIk5quKz18\"",
+      "lastModified": null,
+      "contentLength": 699013,
+      "sha256": "8fadd28794813ffe124bf4b72ed71cf5ded58ea3fc8cc980f2771f9991e7e12f"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/workers/php-worker.ts?worker",
+      "status": 200,
+      "etag": "W/\"ab-05BBc+md51BzbhXwueSIu5nG+C8\"",
+      "lastModified": null,
+      "contentLength": 171,
+      "sha256": "2409f38de54f24435d2c6d41b7b959fbd0bcf4a3a6d23ad1fb69c2e61a0a336c"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/.vite/deps/dist-CAhFe2IG.js?v=cdc802a6",
+      "status": 200,
+      "etag": "W/\"1186-NLR8zU6AAo9MYUjUyQPTV2LFQqk\"",
+      "lastModified": null,
+      "contentLength": 15841,
+      "sha256": "02125f5e8cc52f9736b7d19b30d5627a3be5c4951aee45f4805c087d0d48b57c"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/.vite/deps/react-dom_server.js?v=4b143bea",
+      "status": 200,
+      "etag": "W/\"9966a-GqLoR3ovDIQpJDkCz6GMGIw1yzc\"",
+      "lastModified": null,
+      "contentLength": 2149269,
+      "sha256": "db4e79c76d91e9687a0dd19bf5521ebdee5d59bd34fd1c91edbc645002673023"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/.vite/deps/@codesandbox_sandpack-react.js?v=d5d4fd23",
+      "status": 200,
+      "etag": "W/\"1133e2-BuJEWi3zsVL6UbuhrZ0enpJk+l4\"",
+      "lastModified": null,
+      "contentLength": 4161469,
+      "sha256": "901757959a0d8aa147c497bdf68a27897f177a8ba36364220606a5c9417e2df0"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/.vite/deps/utils-52664384-CXDgtX4N.js?v=cdc802a6",
+      "status": 200,
+      "etag": "W/\"35db-B59bwE/F31YXVBoQeTwfP4Ae7aA\"",
+      "lastModified": null,
+      "contentLength": 48582,
+      "sha256": "442448f04c8185f0ecbb0a4f224cdd13c3a3856b2ae33df17b7959a02df8f6dd"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/workers/php-worker.ts?worker_file&type=module",
+      "status": 200,
+      "etag": "W/\"bbe-Z78FHPLxS/W01a7OWWBB00sE0WU\"",
+      "lastModified": null,
+      "contentLength": 7865,
+      "sha256": "cbaa53b6d7eaf9cc50897f9c2c7366e01032ea9e2aaaa05291647214ebd168ed"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-5.6.js",
+      "status": 200,
+      "etag": "W/\"24eaa-cRqFaOjFm3WqblPXSL46aIg6VbM\"",
+      "lastModified": null,
+      "contentLength": 540261,
+      "sha256": "162b0c1d8f4aac0782642249e5a0ec02b4bece7e66341743564166571653516c"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-7.0.js",
+      "status": 200,
+      "etag": "W/\"24d1f-6TsgTAWRlp0Nvm/4aERLQ9E9OGo\"",
+      "lastModified": null,
+      "contentLength": 538878,
+      "sha256": "4b81e1fa3665dec41205630f62d3d0678740510068c3b4948ef6435e96b63e5c"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-7.1.js",
+      "status": 200,
+      "etag": "W/\"24bc6-9Bvi188z7XOXgIgaZrbblfcKCdE\"",
+      "lastModified": null,
+      "contentLength": 537641,
+      "sha256": "e1a4a725131e3a699021071eb3fa649757f13570fafe82f1c5bda570fa787a8c"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-7.4.js",
+      "status": 200,
+      "etag": "W/\"25888-PZBFF8sVqEmlVg5dFXXSTExmYrw\"",
+      "lastModified": null,
+      "contentLength": 549543,
+      "sha256": "d41f4feaef27b8185056faa46dc9ac3493664c746ab3866b3ef39e52872a7af2"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.0.js",
+      "status": 200,
+      "etag": "W/\"256a7-y8aj5HDwcwjDW7d3Lnc1vBtJeGI\"",
+      "lastModified": null,
+      "contentLength": 548502,
+      "sha256": "538a46aab9771a3ef316b0dc58fdfc047a4d5ab64479258623799e157596a9f8"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-7.2.js",
+      "status": 200,
+      "etag": "W/\"24cf1-O1qJmdGU0pzewfuUn9ppbBAiYDQ\"",
+      "lastModified": null,
+      "contentLength": 538720,
+      "sha256": "86f9c215984511a5baf6d39e82ef10e5e69e148ba819bd60fd769ac5405d46e9"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-7.3.js",
+      "status": 200,
+      "etag": "W/\"25888-jVy9tcjgcTGnM7XgflTNyHbRwPE\"",
+      "lastModified": null,
+      "contentLength": 549543,
+      "sha256": "243fb6f1d13b58cc6780b58f41b2c91729621e03e7c25e1920a659144f2a5588"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.2.js",
+      "status": 200,
+      "etag": "W/\"25c9b-uiD3Qkb53Ayb67FAtQOb+xHIRHk\"",
+      "lastModified": null,
+      "contentLength": 553846,
+      "sha256": "b9f465eba970b6592dbebf9555bdc70311500020782bebfefe875cf4b660c600"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.3.js",
+      "status": 200,
+      "etag": "W/\"25d1d-Y8fp52NjdrON2PnO5RcWRXx0DDM\"",
+      "lastModified": null,
+      "contentLength": 554264,
+      "sha256": "eb25a903f82fa1ff2829040d56f978490366dfdad5e1b9f3b5db54bf53064363"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.4.js",
+      "status": 200,
+      "etag": "W/\"25c1b-7kFH34juubqLCYm8+frAQF724vs\"",
+      "lastModified": null,
+      "contentLength": 553294,
+      "sha256": "c18cadc46898501793c391fc53ee8ebd7d6c332a7d4c85928001bc32eb691829"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.5.js",
+      "status": 200,
+      "etag": "W/\"25e53-RdTaYIK0sQ3P6+oGbWJUubeqph8\"",
+      "lastModified": null,
+      "contentLength": 555426,
+      "sha256": "11e7bb0e0bc89484eb3f67b7ab099873b7a367185d7306f607b6da890ac80262"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.1.js",
+      "status": 200,
+      "etag": "W/\"25b45-6GZkpydvyR6Sky49jFhOv+1drHc\"",
+      "lastModified": null,
+      "contentLength": 552628,
+      "sha256": "5be478a75c63ca851a89e26ec32c5397ac29b54948312f5676ba92a477443474"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/php-wasm/php.ts",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 54026,
+      "sha256": "eff7879f42257a73a52fc3b5d251d493ad22e32d9152b3826944ac19395c7d48"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/vite/dist/client/env.mjs",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 3478,
+      "sha256": "87a1e6adc3833b1e0d8fd872e39e822401c8f0d593d5358f7e142f34d335946a"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs/loader.js",
+      "status": 200,
+      "etag": "W/\"9ba8-oQzl7/BySm5XuRgZ5ju8ERqDcE0\"",
+      "lastModified": null,
+      "contentLength": 39848,
+      "sha256": "35b59df80b41a8b73bf1ceb159b44f040567c2ab53f4e77a3d002d9dc39d55d1"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs/editor/editor.main.js",
+      "status": 200,
+      "etag": "W/\"134cc-Vil0IaGFkGcyVUcy2YbvXR1IBoA\"",
+      "lastModified": null,
+      "contentLength": 79052,
+      "sha256": "e8cd8b34b0cc10759ad5419d6253bcb2b91b539580ab857e46f2af9096d8e348"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs/nls.messages-loader.js",
+      "status": 200,
+      "etag": "W/\"10e-ioo4av+J3tVKnyWVLJpvr8navQ0\"",
+      "lastModified": null,
+      "contentLength": 270,
+      "sha256": "b67653b8b150c0193c1f7c46ca73e97226b26e793499ba853b3e1f4e7b215f65"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs/workers-DcJshg-q.js",
+      "status": 200,
+      "etag": "W/\"514-4K6ydVnwBXMHMG6YGczMKoe/81o\"",
+      "lastModified": null,
+      "contentLength": 1300,
+      "sha256": "b7200463bdfe7c5876a0adcb42b55d1e6c3b0f856d40f32bf6fbfa70d1040105"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs/monaco.contribution-EcChJV6a.js",
+      "status": 200,
+      "etag": "W/\"610-JdXjXuXLoaymhlzACYcXCBoM5mU\"",
+      "lastModified": null,
+      "contentLength": 1552,
+      "sha256": "77b367e4e813d719e8ec5419d91ed257b3ae730a64a02e901830b020b7bf4737"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs/basic-languages/monaco.contribution.js",
+      "status": 200,
+      "etag": "W/\"3abd-tn2+UWB7/mZ4whZXU/3nhkKETjM\"",
+      "lastModified": null,
+      "contentLength": 15037,
+      "sha256": "2708bba6aadd30d53cd558be678b96298a9c96eb5faf21486387c03905f21fa9"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs/monaco.contribution-DO3azKX8.js",
+      "status": 200,
+      "etag": "W/\"867-lKQuE2rqkTVS4W5hH8DeExfkJyE\"",
+      "lastModified": null,
+      "contentLength": 2151,
+      "sha256": "32adc5eb62986fbb20851a31e75a997d2c730ca44ee3f42c07d7e5d0cfaec049"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs/monaco.contribution-qLAYrEOP.js",
+      "status": 200,
+      "etag": "W/\"86d-E81UEDInYUt9xQOVW+Pp7FTCAZk\"",
+      "lastModified": null,
+      "contentLength": 2157,
+      "sha256": "0759e165aae34b2f742da203a2c1eb66d0cc08a307a54bd76be357f40e48a201"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs/monaco.contribution-D2OdxNBt.js",
+      "status": 200,
+      "etag": "W/\"12b1-Ksf3IY8Rz4KIePJtvkzav9wi9Vo\"",
+      "lastModified": null,
+      "contentLength": 4785,
+      "sha256": "9854389d8ed1583fd75083a65a150c7e2aef0c79b6b62672a03b91254d3b79fa"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs/editor.api-CalNCsUg.js",
+      "status": 200,
+      "etag": "W/\"37feff-rH293jKnnhz6ChuWnGsxsNU0MxI\"",
+      "lastModified": null,
+      "contentLength": 3669759,
+      "sha256": "c10d0058fe0ee5d2c46c3b6cbb28474407be5d45ada35973f3230561f82c4de5"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs/editor/editor.main.css",
+      "status": 200,
+      "etag": "W/\"4b6fd-oUOdofDQC6ESIWKnnL/yXaUGKcA\"",
+      "lastModified": null,
+      "contentLength": 308989,
+      "sha256": "db6c1cd607943a861b47c7660d0ef02ef64f7173194d7c4b8bce5c988156e5f8"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs/php-D_kh-9LK.js",
+      "status": 200,
+      "etag": "W/\"1f46-smq4lZywsPR++0CTwGCI1nfniCg\"",
+      "lastModified": null,
+      "contentLength": 8006,
+      "sha256": "e834d0cafddfd7b0f3aa8d29e30a9956680ad8819446c5cbf1c6f5f0f00d672c"
+    },
+    {
+      "url": "blob:http://127.0.0.1:3471/89a6d2df-87d7-4ad1-95ee-06dc0f5c87d3",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 438,
+      "sha256": "ceb1f3ef8ddbde9fecf0c07ef56686d702a7bc7376a5ff648f89520e69809d28"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/lsp/phpactor/index.ts",
+      "status": 200,
+      "etag": "W/\"ea-RB9rEj/F0LiY4ZTwCR/xjWYcUYk\"",
+      "lastModified": null,
+      "contentLength": 793,
+      "sha256": "a2f7fc6b6022dae32f64932064b58c296491d55a647255f5f246f45206eb36c6"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/lsp/phpactor/phpactor-worker.ts?worker_file&type=module",
+      "status": 200,
+      "etag": "W/\"295e-gwl1eMC1Udka5ZKV/kEloGtr+bM\"",
+      "lastModified": null,
+      "contentLength": 37817,
+      "sha256": "13af23840f5c63e6f8d66d41e88910298c694ada00bddcf102bb2245906996b1"
+    },
+    {
+      "url": "http://127.0.0.1:3471/@vite/client",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 209803,
+      "sha256": "174425328c7640a39450e9b6769ed657f023a5b7774559cbb710ffa6bf0f9277"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/vite/dist/client/env.mjs",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 3478,
+      "sha256": "87a1e6adc3833b1e0d8fd872e39e822401c8f0d593d5358f7e142f34d335946a"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/lsp/phpactor/dispatch.php?import&raw",
+      "status": 200,
+      "etag": "W/\"cf1-Y737cwM6Mqy4zfuZnNL6iXIzwOw\"",
+      "lastModified": null,
+      "contentLength": 3313,
+      "sha256": "5b00e060b0ef6b1c48201c9fb47eeff9ffc46419e3fd95637eaa843fcd5cfedb"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/php-wasm/php.ts",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 54026,
+      "sha256": "eff7879f42257a73a52fc3b5d251d493ad22e32d9152b3826944ac19395c7d48"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.5.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 555426,
+      "sha256": "11e7bb0e0bc89484eb3f67b7ab099873b7a367185d7306f607b6da890ac80262"
+    },
+    {
+      "url": "http://127.0.0.1:3471/lsp/phpactor/phpactor-loader.js",
+      "status": 200,
+      "etag": "W/\"586971-1792927313019\"",
+      "lastModified": "Sun, 25 Oct 2026 11:21:53 GMT",
+      "contentLength": 586971,
+      "sha256": "d3d58a40f11748e46eff97ce2ae12e300147f42cf702944478dca4ac54705060"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/workers/php-worker.ts?worker_file&type=module",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 7865,
+      "sha256": "cbaa53b6d7eaf9cc50897f9c2c7366e01032ea9e2aaaa05291647214ebd168ed"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-5.6.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 540261,
+      "sha256": "162b0c1d8f4aac0782642249e5a0ec02b4bece7e66341743564166571653516c"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-7.0.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 538878,
+      "sha256": "4b81e1fa3665dec41205630f62d3d0678740510068c3b4948ef6435e96b63e5c"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-7.1.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 537641,
+      "sha256": "e1a4a725131e3a699021071eb3fa649757f13570fafe82f1c5bda570fa787a8c"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-7.2.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 538720,
+      "sha256": "86f9c215984511a5baf6d39e82ef10e5e69e148ba819bd60fd769ac5405d46e9"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-7.3.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 549543,
+      "sha256": "243fb6f1d13b58cc6780b58f41b2c91729621e03e7c25e1920a659144f2a5588"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-7.4.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 549543,
+      "sha256": "d41f4feaef27b8185056faa46dc9ac3493664c746ab3866b3ef39e52872a7af2"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.0.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 548502,
+      "sha256": "538a46aab9771a3ef316b0dc58fdfc047a4d5ab64479258623799e157596a9f8"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.1.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 552628,
+      "sha256": "5be478a75c63ca851a89e26ec32c5397ac29b54948312f5676ba92a477443474"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.2.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 553846,
+      "sha256": "b9f465eba970b6592dbebf9555bdc70311500020782bebfefe875cf4b660c600"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.3.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 554264,
+      "sha256": "eb25a903f82fa1ff2829040d56f978490366dfdad5e1b9f3b5db54bf53064363"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.4.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 553294,
+      "sha256": "c18cadc46898501793c391fc53ee8ebd7d6c332a7d4c85928001bc32eb691829"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.5.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 555426,
+      "sha256": "11e7bb0e0bc89484eb3f67b7ab099873b7a367185d7306f607b6da890ac80262"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/vite/dist/client/env.mjs",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 3478,
+      "sha256": "87a1e6adc3833b1e0d8fd872e39e822401c8f0d593d5358f7e142f34d335946a"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/php-wasm/php.ts",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 54026,
+      "sha256": "eff7879f42257a73a52fc3b5d251d493ad22e32d9152b3826944ac19395c7d48"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/lsp/phpactor/phpactor-worker.ts?worker_file&type=module",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 37817,
+      "sha256": "13af23840f5c63e6f8d66d41e88910298c694ada00bddcf102bb2245906996b1"
+    },
+    {
+      "url": "http://127.0.0.1:3471/@vite/client",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 209803,
+      "sha256": "174425328c7640a39450e9b6769ed657f023a5b7774559cbb710ffa6bf0f9277"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/vite/dist/client/env.mjs",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 3478,
+      "sha256": "87a1e6adc3833b1e0d8fd872e39e822401c8f0d593d5358f7e142f34d335946a"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/lsp/phpactor/dispatch.php?import&raw",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 3313,
+      "sha256": "5b00e060b0ef6b1c48201c9fb47eeff9ffc46419e3fd95637eaa843fcd5cfedb"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/php-wasm/php.ts",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 54026,
+      "sha256": "eff7879f42257a73a52fc3b5d251d493ad22e32d9152b3826944ac19395c7d48"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.5.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 555426,
+      "sha256": "11e7bb0e0bc89484eb3f67b7ab099873b7a367185d7306f607b6da890ac80262"
+    },
+    {
+      "url": "http://127.0.0.1:3471/lsp/phpactor/phpactor-loader.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 586971,
+      "sha256": "d3d58a40f11748e46eff97ce2ae12e300147f42cf702944478dca4ac54705060"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/workers/php-worker.ts?worker_file&type=module",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 7865,
+      "sha256": "cbaa53b6d7eaf9cc50897f9c2c7366e01032ea9e2aaaa05291647214ebd168ed"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/workers/php-worker.ts?worker_file&type=module",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 7865,
+      "sha256": "cbaa53b6d7eaf9cc50897f9c2c7366e01032ea9e2aaaa05291647214ebd168ed"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-5.6.js",
+      "status": 200,
+      "readError": "response.body: Target page, context or browser has been closed"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-7.0.js",
+      "status": 200,
+      "readError": "response.body: Target page, context or browser has been closed"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-7.4.js",
+      "status": 200,
+      "readError": "response.body: Target page, context or browser has been closed"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-7.1.js",
+      "status": 200,
+      "readError": "response.body: Target page, context or browser has been closed"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-7.2.js",
+      "status": 200,
+      "readError": "response.body: Target page, context or browser has been closed"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-7.3.js",
+      "status": 200,
+      "readError": "response.body: Target page, context or browser has been closed"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.0.js",
+      "status": 200,
+      "readError": "response.body: Target page, context or browser has been closed"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.2.js",
+      "status": 200,
+      "readError": "response.body: Target page, context or browser has been closed"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.1.js",
+      "status": 200,
+      "readError": "response.body: Target page, context or browser has been closed"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.3.js",
+      "status": 200,
+      "readError": "response.body: Target page, context or browser has been closed"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.4.js",
+      "status": 200,
+      "readError": "response.body: Target page, context or browser has been closed"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.5.js",
+      "status": 200,
+      "readError": "response.body: Response body is unavailable"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/vite/dist/client/env.mjs",
+      "status": 200,
+      "readError": "response.body: Response body is unavailable"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/php-wasm/php.ts",
+      "status": 200,
+      "readError": "response.body: Response body is unavailable"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-5.6.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 540261,
+      "sha256": "162b0c1d8f4aac0782642249e5a0ec02b4bece7e66341743564166571653516c"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-7.0.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 538878,
+      "sha256": "4b81e1fa3665dec41205630f62d3d0678740510068c3b4948ef6435e96b63e5c"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-7.1.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 537641,
+      "sha256": "e1a4a725131e3a699021071eb3fa649757f13570fafe82f1c5bda570fa787a8c"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-7.2.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 538720,
+      "sha256": "86f9c215984511a5baf6d39e82ef10e5e69e148ba819bd60fd769ac5405d46e9"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-7.3.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 549543,
+      "sha256": "243fb6f1d13b58cc6780b58f41b2c91729621e03e7c25e1920a659144f2a5588"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-7.4.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 549543,
+      "sha256": "d41f4feaef27b8185056faa46dc9ac3493664c746ab3866b3ef39e52872a7af2"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.2.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 553846,
+      "sha256": "b9f465eba970b6592dbebf9555bdc70311500020782bebfefe875cf4b660c600"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.0.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 548502,
+      "sha256": "538a46aab9771a3ef316b0dc58fdfc047a4d5ab64479258623799e157596a9f8"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.1.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 552628,
+      "sha256": "5be478a75c63ca851a89e26ec32c5397ac29b54948312f5676ba92a477443474"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.4.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 553294,
+      "sha256": "c18cadc46898501793c391fc53ee8ebd7d6c332a7d4c85928001bc32eb691829"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.3.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 554264,
+      "sha256": "eb25a903f82fa1ff2829040d56f978490366dfdad5e1b9f3b5db54bf53064363"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/wasm-assets/php-8.5.js",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 555426,
+      "sha256": "11e7bb0e0bc89484eb3f67b7ab099873b7a367185d7306f607b6da890ac80262"
+    },
+    {
+      "url": "http://127.0.0.1:3471/node_modules/vite/dist/client/env.mjs",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 3478,
+      "sha256": "87a1e6adc3833b1e0d8fd872e39e822401c8f0d593d5358f7e142f34d335946a"
+    },
+    {
+      "url": "http://127.0.0.1:3471/src/php-wasm/php.ts",
+      "status": 200,
+      "etag": null,
+      "lastModified": null,
+      "contentLength": 54026,
+      "sha256": "eff7879f42257a73a52fc3b5d251d493ad22e32d9152b3826944ac19395c7d48"
+    }
+  ],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "screenshot": "completion-off-no-retry.png",
+  "inputAt": 2243.9000000059605,
+  "offAt": 5890.5,
+  "held": [
+    {
+      "at": 5881.299999982119,
+      "id": 2
+    }
+  ],
+  "afterOffRequests": [],
+  "afterOffChanges": [],
+  "afterOffState": {
+    "editorText": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\ns",
+    "activeElement": "chakra-checkbox__input",
+    "version": "8.5",
+    "completionChecked": false,
+    "rows": [],
+    "visible": false,
+    "cursor": {
+      "left": 97,
+      "top": 326.1875,
+      "width": 2,
+      "height": 18
+    }
+  },
+  "initBeforeRestoreTyping": 2,
+  "restoreAt": 7418.5999999940395,
+  "restoreChangeVersion": 6,
+  "restoreRequest": {
+    "direction": "ui->worker",
+    "at": 7640,
+    "id": 2,
+    "method": "textDocument/completion",
+    "params": {
+      "textDocument": {
+        "uri": "inmemory://model/1"
+      },
+      "position": {
+        "line": 7,
+        "character": 4
+      }
+    }
+  },
+  "restoreResponse": {
+    "direction": "worker->ui",
+    "at": 8155.199999988079,
+    "id": 2,
+    "result": {
+      "isIncomplete": false,
+      "items": [
+        {
+          "label": "str_increment",
+          "insertText": "str_increment(${1:\\$string})${0}",
+          "detail": "str_increment(string $string): string",
+          "documentation": "\n\n\nIncrement an alphanumeric string\n\nReturns the incremented alphanumeric ASCII string.\n\n",
+          "kind": 3,
+          "insertTextFormat": 2
+        },
+        {
+          "label": "str_decrement",
+          "insertText": "str_decrement(${1:\\$string})${0}",
+          "detail": "str_decrement(string $string): string",
+          "documentation": "\n\n\nDecrement an alphanumeric string\n\nReturns the decremented alphanumeric ASCII string.\n\n",
+          "kind": 3,
+          "insertTextFormat": 2
+        },
+        {
+          "label": "str_contains",
+          "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})${0}",
+          "detail": "str_contains(string $haystack, string $needle): bool",
+          "documentation": "\n\n\nChecks if $needle is found in $haystack and returns a boolean value\n(true/false) whether or not the $needle was found.\n\n",
+          "kind": 3,
+          "insertTextFormat": 2
+        },
+        {
+          "label": "str_starts_with",
+          "insertText": "str_starts_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+          "detail": "str_starts_with(string $haystack, string $needle): bool",
+          "documentation": "\n\n\nThe function returns {",
+          "kind": 3,
+          "insertTextFormat": 2
+        },
+        {
+          "label": "str_ends_with",
+          "insertText": "str_ends_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+          "detail": "str_ends_with(string $haystack, string $needle): bool",
+          "documentation": "\n\n\nThe function returns {",
+          "kind": 3,
+          "insertTextFormat": 2
+        },
+        {
+          "label": "str_replace",
+          "insertText": "str_replace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+          "detail": "str_replace(string|string[] $search, string|string[] $replace, string|string[] $subject, $count = NULL): string|string[]",
+          "documentation": "\n\n\nReplace all occurrences of the search string with the replacement string\n",
+          "kind": 3,
+          "insertTextFormat": 2
+        },
+        {
+          "label": "str_ireplace",
+          "insertText": "str_ireplace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+          "detail": "str_ireplace(mixed $search, array|string $replace, array|string $subject, $count = NULL): string|string[]",
+          "documentation": "\n\n\nCase-insensitive version of <function>str_replace</function>.\n",
+          "kind": 3,
+          "insertTextFormat": 2
+        },
+        {
+          "label": "str_getcsv",
+          "insertText": "str_getcsv(${1:\\$string})${0}",
+          "detail": "str_getcsv(string $string, string $separator = ',', string $enclosure = '\"', string $escape = '\\\\\\\\'): array",
+          "documentation": "\n\n\nParse a CSV string into an array\n",
+          "kind": 3,
+          "insertTextFormat": 2
+        },
+        {
+          "label": "str_repeat",
+          "insertText": "str_repeat(${1:\\$string}, ${2:\\$times})${0}",
+          "detail": "str_repeat(string $string, int $times): string",
+          "documentation": "\n\n\nRepeat a string\n",
+          "kind": 3,
+          "insertTextFormat": 2
+        },
+        {
+          "label": "str_pad",
+          "insertText": "str_pad(${1:\\$string}, ${2:\\$length})${0}",
+          "detail": "str_pad(string $string, int $length, string $pad_string = ' ', int $pad_type = 1): string",
+          "documentation": "\n\n\nPad a string to a certain length with another string\n",
+          "kind": 3,
+          "insertTextFormat": 2
+        },
+        {
+          "label": "str_rot13",
+          "insertText": "str_rot13(${1:\\$string})${0}",
+          "detail": "str_rot13(string $string): string",
+          "documentation": "\n\n\nPerform the rot13 transform on a string\n",
+          "kind": 3,
+          "insertTextFormat": 2
+        },
+        {
+          "label": "str_shuffle",
+          "insertText": "str_shuffle(${1:\\$string})${0}",
+          "detail": "str_shuffle(string $string): string",
+          "documentation": "\n\n\nRandomly shuffles a string\n",
+          "kind": 3,
+          "insertTextFormat": 2
+        },
+        {
+          "label": "str_word_count",
+          "insertText": "str_word_count(${1:\\$string})${0}",
+          "detail": "str_word_count(string $string, int $format = 0, string|null $characters = NULL): string[]|int",
+          "documentation": "\n\n\nReturn information about words used in a string\n",
+          "kind": 3,
+          "insertTextFormat": 2
+        },
+        {
+          "label": "str_split",
+          "insertText": "str_split(${1:\\$string})${0}",
+          "detail": "str_split(string $string, int $length = 1): string[]|false",
+          "documentation": "\n\n\nConvert a string to an array\n",
+          "kind": 3,
+          "insertTextFormat": 2
+        },
+        {
+          "label": "class ",
+          "insertText": "class ",
+          "detail": "",
+          "documentation": "",
+          "kind": 14
+        },
+        {
+          "label": "enum ",
+          "insertText": "enum ",
+          "detail": "",
+          "documentation": "",
+          "kind": 14
+        },
+        {
+          "label": "trait ",
+          "insertText": "trait ",
+          "detail": "",
+          "documentation": "",
+          "kind": 14
+        },
+        {
+          "label": "function ",
+          "insertText": "function ",
+          "detail": "",
+          "documentation": "",
+          "kind": 14
+        },
+        {
+          "label": "interface ",
+          "insertText": "interface ",
+          "detail": "",
+          "documentation": "",
+          "kind": 14
+        }
+      ]
+    }
+  },
+  "restoreRows": [
+    "str_contains\nstr_contains(string $haystack, string $needle): bool",
+    "str_decrement",
+    "str_ends_with",
+    "str_getcsv",
+    "str_increment",
+    "str_ireplace",
+    "str_pad",
+    "str_repeat",
+    "str_replace",
+    "str_rot13",
+    "str_shuffle",
+    "str_split"
+  ]
+}

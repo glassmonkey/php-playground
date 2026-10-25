@@ -101,6 +101,34 @@ OFF caseはhover応答を待つ間にcheckbox操作がWorkerをterminateした�
 
 `first-after-init` is first completion request after LSP initialize in a new context; it excludes browser/server cold start and is not a process-cold benchmark. Phpactor `->` has source-level 100ms settle before request, reflected in input→request values. These small samples compare these two heads/cases only; no statistical or product-wide performance inference follows.
 
+## 修正後のPhpactor自然入力追試
+
+ユーザーが「Ctrl+Spaceなしの候補表示」を必須条件にしたため、既存のPHPantom `863c1337adb05a339dbbd6eb20a9c26eb7b63316` / Phpactor `ee48f4733c802fa39fc3abd54441dd9737017ee8` 比較を維持し、修正後Phpactorだけを別runで確認した。manager READY通知とsource worktree `gla-115-lsp-phpactor-preview` のclean/headを照合したうえで、保持中の3471 serverへ隔離Chrome `156.0.8078.47` から接続した。UIはPHP 8.5、Completion ON、[fixture.php](fixture.php)。測定操作にCtrl+Spaceは使っていない。
+
+| 自然入力 | 修正head raw response → 画面行 | 入力/応答の観測 |
+|---|---|---|
+| `s`→`str_`、160ms/文字 | 1.8秒時点: 最新requestなし/0行。さらに待つとlatest request 19→12 | 1.8秒停止時の[run 14-34 trace](evidence/phpactor-natural-after-fix-2026-10-25T14-34-22-926Z/str-underscore-slow-trace.json)では、version 3 / line 7 character 1への最初の`s` request id 2だけがあり、response未着、最新prefix要求なし、widget 0行。これはその時点の自動表示AC未達。別の長時間待機[run 14-35](evidence/phpactor-natural-after-fix-2026-10-25T14-35-23-888Z/str-underscore-slow-trace.json)ではその応答が3.611秒後に168 itemsを返すが、model version 6に変わっていたためsource traceは`document-version-changed-at-response`として破棄。100ms後に自動retryし、version 6 / line 7 character 4でid 3を要求、403ms後に19 items、DOM上12行を表示。input開始→latest request 3.930秒、→DOM visible 4.346秒。遅延後に回復する観測は1.8秒条件の未達を打ち消さない。 |
+| `s`→`str_`、10ms/文字 | 19→12 | version 6 / line 7 character 4の要求1件。Worker RTT 502ms、input開始→request 145ms、→DOM visible 666ms。 |
+| `strl`、80ms/文字 | 6→1 (`strlen`) | version 6 / line 7 character 4。Worker RTT 169ms。 |
+| `$gre`、80ms/文字 | 2→2 (`$greeter`, `$greeting`) | version 6 / line 7 character 4。Worker RTT 165ms。 |
+| `$greeter->`、80ms/文字 | 3→3 (`create`, `greet`, `message`) | version 12 / line 7 character 10。Worker RTT 178ms。 |
+| `Greeter::`、80ms/文字 | 2→2 (`class`, `create`) | version 11 / line 7 character 9。Worker RTT 180ms。 |
+
+low/fast `str_`結果とsource traceは[run 14-35](evidence/phpactor-natural-after-fix-2026-10-25T14-35-23-888Z/trace.json)。各case traceには全`didChange` version、completion request/response id、cursor rect、スクリーンショット、ロードscript/styleのURL/status/ETag/SHA-256を保存した。特にロードされた`/src/lsp/client.ts`はSHA-256 `dac9df3998920ccfc6ac62de3bbd781851477b7ec1a8a3ed55c07d4671e92e77`。今後の修正head再測定では、harnessが入力停止1.8秒時点と、最終request/response後の状態を別々に記録する。candidate visibleはMutationObserver後のanimation frameでwidget rowとrect/styleを確認したDOM計測であり、physical paint完了の保証ではない。ページ/console errorはなかった。
+
+修正headのPhpactor内部traceではslow `str_`の旧応答を返却後、version不一致として破棄し、最新versionへのretryを起動していた。fast `str_`では入力中にmodel versionが進み、settle後にfinal versionを使う1 requestとなった。
+
+### Completion / PHP version state遷移
+
+[state transition run 14-33](evidence/phpactor-natural-state-after-fix-2026-10-25T14-33-05-103Z/completion-off-no-retry-trace.json) と [PHP version run](evidence/phpactor-natural-state-after-fix-2026-10-25T14-33-05-103Z/version-84-no-retry-85-recovery-trace.json)で別BrowserContextを使い確認した。
+
+- `s`へのcompletion requestのWorker responseを隔離harnessで保留し、Completion OFFを操作。Worker terminationと、OFF後1.4秒間にcompletion request/didChangeが0件、widget非表示を記録した。応答はWorker終了後にharnessが再配送せずdropしたため、製品のresponse guardを検証した結果としては扱わない。ON後、editorへ戻って自然に`tr_`を入力すると、version 6 / line 7 character 4の新要求でraw 19 items、画面12行が出た。
+- `str_`を表示後にPHP 8.4へ変更すると候補widgetが消え、その後1.5秒間completion requestは0件。PHP 8.5へ戻して同じfixtureへ自然入力すると、version 11 / line 7 character 4でraw 19 items、画面12行が出た。
+
+再測定コマンドは`node scripts/lsp/ui-evaluation/measure-natural-completion.mjs phpactor <manager-confirmed-head> <manager-ready-reference>`と`node scripts/lsp/ui-evaluation/diagnose-natural-state-changes.mjs phpactor <manager-confirmed-head> <manager-ready-reference>`。第一runnerは低速`str_`(160ms/character)・高速`str_`(10ms/character)、`strl`/`$gre`/`$greeter->`/`Greeter::`(80ms/character)を自然入力し、Ctrl+Spaceを呼ばない。期待全文は[fixture.php](fixture.php)の末尾改行の後ろへ各suffixを追加した値で、traceの`fullTextExpected`に連結後の全文を保存する。今回のready headでは、貼り付け後baseline version 2、`str_`/`strl`/`$gre`は末尾version 6、`$greeter->`はversion 12、`Greeter::`はversion 11。期待positionはLSP 0-basedでslow/fast `str_`、`strl`、`$gre`がline 7 / character 4、`$greeter->`はline 7 / character 10、`Greeter::`はline 7 / character 9。次headでは実traceのversionを照合し、固定値を強制しない。第二runnerはCompletion OFF後の要求停止とPHP 8.4中の要求停止、8.5へ戻した自然要求を確認する。両runnerともmanager通知headとPhpactor source worktree clean状態が一致しなければ起動を拒否する。
+
+これらの修正後結果は元の両UI比較表の値へ混ぜない。PHPantomの新head再測定は行っていないため、修正後の対比較ではなくPhpactor修正headの個別UI確認である。一次報告の候補比較と同じく採用判断は付けない。
+
 ## 差の原因と確度
 
 | 要因 | 観測・source根拠 | 確度と限界 |

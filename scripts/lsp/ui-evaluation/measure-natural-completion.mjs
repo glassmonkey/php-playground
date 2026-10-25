@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 
 const app = process.argv[2];
@@ -39,14 +40,40 @@ const scenarios = [
 ];
 const runResults = [];
 
+async function readWidgetState(page) {
+	return page.evaluate(() => {
+		const widget = document.querySelector('.suggest-widget');
+		const style = widget ? getComputedStyle(widget) : null;
+		const rect = widget?.getBoundingClientRect();
+		const rows = [...(widget?.querySelectorAll('.monaco-list-row') ?? [])].map((row) => row.innerText);
+		return { visible: Boolean(widget && rows.length && rect?.width > 0 && rect?.height > 0 && style?.display !== 'none' && style?.visibility !== 'hidden' && Number(style?.opacity ?? 1) > 0), rows };
+	});
+}
+
 try {
 	for (const scenario of scenarios) {
 		const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, colorScheme: 'light' });
 		await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: baseURL.slice(0, -1) });
 		const page = await context.newPage();
+		const assets = [];
+		const completionTrace = [];
 		page.on('pageerror', (error) => pageErrors.push({ scenario: scenario.name, message: error.message }));
-		page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push({ scenario: scenario.name, message: message.text() }); });
+		page.on('console', async (message) => {
+			if (message.type() === 'error') consoleErrors.push({ scenario: scenario.name, message: message.text() });
+			if (message.type() === 'info' && message.text().includes('[phpactor-lsp]')) completionTrace.push({ text: message.text(), values: await Promise.all(message.args().map((arg) => arg.jsonValue().catch(() => null))) });
+		});
+		page.on('response', async (response) => {
+			if (!['script', 'stylesheet'].includes(response.request().resourceType())) return;
+			try {
+				const body = await response.body();
+				const headers = await response.allHeaders();
+				assets.push({ url: response.url(), status: response.status(), etag: headers.etag ?? null, lastModified: headers['last-modified'] ?? null, contentLength: body.length, sha256: createHash('sha256').update(body).digest('hex') });
+			} catch (error) {
+				assets.push({ url: response.url(), status: response.status(), readError: error.message });
+			}
+		});
 		await page.addInitScript(() => {
+			if (location.port === '3471') localStorage.setItem('phpactorLspTrace', '1');
 			window.__lspObserved = [];
 			window.__suggestSnapshots = [];
 			window.__workerUrls = [];
@@ -96,9 +123,24 @@ try {
 		const inputAt = await page.evaluate(() => performance.now());
 		await page.keyboard.type(scenario.text, { delay: scenario.delayMs });
 		const typedAt = await page.evaluate(() => performance.now());
+		const expectedPosition = { line: fixture.split('\n').length - 1, character: scenario.text.length };
 		const pauseMs = 1800;
-		await page.waitForTimeout(pauseMs);
-		const expectedPosition = { line: fixture.split('\n').length, character: scenario.text.length };
+		await page.waitForTimeout(Math.max(0, typedAt + pauseMs - (await page.evaluate(() => performance.now()))));
+		const eventsAtPause = await page.evaluate(() => window.__lspObserved);
+		const changesAtPause = eventsAtPause.filter((event) => event.direction === 'ui->worker' && event.method === 'textDocument/didChange' && event.at >= inputAt);
+		const lastChangeAtPause = changesAtPause.at(-1) ?? null;
+		const requestAtPause = [...eventsAtPause].reverse().find((event) => event.direction === 'ui->worker' && event.method === 'textDocument/completion' && event.at >= (lastChangeAtPause?.at ?? Infinity) && event.params?.position?.line === expectedPosition.line && event.params?.position?.character === expectedPosition.character) ?? null;
+		const stateAtPause = await readWidgetState(page);
+		const pauseScreenshot = `${scenario.name}-at-1800ms.png`;
+		await page.screenshot({ path: path.join(outDir, pauseScreenshot) });
+		await page.waitForFunction(({ startedAt, position }) => {
+			const events = window.__lspObserved ?? [];
+			const latestChange = events.filter((event) => event.direction === 'ui->worker' && event.method === 'textDocument/didChange' && event.at >= startedAt).at(-1);
+			if (!latestChange) return false;
+			const latestRequest = [...events].reverse().find((event) => event.direction === 'ui->worker' && event.method === 'textDocument/completion' && event.at >= latestChange.at && event.params?.position?.line === position.line && event.params?.position?.character === position.character);
+			return Boolean(latestRequest && events.some((event) => event.direction === 'worker->ui' && event.id === latestRequest.id));
+		}, { startedAt: inputAt, position: expectedPosition }, { timeout: 12000 }).catch(() => {});
+		await page.waitForTimeout(100);
 		const observed = await page.evaluate(() => ({ events: window.__lspObserved, snapshots: window.__suggestSnapshots, workerUrls: window.__workerUrls }));
 		const changes = observed.events.filter((event) => event.direction === 'ui->worker' && event.method === 'textDocument/didChange' && event.at >= inputAt);
 		const completionRequests = observed.events.filter((event) => event.direction === 'ui->worker' && event.method === 'textDocument/completion' && event.at >= inputAt);
@@ -116,6 +158,7 @@ try {
 				phpVersion: document.querySelector('[class*="singleValue"]')?.innerText ?? null,
 				completionChecked: document.querySelector('[data-testid="checkbox-completion"] input')?.checked ?? null,
 				suggest: { visible: Boolean(widget && rows.length && rect?.width > 0 && rect?.height > 0 && style?.display !== 'none' && style?.visibility !== 'hidden' && Number(style?.opacity ?? 1) > 0), rows },
+				cursor: (() => { const cursor = document.querySelector('.monaco-editor .cursors-layer .cursor'); const cursorRect = cursor?.getBoundingClientRect(); return cursorRect ? { left: cursorRect.left, top: cursorRect.top, width: cursorRect.width, height: cursorRect.height, visibility: getComputedStyle(cursor).visibility } : null; })(),
 			};
 		});
 		const screenshot = `${scenario.name}.png`;
@@ -127,26 +170,34 @@ try {
 			pauseAfterTypingMs: pauseMs,
 			inputAt,
 			typedAt,
+			pauseSampleAt: typedAt + pauseMs,
+			fullTextExpected: fixture + scenario.text,
 			expectedPosition,
 			baselineVersion: baselineChange?.params?.textDocument?.version ?? null,
-			versionsDuringInput: changes.map((event) => ({ at: event.at, version: event.params?.textDocument?.version ?? null, contentChanges: event.params?.contentChanges ?? [] })),
+			versionsDuringInput: changesAtPause.map((event) => ({ at: event.at, version: event.params?.textDocument?.version ?? null, contentChanges: event.params?.contentChanges ?? [] })),
+			versionAtPause: lastChangeAtPause?.params?.textDocument?.version ?? null,
+			requestAtPause,
+			rowsVisibleAtPause: stateAtPause.rows,
+			visibleAtPause: stateAtPause.visible,
+			pauseScreenshot,
 			completionRequests,
 			finalRequest,
 			finalResponse,
-			rowsVisibleAfterPause: finalState.suggest.rows,
-			visibleAtEndOfPause: finalState.suggest.visible,
+			finalDocumentVersion: finalChange?.params?.textDocument?.version ?? null,
+			rowsAfterLatestResponse: finalState.suggest.rows,
+			visibleAfterLatestResponse: finalState.suggest.visible,
 			visibleSnapshotsAfterInput: observed.snapshots.filter((snapshot) => snapshot.at >= inputAt && snapshot.visible),
 			finalState,
 			requestAfterLatestInputChange: Boolean(finalRequest && finalChange && finalRequest.at >= finalChange.at),
 			screenshot,
 		};
 		runResults.push(result);
-		await fs.writeFile(path.join(outDir, `${scenario.name}-trace.json`), JSON.stringify({ app, runId, sourceHead, sourceDirty: Boolean(sourceDirty), managerReadyRef, url: baseURL, browser: browser.version(), phpVersion: finalState.phpVersion, fixture, scenario: result, lspEvents: observed.events, suggestSnapshots: observed.snapshots, workerUrls: observed.workerUrls, pageErrors: pageErrors.filter((entry) => entry.scenario === scenario.name), consoleErrors: consoleErrors.filter((entry) => entry.scenario === scenario.name) }, null, 2));
+		await fs.writeFile(path.join(outDir, `${scenario.name}-trace.json`), JSON.stringify({ app, runId, sourceHead, sourceDirty: Boolean(sourceDirty), managerReadyRef, url: baseURL, browser: browser.version(), phpVersion: finalState.phpVersion, fixture, scenario: result, assets, completionTrace, lspEvents: observed.events, suggestSnapshots: observed.snapshots, workerUrls: observed.workerUrls, pageErrors: pageErrors.filter((entry) => entry.scenario === scenario.name), consoleErrors: consoleErrors.filter((entry) => entry.scenario === scenario.name) }, null, 2));
 		await context.close();
 	}
 	const output = { app, runId, sourceHead, managerReadyRef, url: baseURL, browser: browser.version(), viewport: { width: 1440, height: 1000 }, fixture, inputMethod: 'Natural Playwright keyboard typing only; no Ctrl+Space or other completion invocation in measured cases', timing: 'UI snapshots use MutationObserver followed by requestAnimationFrame and DOM/style visibility; this does not guarantee physical paint completion.', results: runResults, pageErrors, consoleErrors };
 	await fs.writeFile(path.join(outDir, 'trace.json'), JSON.stringify(output, null, 2));
-	console.log(JSON.stringify({ app, runId, sourceHead, managerReadyRef, phpVersion: runResults[0]?.finalState.phpVersion, results: runResults.map(({ name, inputSpeedMsPerCharacter, baselineVersion, versionsDuringInput, finalRequest, finalResponse, rowsVisibleAfterPause, visibleAtEndOfPause, requestAfterLatestInputChange }) => ({ name, inputSpeedMsPerCharacter, baselineVersion, inputVersions: versionsDuringInput.map((entry) => entry.version), requestId: finalRequest?.id ?? null, requestPosition: finalRequest?.params?.position ?? null, responseItems: finalResponse?.result?.items?.length ?? null, rowsVisibleAfterPause, visibleAtEndOfPause, requestAfterLatestInputChange })), pageErrors, consoleErrors }, null, 2));
+	console.log(JSON.stringify({ app, runId, sourceHead, managerReadyRef, phpVersion: runResults[0]?.finalState.phpVersion, results: runResults.map(({ name, inputSpeedMsPerCharacter, baselineVersion, versionsDuringInput, requestAtPause, visibleAtPause, rowsVisibleAtPause, finalRequest, finalResponse, visibleAfterLatestResponse, rowsAfterLatestResponse, requestAfterLatestInputChange }) => ({ name, inputSpeedMsPerCharacter, baselineVersion, inputVersions: versionsDuringInput.map((entry) => entry.version), requestAtPauseId: requestAtPause?.id ?? null, visibleAtPause, rowsVisibleAtPause, latestRequestId: finalRequest?.id ?? null, requestPosition: finalRequest?.params?.position ?? null, responseItems: finalResponse?.result?.items?.length ?? null, visibleAfterLatestResponse, rowsAfterLatestResponse, requestAfterLatestInputChange })), pageErrors, consoleErrors }, null, 2));
 } finally {
 	await browser.close();
 }
