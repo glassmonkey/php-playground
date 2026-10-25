@@ -479,14 +479,15 @@ test.describe('select version', () => {
         await page.keyboard.down("Tab");
 
         const editor = page.getByRole('code')
+        const editorContent = editor.locator('.editor-scrollable[role="presentation"]')
         // focus editor
         await editor.click()
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('<?')
+        await expect(editorContent).toHaveText('<?')
         // try 1+1
         await page.keyboard.type(' echo(1+1);')
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('<? echo(1+1);')
+        await expect(editorContent).toHaveText('<? echo(1+1);')
         // run and result is 2
         await page.getByTestId('checkbox-format').uncheck()
         await expect(await page.getByTestId('preview-console')).toHaveText('2')
@@ -504,14 +505,15 @@ test.describe('select version', () => {
         await page.keyboard.down("Tab");
 
         const editor = page.getByRole('code')
+        const editorContent = editor.locator('.editor-scrollable[role="presentation"]')
         // focus editor
         await editor.click()
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('<?')
+        await expect(editorContent).toHaveText('<?')
         // try 1+1
         await page.keyboard.type(' declare(strict_types=1);echo(1+1);')
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('<? declare(strict_types=1);echo(1+1);')
+        await expect(editorContent).toHaveText('<? declare(strict_types=1);echo(1+1);')
         // run and result is 2
         await page.getByTestId('checkbox-format').uncheck()
         await expect(await page.getByTestId('preview-console')).toHaveText('2')
@@ -524,14 +526,15 @@ test.describe('select version', () => {
         await page.keyboard.down("Tab");
 
         const editor = page.getByRole('code')
+        const editorContent = editor.locator('.editor-scrollable[role="presentation"]')
         // focus editor
         await editor.click()
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('<!---->')
+        await expect(editorContent).toHaveText('<!---->')
         // try 1+1
         await page.keyboard.type('Hello, World')
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('<!---->Hello, World')
+        await expect(editorContent).toHaveText('<!---->Hello, World')
         // run and result is 2
         await page.getByTestId('checkbox-format').uncheck()
         await expect(await page.getByTestId('preview-console')).toHaveText('<!---->Hello, World')
@@ -544,14 +547,15 @@ test.describe('select version', () => {
         await page.keyboard.down("Tab");
 
         const editor = page.getByRole('code')
+        const editorContent = editor.locator('.editor-scrollable[role="presentation"]')
         // focus editor
         await editor.click()
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('<!---->')
+        await expect(editorContent).toHaveText('<!---->')
         // try 1+1
         await page.keyboard.type('<body><?echo "x"."y"."z"?></body>')
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('<!----><body><?echo "x"."y"."z"?></body>')
+        await expect(editorContent).toHaveText('<!----><body><?echo "x"."y"."z"?></body>')
         // run and result is 2
         await page.getByTestId('checkbox-format').uncheck()
         await expect(await page.getByTestId('preview-console')).toHaveText('<!----><body>xyz</body>')
@@ -567,10 +571,11 @@ test.describe('select version', () => {
         await page.getByTestId('checkbox-format').uncheck()
 
         const editor = page.getByRole('code')
+        const editorContent = editor.locator('.editor-scrollable[role="presentation"]')
         // focus editor
         await editor.click()
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('<?')
+        await expect(editorContent).toHaveText('<?')
 
         // Add newline first, then type infinite loop
         await page.keyboard.press('End')
