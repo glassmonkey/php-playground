@@ -260,7 +260,6 @@ class DirectBuildxRunnerTest(unittest.TestCase):
 				"--build-arg",
 				f"BASE_IMAGE={image}",
 			]
-			spec["expected_base_image"] = image
 			spec_path.write_text(json.dumps(spec), encoding="utf-8")
 			result = subprocess.run(
 				[sys.executable, str(RUNNER), str(spec_path)],

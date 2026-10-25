@@ -46,9 +46,9 @@ BASE_IMAGE_REFERENCE_RE = re.compile(r"^[^@\s]+@sha256:[0-9a-f]{64}$")
 BASE_IMAGE_BUILD_ARG_RE = re.compile(r"^BASE_IMAGE=(.+)$")
 
 
-def validate_base_image_pin(argv: list[str], expected: str) -> dict[str, str]:
+def validate_base_image_pin(argv: list[str], expected: str | None = None) -> dict[str, str | None]:
 	"""Require the frozen base reference to match the Buildx BASE_IMAGE arg."""
-	if not BASE_IMAGE_REFERENCE_RE.fullmatch(expected):
+	if expected is not None and not BASE_IMAGE_REFERENCE_RE.fullmatch(expected):
 		raise ValueError(
 			"expected_base_image must be <image>@sha256:<64 lowercase hex characters>"
 		)
@@ -70,12 +70,14 @@ def validate_base_image_pin(argv: list[str], expected: str) -> dict[str, str]:
 		match = BASE_IMAGE_BUILD_ARG_RE.fullmatch(value)
 		if match:
 			actual_values.append(match.group(1))
+	if not actual_values and expected is None:
+		return {"expected_base_image": None, "actual_base_image": None, "status": "not-applicable"}
 	if len(actual_values) != 1:
 		raise ValueError(f"expected exactly one BASE_IMAGE build arg, found {len(actual_values)}")
 	actual = actual_values[0]
 	if not BASE_IMAGE_REFERENCE_RE.fullmatch(actual):
 		raise ValueError("BASE_IMAGE must be <image>@sha256:<64 lowercase hex characters>")
-	if actual != expected:
+	if expected is not None and actual != expected:
 		raise ValueError(f"BASE_IMAGE {actual!r} does not match frozen base {expected!r}")
 	return {"expected_base_image": expected, "actual_base_image": actual, "status": "passed"}
 
@@ -221,9 +223,13 @@ def execute(spec_path: Path) -> int:
 	preflight_error = None
 	base_image_pin = None
 	base_image_pin_error = None
-	if spec.get("expected_base_image") is not None:
+	if spec.get("expected_base_image") is not None or any(
+		argument.startswith("BASE_IMAGE=")
+		for index, argument in enumerate(argv)
+		if index > 0 and argv[index - 1] == "--build-arg"
+	) or any(argument.startswith("--build-arg=BASE_IMAGE=") for argument in argv):
 		try:
-			base_image_pin = validate_base_image_pin(argv, spec["expected_base_image"])
+			base_image_pin = validate_base_image_pin(argv, spec.get("expected_base_image"))
 		except ValueError as error:
 			base_image_pin_error = f"{type(error).__name__}: {error}"
 	if spec.get("preflight"):
