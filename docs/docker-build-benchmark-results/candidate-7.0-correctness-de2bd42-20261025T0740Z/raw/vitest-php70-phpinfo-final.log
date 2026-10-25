@@ -1,0 +1,27 @@
+
+ RUN  v4.1.10 /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure
+
+ ❯ src/workers/__test__/php-worker.spec.ts (308 tests | 1 failed | 307 skipped) 5021ms
+     × version: 7.0 run phpinfo(). 5019ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/workers/__test__/php-worker.spec.ts > show phpinfo() > version: 7.0 run phpinfo().
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/workers/__test__/php-worker.spec.ts:41:18
+     39|
+     40| describe('show phpinfo()', async function () {
+     41|  it.each(versions)('version: %s run phpinfo().', async function (v) {
+       |                  ^
+     42|   let actual = await callPHP(v, 'phpinfo();');
+     43|   // Shrink the request time
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 307 skipped (308)
+   Start at  17:00:54
+   Duration  6.87s (transform 4.99s, setup 80ms, import 1.03s, tests 5.02s, environment 0ms)
+

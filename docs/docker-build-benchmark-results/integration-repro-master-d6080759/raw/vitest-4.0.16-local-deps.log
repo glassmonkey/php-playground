@@ -1,0 +1,196 @@
+
+> php-playground@0.1.0 test:ci
+> vitest run src/php-wasm/__tests__/php-response.test.ts --reporter=verbose
+
+
+ RUN  v4.0.16 /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure
+
+stderr | src/php-wasm/__tests__/php-response.test.ts > PHP response body bytes > returns PHP stdout as bytes that decode to the original output
+wasm streaming compile failed: TypeError: Failed to parse URL from php-8.5.wasm?8458a52a4f53b1552d9d2f10e496f0f2
+falling back to ArrayBuffer instantiation
+
+stderr | src/php-wasm/__tests__/php-response.test.ts > PHP response body bytes > returns PHP stdout as bytes that decode to the original output
+failed to asynchronously prepare wasm: both async and sync fetching of the wasm failed
+WASM aborted: 
+both async and sync fetching of the wasm failed
+Aborted(both async and sync fetching of the wasm failed)
+
+stderr | src/php-wasm/__tests__/php-response.test.ts > PHP response body bytes > returns a PHPServer response body as bytes for a PHP request
+wasm streaming compile failed: TypeError: Failed to parse URL from php-8.5.wasm?8458a52a4f53b1552d9d2f10e496f0f2
+falling back to ArrayBuffer instantiation
+
+stderr | src/php-wasm/__tests__/php-response.test.ts > PHP response body bytes > returns a PHPServer response body as bytes for a PHP request
+failed to asynchronously prepare wasm: both async and sync fetching of the wasm failed
+WASM aborted: 
+both async and sync fetching of the wasm failed
+Aborted(both async and sync fetching of the wasm failed)
+
+ × src/php-wasm/__tests__/php-response.test.ts > PHP response body bytes > returns PHP stdout as bytes that decode to the original output 5048ms
+   → Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+stderr | src/php-wasm/__tests__/php-response.test.ts > PHP response body bytes > returns static-file bytes through PHPServer.request
+wasm streaming compile failed: TypeError: Failed to parse URL from php-8.5.wasm?8458a52a4f53b1552d9d2f10e496f0f2
+falling back to ArrayBuffer instantiation
+
+stderr | src/php-wasm/__tests__/php-response.test.ts > PHP response body bytes > returns static-file bytes through PHPServer.request
+failed to asynchronously prepare wasm: both async and sync fetching of the wasm failed
+WASM aborted: 
+both async and sync fetching of the wasm failed
+Aborted(both async and sync fetching of the wasm failed)
+
+ × src/php-wasm/__tests__/php-response.test.ts > PHP response body bytes > returns a PHPServer response body as bytes for a PHP request 5020ms
+   → Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+stderr | src/php-wasm/__tests__/php-response.test.ts > PHP response body bytes > returns a decodable 404 body through PHPServer.request
+wasm streaming compile failed: TypeError: Failed to parse URL from php-8.5.wasm?8458a52a4f53b1552d9d2f10e496f0f2
+falling back to ArrayBuffer instantiation
+
+stderr | src/php-wasm/__tests__/php-response.test.ts > PHP response body bytes > returns a decodable 404 body through PHPServer.request
+failed to asynchronously prepare wasm: both async and sync fetching of the wasm failed
+WASM aborted: 
+both async and sync fetching of the wasm failed
+Aborted(both async and sync fetching of the wasm failed)
+
+ × src/php-wasm/__tests__/php-response.test.ts > PHP response body bytes > returns static-file bytes through PHPServer.request 5005ms
+   → Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ × src/php-wasm/__tests__/php-response.test.ts > PHP response body bytes > returns a decodable 404 body through PHPServer.request 5013ms
+   → Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/php-wasm/__tests__/php-response.test.ts > PHP response body bytes > returns PHP stdout as bytes that decode to the original output
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/php-wasm/__tests__/php-response.test.ts:15:2
+     13| 
+     14| describe('PHP response body bytes', () => {
+     15|  it('returns PHP stdout as bytes that decode to the original output', …
+       |  ^
+     16|   const php = await createPHP();
+     17|   const output = 'stdout 🌍';
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  src/php-wasm/__tests__/php-response.test.ts > PHP response body bytes > returns a PHPServer response body as bytes for a PHP request
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/php-wasm/__tests__/php-response.test.ts:30:2
+     28|  });
+     29| 
+     30|  it('returns a PHPServer response body as bytes for a PHP request', as…
+       |  ^
+     31|   const php = await createPHP();
+     32|   php.mkdirTree('/www');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  src/php-wasm/__tests__/php-response.test.ts > PHP response body bytes > returns static-file bytes through PHPServer.request
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/php-wasm/__tests__/php-response.test.ts:50:2
+     48|  });
+     49| 
+     50|  it('returns static-file bytes through PHPServer.request', async () =>…
+       |  ^
+     51|   const php = await createPHP();
+     52|   php.mkdirTree('/www');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  src/php-wasm/__tests__/php-response.test.ts > PHP response body bytes > returns a decodable 404 body through PHPServer.request
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/php-wasm/__tests__/php-response.test.ts:72:2
+     70|  });
+     71| 
+     72|  it('returns a decodable 404 body through PHPServer.request', async ()…
+       |  ^
+     73|   const php = await createPHP();
+     74|   const server = new PHPServer(php, {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 4 unhandled errors during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+RuntimeError: Aborted(both async and sync fetching of the wasm failed). Build with -sASSERTIONS for more info.
+ ❯ abort src/wasm-assets/php-8.5.js:85:9
+     83|   ABORT = true;
+     84|   what += '. Build with -sASSERTIONS for more info.';
+     85|   throw new WebAssembly.RuntimeError(what);
+       |         ^
+     86|  }
+     87|  var wasmBinaryFile;
+ ❯ instantiateArrayBuffer src/wasm-assets/php-8.5.js:110:4
+ ❯ processTicksAndRejections node:internal/process/task_queues:103:5
+ ❯ src/wasm-assets/php-8.5.js:5131:16
+
+This error originated in "src/php-wasm/__tests__/php-response.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "returns PHP stdout as bytes that decode to the original output". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+RuntimeError: Aborted(both async and sync fetching of the wasm failed). Build with -sASSERTIONS for more info.
+ ❯ abort src/wasm-assets/php-8.5.js:85:9
+     83|   ABORT = true;
+     84|   what += '. Build with -sASSERTIONS for more info.';
+     85|   throw new WebAssembly.RuntimeError(what);
+       |         ^
+     86|  }
+     87|  var wasmBinaryFile;
+ ❯ instantiateArrayBuffer src/wasm-assets/php-8.5.js:110:4
+ ❯ src/wasm-assets/php-8.5.js:5131:16
+
+This error originated in "src/php-wasm/__tests__/php-response.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "returns a PHPServer response body as bytes for a PHP request". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+RuntimeError: Aborted(both async and sync fetching of the wasm failed). Build with -sASSERTIONS for more info.
+ ❯ abort src/wasm-assets/php-8.5.js:85:9
+     83|   ABORT = true;
+     84|   what += '. Build with -sASSERTIONS for more info.';
+     85|   throw new WebAssembly.RuntimeError(what);
+       |         ^
+     86|  }
+     87|  var wasmBinaryFile;
+ ❯ instantiateArrayBuffer src/wasm-assets/php-8.5.js:110:4
+ ❯ src/wasm-assets/php-8.5.js:5131:16
+
+This error originated in "src/php-wasm/__tests__/php-response.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "returns static-file bytes through PHPServer.request". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+RuntimeError: Aborted(both async and sync fetching of the wasm failed). Build with -sASSERTIONS for more info.
+ ❯ abort src/wasm-assets/php-8.5.js:85:9
+     83|   ABORT = true;
+     84|   what += '. Build with -sASSERTIONS for more info.';
+     85|   throw new WebAssembly.RuntimeError(what);
+       |         ^
+     86|  }
+     87|  var wasmBinaryFile;
+ ❯ instantiateArrayBuffer src/wasm-assets/php-8.5.js:110:4
+ ❯ src/wasm-assets/php-8.5.js:5131:16
+
+This error originated in "src/php-wasm/__tests__/php-response.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "returns a decodable 404 body through PHPServer.request". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed (4)
+     Errors  4 errors
+   Start at  17:51:36
+   Duration  24.25s (transform 2.11s, setup 753ms, import 1.97s, tests 20.09s, environment 0ms)
+

@@ -64,6 +64,18 @@ def validate_web_feature_args(items: list[str]) -> dict[str, str]:
     return values
 
 
+def validate_sampling_mode(mode: str, samples: int, variant_id: str = "") -> None:
+    if mode == "cold" and samples < 1:
+        raise ValueError("cold requires at least one measured sample")
+    if mode in ("warm", "php-version") and samples < 3:
+        raise ValueError(f"{mode} requires at least three measured samples")
+    if mode == "link-input-change":
+        if samples != 1:
+            raise ValueError("link-input-change requires exactly one measured sample per immutable variant; run three distinct variants")
+        if not variant_id:
+            raise ValueError("link-input-change mode requires a unique --link-input-variant-id")
+
+
 def linked_input_change_identity(repo_root: Path, parent_revision: str, target_revision: str,
                                  linked_input_path: str, build_input_path: str) -> dict[str, str]:
     changed = subprocess.run(
@@ -312,6 +324,7 @@ def validate_args(args) -> tuple[Path, str, str, str, str | None, dict | None]:
     output = Path(args.output).resolve()
     if output.exists() and any(output.iterdir()):
         raise ValueError(f"output directory is not empty; use a new per-experiment path: {output}")
+    validate_sampling_mode(args.mode, args.samples, args.link_input_variant_id)
     warmup_input_tree_sha = None
     linked_change = None
     if args.mode == "cold":

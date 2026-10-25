@@ -17,6 +17,18 @@ SPEC.loader.exec_module(benchmark)
 
 
 class BenchmarkHarnessContractTest(unittest.TestCase):
+    def test_repeatable_sampling_modes_enforce_protocol_counts(self):
+        benchmark.validate_sampling_mode("cold", 1)
+        for mode in ("warm", "php-version"):
+            with self.assertRaisesRegex(ValueError, "at least three"):
+                benchmark.validate_sampling_mode(mode, 2)
+            benchmark.validate_sampling_mode(mode, 3)
+        with self.assertRaisesRegex(ValueError, "exactly one"):
+            benchmark.validate_sampling_mode("link-input-change", 3, "variant-01")
+        with self.assertRaisesRegex(ValueError, "variant-id"):
+            benchmark.validate_sampling_mode("link-input-change", 1)
+        benchmark.validate_sampling_mode("link-input-change", 1, "variant-01")
+
     def test_web_build_features_are_explicit_and_match_makefile(self):
         makefile = (MODULE_PATH.parent.parent / "Makefile").read_text(encoding="utf-8")
         for key, value in benchmark.WEB_FEATURE_BUILD_ARGS.items():

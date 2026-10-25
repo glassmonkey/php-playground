@@ -27,6 +27,14 @@ async function callPHP(v: Version, code: string) {
 	}
 }
 
+describe('worker loader failures', () => {
+	it('propagates an unavailable PHP loader error to the caller', async () => {
+		await expect(
+			runPHPInWorker('9.9' as Version, 'echo(1);')
+		).rejects.toThrow('PHP 9.9 assets not found.');
+	});
+});
+
 describe('load wasm files', async function () {
 	it.each(versions)(
 		'version: %s should load wasm file, eval(1+1=2)',

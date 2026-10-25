@@ -1,0 +1,8 @@
+started_utc=2026-10-25T10:28:44Z
+command=npm run build:types:general
+
+> php-playground@0.1.0 build:types:general
+> tsc -p ./tsconfig.json
+
+ended_utc=2026-10-25T10:29:04Z
+exit_code=0

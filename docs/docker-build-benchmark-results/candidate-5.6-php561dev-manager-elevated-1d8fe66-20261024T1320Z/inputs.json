@@ -1,0 +1,50 @@
+{
+  "base_image_digest": "sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+  "benchmark_eligible": false,
+  "build_args": {
+    "EMSCRIPTEN_ENVIRONMENT": "web",
+    "WITH_CLI_SAPI": "no",
+    "WITH_CURL": "no",
+    "WITH_LIBPNG": "no",
+    "WITH_LIBXML": "no",
+    "WITH_LIBZIP": "no",
+    "WITH_MBSTRING": "yes",
+    "WITH_MYSQL": "no",
+    "WITH_NODEFS": "no",
+    "WITH_OPENSSL": "no",
+    "WITH_SQLITE": "no",
+    "WITH_VRZNO": "yes",
+    "WITH_WS_NETWORKING_PROXY": "no"
+  },
+  "build_mode": "cache-enabled correctness/export build; not a benchmark sample",
+  "builder": "gla96-a3c1",
+  "cache_policy": "reuse; correctness/export only",
+  "context_archive_sha256": "a5d55afd21cf71edde222698e6d7b8a9b522e8a4dd727e2eb70c05508439a3d6",
+  "context_path": "/Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/candidate-5.6-php561dev-1d8fe66-20261024T1311Z/contexts/target",
+  "dockerfile": "/Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/candidate-5.6-php561dev-1d8fe66-20261024T1311Z/contexts/target/src/wasm/Dockerfile",
+  "emsdk_repo_sha": "d7b4130688bfa348392b921ab04015aa15c4f154",
+  "emsdk_version": "6.0.13",
+  "image_tag": "gla96-candidate-php56-php561dev:1d8fe66-manager-elevated-20261024T1320Z",
+  "kind": "correctness-build-inputs",
+  "php_source_ref": "PHP-5.6 branch head",
+  "php_source_sha": "05fb10165081cb4fb55a9943b44cab62c627db7a",
+  "php_version": "5.6",
+  "platform": "linux/arm64",
+  "prior_5_6_40_result_preserved": "../candidate-5.6-36233a4-20261024T1222Z/results.json",
+  "repo_revision": "1d8fe66af54251de214491ed5e532ca716f36654",
+  "repo_tree": "2b4e639f5f47a4289ff671e07acf7961d339e7ab",
+  "resources": {
+    "build_step_memory": "4g",
+    "builder_cpu_quota": "200000/100000",
+    "builder_cpuset": "0-1",
+    "builder_memory_bytes": 5368709120,
+    "docker_vm_cpu_count": 2,
+    "parallelism": 1
+  },
+  "manager_execution": {
+    "actor": "manager-e22a3cbbb",
+    "route": "sandbox escalation review",
+    "prior_input_sha256": "6b3623ac5d7a16f22fc139f7fa1ce1c827848621d5eb341987976e240cf72050",
+    "prior_failure_result": "candidate-5.6-php561dev-1d8fe66-20261024T1311Z/results.json"
+  }
+}

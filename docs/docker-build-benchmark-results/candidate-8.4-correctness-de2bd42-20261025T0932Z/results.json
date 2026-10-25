@@ -1,0 +1,58 @@
+{
+  "benchmark_eligible": false,
+  "command": "raw/build-command.txt",
+  "context_tree_sha": "b7c7411be2b1eb0af865952eb0d4961a5a7eb29e",
+  "ended_utc": "2026-10-25T09:47:58Z",
+  "exit_code": 0,
+  "historical_source_sha": "ad7ad7c425ae816426ed88f2540b0be3626f4222",
+  "image": {
+    "digest": "sha256:3f078304ba821308f0e76a1b3556c93b06f0ec615477c93d74d7efeeb591128d",
+    "tag": "gla96-candidate-php84:de2bd42-branchpin"
+  },
+  "kind": "correctness-build-result",
+  "metadata": "raw/build-metadata.json",
+  "observed_utc": "2026-10-25T09:32:26Z",
+  "php_source_sha": "055e11e0c7e6fe5a9649afc2b79391608933ee79",
+  "php_version": "8.4",
+  "raw_log": "raw/build.log",
+  "raw_log_sha256": "78d6211edaf8202bfef30a399f935dadb04ff5cb02ea3311fa7bd997a630ac46",
+  "repo_revision": "de2bd42912cae3c861b6b421df61ad140492f2f9",
+  "summary": {
+    "note": "Cache-enabled correctness/export build; not benchmark eligible.",
+    "status": "succeeded"
+  },
+  "post_build_verification": {
+    "candidate_assets": {
+      "javascript_path": "exported-assets/php-8.4.js",
+      "javascript_sha256": "2eca307f3c332fc5db4eb50785ce851f74f34f9b9d623a1c4114c50db87ea9a7",
+      "wasm_path": "exported-assets/php-8.4.wasm",
+      "wasm_sha256": "66719542317a8e5ac4421eb73498799951850faf18e9f6f7d3d46fee695f50f3"
+    },
+    "focused_candidate_test": {
+      "command": "./node_modules/.bin/vitest run src/workers/__test__/php-worker.spec.ts -t 'version: 8.4' --exclude 'docs/docker-build-benchmark-results/**'",
+      "exit_code": 1,
+      "raw_log": "raw/vitest-php84-focused.log",
+      "summary": "2 tests timed out at the existing 5000ms limit; no timeout or assertion changes"
+    },
+    "focused_old_asset_control": {
+      "old_assets_js_sha256": "6a708e30c55091353631b48cd35d3d687d3b8aa2fdf1b125bfc7c89fb9982c51",
+      "old_assets_wasm_sha256": "9b44a7ca4c8ddc8380d8f49e5d1511babecfbc1631f0ee31b7c1828ac074bda0",
+      "exit_code": 1,
+      "raw_log": "raw/vitest-php84-old-assets.log",
+      "summary": "same two existing 5000ms timeouts with the previously committed PHP 8.4 assets; this control does not establish candidate-specific regression",
+      "exit_file": "raw/vitest-php84-old-assets.exit"
+    },
+    "canonical_assets_restored": {
+      "javascript_sha256": "b415f9927b4dcb675ab6b28c7617641be31850631ff46124091376edbf53b613",
+      "wasm_sha256": "66719542317a8e5ac4421eb73498799951850faf18e9f6f7d3d46fee695f50f3",
+      "matches_formatted_candidate_restore": true
+    },
+    "runtime_version": "unverified; focused test did not complete"
+  },
+  "integrated_final_suite": {
+    "result": "../integration-final-lazy-import-de2bd42-20261025T1015Z/results.json",
+    "raw_log": "../integration-final-lazy-import-de2bd42-20261025T1015Z/raw/vitest-final.log",
+    "exit_code": 0,
+    "version": "8.4 phpinfo test passed after exact Build Date snapshot update; full suite 312/312 after worker loader lazy-import change"
+  }
+}
