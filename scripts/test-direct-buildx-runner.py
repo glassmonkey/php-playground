@@ -21,7 +21,7 @@ SPEC.loader.exec_module(runner)
 
 class DirectBuildxRunnerTest(unittest.TestCase):
 	def make_spec(self, root: Path, exit_code: int) -> Path:
-		(root / "raw").mkdir()
+		(root / "raw").mkdir(parents=True, exist_ok=True)
 		spec_path = root / "raw" / "runner.spec.json"
 		spec_path.write_text(
 			json.dumps(
@@ -44,6 +44,20 @@ class DirectBuildxRunnerTest(unittest.TestCase):
 			encoding="utf-8",
 		)
 		return spec_path
+
+	def make_copy_preflight_case(self, root: Path, context: Path) -> tuple[Path, Path]:
+		(context / "build-assets").mkdir(parents=True, exist_ok=True)
+		(context / "build-assets/ncurses.patch").write_text("patch\n", encoding="utf-8")
+		(context / "build-assets/phpwasm-emscripten-library.js").write_text("library\n", encoding="utf-8")
+		dockerfile = root / "Dockerfile"
+		dockerfile.write_text(
+			"FROM scratch AS build\n"
+			"COPY build-assets/ncurses.patch /root/ncurses.patch\n"
+			"COPY build-assets/phpwasm-emscripten-library.js /root/library.js\n"
+			"COPY --from=build /root/result.wasm /result.wasm\n",
+			encoding="utf-8",
+		)
+		return dockerfile, context
 
 	def test_success_exit_and_end_survive_public_launcher(self) -> None:
 		with tempfile.TemporaryDirectory() as temp:
@@ -106,6 +120,78 @@ class DirectBuildxRunnerTest(unittest.TestCase):
 			self.assertIn("FileNotFoundError", receipt["spawn_error"])
 			self.assertTrue(receipt["raw_log_sha256"])
 			self.assertEqual(json.loads((root / "terminal-result.json").read_text()), receipt)
+
+	def test_dockerfile_copy_preflight_rejects_repo_root_before_spawn(self) -> None:
+		with tempfile.TemporaryDirectory() as temp:
+			root = Path(temp)
+			repo = root / "repo"
+			context = repo / "src/wasm"
+			dockerfile, _ = self.make_copy_preflight_case(root, context)
+			run_dir = root / "wrong-root-run"
+			spec_path = self.make_spec(run_dir, 0)
+			spec = json.loads(spec_path.read_text())
+			marker = root / "child-ran.txt"
+			spec["argv"] = [
+				sys.executable,
+				"-c",
+				f"from pathlib import Path; Path({str(marker)!r}).write_text('spawned')",
+				"--file",
+				str(dockerfile),
+				str(repo),
+			]
+			spec["preflight"] = {"dockerfile": str(dockerfile), "context": str(repo)}
+			spec_path.write_text(json.dumps(spec), encoding="utf-8")
+			result = subprocess.run(
+				[sys.executable, str(RUNNER), str(spec_path)],
+				capture_output=True,
+				text=True,
+				check=False,
+			)
+			self.assertEqual(result.returncode, 1, result.stderr)
+			self.assertFalse(marker.exists())
+			receipt = json.loads((run_dir / "results.json").read_text())
+			self.assertEqual(receipt["status"], "unknown")
+			self.assertIsNone(receipt["exit_code"])
+			self.assertEqual(receipt["argv"], spec["argv"])
+			self.assertIsNone(receipt["observed_start_utc"])
+			self.assertIsNotNone(receipt["ended_at_utc"])
+			self.assertIn("build-assets/ncurses.patch", receipt["preflight_error"])
+			self.assertIn(str(repo), receipt["preflight_error"])
+			self.assertEqual(json.loads((run_dir / "terminal-result.json").read_text()), receipt)
+
+	def test_dockerfile_copy_preflight_accepts_src_wasm_context(self) -> None:
+		with tempfile.TemporaryDirectory() as temp:
+			root = Path(temp)
+			context = root / "repo/src/wasm"
+			dockerfile, _ = self.make_copy_preflight_case(root, context)
+			run_dir = root / "correct-root-run"
+			spec_path = self.make_spec(run_dir, 0)
+			spec = json.loads(spec_path.read_text())
+			marker = root / "child-ran.txt"
+			spec["argv"] = [
+				sys.executable,
+				"-c",
+				f"from pathlib import Path; Path({str(marker)!r}).write_text('spawned')",
+				"--file",
+				str(dockerfile),
+				str(context),
+			]
+			spec["preflight"] = {"dockerfile": str(dockerfile), "context": str(context)}
+			spec_path.write_text(json.dumps(spec), encoding="utf-8")
+			result = subprocess.run(
+				[sys.executable, str(RUNNER), str(spec_path)],
+				capture_output=True,
+				text=True,
+				check=False,
+			)
+			self.assertEqual(result.returncode, 0, result.stderr)
+			self.assertTrue(marker.exists())
+			preflight = json.loads((run_dir / "preflight.json").read_text())
+			self.assertEqual(preflight["status"], "passed")
+			self.assertEqual(
+				[item["source"] for item in preflight["checks"]],
+				["build-assets/ncurses.patch", "build-assets/phpwasm-emscripten-library.js"],
+			)
 
 	def test_optional_log_hash_reporting_error_keeps_child_terminal(self) -> None:
 		with tempfile.TemporaryDirectory() as temp:
