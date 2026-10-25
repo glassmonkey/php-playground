@@ -97,13 +97,16 @@ fi\n\
 
 # Compile libz
 FROM emscripten AS emscripten-libz
-COPY build-assets/zlib /root/zlib
-RUN source /root/emsdk/emsdk_env.sh && \
-    cd /root/zlib && \
-    emconfigure ./configure --prefix=/root/lib && \
-    # emmake make fails, but only after it builds the library files.
-    # Let's just ignore the errors and proceed with the built libraries.
-    (EMCC_FLAGS="-fPIC" emmake make || true) && \
+ARG ZLIB_VERSION=1.3.2
+ARG ZLIB_SHA256=bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16
+RUN set -euxo pipefail && \
+    source /root/emsdk/emsdk_env.sh && \
+    wget -O zlib-$ZLIB_VERSION.tar.gz https://zlib.net/zlib-$ZLIB_VERSION.tar.gz && \
+    echo "$ZLIB_SHA256  zlib-$ZLIB_VERSION.tar.gz" | sha256sum -c - && \
+    tar -xzf zlib-$ZLIB_VERSION.tar.gz && \
+    cd zlib-$ZLIB_VERSION && \
+    emconfigure ./configure --static --prefix=/root/lib && \
+    EMCC_FLAGS="-fPIC" emmake make -j 2 libz.a && \
     EMCC_FLAGS="-fPIC" emmake make install
 
 # Compile libzip
