@@ -109,9 +109,15 @@ RUN source /root/emsdk/emsdk_env.sh && \
 # Compile libzip
 FROM emscripten AS emscripten-libzip
 ARG PHP_VERSION
+ARG WITH_LIBZIP=no
 COPY --from=emscripten-libz /root/lib /root/lib-libz
-RUN /root/copy-lib.sh lib-libz
-RUN     if [[ "${PHP_VERSION:0:1}" -le "7" && "${PHP_VERSION:2:1}" -le "3" ]] || [ "${PHP_VERSION:0:1}" -le "5" ]; then \
+RUN if [ "$WITH_LIBZIP" = "yes" ]; then \
+        /root/copy-lib.sh lib-libz; \
+    else \
+        mkdir -p /root/lib; \
+    fi
+RUN if [ "$WITH_LIBZIP" = "yes" ]; then \
+        if [[ "${PHP_VERSION:0:1}" -le "7" && "${PHP_VERSION:2:1}" -le "3" ]] || [ "${PHP_VERSION:0:1}" -le "5" ]; then \
             export LIBZIP_VERSION=1.2.0; \
         else \
             export LIBZIP_VERSION=1.9.2; \
@@ -119,17 +125,23 @@ RUN     if [[ "${PHP_VERSION:0:1}" -le "7" && "${PHP_VERSION:2:1}" -le "3" ]] ||
         cd /root && \
         curl -k https://libzip.org/download/libzip-$LIBZIP_VERSION.tar.gz -o libzip-$LIBZIP_VERSION.tar.gz && \
         tar -xzf libzip-$LIBZIP_VERSION.tar.gz && \
-        mv libzip-$LIBZIP_VERSION libzip;
-RUN mkdir -p libzip/build
-RUN cd libzip/build && \
+        mv libzip-$LIBZIP_VERSION libzip; \
+    else \
+        echo "WITH_LIBZIP=$WITH_LIBZIP; skipping libzip download/configure/build/install"; \
+    fi
+RUN if [ "$WITH_LIBZIP" = "yes" ]; then mkdir -p libzip/build; fi
+RUN if [ "$WITH_LIBZIP" = "yes" ]; then cd libzip/build && \
         source /root/emsdk/emsdk_env.sh && \
         emcmake cmake \
             -DCMAKE_INSTALL_PREFIX=/root/lib \
             -DZLIB_LIBRARY=/root/lib/lib/libz.a \
             -DZLIB_INCLUDE_DIR=/root/lib/include \
-            ..
-RUN cd libzip/build && source /root/emsdk/emsdk_env.sh && EMCC_SKIP="-lz" EMCC_FLAGS=" -sSIDE_MODULE " emmake make
-RUN cd libzip/build && source /root/emsdk/emsdk_env.sh && EMCC_SKIP="-lz" EMCC_FLAGS=" -sSIDE_MODULE " emmake make install
+            ..; \
+    else \
+        echo "WITH_LIBZIP=$WITH_LIBZIP; skipping libzip configure"; \
+    fi
+RUN if [ "$WITH_LIBZIP" = "yes" ]; then cd libzip/build && source /root/emsdk/emsdk_env.sh && EMCC_SKIP="-lz" EMCC_FLAGS=" -sSIDE_MODULE " emmake make; else echo "WITH_LIBZIP=$WITH_LIBZIP; skipping libzip build"; fi
+RUN if [ "$WITH_LIBZIP" = "yes" ]; then cd libzip/build && source /root/emsdk/emsdk_env.sh && EMCC_SKIP="-lz" EMCC_FLAGS=" -sSIDE_MODULE " emmake make install; else echo "WITH_LIBZIP=$WITH_LIBZIP; skipping libzip install"; fi
 
 # Compile ncurses
 FROM emscripten AS emscripten-ncurses
@@ -204,7 +216,9 @@ RUN if [ "$WITH_CLI_SAPI" = "yes" ]; then \
 
 # Compile Libxml2
 FROM emscripten AS emscripten-libxml
-RUN source /root/emsdk/emsdk_env.sh && \
+ARG WITH_LIBXML=no
+RUN if [ "$WITH_LIBXML" = "yes" ]; then \
+    source /root/emsdk/emsdk_env.sh && \
     env GIT_SSL_NO_VERIFY=true git clone https://gitlab.gnome.org/GNOME/libxml2.git libxml2 \
         --branch v2.9.10 \
         --single-branch     \
@@ -213,7 +227,10 @@ RUN source /root/emsdk/emsdk_env.sh && \
     ./autogen.sh && \
     emconfigure ./configure --with-http=no --with-ftp=no --with-python=no --with-threads=no --enable-shared=no --prefix=/root/lib/ &&\
     EMCC_FLAGS=" -sSIDE_MODULE " emmake make && \
-    emmake make install
+    emmake make install; \
+    else \
+        mkdir -p /root/lib && echo "WITH_LIBXML=$WITH_LIBXML; skipping libxml2 configure/build/install"; \
+    fi
 
 # Compile Bison 2.7 (for PHP  <=7.3)
 FROM emscripten AS emscripten-bison-2-7
@@ -229,9 +246,11 @@ RUN wget http://ftp.gnu.org/gnu/bison/bison-2.7.tar.gz && \
 
 # Compile Sqlite3
 FROM emscripten AS emscripten-sqlite3
+ARG WITH_SQLITE=no
 COPY --from=emscripten-libz /root/lib /root/lib-libz
 RUN /root/copy-lib.sh lib-libz
-RUN     set -euxo pipefail &&\
+RUN if [ "$WITH_SQLITE" = "yes" ]; then \
+        set -euxo pipefail &&\
         wget --no-check-certificate https://www.sqlite.org/2022/sqlite-autoconf-3400100.tar.gz && \
         tar -xzvf sqlite-autoconf-3400100.tar.gz && \
         cd sqlite-autoconf-3400100 && \
@@ -241,14 +260,19 @@ RUN     set -euxo pipefail &&\
             --target wasm32-unknown-emscripten \
             --prefix=/root/lib/ && \
         EMCC_SKIP="-lc" EMCC_FLAGS=" -sSIDE_MODULE " emmake make && \
-        emmake make install
+        emmake make install; \
+    else \
+        echo "WITH_SQLITE=$WITH_SQLITE; skipping sqlite configure/build/install"; \
+    fi
 
 # Compile OpenSSL
 # Inspired by: https://github.com/TrueBitFoundation/wasm-ports/blob/79aac7272729baaf131ca0c49cc3b684eedff835/openssl.sh
 FROM emscripten AS emscripten-openssl
+ARG WITH_OPENSSL=no
 COPY --from=emscripten-libz /root/lib /root/lib-libz
 RUN /root/copy-lib.sh lib-libz
-RUN set -euxo pipefail && \
+RUN if [ "$WITH_OPENSSL" = "yes" ]; then \
+    set -euxo pipefail && \
     source /root/emsdk/emsdk_env.sh && \
     export OPENSSL_VERSION=1.1.0h && \
     wget https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz && \
@@ -259,25 +283,33 @@ RUN set -euxo pipefail && \
     EMCC_FLAGS=" -sSIDE_MODULE " EMCC_SKIP="-lz" emmake make -j 12 build_generated libssl.a libcrypto.a; \
     cp -RL include/openssl /root/lib/include && \
     cp libcrypto.a libssl.a /root/lib/lib && \
-    EMCC_FLAGS=" -sSIDE_MODULE " EMCC_SKIP="-lz" emmake make install;
+    EMCC_FLAGS=" -sSIDE_MODULE " EMCC_SKIP="-lz" emmake make install; \
+    else \
+        echo "WITH_OPENSSL=$WITH_OPENSSL; skipping OpenSSL configure/build/install"; \
+    fi
 
 # Compile libpng
 FROM emscripten AS emscripten-libpng
+ARG WITH_LIBPNG=no
 COPY --from=emscripten-libz /root/lib /root/lib-libz
 RUN /root/copy-lib.sh lib-libz
-RUN wget http://prdownloads.sourceforge.net/libpng/libpng-1.6.39.tar.gz?download -O libpng-1.6.39.tar.gz
-RUN tar -xzf libpng-1.6.39.tar.gz
+RUN if [ "$WITH_LIBPNG" = "yes" ]; then wget http://prdownloads.sourceforge.net/libpng/libpng-1.6.39.tar.gz?download -O libpng-1.6.39.tar.gz; else echo "WITH_LIBPNG=$WITH_LIBPNG; skipping libpng download"; fi
+RUN if [ "$WITH_LIBPNG" = "yes" ]; then tar -xzf libpng-1.6.39.tar.gz; else echo "WITH_LIBPNG=$WITH_LIBPNG; skipping libpng extraction"; fi
 WORKDIR /root/libpng-1.6.39
-RUN     source /root/emsdk/emsdk_env.sh && \
+RUN if [ "$WITH_LIBPNG" = "yes" ]; then \
+        source /root/emsdk/emsdk_env.sh && \
         CPPFLAGS="-I/root/lib/include " \
         LDFLAGS="-L/root/lib/lib " \
         emconfigure ./configure \
             PKG_CONFIG_PATH=$PKG_CONFIG_PATH \
             --build i386-pc-linux-gnu \
             --target wasm32-unknown-emscripten \
-            --prefix=/root/lib/
-RUN source /root/emsdk/emsdk_env.sh && EMCC_SKIP="-lc -lz" EMCC_FLAGS="-sSIDE_MODULE" emmake make
-RUN source /root/emsdk/emsdk_env.sh && emmake make install
+            --prefix=/root/lib/; \
+    else \
+        echo "WITH_LIBPNG=$WITH_LIBPNG; skipping libpng configure"; \
+    fi
+RUN if [ "$WITH_LIBPNG" = "yes" ]; then source /root/emsdk/emsdk_env.sh && EMCC_SKIP="-lc -lz" EMCC_FLAGS="-sSIDE_MODULE" emmake make; else echo "WITH_LIBPNG=$WITH_LIBPNG; skipping libpng build"; fi
+RUN if [ "$WITH_LIBPNG" = "yes" ]; then source /root/emsdk/emsdk_env.sh && emmake make install; else echo "WITH_LIBPNG=$WITH_LIBPNG; skipping libpng install"; fi
 
 # Clone PHP
 FROM emscripten AS emscripten-php-src
