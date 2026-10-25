@@ -1,0 +1,52 @@
+
+> php-playground@0.1.0 test:e2e
+> playwright test
+
+[WebServer] 
+[WebServer] > php-playground@0.1.0 preview
+[WebServer] > vite build && vite preview --port 8888
+[WebServer] 
+
+[WebServer] (node:83940) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+[WebServer] vite v7.3.2 building client environment for production...
+
+[WebServer] transforming...
+
+[WebServer] ✓ 1221 modules transformed.
+
+[WebServer] rendering chunks...
+
+[WebServer] computing gzip size...
+
+[WebServer] public/index.html                            1.77 kB │ gzip:   0.71 kB
+
+[WebServer] public/php-worker-_ppALKg1.js              867.74 kB
+[WebServer] public/base-80a1f760-Bmpphz8z.js             0.62 kB │ gzip:   0.29 kB
+[WebServer] public/consoleHook-59e792cb-BZfGi8tC.js     19.70 kB │ gzip:   6.04 kB
+[WebServer] public/index-DTg9aWgs.js                    27.65 kB │ gzip:   8.69 kB
+[WebServer] public/index-599aeaf7-DGwMu2yu.js          144.23 kB │ gzip:  24.40 kB
+[WebServer] public/index-BBk5dpd1.js                   149.37 kB │ gzip:  25.30 kB
+[WebServer] public/index-CN7C19nD.js                 1,265.97 kB │ gzip: 421.69 kB
+
+[WebServer] 
+[WebServer] (!) Some chunks are larger than 500 kB after minification. Consider:
+[WebServer] - Using dynamic import() to code-split the application
+[WebServer] - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+[WebServer] - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+
+[WebServer] ✓ built in 3.03s
+
+[WebServer] (node:83956) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+[WebServer] error when starting preview server:
+[WebServer] Error: listen EPERM: operation not permitted 127.0.0.1:8888
+[WebServer]     at Server.setupListenHandle [as _listen2] (node:net:1918:21)
+[WebServer]     at listenInCluster (node:net:1997:12)
+[WebServer]     at node:net:2206:7
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Error: Process from config.webServer was not able to start. Exit code: 1
+

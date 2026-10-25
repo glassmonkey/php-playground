@@ -1,0 +1,154 @@
+
+> php-playground@0.1.0 test:e2e
+> playwright test
+
+[WebServer] 
+[WebServer] > php-playground@0.1.0 preview
+[WebServer] > vite build && vite preview --port 8888
+[WebServer] 
+
+[WebServer] (node:84046) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+[WebServer] vite v7.3.2 building client environment for production...
+
+[WebServer] transforming...
+
+[WebServer] ✓ 1221 modules transformed.
+
+[WebServer] rendering chunks...
+
+[WebServer] computing gzip size...
+
+[WebServer] public/index.html                            1.77 kB │ gzip:   0.71 kB
+
+[WebServer] public/php-worker-_ppALKg1.js              867.74 kB
+[WebServer] public/base-80a1f760-Bmpphz8z.js             0.62 kB │ gzip:   0.29 kB
+[WebServer] public/consoleHook-59e792cb-BZfGi8tC.js     19.70 kB │ gzip:   6.04 kB
+[WebServer] public/index-DTg9aWgs.js                    27.65 kB │ gzip:   8.69 kB
+[WebServer] public/index-599aeaf7-DGwMu2yu.js          144.23 kB │ gzip:  24.40 kB
+[WebServer] public/index-BBk5dpd1.js                   149.37 kB │ gzip:  25.30 kB
+[WebServer] public/index-CN7C19nD.js                 1,265.97 kB │ gzip: 421.69 kB
+
+[WebServer] 
+[WebServer] (!) Some chunks are larger than 500 kB after minification. Consider:
+[WebServer] - Using dynamic import() to code-split the application
+[WebServer] - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+[WebServer] - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+
+[WebServer] ✓ built in 2.80s
+
+[WebServer] (node:84052) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+[WebServer]   ➜  Local:   http://127.0.0.1:8888/
+
+
+Running 86 tests using 4 workers
+
+(node:84060) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+(node:84061) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+(node:84059) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+(node:84058) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/86] [chromium] › e2e/e2e.spec.ts:275:3 › default page › default version shows latest available
+[2/86] [chromium] › e2e/e2e.spec.ts:282:3 › default page › default URL
+[3/86] [chromium] › e2e/e2e.spec.ts:278:3 › default page › default code is `phpinfo()`
+[4/86] [chromium] › e2e/e2e.spec.ts:272:3 › default page › has title
+[5/86] [chromium] › e2e/e2e.spec.ts:289:5 › default page › switch preview › defaults unsupported URL formats to the HTML preview
+[6/86] [chromium] › e2e/e2e.spec.ts:299:7 › default page › switch preview › uses the light palette for HTML preview
+[7/86] [chromium] › e2e/e2e.spec.ts:299:7 › default page › switch preview › uses the dark palette for HTML preview
+[8/86] [chromium] › e2e/e2e.spec.ts:299:7 › default page › switch preview › renders a doctype-free HTML fragment in dark mode
+[9/86] [chromium] › e2e/e2e.spec.ts:299:7 › default page › switch preview › keeps user CSS colors while applying the dark palette
+[10/86] [chromium] › e2e/e2e.spec.ts:299:7 › default page › switch preview › preserves parser markers and isolates parser resource requests
+[11/86] [chromium] › e2e/e2e.spec.ts:363:7 › default page › switch preview › keeps default PHP output in the light console preview
+[12/86] [chromium] › e2e/e2e.spec.ts:363:7 › default page › switch preview › keeps raw console output and the light palette
+[13/86] [chromium] › e2e/e2e.spec.ts:363:7 › default page › switch preview › keeps raw console output and applies the dark palette
+[14/86] [chromium] › e2e/e2e.spec.ts:387:5 › default page › switch preview › round-trips the theme across HTML and console preview
+[15/86] [chromium] › e2e/e2e.spec.ts:428:7 › select version › select version v=5.6 › running php info
+[16/86] [chromium] › e2e/e2e.spec.ts:428:7 › select version › select version v=7.0 › running php info
+[17/86] [chromium] › e2e/e2e.spec.ts:428:7 › select version › select version v=7.1 › running php info
+[18/86] [chromium] › e2e/e2e.spec.ts:438:7 › select version › select version v=5.6 › compute php code(1+1)
+[19/86] [chromium] › e2e/e2e.spec.ts:428:7 › select version › select version v=7.2 › running php info
+[20/86] [chromium] › e2e/e2e.spec.ts:438:7 › select version › select version v=7.0 › compute php code(1+1)
+[21/86] [chromium] › e2e/e2e.spec.ts:438:7 › select version › select version v=7.1 › compute php code(1+1)
+[22/86] [chromium] › e2e/e2e.spec.ts:438:7 › select version › select version v=7.2 › compute php code(1+1)
+[23/86] [chromium] › e2e/e2e.spec.ts:459:7 › select version › select version v=5.6 › compute php code(1+1) with strict
+[24/86] [chromium] › e2e/e2e.spec.ts:459:7 › select version › select version v=7.0 › compute php code(1+1) with strict
+[25/86] [chromium] › e2e/e2e.spec.ts:459:7 › select version › select version v=7.1 › compute php code(1+1) with strict
+[chromium] › e2e/e2e.spec.ts:459:7 › select version › select version v=5.6 › compute php code(1+1) with strict
+strict_types is not supported
+
+[26/86] [chromium] › e2e/e2e.spec.ts:483:7 › select version › select version v=5.6 › not compute text
+[27/86] [chromium] › e2e/e2e.spec.ts:459:7 › select version › select version v=7.2 › compute php code(1+1) with strict
+[28/86] [chromium] › e2e/e2e.spec.ts:483:7 › select version › select version v=7.0 › not compute text
+[29/86] [chromium] › e2e/e2e.spec.ts:483:7 › select version › select version v=7.1 › not compute text
+[30/86] [chromium] › e2e/e2e.spec.ts:503:7 › select version › select version v=5.6 › include compute text
+[31/86] [chromium] › e2e/e2e.spec.ts:503:7 › select version › select version v=7.0 › include compute text
+[32/86] [chromium] › e2e/e2e.spec.ts:483:7 › select version › select version v=7.2 › not compute text
+[33/86] [chromium] › e2e/e2e.spec.ts:503:7 › select version › select version v=7.1 › include compute text
+[34/86] [chromium] › e2e/e2e.spec.ts:523:7 › select version › select version v=5.6 › infinite loop and comment out
+[35/86] [chromium] › e2e/e2e.spec.ts:523:7 › select version › select version v=7.0 › infinite loop and comment out
+[36/86] [chromium] › e2e/e2e.spec.ts:503:7 › select version › select version v=7.2 › include compute text
+[37/86] [chromium] › e2e/e2e.spec.ts:523:7 › select version › select version v=7.1 › infinite loop and comment out
+[38/86] [chromium] › e2e/e2e.spec.ts:523:7 › select version › select version v=7.2 › infinite loop and comment out
+[39/86] [chromium] › e2e/e2e.spec.ts:428:7 › select version › select version v=7.3 › running php info
+[40/86] [chromium] › e2e/e2e.spec.ts:428:7 › select version › select version v=7.4 › running php info
+[41/86] [chromium] › e2e/e2e.spec.ts:438:7 › select version › select version v=7.3 › compute php code(1+1)
+[42/86] [chromium] › e2e/e2e.spec.ts:438:7 › select version › select version v=7.4 › compute php code(1+1)
+[43/86] [chromium] › e2e/e2e.spec.ts:428:7 › select version › select version v=8.0 › running php info
+[44/86] [chromium] › e2e/e2e.spec.ts:459:7 › select version › select version v=7.3 › compute php code(1+1) with strict
+[45/86] [chromium] › e2e/e2e.spec.ts:428:7 › select version › select version v=8.1 › running php info
+[46/86] [chromium] › e2e/e2e.spec.ts:438:7 › select version › select version v=8.0 › compute php code(1+1)
+[47/86] [chromium] › e2e/e2e.spec.ts:459:7 › select version › select version v=7.4 › compute php code(1+1) with strict
+[48/86] [chromium] › e2e/e2e.spec.ts:438:7 › select version › select version v=8.1 › compute php code(1+1)
+[49/86] [chromium] › e2e/e2e.spec.ts:483:7 › select version › select version v=7.3 › not compute text
+[50/86] [chromium] › e2e/e2e.spec.ts:459:7 › select version › select version v=8.0 › compute php code(1+1) with strict
+[51/86] [chromium] › e2e/e2e.spec.ts:483:7 › select version › select version v=7.4 › not compute text
+[52/86] [chromium] › e2e/e2e.spec.ts:459:7 › select version › select version v=8.1 › compute php code(1+1) with strict
+[53/86] [chromium] › e2e/e2e.spec.ts:503:7 › select version › select version v=7.3 › include compute text
+[54/86] [chromium] › e2e/e2e.spec.ts:483:7 › select version › select version v=8.0 › not compute text
+[55/86] [chromium] › e2e/e2e.spec.ts:503:7 › select version › select version v=7.4 › include compute text
+[56/86] [chromium] › e2e/e2e.spec.ts:483:7 › select version › select version v=8.1 › not compute text
+[57/86] [chromium] › e2e/e2e.spec.ts:503:7 › select version › select version v=8.0 › include compute text
+[58/86] [chromium] › e2e/e2e.spec.ts:523:7 › select version › select version v=7.3 › infinite loop and comment out
+[59/86] [chromium] › e2e/e2e.spec.ts:523:7 › select version › select version v=7.4 › infinite loop and comment out
+[60/86] [chromium] › e2e/e2e.spec.ts:503:7 › select version › select version v=8.1 › include compute text
+[61/86] [chromium] › e2e/e2e.spec.ts:523:7 › select version › select version v=8.0 › infinite loop and comment out
+[62/86] [chromium] › e2e/e2e.spec.ts:428:7 › select version › select version v=8.2 › running php info
+[63/86] [chromium] › e2e/e2e.spec.ts:523:7 › select version › select version v=8.1 › infinite loop and comment out
+[64/86] [chromium] › e2e/e2e.spec.ts:428:7 › select version › select version v=8.3 › running php info
+[65/86] [chromium] › e2e/e2e.spec.ts:438:7 › select version › select version v=8.2 › compute php code(1+1)
+[66/86] [chromium] › e2e/e2e.spec.ts:438:7 › select version › select version v=8.3 › compute php code(1+1)
+[67/86] [chromium] › e2e/e2e.spec.ts:428:7 › select version › select version v=8.4 › running php info
+[68/86] [chromium] › e2e/e2e.spec.ts:459:7 › select version › select version v=8.2 › compute php code(1+1) with strict
+[69/86] [chromium] › e2e/e2e.spec.ts:438:7 › select version › select version v=8.4 › compute php code(1+1)
+[70/86] [chromium] › e2e/e2e.spec.ts:428:7 › select version › select version v=8.5 › running php info
+[71/86] [chromium] › e2e/e2e.spec.ts:459:7 › select version › select version v=8.3 › compute php code(1+1) with strict
+[72/86] [chromium] › e2e/e2e.spec.ts:438:7 › select version › select version v=8.5 › compute php code(1+1)
+[73/86] [chromium] › e2e/e2e.spec.ts:483:7 › select version › select version v=8.2 › not compute text
+[74/86] [chromium] › e2e/e2e.spec.ts:459:7 › select version › select version v=8.4 › compute php code(1+1) with strict
+[75/86] [chromium] › e2e/e2e.spec.ts:483:7 › select version › select version v=8.3 › not compute text
+[76/86] [chromium] › e2e/e2e.spec.ts:503:7 › select version › select version v=8.2 › include compute text
+[77/86] [chromium] › e2e/e2e.spec.ts:459:7 › select version › select version v=8.5 › compute php code(1+1) with strict
+[78/86] [chromium] › e2e/e2e.spec.ts:483:7 › select version › select version v=8.4 › not compute text
+[79/86] [chromium] › e2e/e2e.spec.ts:523:7 › select version › select version v=8.2 › infinite loop and comment out
+[80/86] [chromium] › e2e/e2e.spec.ts:503:7 › select version › select version v=8.3 › include compute text
+[81/86] [chromium] › e2e/e2e.spec.ts:483:7 › select version › select version v=8.5 › not compute text
+[82/86] [chromium] › e2e/e2e.spec.ts:503:7 › select version › select version v=8.4 › include compute text
+[83/86] [chromium] › e2e/e2e.spec.ts:523:7 › select version › select version v=8.3 › infinite loop and comment out
+[84/86] [chromium] › e2e/e2e.spec.ts:503:7 › select version › select version v=8.5 › include compute text
+[85/86] [chromium] › e2e/e2e.spec.ts:523:7 › select version › select version v=8.4 › infinite loop and comment out
+[86/86] [chromium] › e2e/e2e.spec.ts:523:7 › select version › select version v=8.5 › infinite loop and comment out
+  86 passed (51.6s)
