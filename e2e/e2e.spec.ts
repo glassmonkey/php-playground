@@ -302,7 +302,10 @@ test.describe('default page', () => {
       }).then(async request => {
         const response = await request.response();
         expect(response, 'the default PHP WASM request must receive a response').not.toBeNull();
-        expect(response?.status(), 'the default PHP WASM response must be HTTP 200').toBe(200);
+        expect(
+          [200, 304],
+          'the default PHP WASM request must complete from network or cache',
+        ).toContain(response?.status());
       });
       const navigation = page.goto(targetURL);
       const formatAssertions = Promise.all([
@@ -317,6 +320,9 @@ test.describe('default page', () => {
 
       await expect(page.getByTestId('preview-html')).toBeVisible({timeout: 5000});
       await expect(page.getByTestId('preview-console')).not.toBeVisible({timeout: 5000});
+      await expect(
+        page.frameLocator('[data-testid="preview-html"]').locator('body'),
+      ).toContainText(versionPattern(defaultVersion), {timeout: 5000});
     });
 
     for (const variation of htmlPreviewVariations) {
