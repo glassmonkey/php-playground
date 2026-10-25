@@ -438,7 +438,7 @@ RUN if [ "$WITH_SQLITE" = "yes" ]; \
         echo -n ' --with-sqlite3 --enable-pdo --with-pdo-sqlite ' >> /root/.php-configure-flags && \
         echo -n ' -I ext/pdo_sqlite ' >> /root/.emcc-php-wasm-flags; \
         if [[ "${PHP_VERSION:0:1}" -eq "7" && "${PHP_VERSION:2:1}" -ge "4" ]] || [ "${PHP_VERSION:0:1}" -eq "8" ]; then \
-            echo -n ' -lsqlite3 ' >> /root/.emcc-php-wasm-flags; \
+            echo -n ' /root/lib/lib/libsqlite3.a ' >> /root/.emcc-php-wasm-flags; \
         fi; \
     fi;
 
@@ -448,7 +448,7 @@ RUN if [ "$WITH_LIBPNG" = "yes" ]; \
     then \
         bash /root/copy-lib.sh lib-libpng && \
         echo -n ' --with-png-dir=/root/lib --with-gd --enable-gd ' >> /root/.php-configure-flags && \
-        echo -n ' -I /root/zlib -I /root/libpng16 -lz -lpng16 ' >> /root/.emcc-php-wasm-flags; \
+        echo -n ' -I /root/zlib -I /root/libpng16 -lz /root/lib/lib/libpng16.a ' >> /root/.emcc-php-wasm-flags; \
     fi;
 
 # Add openssl if needed
