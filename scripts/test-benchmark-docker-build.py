@@ -4,8 +4,11 @@
 import importlib.util
 import io
 import json
+import shlex
 import subprocess
+import sys
 import tempfile
+from contextlib import redirect_stdout
 from types import SimpleNamespace
 import unittest
 from pathlib import Path
@@ -27,6 +30,70 @@ class BenchmarkHarnessContractTest(unittest.TestCase):
             with self.assertRaisesRegex(FileExistsError, "immutable input manifest"):
                 benchmark.write_json_atomically(manifest, {"status": "different"}, exclusive=True)
             self.assertEqual(json.loads(manifest.read_text()), value)
+
+    def test_frozen_manifest_and_commands_exist_before_build_invocation(self):
+        repo = MODULE_PATH.parent.parent
+        revision = subprocess.run(
+            ["git", "-C", str(repo), "rev-parse", "HEAD"], check=True, capture_output=True, text=True,
+        ).stdout.strip()
+        fake_docker = '''#!/usr/bin/env python3
+import json, sys
+from pathlib import Path
+a = sys.argv[1:]
+if a[0] == "version": print("29.6.2")
+elif a[:2] == ["buildx", "version"]: print("buildx v0.30.0")
+elif a[:2] == ["buildx", "inspect"]: print("Driver: docker-container\\nmax-parallelism = 1")
+elif a[0] == "info": print("2 6209429504")
+elif a[0] == "inspect": print(json.dumps([{"HostConfig": {"CpusetCpus":"0-1", "CpuQuota":200000, "CpuPeriod":100000, "Memory":5368709120, "MemorySwap":5368709120}}]))
+elif a[:2] == ["buildx", "build"]:
+    metadata = Path(a[a.index("--metadata-file") + 1])
+    manifest = metadata.parent.parent / "inputs.json"
+    if not manifest.is_file():
+        print("inputs.json missing before build", file=sys.stderr); raise SystemExit(9)
+    metadata.write_text("{}")
+    print("#1 [stage] RUN cached CACHED")
+    print("#2 [stage] RUN compile DONE 0.1s")
+else: raise SystemExit("unexpected fake Docker argv: " + repr(a))
+'''
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            fake_path = root / "fake-docker"
+            fake_path.write_text(fake_docker)
+            fake_path.chmod(0o755)
+            output = root / "run"
+            argv = [
+                "benchmark-docker-build.py", "--repo-root", str(repo), "--repo-revision", revision,
+                "--context-path", "src/wasm", "--php-source-sha", "0" * 40,
+                "--emsdk-repo-sha", "1" * 40, "--php-version", "5.6", "--emsdk-version", "6.0.13",
+                "--base-image-digest", "sha256:" + "a" * 64, "--platform", "linux/arm64",
+                "--host", "test-host", "--host-arch", "arm64", "--cpu-allocation", "2 CPUs",
+                "--memory-allocation", "VM=6209429504; builder=5368709120; step=4g",
+                "--build-resource", "cpuset-cpus=0-1", "--build-resource", "memory=4g",
+                "--builder-cpu-set", "0-1", "--builder-cpu-quota", "200000",
+                "--builder-memory-bytes", "5368709120", "--builder", "gla96-a3c1",
+                "--docker", str(fake_path), "--tag-prefix", "contract:prelaunch",
+                "--build-arg", "WITH_VRZNO=yes", "--build-arg", "WITH_LIBXML=no",
+                "--build-arg", "WITH_LIBPNG=no", "--build-arg", "WITH_LIBZIP=no",
+                "--build-arg", "WITH_MBSTRING=yes", "--build-arg", "WITH_CLI_SAPI=no",
+                "--build-arg", "WITH_OPENSSL=no", "--build-arg", "WITH_NODEFS=no",
+                "--build-arg", "WITH_CURL=no", "--build-arg", "WITH_SQLITE=no",
+                "--build-arg", "WITH_MYSQL=no", "--build-arg", "WITH_WS_NETWORKING_PROXY=no",
+                "--build-arg", "EMSCRIPTEN_ENVIRONMENT=web", "--mode", "cold", "--samples", "1",
+                "--output", str(output),
+            ]
+            with patch.object(sys, "argv", argv), redirect_stdout(io.StringIO()):
+                self.assertEqual(benchmark.main(), 0)
+            inputs = json.loads((output / "inputs.json").read_text())
+            result = json.loads((output / "results.json").read_text())
+            self.assertEqual(inputs["status"], "frozen-before-build")
+            self.assertEqual(inputs["planned_runs"][0]["repo_revision"], revision)
+            self.assertEqual(shlex.join(inputs["planned_runs"][0]["argv"]), result["runs"][0]["command"])
+            self.assertEqual(inputs["planned_runs"][0]["tag"], result["runs"][0]["tag"])
+            self.assertEqual(inputs["planned_runs"][0]["raw_log"], result["runs"][0]["raw_log"])
+            self.assertEqual(result["inputs_manifest_sha256"], benchmark.sha256_file(output / "inputs.json"))
+            self.assertEqual(result["runs"][0]["cache_misses"], 1)
+            self.assertTrue(result["runs"][0]["ended_at"])
+            self.assertEqual(result["summary"]["variability_status"], "insufficient_samples")
 
     def test_repeatable_sampling_modes_enforce_protocol_counts(self):
         benchmark.validate_sampling_mode("cold", 1)

@@ -1,0 +1,23 @@
+test_any_failed_measured_build_disables_success_median (__main__.BenchmarkHarnessContractTest) ... ok
+test_buildkit_cache_events_are_attributed_to_stage_lines (__main__.BenchmarkHarnessContractTest) ... ok
+test_context_export_is_bound_to_git_revision_not_dirty_worktree (__main__.BenchmarkHarnessContractTest) ... ok
+test_failed_build_keeps_input_identity_and_matching_raw_log (__main__.BenchmarkHarnessContractTest) ... #1 [compile 1/1] RUN make FAILED
+ok
+test_failed_prime_is_retained_and_disables_median (__main__.BenchmarkHarnessContractTest) ... ok
+test_frozen_manifest_and_commands_exist_before_build_invocation (__main__.BenchmarkHarnessContractTest) ... /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/scripts/benchmark-docker-build.py:652: ResourceWarning: unclosed file <_io.TextIOWrapper name=4 encoding='UTF-8'>
+  record = run_build(
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_immutable_input_manifest_is_atomic_and_not_overwritten (__main__.BenchmarkHarnessContractTest) ... ok
+test_link_input_change_identity_pins_blob_and_patch (__main__.BenchmarkHarnessContractTest) ... ok
+test_link_input_schedule_pairs_one_variant_with_unchanged_parent (__main__.BenchmarkHarnessContractTest) ... ok
+test_php_version_schedule_primes_each_measured_transition (__main__.BenchmarkHarnessContractTest) ... ok
+test_repeatable_sampling_modes_enforce_protocol_counts (__main__.BenchmarkHarnessContractTest) ... ok
+test_warm_and_cold_policies_are_explicitly_separate (__main__.BenchmarkHarnessContractTest) ... ok
+test_warmup_is_excluded_from_measured_median (__main__.BenchmarkHarnessContractTest) ... ok
+test_web_build_features_are_explicit_and_match_makefile (__main__.BenchmarkHarnessContractTest) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 3.320s
+
+OK
