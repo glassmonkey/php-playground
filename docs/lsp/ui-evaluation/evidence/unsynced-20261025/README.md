@@ -1,0 +1,1 @@
+These are preserved screenshots and traces from the initial browser runs. They are invalid for synchronized candidate comparison: the harness triggered completion after editor paste without confirming the exact didChange text/version had reached the worker. Retain as evidence of the race only; do not use these candidate results in the comparison table.

@@ -1,0 +1,4435 @@
+{
+  "app": "phpantom",
+  "url": "http://127.0.0.1:7260/",
+  "startedAt": "2026-10-25T11:59:36.864Z",
+  "browser": "156.0.8078.47",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "instrumentation": "Playwright isolated BrowserContext; Worker postMessage/request-response timestamps (performance.now)",
+  "statusAtReady": [],
+  "initialCode": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n$number->\n",
+  "scenarios": [
+    {
+      "name": "builtin-strl",
+      "visible": true,
+      "rows": [
+        {
+          "label": "strlen",
+          "text": "strlen",
+          "selected": null
+        },
+        {
+          "label": "mb_strlen",
+          "text": "mb_strlen",
+          "selected": null
+        },
+        {
+          "label": "iconv_strlen",
+          "text": "iconv_strlen",
+          "selected": null
+        },
+        {
+          "label": "grapheme_strlen",
+          "text": "grapheme_strlen",
+          "selected": null
+        }
+      ],
+      "screenshot": "phpantom-builtin-strl.png",
+      "events": [
+        {
+          "direction": "ui->worker",
+          "at": 2018.2000000178814,
+          "id": 1,
+          "method": "initialize",
+          "params": {
+            "processId": null,
+            "rootUri": null,
+            "capabilities": {
+              "general": {
+                "positionEncodings": [
+                  "utf-16"
+                ]
+              },
+              "textDocument": {
+                "completion": {
+                  "completionItem": {
+                    "snippetSupport": true
+                  }
+                },
+                "hover": {
+                  "contentFormat": [
+                    "markdown",
+                    "plaintext"
+                  ]
+                }
+              }
+            },
+            "initializationOptions": {
+              "phpVersion": "8.5"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 2385.4000000059605,
+          "id": 1,
+          "result": {
+            "capabilities": {
+              "textDocumentSync": 1,
+              "completionProvider": {
+                "triggerCharacters": [
+                  ">",
+                  ":",
+                  "$",
+                  "\\"
+                ],
+                "resolveProvider": true
+              },
+              "hoverProvider": true,
+              "definitionProvider": true,
+              "documentHighlightProvider": true,
+              "renameProvider": true,
+              "signatureHelpProvider": {
+                "triggerCharacters": [
+                  "(",
+                  ","
+                ]
+              }
+            },
+            "serverInfo": {
+              "name": "PHPantom",
+              "version": "0.11.1"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 2385.800000011921,
+          "method": "textDocument/didOpen",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1",
+              "languageId": "php",
+              "version": 1,
+              "text": "<?php\n// example code\nphpinfo();"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 3337.4000000059605,
+          "id": 2,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 3360.5,
+          "id": 2,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "mb_strlen",
+                "kind": 3,
+                "sortText": "c01_mb_strlen",
+                "filterText": "mb_strlen",
+                "insertText": "mb_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "mb_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "grapheme_strlen",
+                "kind": 3,
+                "sortText": "c01_grapheme_strlen",
+                "filterText": "grapheme_strlen",
+                "insertText": "grapheme_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "grapheme_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "iconv_strlen",
+                "kind": 3,
+                "sortText": "c01_iconv_strlen",
+                "filterText": "iconv_strlen",
+                "insertText": "iconv_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "iconv_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "strlen",
+                "kind": 3,
+                "sortText": "b01_strlen",
+                "filterText": "strlen",
+                "insertText": "strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 3372.100000023842,
+          "id": 3,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "strlen",
+            "kind": 3,
+            "sortText": "b01_strlen",
+            "filterText": "strlen",
+            "insertText": "strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 3402.300000011921,
+          "id": 3,
+          "result": {
+            "label": "strlen",
+            "kind": 3,
+            "documentation": {
+              "kind": "markdown",
+              "value": "Get string length\n\n[https://php.net/manual/en/function.strlen.php](https://php.net/manual/en/function.strlen.php)\n\n**$string** The string being measured for length.\n\n**return** `int<0, max>`  \n    The length of the string on success, and 0 if the string is empty.\n\n```php\n<?php\nfunction strlen(string $string): int;\n```\n\n🟣 `PHP`"
+            },
+            "sortText": "b01_strlen",
+            "filterText": "strlen",
+            "insertText": "strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          }
+        }
+      ],
+      "inputToRowsMs": 483
+    },
+    {
+      "name": "local-gre",
+      "visible": false,
+      "rows": [],
+      "screenshot": "phpantom-local-gre.png",
+      "events": [
+        {
+          "direction": "ui->worker",
+          "at": 2018.2000000178814,
+          "id": 1,
+          "method": "initialize",
+          "params": {
+            "processId": null,
+            "rootUri": null,
+            "capabilities": {
+              "general": {
+                "positionEncodings": [
+                  "utf-16"
+                ]
+              },
+              "textDocument": {
+                "completion": {
+                  "completionItem": {
+                    "snippetSupport": true
+                  }
+                },
+                "hover": {
+                  "contentFormat": [
+                    "markdown",
+                    "plaintext"
+                  ]
+                }
+              }
+            },
+            "initializationOptions": {
+              "phpVersion": "8.5"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 2385.4000000059605,
+          "id": 1,
+          "result": {
+            "capabilities": {
+              "textDocumentSync": 1,
+              "completionProvider": {
+                "triggerCharacters": [
+                  ">",
+                  ":",
+                  "$",
+                  "\\"
+                ],
+                "resolveProvider": true
+              },
+              "hoverProvider": true,
+              "definitionProvider": true,
+              "documentHighlightProvider": true,
+              "renameProvider": true,
+              "signatureHelpProvider": {
+                "triggerCharacters": [
+                  "(",
+                  ","
+                ]
+              }
+            },
+            "serverInfo": {
+              "name": "PHPantom",
+              "version": "0.11.1"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 2385.800000011921,
+          "method": "textDocument/didOpen",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1",
+              "languageId": "php",
+              "version": 1,
+              "text": "<?php\n// example code\nphpinfo();"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 3337.4000000059605,
+          "id": 2,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 3360.5,
+          "id": 2,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "mb_strlen",
+                "kind": 3,
+                "sortText": "c01_mb_strlen",
+                "filterText": "mb_strlen",
+                "insertText": "mb_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "mb_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "grapheme_strlen",
+                "kind": 3,
+                "sortText": "c01_grapheme_strlen",
+                "filterText": "grapheme_strlen",
+                "insertText": "grapheme_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "grapheme_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "iconv_strlen",
+                "kind": 3,
+                "sortText": "c01_iconv_strlen",
+                "filterText": "iconv_strlen",
+                "insertText": "iconv_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "iconv_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "strlen",
+                "kind": 3,
+                "sortText": "b01_strlen",
+                "filterText": "strlen",
+                "insertText": "strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 3372.100000023842,
+          "id": 3,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "strlen",
+            "kind": 3,
+            "sortText": "b01_strlen",
+            "filterText": "strlen",
+            "insertText": "strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 3402.300000011921,
+          "id": 3,
+          "result": {
+            "label": "strlen",
+            "kind": 3,
+            "documentation": {
+              "kind": "markdown",
+              "value": "Get string length\n\n[https://php.net/manual/en/function.strlen.php](https://php.net/manual/en/function.strlen.php)\n\n**$string** The string being measured for length.\n\n**return** `int<0, max>`  \n    The length of the string on success, and 0 if the string is empty.\n\n```php\n<?php\nfunction strlen(string $string): int;\n```\n\n🟣 `PHP`"
+            },
+            "sortText": "b01_strlen",
+            "filterText": "strlen",
+            "insertText": "strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 4044.7000000178814,
+          "id": 4,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 4055.4000000059605,
+          "id": 4,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "strlen($string)",
+                "kind": 3,
+                "detail": "int<0, max>",
+                "sortText": "b01_strlen",
+                "filterText": "strlen",
+                "insertText": "strlen(${1:\\$string})$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "mb_strlen",
+                "kind": 3,
+                "sortText": "c01_mb_strlen",
+                "filterText": "mb_strlen",
+                "insertText": "mb_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "mb_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "grapheme_strlen",
+                "kind": 3,
+                "sortText": "c01_grapheme_strlen",
+                "filterText": "grapheme_strlen",
+                "insertText": "grapheme_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "grapheme_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "iconv_strlen",
+                "kind": 3,
+                "sortText": "c01_iconv_strlen",
+                "filterText": "iconv_strlen",
+                "insertText": "iconv_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "iconv_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "inputToRowsMs": null
+    },
+    {
+      "name": "variable-member",
+      "visible": true,
+      "rows": [
+        {
+          "label": "message",
+          "text": "message\nstring",
+          "selected": null
+        },
+        {
+          "label": "greet()",
+          "text": "greet()",
+          "selected": null
+        }
+      ],
+      "screenshot": "phpantom-variable-member.png",
+      "events": [
+        {
+          "direction": "ui->worker",
+          "at": 2018.2000000178814,
+          "id": 1,
+          "method": "initialize",
+          "params": {
+            "processId": null,
+            "rootUri": null,
+            "capabilities": {
+              "general": {
+                "positionEncodings": [
+                  "utf-16"
+                ]
+              },
+              "textDocument": {
+                "completion": {
+                  "completionItem": {
+                    "snippetSupport": true
+                  }
+                },
+                "hover": {
+                  "contentFormat": [
+                    "markdown",
+                    "plaintext"
+                  ]
+                }
+              }
+            },
+            "initializationOptions": {
+              "phpVersion": "8.5"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 2385.4000000059605,
+          "id": 1,
+          "result": {
+            "capabilities": {
+              "textDocumentSync": 1,
+              "completionProvider": {
+                "triggerCharacters": [
+                  ">",
+                  ":",
+                  "$",
+                  "\\"
+                ],
+                "resolveProvider": true
+              },
+              "hoverProvider": true,
+              "definitionProvider": true,
+              "documentHighlightProvider": true,
+              "renameProvider": true,
+              "signatureHelpProvider": {
+                "triggerCharacters": [
+                  "(",
+                  ","
+                ]
+              }
+            },
+            "serverInfo": {
+              "name": "PHPantom",
+              "version": "0.11.1"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 2385.800000011921,
+          "method": "textDocument/didOpen",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1",
+              "languageId": "php",
+              "version": 1,
+              "text": "<?php\n// example code\nphpinfo();"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 3337.4000000059605,
+          "id": 2,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 3360.5,
+          "id": 2,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "mb_strlen",
+                "kind": 3,
+                "sortText": "c01_mb_strlen",
+                "filterText": "mb_strlen",
+                "insertText": "mb_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "mb_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "grapheme_strlen",
+                "kind": 3,
+                "sortText": "c01_grapheme_strlen",
+                "filterText": "grapheme_strlen",
+                "insertText": "grapheme_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "grapheme_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "iconv_strlen",
+                "kind": 3,
+                "sortText": "c01_iconv_strlen",
+                "filterText": "iconv_strlen",
+                "insertText": "iconv_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "iconv_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "strlen",
+                "kind": 3,
+                "sortText": "b01_strlen",
+                "filterText": "strlen",
+                "insertText": "strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 3372.100000023842,
+          "id": 3,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "strlen",
+            "kind": 3,
+            "sortText": "b01_strlen",
+            "filterText": "strlen",
+            "insertText": "strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 3402.300000011921,
+          "id": 3,
+          "result": {
+            "label": "strlen",
+            "kind": 3,
+            "documentation": {
+              "kind": "markdown",
+              "value": "Get string length\n\n[https://php.net/manual/en/function.strlen.php](https://php.net/manual/en/function.strlen.php)\n\n**$string** The string being measured for length.\n\n**return** `int<0, max>`  \n    The length of the string on success, and 0 if the string is empty.\n\n```php\n<?php\nfunction strlen(string $string): int;\n```\n\n🟣 `PHP`"
+            },
+            "sortText": "b01_strlen",
+            "filterText": "strlen",
+            "insertText": "strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 4044.7000000178814,
+          "id": 4,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 4055.4000000059605,
+          "id": 4,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "strlen($string)",
+                "kind": 3,
+                "detail": "int<0, max>",
+                "sortText": "b01_strlen",
+                "filterText": "strlen",
+                "insertText": "strlen(${1:\\$string})$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "mb_strlen",
+                "kind": 3,
+                "sortText": "c01_mb_strlen",
+                "filterText": "mb_strlen",
+                "insertText": "mb_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "mb_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "grapheme_strlen",
+                "kind": 3,
+                "sortText": "c01_grapheme_strlen",
+                "filterText": "grapheme_strlen",
+                "insertText": "grapheme_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "grapheme_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "iconv_strlen",
+                "kind": 3,
+                "sortText": "c01_iconv_strlen",
+                "filterText": "iconv_strlen",
+                "insertText": "iconv_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "iconv_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 45121.60000002384,
+          "id": 5,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 10
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 45145.70000001788,
+          "id": 5,
+          "result": [
+            {
+              "label": "message",
+              "labelDetails": {
+                "description": "Greeter"
+              },
+              "kind": 10,
+              "detail": "string",
+              "sortText": "00000",
+              "filterText": "message",
+              "insertText": "message",
+              "data": {
+                "c": "Greeter",
+                "m": "message",
+                "k": "property",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "greet()",
+              "labelDetails": {
+                "description": "Greeter"
+              },
+              "kind": 2,
+              "detail": "string",
+              "sortText": "00001",
+              "filterText": "greet",
+              "insertText": "greet()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "Greeter",
+                "m": "greet",
+                "k": "method",
+                "u": "inmemory://model/1"
+              }
+            }
+          ]
+        },
+        {
+          "direction": "ui->worker",
+          "at": 45150,
+          "id": 6,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "message",
+            "labelDetails": {
+              "description": "Greeter"
+            },
+            "kind": 10,
+            "detail": "string",
+            "sortText": "00000",
+            "filterText": "message",
+            "insertText": "message",
+            "data": {
+              "c": "Greeter",
+              "m": "message",
+              "k": "property",
+              "u": "inmemory://model/1"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 45155.20000001788,
+          "id": 6,
+          "result": {
+            "label": "message",
+            "labelDetails": {
+              "description": "Greeter"
+            },
+            "kind": 10,
+            "detail": "string",
+            "documentation": {
+              "kind": "markdown",
+              "value": "```php\n<?php\nclass Greeter {\n    public string $message;\n}\n```"
+            },
+            "sortText": "00000",
+            "filterText": "message",
+            "insertText": "message",
+            "data": {
+              "c": "Greeter",
+              "m": "message",
+              "k": "property",
+              "u": "inmemory://model/1"
+            }
+          }
+        }
+      ],
+      "inputToRowsMs": 210
+    },
+    {
+      "name": "class-static",
+      "visible": false,
+      "rows": [],
+      "screenshot": "phpantom-class-static.png",
+      "events": [
+        {
+          "direction": "ui->worker",
+          "at": 2018.2000000178814,
+          "id": 1,
+          "method": "initialize",
+          "params": {
+            "processId": null,
+            "rootUri": null,
+            "capabilities": {
+              "general": {
+                "positionEncodings": [
+                  "utf-16"
+                ]
+              },
+              "textDocument": {
+                "completion": {
+                  "completionItem": {
+                    "snippetSupport": true
+                  }
+                },
+                "hover": {
+                  "contentFormat": [
+                    "markdown",
+                    "plaintext"
+                  ]
+                }
+              }
+            },
+            "initializationOptions": {
+              "phpVersion": "8.5"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 2385.4000000059605,
+          "id": 1,
+          "result": {
+            "capabilities": {
+              "textDocumentSync": 1,
+              "completionProvider": {
+                "triggerCharacters": [
+                  ">",
+                  ":",
+                  "$",
+                  "\\"
+                ],
+                "resolveProvider": true
+              },
+              "hoverProvider": true,
+              "definitionProvider": true,
+              "documentHighlightProvider": true,
+              "renameProvider": true,
+              "signatureHelpProvider": {
+                "triggerCharacters": [
+                  "(",
+                  ","
+                ]
+              }
+            },
+            "serverInfo": {
+              "name": "PHPantom",
+              "version": "0.11.1"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 2385.800000011921,
+          "method": "textDocument/didOpen",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1",
+              "languageId": "php",
+              "version": 1,
+              "text": "<?php\n// example code\nphpinfo();"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 3337.4000000059605,
+          "id": 2,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 3360.5,
+          "id": 2,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "mb_strlen",
+                "kind": 3,
+                "sortText": "c01_mb_strlen",
+                "filterText": "mb_strlen",
+                "insertText": "mb_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "mb_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "grapheme_strlen",
+                "kind": 3,
+                "sortText": "c01_grapheme_strlen",
+                "filterText": "grapheme_strlen",
+                "insertText": "grapheme_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "grapheme_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "iconv_strlen",
+                "kind": 3,
+                "sortText": "c01_iconv_strlen",
+                "filterText": "iconv_strlen",
+                "insertText": "iconv_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "iconv_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "strlen",
+                "kind": 3,
+                "sortText": "b01_strlen",
+                "filterText": "strlen",
+                "insertText": "strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 3372.100000023842,
+          "id": 3,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "strlen",
+            "kind": 3,
+            "sortText": "b01_strlen",
+            "filterText": "strlen",
+            "insertText": "strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 3402.300000011921,
+          "id": 3,
+          "result": {
+            "label": "strlen",
+            "kind": 3,
+            "documentation": {
+              "kind": "markdown",
+              "value": "Get string length\n\n[https://php.net/manual/en/function.strlen.php](https://php.net/manual/en/function.strlen.php)\n\n**$string** The string being measured for length.\n\n**return** `int<0, max>`  \n    The length of the string on success, and 0 if the string is empty.\n\n```php\n<?php\nfunction strlen(string $string): int;\n```\n\n🟣 `PHP`"
+            },
+            "sortText": "b01_strlen",
+            "filterText": "strlen",
+            "insertText": "strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 4044.7000000178814,
+          "id": 4,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 4055.4000000059605,
+          "id": 4,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "strlen($string)",
+                "kind": 3,
+                "detail": "int<0, max>",
+                "sortText": "b01_strlen",
+                "filterText": "strlen",
+                "insertText": "strlen(${1:\\$string})$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "mb_strlen",
+                "kind": 3,
+                "sortText": "c01_mb_strlen",
+                "filterText": "mb_strlen",
+                "insertText": "mb_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "mb_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "grapheme_strlen",
+                "kind": 3,
+                "sortText": "c01_grapheme_strlen",
+                "filterText": "grapheme_strlen",
+                "insertText": "grapheme_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "grapheme_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "iconv_strlen",
+                "kind": 3,
+                "sortText": "c01_iconv_strlen",
+                "filterText": "iconv_strlen",
+                "insertText": "iconv_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "iconv_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 45121.60000002384,
+          "id": 5,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 10
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 45145.70000001788,
+          "id": 5,
+          "result": [
+            {
+              "label": "message",
+              "labelDetails": {
+                "description": "Greeter"
+              },
+              "kind": 10,
+              "detail": "string",
+              "sortText": "00000",
+              "filterText": "message",
+              "insertText": "message",
+              "data": {
+                "c": "Greeter",
+                "m": "message",
+                "k": "property",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "greet()",
+              "labelDetails": {
+                "description": "Greeter"
+              },
+              "kind": 2,
+              "detail": "string",
+              "sortText": "00001",
+              "filterText": "greet",
+              "insertText": "greet()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "Greeter",
+                "m": "greet",
+                "k": "method",
+                "u": "inmemory://model/1"
+              }
+            }
+          ]
+        },
+        {
+          "direction": "ui->worker",
+          "at": 45150,
+          "id": 6,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "message",
+            "labelDetails": {
+              "description": "Greeter"
+            },
+            "kind": 10,
+            "detail": "string",
+            "sortText": "00000",
+            "filterText": "message",
+            "insertText": "message",
+            "data": {
+              "c": "Greeter",
+              "m": "message",
+              "k": "property",
+              "u": "inmemory://model/1"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 45155.20000001788,
+          "id": 6,
+          "result": {
+            "label": "message",
+            "labelDetails": {
+              "description": "Greeter"
+            },
+            "kind": 10,
+            "detail": "string",
+            "documentation": {
+              "kind": "markdown",
+              "value": "```php\n<?php\nclass Greeter {\n    public string $message;\n}\n```"
+            },
+            "sortText": "00000",
+            "filterText": "message",
+            "insertText": "message",
+            "data": {
+              "c": "Greeter",
+              "m": "message",
+              "k": "property",
+              "u": "inmemory://model/1"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 45433,
+          "id": 7,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 10
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 45452.70000001788,
+          "id": 7,
+          "result": [
+            {
+              "label": "message",
+              "labelDetails": {
+                "description": "Greeter"
+              },
+              "kind": 10,
+              "detail": "string",
+              "sortText": "00000",
+              "filterText": "message",
+              "insertText": "message",
+              "data": {
+                "c": "Greeter",
+                "m": "message",
+                "k": "property",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "greet()",
+              "labelDetails": {
+                "description": "Greeter"
+              },
+              "kind": 2,
+              "detail": "string",
+              "sortText": "00001",
+              "filterText": "greet",
+              "insertText": "greet()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "Greeter",
+                "m": "greet",
+                "k": "method",
+                "u": "inmemory://model/1"
+              }
+            }
+          ]
+        }
+      ],
+      "inputToRowsMs": null
+    },
+    {
+      "name": "new-class",
+      "visible": true,
+      "rows": [],
+      "screenshot": "phpantom-new-class.png",
+      "events": [
+        {
+          "direction": "ui->worker",
+          "at": 2018.2000000178814,
+          "id": 1,
+          "method": "initialize",
+          "params": {
+            "processId": null,
+            "rootUri": null,
+            "capabilities": {
+              "general": {
+                "positionEncodings": [
+                  "utf-16"
+                ]
+              },
+              "textDocument": {
+                "completion": {
+                  "completionItem": {
+                    "snippetSupport": true
+                  }
+                },
+                "hover": {
+                  "contentFormat": [
+                    "markdown",
+                    "plaintext"
+                  ]
+                }
+              }
+            },
+            "initializationOptions": {
+              "phpVersion": "8.5"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 2385.4000000059605,
+          "id": 1,
+          "result": {
+            "capabilities": {
+              "textDocumentSync": 1,
+              "completionProvider": {
+                "triggerCharacters": [
+                  ">",
+                  ":",
+                  "$",
+                  "\\"
+                ],
+                "resolveProvider": true
+              },
+              "hoverProvider": true,
+              "definitionProvider": true,
+              "documentHighlightProvider": true,
+              "renameProvider": true,
+              "signatureHelpProvider": {
+                "triggerCharacters": [
+                  "(",
+                  ","
+                ]
+              }
+            },
+            "serverInfo": {
+              "name": "PHPantom",
+              "version": "0.11.1"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 2385.800000011921,
+          "method": "textDocument/didOpen",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1",
+              "languageId": "php",
+              "version": 1,
+              "text": "<?php\n// example code\nphpinfo();"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 3337.4000000059605,
+          "id": 2,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 3360.5,
+          "id": 2,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "mb_strlen",
+                "kind": 3,
+                "sortText": "c01_mb_strlen",
+                "filterText": "mb_strlen",
+                "insertText": "mb_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "mb_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "grapheme_strlen",
+                "kind": 3,
+                "sortText": "c01_grapheme_strlen",
+                "filterText": "grapheme_strlen",
+                "insertText": "grapheme_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "grapheme_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "iconv_strlen",
+                "kind": 3,
+                "sortText": "c01_iconv_strlen",
+                "filterText": "iconv_strlen",
+                "insertText": "iconv_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "iconv_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "strlen",
+                "kind": 3,
+                "sortText": "b01_strlen",
+                "filterText": "strlen",
+                "insertText": "strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 3372.100000023842,
+          "id": 3,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "strlen",
+            "kind": 3,
+            "sortText": "b01_strlen",
+            "filterText": "strlen",
+            "insertText": "strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 3402.300000011921,
+          "id": 3,
+          "result": {
+            "label": "strlen",
+            "kind": 3,
+            "documentation": {
+              "kind": "markdown",
+              "value": "Get string length\n\n[https://php.net/manual/en/function.strlen.php](https://php.net/manual/en/function.strlen.php)\n\n**$string** The string being measured for length.\n\n**return** `int<0, max>`  \n    The length of the string on success, and 0 if the string is empty.\n\n```php\n<?php\nfunction strlen(string $string): int;\n```\n\n🟣 `PHP`"
+            },
+            "sortText": "b01_strlen",
+            "filterText": "strlen",
+            "insertText": "strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 4044.7000000178814,
+          "id": 4,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 4055.4000000059605,
+          "id": 4,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "strlen($string)",
+                "kind": 3,
+                "detail": "int<0, max>",
+                "sortText": "b01_strlen",
+                "filterText": "strlen",
+                "insertText": "strlen(${1:\\$string})$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "mb_strlen",
+                "kind": 3,
+                "sortText": "c01_mb_strlen",
+                "filterText": "mb_strlen",
+                "insertText": "mb_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "mb_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "grapheme_strlen",
+                "kind": 3,
+                "sortText": "c01_grapheme_strlen",
+                "filterText": "grapheme_strlen",
+                "insertText": "grapheme_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "grapheme_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "iconv_strlen",
+                "kind": 3,
+                "sortText": "c01_iconv_strlen",
+                "filterText": "iconv_strlen",
+                "insertText": "iconv_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "iconv_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 45121.60000002384,
+          "id": 5,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 10
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 45145.70000001788,
+          "id": 5,
+          "result": [
+            {
+              "label": "message",
+              "labelDetails": {
+                "description": "Greeter"
+              },
+              "kind": 10,
+              "detail": "string",
+              "sortText": "00000",
+              "filterText": "message",
+              "insertText": "message",
+              "data": {
+                "c": "Greeter",
+                "m": "message",
+                "k": "property",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "greet()",
+              "labelDetails": {
+                "description": "Greeter"
+              },
+              "kind": 2,
+              "detail": "string",
+              "sortText": "00001",
+              "filterText": "greet",
+              "insertText": "greet()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "Greeter",
+                "m": "greet",
+                "k": "method",
+                "u": "inmemory://model/1"
+              }
+            }
+          ]
+        },
+        {
+          "direction": "ui->worker",
+          "at": 45150,
+          "id": 6,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "message",
+            "labelDetails": {
+              "description": "Greeter"
+            },
+            "kind": 10,
+            "detail": "string",
+            "sortText": "00000",
+            "filterText": "message",
+            "insertText": "message",
+            "data": {
+              "c": "Greeter",
+              "m": "message",
+              "k": "property",
+              "u": "inmemory://model/1"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 45155.20000001788,
+          "id": 6,
+          "result": {
+            "label": "message",
+            "labelDetails": {
+              "description": "Greeter"
+            },
+            "kind": 10,
+            "detail": "string",
+            "documentation": {
+              "kind": "markdown",
+              "value": "```php\n<?php\nclass Greeter {\n    public string $message;\n}\n```"
+            },
+            "sortText": "00000",
+            "filterText": "message",
+            "insertText": "message",
+            "data": {
+              "c": "Greeter",
+              "m": "message",
+              "k": "property",
+              "u": "inmemory://model/1"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 45433,
+          "id": 7,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 10
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 45452.70000001788,
+          "id": 7,
+          "result": [
+            {
+              "label": "message",
+              "labelDetails": {
+                "description": "Greeter"
+              },
+              "kind": 10,
+              "detail": "string",
+              "sortText": "00000",
+              "filterText": "message",
+              "insertText": "message",
+              "data": {
+                "c": "Greeter",
+                "m": "message",
+                "k": "property",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "greet()",
+              "labelDetails": {
+                "description": "Greeter"
+              },
+              "kind": 2,
+              "detail": "string",
+              "sortText": "00001",
+              "filterText": "greet",
+              "insertText": "greet()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "Greeter",
+                "m": "greet",
+                "k": "method",
+                "u": "inmemory://model/1"
+              }
+            }
+          ]
+        },
+        {
+          "direction": "ui->worker",
+          "at": 86358.40000000596,
+          "id": 8,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 9
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 86368.5,
+          "id": 9,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 7
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 86369,
+          "id": 8,
+          "result": [
+            {
+              "label": "class",
+              "kind": 14,
+              "detail": "class-string",
+              "sortText": "00000",
+              "filterText": "class",
+              "insertText": "class"
+            }
+          ]
+        },
+        {
+          "direction": "worker->ui",
+          "at": 86525.70000001788,
+          "id": 9,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "Greeter",
+                "kind": 7,
+                "detail": "Greeter",
+                "sortText": "b1099990004_greeter",
+                "filterText": "Greeter",
+                "insertText": "Greeter()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "Greeter",
+                  "k": "class",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "SolrPingResponse",
+                "kind": 7,
+                "detail": "SolrPingResponse",
+                "sortText": "c1199990013_solrpingresponse",
+                "filterText": "SolrPingResponse",
+                "insertText": "SolrPingResponse()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "SolrPingResponse",
+                  "k": "class",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "IntlGregorianCalendar",
+                "kind": 7,
+                "detail": "IntlGregorianCalendar",
+                "sortText": "c1199990018_intlgregoriancalendar",
+                "filterText": "IntlGregorianCalendar",
+                "insertText": "IntlGregorianCalendar(${1:\\$timezoneOrYear}, ${2:\\$localeOrMonth}, ${3:\\$day}, ${4:\\$hour}, ${5:\\$minute}, ${6:\\$second})$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "IntlGregorianCalendar",
+                  "k": "class",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "OpenSSLCertificateSigningRequest",
+                "kind": 7,
+                "detail": "OpenSSLCertificateSigningRequest",
+                "sortText": "c1199990029_opensslcertificatesigningrequest",
+                "filterText": "OpenSSLCertificateSigningRequest",
+                "insertText": "OpenSSLCertificateSigningRequest()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "OpenSSLCertificateSigningRequest",
+                  "k": "class",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "DefaultAggregate",
+                "labelDetails": {
+                  "description": "Cassandra"
+                },
+                "kind": 7,
+                "detail": "Cassandra\\DefaultAggregate",
+                "sortText": "c2199990013_defaultaggregate",
+                "filterText": "DefaultAggregate",
+                "insertText": "DefaultAggregate()$0",
+                "insertTextFormat": 2,
+                "additionalTextEdits": [
+                  {
+                    "range": {
+                      "start": {
+                        "line": 1,
+                        "character": 0
+                      },
+                      "end": {
+                        "line": 1,
+                        "character": 0
+                      }
+                    },
+                    "newText": "use Cassandra\\DefaultAggregate;\n"
+                  }
+                ],
+                "data": {
+                  "c": "",
+                  "m": "Cassandra\\DefaultAggregate",
+                  "k": "class",
+                  "u": "inmemory://model/1"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "inputToRowsMs": null
+    },
+    {
+      "name": "local-function",
+      "visible": true,
+      "rows": [
+        {
+          "label": "name: string",
+          "text": "name: string\nNamed argument (optional)",
+          "selected": null
+        }
+      ],
+      "screenshot": "phpantom-local-function.png",
+      "events": [
+        {
+          "direction": "ui->worker",
+          "at": 2018.2000000178814,
+          "id": 1,
+          "method": "initialize",
+          "params": {
+            "processId": null,
+            "rootUri": null,
+            "capabilities": {
+              "general": {
+                "positionEncodings": [
+                  "utf-16"
+                ]
+              },
+              "textDocument": {
+                "completion": {
+                  "completionItem": {
+                    "snippetSupport": true
+                  }
+                },
+                "hover": {
+                  "contentFormat": [
+                    "markdown",
+                    "plaintext"
+                  ]
+                }
+              }
+            },
+            "initializationOptions": {
+              "phpVersion": "8.5"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 2385.4000000059605,
+          "id": 1,
+          "result": {
+            "capabilities": {
+              "textDocumentSync": 1,
+              "completionProvider": {
+                "triggerCharacters": [
+                  ">",
+                  ":",
+                  "$",
+                  "\\"
+                ],
+                "resolveProvider": true
+              },
+              "hoverProvider": true,
+              "definitionProvider": true,
+              "documentHighlightProvider": true,
+              "renameProvider": true,
+              "signatureHelpProvider": {
+                "triggerCharacters": [
+                  "(",
+                  ","
+                ]
+              }
+            },
+            "serverInfo": {
+              "name": "PHPantom",
+              "version": "0.11.1"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 2385.800000011921,
+          "method": "textDocument/didOpen",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1",
+              "languageId": "php",
+              "version": 1,
+              "text": "<?php\n// example code\nphpinfo();"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 3337.4000000059605,
+          "id": 2,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 3360.5,
+          "id": 2,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "mb_strlen",
+                "kind": 3,
+                "sortText": "c01_mb_strlen",
+                "filterText": "mb_strlen",
+                "insertText": "mb_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "mb_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "grapheme_strlen",
+                "kind": 3,
+                "sortText": "c01_grapheme_strlen",
+                "filterText": "grapheme_strlen",
+                "insertText": "grapheme_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "grapheme_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "iconv_strlen",
+                "kind": 3,
+                "sortText": "c01_iconv_strlen",
+                "filterText": "iconv_strlen",
+                "insertText": "iconv_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "iconv_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "strlen",
+                "kind": 3,
+                "sortText": "b01_strlen",
+                "filterText": "strlen",
+                "insertText": "strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 3372.100000023842,
+          "id": 3,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "strlen",
+            "kind": 3,
+            "sortText": "b01_strlen",
+            "filterText": "strlen",
+            "insertText": "strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 3402.300000011921,
+          "id": 3,
+          "result": {
+            "label": "strlen",
+            "kind": 3,
+            "documentation": {
+              "kind": "markdown",
+              "value": "Get string length\n\n[https://php.net/manual/en/function.strlen.php](https://php.net/manual/en/function.strlen.php)\n\n**$string** The string being measured for length.\n\n**return** `int<0, max>`  \n    The length of the string on success, and 0 if the string is empty.\n\n```php\n<?php\nfunction strlen(string $string): int;\n```\n\n🟣 `PHP`"
+            },
+            "sortText": "b01_strlen",
+            "filterText": "strlen",
+            "insertText": "strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 4044.7000000178814,
+          "id": 4,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 4055.4000000059605,
+          "id": 4,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "strlen($string)",
+                "kind": 3,
+                "detail": "int<0, max>",
+                "sortText": "b01_strlen",
+                "filterText": "strlen",
+                "insertText": "strlen(${1:\\$string})$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "mb_strlen",
+                "kind": 3,
+                "sortText": "c01_mb_strlen",
+                "filterText": "mb_strlen",
+                "insertText": "mb_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "mb_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "grapheme_strlen",
+                "kind": 3,
+                "sortText": "c01_grapheme_strlen",
+                "filterText": "grapheme_strlen",
+                "insertText": "grapheme_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "grapheme_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "iconv_strlen",
+                "kind": 3,
+                "sortText": "c01_iconv_strlen",
+                "filterText": "iconv_strlen",
+                "insertText": "iconv_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "iconv_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 45121.60000002384,
+          "id": 5,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 10
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 45145.70000001788,
+          "id": 5,
+          "result": [
+            {
+              "label": "message",
+              "labelDetails": {
+                "description": "Greeter"
+              },
+              "kind": 10,
+              "detail": "string",
+              "sortText": "00000",
+              "filterText": "message",
+              "insertText": "message",
+              "data": {
+                "c": "Greeter",
+                "m": "message",
+                "k": "property",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "greet()",
+              "labelDetails": {
+                "description": "Greeter"
+              },
+              "kind": 2,
+              "detail": "string",
+              "sortText": "00001",
+              "filterText": "greet",
+              "insertText": "greet()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "Greeter",
+                "m": "greet",
+                "k": "method",
+                "u": "inmemory://model/1"
+              }
+            }
+          ]
+        },
+        {
+          "direction": "ui->worker",
+          "at": 45150,
+          "id": 6,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "message",
+            "labelDetails": {
+              "description": "Greeter"
+            },
+            "kind": 10,
+            "detail": "string",
+            "sortText": "00000",
+            "filterText": "message",
+            "insertText": "message",
+            "data": {
+              "c": "Greeter",
+              "m": "message",
+              "k": "property",
+              "u": "inmemory://model/1"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 45155.20000001788,
+          "id": 6,
+          "result": {
+            "label": "message",
+            "labelDetails": {
+              "description": "Greeter"
+            },
+            "kind": 10,
+            "detail": "string",
+            "documentation": {
+              "kind": "markdown",
+              "value": "```php\n<?php\nclass Greeter {\n    public string $message;\n}\n```"
+            },
+            "sortText": "00000",
+            "filterText": "message",
+            "insertText": "message",
+            "data": {
+              "c": "Greeter",
+              "m": "message",
+              "k": "property",
+              "u": "inmemory://model/1"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 45433,
+          "id": 7,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 10
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 45452.70000001788,
+          "id": 7,
+          "result": [
+            {
+              "label": "message",
+              "labelDetails": {
+                "description": "Greeter"
+              },
+              "kind": 10,
+              "detail": "string",
+              "sortText": "00000",
+              "filterText": "message",
+              "insertText": "message",
+              "data": {
+                "c": "Greeter",
+                "m": "message",
+                "k": "property",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "greet()",
+              "labelDetails": {
+                "description": "Greeter"
+              },
+              "kind": 2,
+              "detail": "string",
+              "sortText": "00001",
+              "filterText": "greet",
+              "insertText": "greet()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "Greeter",
+                "m": "greet",
+                "k": "method",
+                "u": "inmemory://model/1"
+              }
+            }
+          ]
+        },
+        {
+          "direction": "ui->worker",
+          "at": 86358.40000000596,
+          "id": 8,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 9
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 86368.5,
+          "id": 9,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 7
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 86369,
+          "id": 8,
+          "result": [
+            {
+              "label": "class",
+              "kind": 14,
+              "detail": "class-string",
+              "sortText": "00000",
+              "filterText": "class",
+              "insertText": "class"
+            }
+          ]
+        },
+        {
+          "direction": "worker->ui",
+          "at": 86525.70000001788,
+          "id": 9,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "Greeter",
+                "kind": 7,
+                "detail": "Greeter",
+                "sortText": "b1099990004_greeter",
+                "filterText": "Greeter",
+                "insertText": "Greeter()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "Greeter",
+                  "k": "class",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "SolrPingResponse",
+                "kind": 7,
+                "detail": "SolrPingResponse",
+                "sortText": "c1199990013_solrpingresponse",
+                "filterText": "SolrPingResponse",
+                "insertText": "SolrPingResponse()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "SolrPingResponse",
+                  "k": "class",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "IntlGregorianCalendar",
+                "kind": 7,
+                "detail": "IntlGregorianCalendar",
+                "sortText": "c1199990018_intlgregoriancalendar",
+                "filterText": "IntlGregorianCalendar",
+                "insertText": "IntlGregorianCalendar(${1:\\$timezoneOrYear}, ${2:\\$localeOrMonth}, ${3:\\$day}, ${4:\\$hour}, ${5:\\$minute}, ${6:\\$second})$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "IntlGregorianCalendar",
+                  "k": "class",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "OpenSSLCertificateSigningRequest",
+                "kind": 7,
+                "detail": "OpenSSLCertificateSigningRequest",
+                "sortText": "c1199990029_opensslcertificatesigningrequest",
+                "filterText": "OpenSSLCertificateSigningRequest",
+                "insertText": "OpenSSLCertificateSigningRequest()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "OpenSSLCertificateSigningRequest",
+                  "k": "class",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "DefaultAggregate",
+                "labelDetails": {
+                  "description": "Cassandra"
+                },
+                "kind": 7,
+                "detail": "Cassandra\\DefaultAggregate",
+                "sortText": "c2199990013_defaultaggregate",
+                "filterText": "DefaultAggregate",
+                "insertText": "DefaultAggregate()$0",
+                "insertTextFormat": 2,
+                "additionalTextEdits": [
+                  {
+                    "range": {
+                      "start": {
+                        "line": 1,
+                        "character": 0
+                      },
+                      "end": {
+                        "line": 1,
+                        "character": 0
+                      }
+                    },
+                    "newText": "use Cassandra\\DefaultAggregate;\n"
+                  }
+                ],
+                "data": {
+                  "c": "",
+                  "m": "Cassandra\\DefaultAggregate",
+                  "k": "class",
+                  "u": "inmemory://model/1"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 127921,
+          "id": 10,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 10
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 127930.5,
+          "id": 10,
+          "result": [
+            {
+              "label": "name: string",
+              "kind": 6,
+              "detail": "Named argument (optional)",
+              "sortText": "0_000",
+              "filterText": "name",
+              "insertText": "name: "
+            }
+          ]
+        },
+        {
+          "direction": "ui->worker",
+          "at": 127932.30000001192,
+          "id": 11,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "name: string",
+            "kind": 6,
+            "detail": "Named argument (optional)",
+            "sortText": "0_000",
+            "filterText": "name",
+            "insertText": "name: "
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 127932.90000000596,
+          "id": 11,
+          "result": {
+            "label": "name: string",
+            "kind": 6,
+            "detail": "Named argument (optional)",
+            "sortText": "0_000",
+            "filterText": "name",
+            "insertText": "name: "
+          }
+        }
+      ],
+      "inputToRowsMs": 291
+    },
+    {
+      "name": "builtin-signature",
+      "visible": true,
+      "rows": [
+        {
+          "label": "string: string",
+          "text": "string: string\nNamed argument",
+          "selected": null
+        }
+      ],
+      "screenshot": "phpantom-builtin-signature.png",
+      "events": [
+        {
+          "direction": "ui->worker",
+          "at": 2018.2000000178814,
+          "id": 1,
+          "method": "initialize",
+          "params": {
+            "processId": null,
+            "rootUri": null,
+            "capabilities": {
+              "general": {
+                "positionEncodings": [
+                  "utf-16"
+                ]
+              },
+              "textDocument": {
+                "completion": {
+                  "completionItem": {
+                    "snippetSupport": true
+                  }
+                },
+                "hover": {
+                  "contentFormat": [
+                    "markdown",
+                    "plaintext"
+                  ]
+                }
+              }
+            },
+            "initializationOptions": {
+              "phpVersion": "8.5"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 2385.4000000059605,
+          "id": 1,
+          "result": {
+            "capabilities": {
+              "textDocumentSync": 1,
+              "completionProvider": {
+                "triggerCharacters": [
+                  ">",
+                  ":",
+                  "$",
+                  "\\"
+                ],
+                "resolveProvider": true
+              },
+              "hoverProvider": true,
+              "definitionProvider": true,
+              "documentHighlightProvider": true,
+              "renameProvider": true,
+              "signatureHelpProvider": {
+                "triggerCharacters": [
+                  "(",
+                  ","
+                ]
+              }
+            },
+            "serverInfo": {
+              "name": "PHPantom",
+              "version": "0.11.1"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 2385.800000011921,
+          "method": "textDocument/didOpen",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1",
+              "languageId": "php",
+              "version": 1,
+              "text": "<?php\n// example code\nphpinfo();"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 3337.4000000059605,
+          "id": 2,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 3360.5,
+          "id": 2,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "mb_strlen",
+                "kind": 3,
+                "sortText": "c01_mb_strlen",
+                "filterText": "mb_strlen",
+                "insertText": "mb_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "mb_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "grapheme_strlen",
+                "kind": 3,
+                "sortText": "c01_grapheme_strlen",
+                "filterText": "grapheme_strlen",
+                "insertText": "grapheme_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "grapheme_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "iconv_strlen",
+                "kind": 3,
+                "sortText": "c01_iconv_strlen",
+                "filterText": "iconv_strlen",
+                "insertText": "iconv_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "iconv_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "strlen",
+                "kind": 3,
+                "sortText": "b01_strlen",
+                "filterText": "strlen",
+                "insertText": "strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 3372.100000023842,
+          "id": 3,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "strlen",
+            "kind": 3,
+            "sortText": "b01_strlen",
+            "filterText": "strlen",
+            "insertText": "strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 3402.300000011921,
+          "id": 3,
+          "result": {
+            "label": "strlen",
+            "kind": 3,
+            "documentation": {
+              "kind": "markdown",
+              "value": "Get string length\n\n[https://php.net/manual/en/function.strlen.php](https://php.net/manual/en/function.strlen.php)\n\n**$string** The string being measured for length.\n\n**return** `int<0, max>`  \n    The length of the string on success, and 0 if the string is empty.\n\n```php\n<?php\nfunction strlen(string $string): int;\n```\n\n🟣 `PHP`"
+            },
+            "sortText": "b01_strlen",
+            "filterText": "strlen",
+            "insertText": "strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 4044.7000000178814,
+          "id": 4,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 4055.4000000059605,
+          "id": 4,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "strlen($string)",
+                "kind": 3,
+                "detail": "int<0, max>",
+                "sortText": "b01_strlen",
+                "filterText": "strlen",
+                "insertText": "strlen(${1:\\$string})$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "mb_strlen",
+                "kind": 3,
+                "sortText": "c01_mb_strlen",
+                "filterText": "mb_strlen",
+                "insertText": "mb_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "mb_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "grapheme_strlen",
+                "kind": 3,
+                "sortText": "c01_grapheme_strlen",
+                "filterText": "grapheme_strlen",
+                "insertText": "grapheme_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "grapheme_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "iconv_strlen",
+                "kind": 3,
+                "sortText": "c01_iconv_strlen",
+                "filterText": "iconv_strlen",
+                "insertText": "iconv_strlen()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "iconv_strlen",
+                  "k": "function",
+                  "u": "inmemory://model/1"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 45121.60000002384,
+          "id": 5,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 10
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 45145.70000001788,
+          "id": 5,
+          "result": [
+            {
+              "label": "message",
+              "labelDetails": {
+                "description": "Greeter"
+              },
+              "kind": 10,
+              "detail": "string",
+              "sortText": "00000",
+              "filterText": "message",
+              "insertText": "message",
+              "data": {
+                "c": "Greeter",
+                "m": "message",
+                "k": "property",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "greet()",
+              "labelDetails": {
+                "description": "Greeter"
+              },
+              "kind": 2,
+              "detail": "string",
+              "sortText": "00001",
+              "filterText": "greet",
+              "insertText": "greet()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "Greeter",
+                "m": "greet",
+                "k": "method",
+                "u": "inmemory://model/1"
+              }
+            }
+          ]
+        },
+        {
+          "direction": "ui->worker",
+          "at": 45150,
+          "id": 6,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "message",
+            "labelDetails": {
+              "description": "Greeter"
+            },
+            "kind": 10,
+            "detail": "string",
+            "sortText": "00000",
+            "filterText": "message",
+            "insertText": "message",
+            "data": {
+              "c": "Greeter",
+              "m": "message",
+              "k": "property",
+              "u": "inmemory://model/1"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 45155.20000001788,
+          "id": 6,
+          "result": {
+            "label": "message",
+            "labelDetails": {
+              "description": "Greeter"
+            },
+            "kind": 10,
+            "detail": "string",
+            "documentation": {
+              "kind": "markdown",
+              "value": "```php\n<?php\nclass Greeter {\n    public string $message;\n}\n```"
+            },
+            "sortText": "00000",
+            "filterText": "message",
+            "insertText": "message",
+            "data": {
+              "c": "Greeter",
+              "m": "message",
+              "k": "property",
+              "u": "inmemory://model/1"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 45433,
+          "id": 7,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 10
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 45452.70000001788,
+          "id": 7,
+          "result": [
+            {
+              "label": "message",
+              "labelDetails": {
+                "description": "Greeter"
+              },
+              "kind": 10,
+              "detail": "string",
+              "sortText": "00000",
+              "filterText": "message",
+              "insertText": "message",
+              "data": {
+                "c": "Greeter",
+                "m": "message",
+                "k": "property",
+                "u": "inmemory://model/1"
+              }
+            },
+            {
+              "label": "greet()",
+              "labelDetails": {
+                "description": "Greeter"
+              },
+              "kind": 2,
+              "detail": "string",
+              "sortText": "00001",
+              "filterText": "greet",
+              "insertText": "greet()$0",
+              "insertTextFormat": 2,
+              "data": {
+                "c": "Greeter",
+                "m": "greet",
+                "k": "method",
+                "u": "inmemory://model/1"
+              }
+            }
+          ]
+        },
+        {
+          "direction": "ui->worker",
+          "at": 86358.40000000596,
+          "id": 8,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 9
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 86368.5,
+          "id": 9,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 7
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 86369,
+          "id": 8,
+          "result": [
+            {
+              "label": "class",
+              "kind": 14,
+              "detail": "class-string",
+              "sortText": "00000",
+              "filterText": "class",
+              "insertText": "class"
+            }
+          ]
+        },
+        {
+          "direction": "worker->ui",
+          "at": 86525.70000001788,
+          "id": 9,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "Greeter",
+                "kind": 7,
+                "detail": "Greeter",
+                "sortText": "b1099990004_greeter",
+                "filterText": "Greeter",
+                "insertText": "Greeter()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "Greeter",
+                  "k": "class",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "SolrPingResponse",
+                "kind": 7,
+                "detail": "SolrPingResponse",
+                "sortText": "c1199990013_solrpingresponse",
+                "filterText": "SolrPingResponse",
+                "insertText": "SolrPingResponse()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "SolrPingResponse",
+                  "k": "class",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "IntlGregorianCalendar",
+                "kind": 7,
+                "detail": "IntlGregorianCalendar",
+                "sortText": "c1199990018_intlgregoriancalendar",
+                "filterText": "IntlGregorianCalendar",
+                "insertText": "IntlGregorianCalendar(${1:\\$timezoneOrYear}, ${2:\\$localeOrMonth}, ${3:\\$day}, ${4:\\$hour}, ${5:\\$minute}, ${6:\\$second})$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "IntlGregorianCalendar",
+                  "k": "class",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "OpenSSLCertificateSigningRequest",
+                "kind": 7,
+                "detail": "OpenSSLCertificateSigningRequest",
+                "sortText": "c1199990029_opensslcertificatesigningrequest",
+                "filterText": "OpenSSLCertificateSigningRequest",
+                "insertText": "OpenSSLCertificateSigningRequest()$0",
+                "insertTextFormat": 2,
+                "data": {
+                  "c": "",
+                  "m": "OpenSSLCertificateSigningRequest",
+                  "k": "class",
+                  "u": "inmemory://model/1"
+                }
+              },
+              {
+                "label": "DefaultAggregate",
+                "labelDetails": {
+                  "description": "Cassandra"
+                },
+                "kind": 7,
+                "detail": "Cassandra\\DefaultAggregate",
+                "sortText": "c2199990013_defaultaggregate",
+                "filterText": "DefaultAggregate",
+                "insertText": "DefaultAggregate()$0",
+                "insertTextFormat": 2,
+                "additionalTextEdits": [
+                  {
+                    "range": {
+                      "start": {
+                        "line": 1,
+                        "character": 0
+                      },
+                      "end": {
+                        "line": 1,
+                        "character": 0
+                      }
+                    },
+                    "newText": "use Cassandra\\DefaultAggregate;\n"
+                  }
+                ],
+                "data": {
+                  "c": "",
+                  "m": "Cassandra\\DefaultAggregate",
+                  "k": "class",
+                  "u": "inmemory://model/1"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 127921,
+          "id": 10,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 10
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 127930.5,
+          "id": 10,
+          "result": [
+            {
+              "label": "name: string",
+              "kind": 6,
+              "detail": "Named argument (optional)",
+              "sortText": "0_000",
+              "filterText": "name",
+              "insertText": "name: "
+            }
+          ]
+        },
+        {
+          "direction": "ui->worker",
+          "at": 127932.30000001192,
+          "id": 11,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "name: string",
+            "kind": 6,
+            "detail": "Named argument (optional)",
+            "sortText": "0_000",
+            "filterText": "name",
+            "insertText": "name: "
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 127932.90000000596,
+          "id": 11,
+          "result": {
+            "label": "name: string",
+            "kind": 6,
+            "detail": "Named argument (optional)",
+            "sortText": "0_000",
+            "filterText": "name",
+            "insertText": "name: "
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 128468,
+          "id": 12,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 7
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 128480.60000002384,
+          "id": 12,
+          "result": [
+            {
+              "label": "string: string",
+              "kind": 6,
+              "detail": "Named argument",
+              "sortText": "0_000",
+              "filterText": "string",
+              "insertText": "string: "
+            }
+          ]
+        },
+        {
+          "direction": "ui->worker",
+          "at": 128482.20000001788,
+          "id": 13,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "string: string",
+            "kind": 6,
+            "detail": "Named argument",
+            "sortText": "0_000",
+            "filterText": "string",
+            "insertText": "string: "
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 128482.70000001788,
+          "id": 13,
+          "result": {
+            "label": "string: string",
+            "kind": 6,
+            "detail": "Named argument",
+            "sortText": "0_000",
+            "filterText": "string",
+            "insertText": "string: "
+          }
+        }
+      ],
+      "inputToRowsMs": 336
+    }
+  ],
+  "console": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "warning",
+      "text": "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition."
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":2018.2000000178814,\"id\":1,\"method\":\"initialize\",\"params\":{\"processId\":null,\"rootUri\":null,\"capabilities\":{\"general\":{\"positionEncodings\":[\"utf-16\"]},\"textDocument\":{\"completion\":{\"completionItem\":{\"snippetSupport\":true}},\"hover\":{\"contentFormat\":[\"markdown\",\"plaintext\"]}}},\"initializationOptions\":{\"phpVersion\":\"8.5\"}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":2385.4000000059605,\"id\":1,\"result\":{\"capabilities\":{\"textDocumentSync\":1,\"completionProvider\":{\"triggerCharacters\":[\">\",\":\",\"$\",\"\\\\\"],\"resolveProvider\":true},\"hoverProvider\":true,\"definitionProvider\":true,\"documentHighlightProvider\":true,\"renameProvider\":true,\"signatureHelpProvider\":{\"triggerCharacters\":[\"(\",\",\"]}},\"serverInfo\":{\"name\":\"PHPantom\",\"version\":\"0.11.1\"}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":2385.800000011921,\"method\":\"textDocument/didOpen\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"languageId\":\"php\",\"version\":1,\"text\":\"<?php\\n// example code\\nphpinfo();\"}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":2562.7000000178814,\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":2},\"contentChanges\":[{\"text\":\"<?php\\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\\n$greeting = greetUser('A');\\n$greeter = new Greeter();\\n$number = 1;\\n$number->\\n\"}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":3252,\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":3},\"contentChanges\":[{\"text\":\"<?php\\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\\n$greeting = greetUser('A');\\n$greeter = new Greeter();\\n$number = 1;\\nstrl\"}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":3337.4000000059605,\"id\":2,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":7,\"character\":4}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":3360.5,\"id\":2,\"result\":{\"isIncomplete\":false,\"items\":[{\"label\":\"mb_strlen\",\"kind\":3,\"sortText\":\"c01_mb_strlen\",\"filterText\":\"mb_strlen\",\"insertText\":\"mb_strlen()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"mb_strlen\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"grapheme_strlen\",\"kind\":3,\"sortText\":\"c01_grapheme_strlen\",\"filterText\":\"grapheme_strlen\",\"insertText\":\"grapheme_strlen()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"grapheme_strlen\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"iconv_strlen\",\"kind\":3,\"sortText\":\"c01_iconv_strlen\",\"filterText\":\"iconv_strlen\",\"insertText\":\"iconv_strlen()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"iconv_strlen\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"strlen\",\"kind\":3,\"sortText\":\"b01_strlen\",\"filterText\":\"strlen\",\"insertText\":\"strlen()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"strlen\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":3372.100000023842,\"id\":3,\"method\":\"completionItem/resolve\",\"params\":{\"label\":\"strlen\",\"kind\":3,\"sortText\":\"b01_strlen\",\"filterText\":\"strlen\",\"insertText\":\"strlen()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"strlen\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":3402.300000011921,\"id\":3,\"result\":{\"label\":\"strlen\",\"kind\":3,\"documentation\":{\"kind\":\"markdown\",\"value\":\"Get string length\\n\\n[https://php.net/manual/en/function.strlen.php](https://php.net/manual/en/function.strlen.php)\\n\\n**$string** The string being measured for length.\\n\\n**return** `int<0, max>`  \\n    The length of the string on success, and 0 if the string is empty.\\n\\n```php\\n<?php\\nfunction strlen(string $string): int;\\n```\\n\\n🟣 `PHP`\"},\"sortText\":\"b01_strlen\",\"filterText\":\"strlen\",\"insertText\":\"strlen()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"strlen\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":4044.7000000178814,\"id\":4,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":7,\"character\":4}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":4053.5,\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":4},\"contentChanges\":[{\"text\":\"<?php\\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\\n$greeting = greetUser('A');\\n$greeter = new Greeter();\\n$number = 1;\\n$gre\"}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":4055.4000000059605,\"id\":4,\"result\":{\"isIncomplete\":false,\"items\":[{\"label\":\"strlen($string)\",\"kind\":3,\"detail\":\"int<0, max>\",\"sortText\":\"b01_strlen\",\"filterText\":\"strlen\",\"insertText\":\"strlen(${1:\\\\$string})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"strlen\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"mb_strlen\",\"kind\":3,\"sortText\":\"c01_mb_strlen\",\"filterText\":\"mb_strlen\",\"insertText\":\"mb_strlen()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"mb_strlen\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"grapheme_strlen\",\"kind\":3,\"sortText\":\"c01_grapheme_strlen\",\"filterText\":\"grapheme_strlen\",\"insertText\":\"grapheme_strlen()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"grapheme_strlen\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"iconv_strlen\",\"kind\":3,\"sortText\":\"c01_iconv_strlen\",\"filterText\":\"iconv_strlen\",\"insertText\":\"iconv_strlen()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"iconv_strlen\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":45118.20000001788,\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":5},\"contentChanges\":[{\"text\":\"<?php\\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\\n$greeting = greetUser('A');\\n$greeter = new Greeter();\\n$number = 1;\\n$greeter->\"}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":45121.60000002384,\"id\":5,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":7,\"character\":10}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":45145.70000001788,\"id\":5,\"result\":[{\"label\":\"message\",\"labelDetails\":{\"description\":\"Greeter\"},\"kind\":10,\"detail\":\"string\",\"sortText\":\"00000\",\"filterText\":\"message\",\"insertText\":\"message\",\"data\":{\"c\":\"Greeter\",\"m\":\"message\",\"k\":\"property\",\"u\":\"inmemory://model/1\"}},{\"label\":\"greet()\",\"labelDetails\":{\"description\":\"Greeter\"},\"kind\":2,\"detail\":\"string\",\"sortText\":\"00001\",\"filterText\":\"greet\",\"insertText\":\"greet()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"Greeter\",\"m\":\"greet\",\"k\":\"method\",\"u\":\"inmemory://model/1\"}}]}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":45150,\"id\":6,\"method\":\"completionItem/resolve\",\"params\":{\"label\":\"message\",\"labelDetails\":{\"description\":\"Greeter\"},\"kind\":10,\"detail\":\"string\",\"sortText\":\"00000\",\"filterText\":\"message\",\"insertText\":\"message\",\"data\":{\"c\":\"Greeter\",\"m\":\"message\",\"k\":\"property\",\"u\":\"inmemory://model/1\"}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":45155.20000001788,\"id\":6,\"result\":{\"label\":\"message\",\"labelDetails\":{\"description\":\"Greeter\"},\"kind\":10,\"detail\":\"string\",\"documentation\":{\"kind\":\"markdown\",\"value\":\"```php\\n<?php\\nclass Greeter {\\n    public string $message;\\n}\\n```\"},\"sortText\":\"00000\",\"filterText\":\"message\",\"insertText\":\"message\",\"data\":{\"c\":\"Greeter\",\"m\":\"message\",\"k\":\"property\",\"u\":\"inmemory://model/1\"}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":45433,\"id\":7,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":7,\"character\":10}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":45451.30000001192,\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":6},\"contentChanges\":[{\"text\":\"<?php\\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\\n$greeting = greetUser('A');\\n$greeter = new Greeter();\\n$number = 1;\\nGreeter::\"}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":45452.70000001788,\"id\":7,\"result\":[{\"label\":\"message\",\"labelDetails\":{\"description\":\"Greeter\"},\"kind\":10,\"detail\":\"string\",\"sortText\":\"00000\",\"filterText\":\"message\",\"insertText\":\"message\",\"data\":{\"c\":\"Greeter\",\"m\":\"message\",\"k\":\"property\",\"u\":\"inmemory://model/1\"}},{\"label\":\"greet()\",\"labelDetails\":{\"description\":\"Greeter\"},\"kind\":2,\"detail\":\"string\",\"sortText\":\"00001\",\"filterText\":\"greet\",\"insertText\":\"greet()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"Greeter\",\"m\":\"greet\",\"k\":\"method\",\"u\":\"inmemory://model/1\"}}]}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":86358.40000000596,\"id\":8,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":7,\"character\":9}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":86367.20000001788,\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":7},\"contentChanges\":[{\"text\":\"<?php\\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\\n$greeting = greetUser('A');\\n$greeter = new Greeter();\\n$number = 1;\\nnew Gre\"}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":86368.5,\"id\":9,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":7,\"character\":7}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":86369,\"id\":8,\"result\":[{\"label\":\"class\",\"kind\":14,\"detail\":\"class-string\",\"sortText\":\"00000\",\"filterText\":\"class\",\"insertText\":\"class\"}]}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":86525.70000001788,\"id\":9,\"result\":{\"isIncomplete\":false,\"items\":[{\"label\":\"Greeter\",\"kind\":7,\"detail\":\"Greeter\",\"sortText\":\"b1099990004_greeter\",\"filterText\":\"Greeter\",\"insertText\":\"Greeter()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"Greeter\",\"k\":\"class\",\"u\":\"inmemory://model/1\"}},{\"label\":\"SolrPingResponse\",\"kind\":7,\"detail\":\"SolrPingResponse\",\"sortText\":\"c1199990013_solrpingresponse\",\"filterText\":\"SolrPingResponse\",\"insertText\":\"SolrPingResponse()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"SolrPingResponse\",\"k\":\"class\",\"u\":\"inmemory://model/1\"}},{\"label\":\"IntlGregorianCalendar\",\"kind\":7,\"detail\":\"IntlGregorianCalendar\",\"sortText\":\"c1199990018_intlgregoriancalendar\",\"filterText\":\"IntlGregorianCalendar\",\"insertText\":\"IntlGregorianCalendar(${1:\\\\$timezoneOrYear}, ${2:\\\\$localeOrMonth}, ${3:\\\\$day}, ${4:\\\\$hour}, ${5:\\\\$minute}, ${6:\\\\$second})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"IntlGregorianCalendar\",\"k\":\"class\",\"u\":\"inmemory://model/1\"}},{\"label\":\"OpenSSLCertificateSigningRequest\",\"kind\":7,\"detail\":\"OpenSSLCertificateSigningRequest\",\"sortText\":\"c1199990029_opensslcertificatesigningrequest\",\"filterText\":\"OpenSSLCertificateSigningRequest\",\"insertText\":\"OpenSSLCertificateSigningRequest()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"OpenSSLCertificateSigningRequest\",\"k\":\"class\",\"u\":\"inmemory://model/1\"}},{\"label\":\"DefaultAggregate\",\"labelDetails\":{\"description\":\"Cassandra\"},\"kind\":7,\"detail\":\"Cassandra\\\\DefaultAggregate\",\"sortText\":\"c2199990013_defaultaggregate\",\"filterText\":\"DefaultAggregate\",\"insertText\":\"DefaultAggregate()$0\",\"insertTextFormat\":2,\"additionalTextEdits\":[{\"range\":{\"start\":{\"line\":1,\"character\":0},\"end\":{\"line\":1,\"character\":0}},\"newText\":\"use Cassandra\\\\DefaultAggregate;\\n\"}],\"data\":{\"c\":\"\",\"m\":\"Cassandra\\\\DefaultAggregate\",\"k\":\"class\",\"u\":\"inmemory://model/1\"}}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":127892.90000000596,\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":8},\"contentChanges\":[{\"text\":\"<?php\\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\\n$greeting = greetUser('A');\\n$greeter = new Greeter();\\n$number = 1;\\ngreetUser(\"}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":127921,\"id\":10,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":7,\"character\":10}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":127930.5,\"id\":10,\"result\":[{\"label\":\"name: string\",\"kind\":6,\"detail\":\"Named argument (optional)\",\"sortText\":\"0_000\",\"filterText\":\"name\",\"insertText\":\"name: \"}]}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":127932.30000001192,\"id\":11,\"method\":\"completionItem/resolve\",\"params\":{\"label\":\"name: string\",\"kind\":6,\"detail\":\"Named argument (optional)\",\"sortText\":\"0_000\",\"filterText\":\"name\",\"insertText\":\"name: \"}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":127932.90000000596,\"id\":11,\"result\":{\"label\":\"name: string\",\"kind\":6,\"detail\":\"Named argument (optional)\",\"sortText\":\"0_000\",\"filterText\":\"name\",\"insertText\":\"name: \"}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":128435.20000001788,\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":9},\"contentChanges\":[{\"text\":\"<?php\\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\\n$greeting = greetUser('A');\\n$greeter = new Greeter();\\n$number = 1;\\nstrlen(\"}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":128468,\"id\":12,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":7,\"character\":7}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":128480.60000002384,\"id\":12,\"result\":[{\"label\":\"string: string\",\"kind\":6,\"detail\":\"Named argument\",\"sortText\":\"0_000\",\"filterText\":\"string\",\"insertText\":\"string: \"}]}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":128482.20000001788,\"id\":13,\"method\":\"completionItem/resolve\",\"params\":{\"label\":\"string: string\",\"kind\":6,\"detail\":\"Named argument\",\"sortText\":\"0_000\",\"filterText\":\"string\",\"insertText\":\"string: \"}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":128482.70000001788,\"id\":13,\"result\":{\"label\":\"string: string\",\"kind\":6,\"detail\":\"Named argument\",\"sortText\":\"0_000\",\"filterText\":\"string\",\"insertText\":\"string: \"}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":128981.30000001192,\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":10},\"contentChanges\":[{\"text\":\"<?php\\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\\n$greeting = greetUser('A');\\n$greeter = new Greeter();\\n$number = 1;\\nstrl\"}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":129006.80000001192,\"id\":14,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":7,\"character\":4}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":129016.30000001192,\"id\":14,\"result\":{\"isIncomplete\":false,\"items\":[{\"label\":\"strlen($string)\",\"kind\":3,\"detail\":\"int<0, max>\",\"sortText\":\"b01_strlen\",\"filterText\":\"strlen\",\"insertText\":\"strlen(${1:\\\\$string})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"strlen\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"mb_strlen\",\"kind\":3,\"sortText\":\"c01_mb_strlen\",\"filterText\":\"mb_strlen\",\"insertText\":\"mb_strlen()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"mb_strlen\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"grapheme_strlen\",\"kind\":3,\"sortText\":\"c01_grapheme_strlen\",\"filterText\":\"grapheme_strlen\",\"insertText\":\"grapheme_strlen()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"grapheme_strlen\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"iconv_strlen\",\"kind\":3,\"sortText\":\"c01_iconv_strlen\",\"filterText\":\"iconv_strlen\",\"insertText\":\"iconv_strlen()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"iconv_strlen\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":129018.10000002384,\"id\":15,\"method\":\"completionItem/resolve\",\"params\":{\"label\":\"strlen($string)\",\"kind\":3,\"detail\":\"int<0, max>\",\"sortText\":\"b01_strlen\",\"filterText\":\"strlen\",\"insertText\":\"strlen(${1:\\\\$string})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"strlen\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":129019.10000002384,\"id\":15,\"result\":{\"label\":\"strlen($string)\",\"kind\":3,\"detail\":\"int<0, max>\",\"documentation\":{\"kind\":\"markdown\",\"value\":\"Get string length\\n\\n[https://php.net/manual/en/function.strlen.php](https://php.net/manual/en/function.strlen.php)\\n\\n**$string** The string being measured for length.\\n\\n**return** `int<0, max>`  \\n    The length of the string on success, and 0 if the string is empty.\\n\\n```php\\n<?php\\nfunction strlen(string $string): int;\\n```\\n\\n🟣 `PHP`\"},\"sortText\":\"b01_strlen\",\"filterText\":\"strlen\",\"insertText\":\"strlen(${1:\\\\$string})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"strlen\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":129213,\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":11},\"contentChanges\":[{\"text\":\"<?php\\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\\n$greeting = greetUser('A');\\n$greeter = new Greeter();\\n$number = 1;\\nstrlen($string)\"}]}}"
+    }
+  ],
+  "errors": [],
+  "insertion": {
+    "before": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstrl",
+    "after": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstrlen($string)",
+    "screenshot": "phpantom-insert.png"
+  },
+  "finalEvents": [
+    {
+      "direction": "ui->worker",
+      "at": 2018.2000000178814,
+      "id": 1,
+      "method": "initialize",
+      "params": {
+        "processId": null,
+        "rootUri": null,
+        "capabilities": {
+          "general": {
+            "positionEncodings": [
+              "utf-16"
+            ]
+          },
+          "textDocument": {
+            "completion": {
+              "completionItem": {
+                "snippetSupport": true
+              }
+            },
+            "hover": {
+              "contentFormat": [
+                "markdown",
+                "plaintext"
+              ]
+            }
+          }
+        },
+        "initializationOptions": {
+          "phpVersion": "8.5"
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 2385.4000000059605,
+      "id": 1,
+      "result": {
+        "capabilities": {
+          "textDocumentSync": 1,
+          "completionProvider": {
+            "triggerCharacters": [
+              ">",
+              ":",
+              "$",
+              "\\"
+            ],
+            "resolveProvider": true
+          },
+          "hoverProvider": true,
+          "definitionProvider": true,
+          "documentHighlightProvider": true,
+          "renameProvider": true,
+          "signatureHelpProvider": {
+            "triggerCharacters": [
+              "(",
+              ","
+            ]
+          }
+        },
+        "serverInfo": {
+          "name": "PHPantom",
+          "version": "0.11.1"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 2385.800000011921,
+      "method": "textDocument/didOpen",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "languageId": "php",
+          "version": 1,
+          "text": "<?php\n// example code\nphpinfo();"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 3337.4000000059605,
+      "id": 2,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 4
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 3360.5,
+      "id": 2,
+      "result": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "mb_strlen",
+            "kind": 3,
+            "sortText": "c01_mb_strlen",
+            "filterText": "mb_strlen",
+            "insertText": "mb_strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "mb_strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "grapheme_strlen",
+            "kind": 3,
+            "sortText": "c01_grapheme_strlen",
+            "filterText": "grapheme_strlen",
+            "insertText": "grapheme_strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "grapheme_strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "iconv_strlen",
+            "kind": 3,
+            "sortText": "c01_iconv_strlen",
+            "filterText": "iconv_strlen",
+            "insertText": "iconv_strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "iconv_strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "strlen",
+            "kind": 3,
+            "sortText": "b01_strlen",
+            "filterText": "strlen",
+            "insertText": "strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 3372.100000023842,
+      "id": 3,
+      "method": "completionItem/resolve",
+      "params": {
+        "label": "strlen",
+        "kind": 3,
+        "sortText": "b01_strlen",
+        "filterText": "strlen",
+        "insertText": "strlen()$0",
+        "insertTextFormat": 2,
+        "data": {
+          "c": "",
+          "m": "strlen",
+          "k": "function",
+          "u": "inmemory://model/1"
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 3402.300000011921,
+      "id": 3,
+      "result": {
+        "label": "strlen",
+        "kind": 3,
+        "documentation": {
+          "kind": "markdown",
+          "value": "Get string length\n\n[https://php.net/manual/en/function.strlen.php](https://php.net/manual/en/function.strlen.php)\n\n**$string** The string being measured for length.\n\n**return** `int<0, max>`  \n    The length of the string on success, and 0 if the string is empty.\n\n```php\n<?php\nfunction strlen(string $string): int;\n```\n\n🟣 `PHP`"
+        },
+        "sortText": "b01_strlen",
+        "filterText": "strlen",
+        "insertText": "strlen()$0",
+        "insertTextFormat": 2,
+        "data": {
+          "c": "",
+          "m": "strlen",
+          "k": "function",
+          "u": "inmemory://model/1"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 4044.7000000178814,
+      "id": 4,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 4
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 4055.4000000059605,
+      "id": 4,
+      "result": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "strlen($string)",
+            "kind": 3,
+            "detail": "int<0, max>",
+            "sortText": "b01_strlen",
+            "filterText": "strlen",
+            "insertText": "strlen(${1:\\$string})$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "mb_strlen",
+            "kind": 3,
+            "sortText": "c01_mb_strlen",
+            "filterText": "mb_strlen",
+            "insertText": "mb_strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "mb_strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "grapheme_strlen",
+            "kind": 3,
+            "sortText": "c01_grapheme_strlen",
+            "filterText": "grapheme_strlen",
+            "insertText": "grapheme_strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "grapheme_strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "iconv_strlen",
+            "kind": 3,
+            "sortText": "c01_iconv_strlen",
+            "filterText": "iconv_strlen",
+            "insertText": "iconv_strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "iconv_strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 45121.60000002384,
+      "id": 5,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 10
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 45145.70000001788,
+      "id": 5,
+      "result": [
+        {
+          "label": "message",
+          "labelDetails": {
+            "description": "Greeter"
+          },
+          "kind": 10,
+          "detail": "string",
+          "sortText": "00000",
+          "filterText": "message",
+          "insertText": "message",
+          "data": {
+            "c": "Greeter",
+            "m": "message",
+            "k": "property",
+            "u": "inmemory://model/1"
+          }
+        },
+        {
+          "label": "greet()",
+          "labelDetails": {
+            "description": "Greeter"
+          },
+          "kind": 2,
+          "detail": "string",
+          "sortText": "00001",
+          "filterText": "greet",
+          "insertText": "greet()$0",
+          "insertTextFormat": 2,
+          "data": {
+            "c": "Greeter",
+            "m": "greet",
+            "k": "method",
+            "u": "inmemory://model/1"
+          }
+        }
+      ]
+    },
+    {
+      "direction": "ui->worker",
+      "at": 45150,
+      "id": 6,
+      "method": "completionItem/resolve",
+      "params": {
+        "label": "message",
+        "labelDetails": {
+          "description": "Greeter"
+        },
+        "kind": 10,
+        "detail": "string",
+        "sortText": "00000",
+        "filterText": "message",
+        "insertText": "message",
+        "data": {
+          "c": "Greeter",
+          "m": "message",
+          "k": "property",
+          "u": "inmemory://model/1"
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 45155.20000001788,
+      "id": 6,
+      "result": {
+        "label": "message",
+        "labelDetails": {
+          "description": "Greeter"
+        },
+        "kind": 10,
+        "detail": "string",
+        "documentation": {
+          "kind": "markdown",
+          "value": "```php\n<?php\nclass Greeter {\n    public string $message;\n}\n```"
+        },
+        "sortText": "00000",
+        "filterText": "message",
+        "insertText": "message",
+        "data": {
+          "c": "Greeter",
+          "m": "message",
+          "k": "property",
+          "u": "inmemory://model/1"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 45433,
+      "id": 7,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 10
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 45452.70000001788,
+      "id": 7,
+      "result": [
+        {
+          "label": "message",
+          "labelDetails": {
+            "description": "Greeter"
+          },
+          "kind": 10,
+          "detail": "string",
+          "sortText": "00000",
+          "filterText": "message",
+          "insertText": "message",
+          "data": {
+            "c": "Greeter",
+            "m": "message",
+            "k": "property",
+            "u": "inmemory://model/1"
+          }
+        },
+        {
+          "label": "greet()",
+          "labelDetails": {
+            "description": "Greeter"
+          },
+          "kind": 2,
+          "detail": "string",
+          "sortText": "00001",
+          "filterText": "greet",
+          "insertText": "greet()$0",
+          "insertTextFormat": 2,
+          "data": {
+            "c": "Greeter",
+            "m": "greet",
+            "k": "method",
+            "u": "inmemory://model/1"
+          }
+        }
+      ]
+    },
+    {
+      "direction": "ui->worker",
+      "at": 86358.40000000596,
+      "id": 8,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 9
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 86368.5,
+      "id": 9,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 7
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 86369,
+      "id": 8,
+      "result": [
+        {
+          "label": "class",
+          "kind": 14,
+          "detail": "class-string",
+          "sortText": "00000",
+          "filterText": "class",
+          "insertText": "class"
+        }
+      ]
+    },
+    {
+      "direction": "worker->ui",
+      "at": 86525.70000001788,
+      "id": 9,
+      "result": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "Greeter",
+            "kind": 7,
+            "detail": "Greeter",
+            "sortText": "b1099990004_greeter",
+            "filterText": "Greeter",
+            "insertText": "Greeter()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "Greeter",
+              "k": "class",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "SolrPingResponse",
+            "kind": 7,
+            "detail": "SolrPingResponse",
+            "sortText": "c1199990013_solrpingresponse",
+            "filterText": "SolrPingResponse",
+            "insertText": "SolrPingResponse()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "SolrPingResponse",
+              "k": "class",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "IntlGregorianCalendar",
+            "kind": 7,
+            "detail": "IntlGregorianCalendar",
+            "sortText": "c1199990018_intlgregoriancalendar",
+            "filterText": "IntlGregorianCalendar",
+            "insertText": "IntlGregorianCalendar(${1:\\$timezoneOrYear}, ${2:\\$localeOrMonth}, ${3:\\$day}, ${4:\\$hour}, ${5:\\$minute}, ${6:\\$second})$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "IntlGregorianCalendar",
+              "k": "class",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "OpenSSLCertificateSigningRequest",
+            "kind": 7,
+            "detail": "OpenSSLCertificateSigningRequest",
+            "sortText": "c1199990029_opensslcertificatesigningrequest",
+            "filterText": "OpenSSLCertificateSigningRequest",
+            "insertText": "OpenSSLCertificateSigningRequest()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "OpenSSLCertificateSigningRequest",
+              "k": "class",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "DefaultAggregate",
+            "labelDetails": {
+              "description": "Cassandra"
+            },
+            "kind": 7,
+            "detail": "Cassandra\\DefaultAggregate",
+            "sortText": "c2199990013_defaultaggregate",
+            "filterText": "DefaultAggregate",
+            "insertText": "DefaultAggregate()$0",
+            "insertTextFormat": 2,
+            "additionalTextEdits": [
+              {
+                "range": {
+                  "start": {
+                    "line": 1,
+                    "character": 0
+                  },
+                  "end": {
+                    "line": 1,
+                    "character": 0
+                  }
+                },
+                "newText": "use Cassandra\\DefaultAggregate;\n"
+              }
+            ],
+            "data": {
+              "c": "",
+              "m": "Cassandra\\DefaultAggregate",
+              "k": "class",
+              "u": "inmemory://model/1"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 127921,
+      "id": 10,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 10
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 127930.5,
+      "id": 10,
+      "result": [
+        {
+          "label": "name: string",
+          "kind": 6,
+          "detail": "Named argument (optional)",
+          "sortText": "0_000",
+          "filterText": "name",
+          "insertText": "name: "
+        }
+      ]
+    },
+    {
+      "direction": "ui->worker",
+      "at": 127932.30000001192,
+      "id": 11,
+      "method": "completionItem/resolve",
+      "params": {
+        "label": "name: string",
+        "kind": 6,
+        "detail": "Named argument (optional)",
+        "sortText": "0_000",
+        "filterText": "name",
+        "insertText": "name: "
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 127932.90000000596,
+      "id": 11,
+      "result": {
+        "label": "name: string",
+        "kind": 6,
+        "detail": "Named argument (optional)",
+        "sortText": "0_000",
+        "filterText": "name",
+        "insertText": "name: "
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 128468,
+      "id": 12,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 7
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 128480.60000002384,
+      "id": 12,
+      "result": [
+        {
+          "label": "string: string",
+          "kind": 6,
+          "detail": "Named argument",
+          "sortText": "0_000",
+          "filterText": "string",
+          "insertText": "string: "
+        }
+      ]
+    },
+    {
+      "direction": "ui->worker",
+      "at": 128482.20000001788,
+      "id": 13,
+      "method": "completionItem/resolve",
+      "params": {
+        "label": "string: string",
+        "kind": 6,
+        "detail": "Named argument",
+        "sortText": "0_000",
+        "filterText": "string",
+        "insertText": "string: "
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 128482.70000001788,
+      "id": 13,
+      "result": {
+        "label": "string: string",
+        "kind": 6,
+        "detail": "Named argument",
+        "sortText": "0_000",
+        "filterText": "string",
+        "insertText": "string: "
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 129006.80000001192,
+      "id": 14,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 4
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 129016.30000001192,
+      "id": 14,
+      "result": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "strlen($string)",
+            "kind": 3,
+            "detail": "int<0, max>",
+            "sortText": "b01_strlen",
+            "filterText": "strlen",
+            "insertText": "strlen(${1:\\$string})$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "mb_strlen",
+            "kind": 3,
+            "sortText": "c01_mb_strlen",
+            "filterText": "mb_strlen",
+            "insertText": "mb_strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "mb_strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "grapheme_strlen",
+            "kind": 3,
+            "sortText": "c01_grapheme_strlen",
+            "filterText": "grapheme_strlen",
+            "insertText": "grapheme_strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "grapheme_strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          },
+          {
+            "label": "iconv_strlen",
+            "kind": 3,
+            "sortText": "c01_iconv_strlen",
+            "filterText": "iconv_strlen",
+            "insertText": "iconv_strlen()$0",
+            "insertTextFormat": 2,
+            "data": {
+              "c": "",
+              "m": "iconv_strlen",
+              "k": "function",
+              "u": "inmemory://model/1"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 129018.10000002384,
+      "id": 15,
+      "method": "completionItem/resolve",
+      "params": {
+        "label": "strlen($string)",
+        "kind": 3,
+        "detail": "int<0, max>",
+        "sortText": "b01_strlen",
+        "filterText": "strlen",
+        "insertText": "strlen(${1:\\$string})$0",
+        "insertTextFormat": 2,
+        "data": {
+          "c": "",
+          "m": "strlen",
+          "k": "function",
+          "u": "inmemory://model/1"
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 129019.10000002384,
+      "id": 15,
+      "result": {
+        "label": "strlen($string)",
+        "kind": 3,
+        "detail": "int<0, max>",
+        "documentation": {
+          "kind": "markdown",
+          "value": "Get string length\n\n[https://php.net/manual/en/function.strlen.php](https://php.net/manual/en/function.strlen.php)\n\n**$string** The string being measured for length.\n\n**return** `int<0, max>`  \n    The length of the string on success, and 0 if the string is empty.\n\n```php\n<?php\nfunction strlen(string $string): int;\n```\n\n🟣 `PHP`"
+        },
+        "sortText": "b01_strlen",
+        "filterText": "strlen",
+        "insertText": "strlen(${1:\\$string})$0",
+        "insertTextFormat": 2,
+        "data": {
+          "c": "",
+          "m": "strlen",
+          "k": "function",
+          "u": "inmemory://model/1"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "app": "phpantom",
+  "runId": "2026-10-25T12-25-57-915Z",
+  "browser": "156.0.8078.47",
+  "url": "http://127.0.0.1:7260/?c=DwfgDgFmBQD0sAICmAPAhgWzAGyQgxgPYAmS0kYAlgHYBmhAFAJQDcQA&v=8.5&f=html",
+  "phpVersion": "8.5",
+  "completionWasOn": false,
+  "completionAfter": false,
+  "fixture": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nnew Gre",
+  "rows": [
+    "Greeter",
+    "greet",
+    "greetUser",
+    "$greeter",
+    "$greeting"
+  ],
+  "observedJsonRpcMessages": [],
+  "screenshot": "completion-off-new-gre.png",
+  "interpretation": "Diagnostic condition with LSP Completion disabled; this is separate from the original LSP-on results."
+}

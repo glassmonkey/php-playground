@@ -1,0 +1,3529 @@
+{
+  "app": "phpactor",
+  "url": "http://127.0.0.1:3471/",
+  "startedAt": "2026-10-25T12:05:28.472Z",
+  "browser": "156.0.8078.47",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "instrumentation": "Playwright isolated BrowserContext; Worker postMessage/request-response timestamps (performance.now)",
+  "statusAtReady": [],
+  "initialCode": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n$number->\n",
+  "scenarios": [
+    {
+      "name": "builtin-strl",
+      "visible": true,
+      "rows": [
+        {
+          "label": "strlen, Function",
+          "text": "strlen\nstrlen(string $string): int<0, max>",
+          "selected": null
+        }
+      ],
+      "screenshot": "phpactor-builtin-strl.png",
+      "events": [
+        {
+          "direction": "ui->worker",
+          "at": 3140.5,
+          "id": 1,
+          "method": "initialize",
+          "params": {
+            "processId": null,
+            "rootUri": null,
+            "capabilities": {
+              "general": {
+                "positionEncodings": [
+                  "utf-16"
+                ]
+              },
+              "textDocument": {
+                "completion": {
+                  "completionItem": {
+                    "snippetSupport": true
+                  }
+                },
+                "hover": {
+                  "contentFormat": [
+                    "markdown",
+                    "plaintext"
+                  ]
+                }
+              }
+            },
+            "initializationOptions": {
+              "phpVersion": "8.5"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 3511.399999976158,
+          "id": 1,
+          "result": {
+            "capabilities": {
+              "textDocumentSync": {
+                "openClose": true,
+                "change": 1
+              },
+              "completionProvider": {
+                "resolveProvider": false,
+                "triggerCharacters": [
+                  "$",
+                  ">",
+                  ":"
+                ]
+              },
+              "signatureHelpProvider": {
+                "triggerCharacters": [
+                  "(",
+                  ","
+                ]
+              },
+              "hoverProvider": true
+            },
+            "serverInfo": {
+              "name": "phpactor-wasm",
+              "version": "2026.10.07.0"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 3511.7999999821186,
+          "method": "textDocument/didOpen",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1",
+              "languageId": "php",
+              "version": 1,
+              "text": "<?php\n// example code\nphpinfo();"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 4358.0999999940395,
+          "id": 2,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 4722.0999999940395,
+          "id": 2,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "strlen",
+                "insertText": "strlen(${1:\\$string})${0}",
+                "detail": "strlen(string $string): int<0, max>",
+                "documentation": "\n\n\nGet string length\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "class ",
+                "insertText": "class ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "enum ",
+                "insertText": "enum ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "trait ",
+                "insertText": "trait ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "function ",
+                "insertText": "function ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "interface ",
+                "insertText": "interface ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 4734.199999988079,
+          "id": 3,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "strlen",
+            "insertText": "strlen(${1:\\$string})${0}",
+            "detail": "strlen(string $string): int<0, max>",
+            "documentation": "\n\n\nGet string length\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 4743.899999976158,
+          "id": 3,
+          "result": {
+            "label": "strlen",
+            "insertText": "strlen(${1:\\$string})${0}",
+            "detail": "strlen(string $string): int<0, max>",
+            "documentation": "\n\n\nGet string length\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          }
+        }
+      ],
+      "invocationToRowsMs": 606,
+      "rpcRoundTripMs": 364,
+      "requestId": 2
+    },
+    {
+      "name": "local-gre",
+      "visible": false,
+      "rows": [],
+      "screenshot": "phpactor-local-gre.png",
+      "events": [
+        {
+          "direction": "ui->worker",
+          "at": 3140.5,
+          "id": 1,
+          "method": "initialize",
+          "params": {
+            "processId": null,
+            "rootUri": null,
+            "capabilities": {
+              "general": {
+                "positionEncodings": [
+                  "utf-16"
+                ]
+              },
+              "textDocument": {
+                "completion": {
+                  "completionItem": {
+                    "snippetSupport": true
+                  }
+                },
+                "hover": {
+                  "contentFormat": [
+                    "markdown",
+                    "plaintext"
+                  ]
+                }
+              }
+            },
+            "initializationOptions": {
+              "phpVersion": "8.5"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 3511.399999976158,
+          "id": 1,
+          "result": {
+            "capabilities": {
+              "textDocumentSync": {
+                "openClose": true,
+                "change": 1
+              },
+              "completionProvider": {
+                "resolveProvider": false,
+                "triggerCharacters": [
+                  "$",
+                  ">",
+                  ":"
+                ]
+              },
+              "signatureHelpProvider": {
+                "triggerCharacters": [
+                  "(",
+                  ","
+                ]
+              },
+              "hoverProvider": true
+            },
+            "serverInfo": {
+              "name": "phpactor-wasm",
+              "version": "2026.10.07.0"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 3511.7999999821186,
+          "method": "textDocument/didOpen",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1",
+              "languageId": "php",
+              "version": 1,
+              "text": "<?php\n// example code\nphpinfo();"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 4358.0999999940395,
+          "id": 2,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 4722.0999999940395,
+          "id": 2,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "strlen",
+                "insertText": "strlen(${1:\\$string})${0}",
+                "detail": "strlen(string $string): int<0, max>",
+                "documentation": "\n\n\nGet string length\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "class ",
+                "insertText": "class ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "enum ",
+                "insertText": "enum ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "trait ",
+                "insertText": "trait ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "function ",
+                "insertText": "function ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "interface ",
+                "insertText": "interface ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 4734.199999988079,
+          "id": 3,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "strlen",
+            "insertText": "strlen(${1:\\$string})${0}",
+            "detail": "strlen(string $string): int<0, max>",
+            "documentation": "\n\n\nGet string length\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 4743.899999976158,
+          "id": 3,
+          "result": {
+            "label": "strlen",
+            "insertText": "strlen(${1:\\$string})${0}",
+            "detail": "strlen(string $string): int<0, max>",
+            "documentation": "\n\n\nGet string length\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 5063.0999999940395,
+          "id": 4,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 5252.799999982119,
+          "id": 4,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "strlen",
+                "insertText": "strlen(${1:\\$string})${0}",
+                "detail": "strlen(string $string): int<0, max>",
+                "documentation": "\n\n\nGet string length\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "class ",
+                "insertText": "class ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "enum ",
+                "insertText": "enum ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "trait ",
+                "insertText": "trait ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "function ",
+                "insertText": "function ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "interface ",
+                "insertText": "interface ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              }
+            ]
+          }
+        }
+      ],
+      "invocationToRowsMs": null,
+      "rpcRoundTripMs": 189.69999998807907,
+      "requestId": 4
+    },
+    {
+      "name": "variable-member",
+      "visible": true,
+      "rows": [
+        {
+          "label": "greet, Method",
+          "text": "greet\npub greet(): string",
+          "selected": null
+        },
+        {
+          "label": "message, Property",
+          "text": "message",
+          "selected": null
+        }
+      ],
+      "screenshot": "phpactor-variable-member.png",
+      "events": [
+        {
+          "direction": "ui->worker",
+          "at": 3140.5,
+          "id": 1,
+          "method": "initialize",
+          "params": {
+            "processId": null,
+            "rootUri": null,
+            "capabilities": {
+              "general": {
+                "positionEncodings": [
+                  "utf-16"
+                ]
+              },
+              "textDocument": {
+                "completion": {
+                  "completionItem": {
+                    "snippetSupport": true
+                  }
+                },
+                "hover": {
+                  "contentFormat": [
+                    "markdown",
+                    "plaintext"
+                  ]
+                }
+              }
+            },
+            "initializationOptions": {
+              "phpVersion": "8.5"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 3511.399999976158,
+          "id": 1,
+          "result": {
+            "capabilities": {
+              "textDocumentSync": {
+                "openClose": true,
+                "change": 1
+              },
+              "completionProvider": {
+                "resolveProvider": false,
+                "triggerCharacters": [
+                  "$",
+                  ">",
+                  ":"
+                ]
+              },
+              "signatureHelpProvider": {
+                "triggerCharacters": [
+                  "(",
+                  ","
+                ]
+              },
+              "hoverProvider": true
+            },
+            "serverInfo": {
+              "name": "phpactor-wasm",
+              "version": "2026.10.07.0"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 3511.7999999821186,
+          "method": "textDocument/didOpen",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1",
+              "languageId": "php",
+              "version": 1,
+              "text": "<?php\n// example code\nphpinfo();"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 4358.0999999940395,
+          "id": 2,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 4722.0999999940395,
+          "id": 2,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "strlen",
+                "insertText": "strlen(${1:\\$string})${0}",
+                "detail": "strlen(string $string): int<0, max>",
+                "documentation": "\n\n\nGet string length\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "class ",
+                "insertText": "class ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "enum ",
+                "insertText": "enum ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "trait ",
+                "insertText": "trait ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "function ",
+                "insertText": "function ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "interface ",
+                "insertText": "interface ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 4734.199999988079,
+          "id": 3,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "strlen",
+            "insertText": "strlen(${1:\\$string})${0}",
+            "detail": "strlen(string $string): int<0, max>",
+            "documentation": "\n\n\nGet string length\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 4743.899999976158,
+          "id": 3,
+          "result": {
+            "label": "strlen",
+            "insertText": "strlen(${1:\\$string})${0}",
+            "detail": "strlen(string $string): int<0, max>",
+            "documentation": "\n\n\nGet string length\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 5063.0999999940395,
+          "id": 4,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 5252.799999982119,
+          "id": 4,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "strlen",
+                "insertText": "strlen(${1:\\$string})${0}",
+                "detail": "strlen(string $string): int<0, max>",
+                "documentation": "\n\n\nGet string length\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "class ",
+                "insertText": "class ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "enum ",
+                "insertText": "enum ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "trait ",
+                "insertText": "trait ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "function ",
+                "insertText": "function ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "interface ",
+                "insertText": "interface ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 46028.39999997616,
+          "id": 5,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 10
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 46273.29999998212,
+          "id": 5,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "greet",
+                "insertText": "greet()",
+                "detail": "pub greet(): string",
+                "documentation": "### Greeter::greet\n\n```php\n<?php public function greet(): string\n```",
+                "kind": 2,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "message",
+                "insertText": "message",
+                "detail": "pub $message: string",
+                "documentation": "### Greeter::message\n\n```php\n<?php public string $message;\n```",
+                "kind": 10
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 46276.89999997616,
+          "id": 6,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "greet",
+            "insertText": "greet()",
+            "detail": "pub greet(): string",
+            "documentation": "### Greeter::greet\n\n```php\n<?php public function greet(): string\n```",
+            "kind": 2,
+            "insertTextFormat": 2
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 46277.69999998808,
+          "id": 6,
+          "result": {
+            "label": "greet",
+            "insertText": "greet()",
+            "detail": "pub greet(): string",
+            "documentation": "### Greeter::greet\n\n```php\n<?php public function greet(): string\n```",
+            "kind": 2,
+            "insertTextFormat": 2
+          }
+        }
+      ],
+      "invocationToRowsMs": 405,
+      "rpcRoundTripMs": 244.90000000596046,
+      "requestId": 5
+    },
+    {
+      "name": "class-static",
+      "visible": true,
+      "rows": [
+        {
+          "label": "class, Constant",
+          "text": "class\nGreeter",
+          "selected": null
+        }
+      ],
+      "screenshot": "phpactor-class-static.png",
+      "events": [
+        {
+          "direction": "ui->worker",
+          "at": 3140.5,
+          "id": 1,
+          "method": "initialize",
+          "params": {
+            "processId": null,
+            "rootUri": null,
+            "capabilities": {
+              "general": {
+                "positionEncodings": [
+                  "utf-16"
+                ]
+              },
+              "textDocument": {
+                "completion": {
+                  "completionItem": {
+                    "snippetSupport": true
+                  }
+                },
+                "hover": {
+                  "contentFormat": [
+                    "markdown",
+                    "plaintext"
+                  ]
+                }
+              }
+            },
+            "initializationOptions": {
+              "phpVersion": "8.5"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 3511.399999976158,
+          "id": 1,
+          "result": {
+            "capabilities": {
+              "textDocumentSync": {
+                "openClose": true,
+                "change": 1
+              },
+              "completionProvider": {
+                "resolveProvider": false,
+                "triggerCharacters": [
+                  "$",
+                  ">",
+                  ":"
+                ]
+              },
+              "signatureHelpProvider": {
+                "triggerCharacters": [
+                  "(",
+                  ","
+                ]
+              },
+              "hoverProvider": true
+            },
+            "serverInfo": {
+              "name": "phpactor-wasm",
+              "version": "2026.10.07.0"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 3511.7999999821186,
+          "method": "textDocument/didOpen",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1",
+              "languageId": "php",
+              "version": 1,
+              "text": "<?php\n// example code\nphpinfo();"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 4358.0999999940395,
+          "id": 2,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 4722.0999999940395,
+          "id": 2,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "strlen",
+                "insertText": "strlen(${1:\\$string})${0}",
+                "detail": "strlen(string $string): int<0, max>",
+                "documentation": "\n\n\nGet string length\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "class ",
+                "insertText": "class ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "enum ",
+                "insertText": "enum ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "trait ",
+                "insertText": "trait ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "function ",
+                "insertText": "function ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "interface ",
+                "insertText": "interface ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 4734.199999988079,
+          "id": 3,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "strlen",
+            "insertText": "strlen(${1:\\$string})${0}",
+            "detail": "strlen(string $string): int<0, max>",
+            "documentation": "\n\n\nGet string length\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 4743.899999976158,
+          "id": 3,
+          "result": {
+            "label": "strlen",
+            "insertText": "strlen(${1:\\$string})${0}",
+            "detail": "strlen(string $string): int<0, max>",
+            "documentation": "\n\n\nGet string length\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 5063.0999999940395,
+          "id": 4,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 5252.799999982119,
+          "id": 4,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "strlen",
+                "insertText": "strlen(${1:\\$string})${0}",
+                "detail": "strlen(string $string): int<0, max>",
+                "documentation": "\n\n\nGet string length\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "class ",
+                "insertText": "class ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "enum ",
+                "insertText": "enum ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "trait ",
+                "insertText": "trait ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "function ",
+                "insertText": "function ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "interface ",
+                "insertText": "interface ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 46028.39999997616,
+          "id": 5,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 10
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 46273.29999998212,
+          "id": 5,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "greet",
+                "insertText": "greet()",
+                "detail": "pub greet(): string",
+                "documentation": "### Greeter::greet\n\n```php\n<?php public function greet(): string\n```",
+                "kind": 2,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "message",
+                "insertText": "message",
+                "detail": "pub $message: string",
+                "documentation": "### Greeter::message\n\n```php\n<?php public string $message;\n```",
+                "kind": 10
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 46276.89999997616,
+          "id": 6,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "greet",
+            "insertText": "greet()",
+            "detail": "pub greet(): string",
+            "documentation": "### Greeter::greet\n\n```php\n<?php public function greet(): string\n```",
+            "kind": 2,
+            "insertTextFormat": 2
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 46277.69999998808,
+          "id": 6,
+          "result": {
+            "label": "greet",
+            "insertText": "greet()",
+            "detail": "pub greet(): string",
+            "documentation": "### Greeter::greet\n\n```php\n<?php public function greet(): string\n```",
+            "kind": 2,
+            "insertTextFormat": 2
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 46548.09999999404,
+          "id": 7,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 9
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 46725.89999997616,
+          "id": 7,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "class",
+                "insertText": "class",
+                "detail": "Greeter",
+                "documentation": "",
+                "kind": 21
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 46728.39999997616,
+          "id": 8,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "class",
+            "insertText": "class",
+            "detail": "Greeter",
+            "documentation": "",
+            "kind": 21
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 46729,
+          "id": 8,
+          "result": {
+            "label": "class",
+            "insertText": "class",
+            "detail": "Greeter",
+            "documentation": "",
+            "kind": 21
+          }
+        }
+      ],
+      "invocationToRowsMs": 283,
+      "rpcRoundTripMs": 177.7999999821186,
+      "requestId": 7
+    },
+    {
+      "name": "new-class",
+      "visible": true,
+      "rows": [],
+      "screenshot": "phpactor-new-class.png",
+      "events": [
+        {
+          "direction": "ui->worker",
+          "at": 3140.5,
+          "id": 1,
+          "method": "initialize",
+          "params": {
+            "processId": null,
+            "rootUri": null,
+            "capabilities": {
+              "general": {
+                "positionEncodings": [
+                  "utf-16"
+                ]
+              },
+              "textDocument": {
+                "completion": {
+                  "completionItem": {
+                    "snippetSupport": true
+                  }
+                },
+                "hover": {
+                  "contentFormat": [
+                    "markdown",
+                    "plaintext"
+                  ]
+                }
+              }
+            },
+            "initializationOptions": {
+              "phpVersion": "8.5"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 3511.399999976158,
+          "id": 1,
+          "result": {
+            "capabilities": {
+              "textDocumentSync": {
+                "openClose": true,
+                "change": 1
+              },
+              "completionProvider": {
+                "resolveProvider": false,
+                "triggerCharacters": [
+                  "$",
+                  ">",
+                  ":"
+                ]
+              },
+              "signatureHelpProvider": {
+                "triggerCharacters": [
+                  "(",
+                  ","
+                ]
+              },
+              "hoverProvider": true
+            },
+            "serverInfo": {
+              "name": "phpactor-wasm",
+              "version": "2026.10.07.0"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 3511.7999999821186,
+          "method": "textDocument/didOpen",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1",
+              "languageId": "php",
+              "version": 1,
+              "text": "<?php\n// example code\nphpinfo();"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 4358.0999999940395,
+          "id": 2,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 4722.0999999940395,
+          "id": 2,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "strlen",
+                "insertText": "strlen(${1:\\$string})${0}",
+                "detail": "strlen(string $string): int<0, max>",
+                "documentation": "\n\n\nGet string length\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "class ",
+                "insertText": "class ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "enum ",
+                "insertText": "enum ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "trait ",
+                "insertText": "trait ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "function ",
+                "insertText": "function ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "interface ",
+                "insertText": "interface ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 4734.199999988079,
+          "id": 3,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "strlen",
+            "insertText": "strlen(${1:\\$string})${0}",
+            "detail": "strlen(string $string): int<0, max>",
+            "documentation": "\n\n\nGet string length\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 4743.899999976158,
+          "id": 3,
+          "result": {
+            "label": "strlen",
+            "insertText": "strlen(${1:\\$string})${0}",
+            "detail": "strlen(string $string): int<0, max>",
+            "documentation": "\n\n\nGet string length\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 5063.0999999940395,
+          "id": 4,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 5252.799999982119,
+          "id": 4,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "strlen",
+                "insertText": "strlen(${1:\\$string})${0}",
+                "detail": "strlen(string $string): int<0, max>",
+                "documentation": "\n\n\nGet string length\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "class ",
+                "insertText": "class ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "enum ",
+                "insertText": "enum ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "trait ",
+                "insertText": "trait ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "function ",
+                "insertText": "function ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "interface ",
+                "insertText": "interface ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 46028.39999997616,
+          "id": 5,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 10
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 46273.29999998212,
+          "id": 5,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "greet",
+                "insertText": "greet()",
+                "detail": "pub greet(): string",
+                "documentation": "### Greeter::greet\n\n```php\n<?php public function greet(): string\n```",
+                "kind": 2,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "message",
+                "insertText": "message",
+                "detail": "pub $message: string",
+                "documentation": "### Greeter::message\n\n```php\n<?php public string $message;\n```",
+                "kind": 10
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 46276.89999997616,
+          "id": 6,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "greet",
+            "insertText": "greet()",
+            "detail": "pub greet(): string",
+            "documentation": "### Greeter::greet\n\n```php\n<?php public function greet(): string\n```",
+            "kind": 2,
+            "insertTextFormat": 2
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 46277.69999998808,
+          "id": 6,
+          "result": {
+            "label": "greet",
+            "insertText": "greet()",
+            "detail": "pub greet(): string",
+            "documentation": "### Greeter::greet\n\n```php\n<?php public function greet(): string\n```",
+            "kind": 2,
+            "insertTextFormat": 2
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 46548.09999999404,
+          "id": 7,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 9
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 46725.89999997616,
+          "id": 7,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "class",
+                "insertText": "class",
+                "detail": "Greeter",
+                "documentation": "",
+                "kind": 21
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 46728.39999997616,
+          "id": 8,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "class",
+            "insertText": "class",
+            "detail": "Greeter",
+            "documentation": "",
+            "kind": 21
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 46729,
+          "id": 8,
+          "result": {
+            "label": "class",
+            "insertText": "class",
+            "detail": "Greeter",
+            "documentation": "",
+            "kind": 21
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 46946.89999997616,
+          "id": 9,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 9
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 46977.09999999404,
+          "id": 10,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 7
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 47116.69999998808,
+          "id": 9,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "class",
+                "insertText": "class",
+                "detail": "Greeter",
+                "documentation": "",
+                "kind": 21
+              }
+            ]
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 47322.09999999404,
+          "id": 10,
+          "result": {
+            "isIncomplete": false,
+            "items": []
+          }
+        }
+      ],
+      "invocationToRowsMs": null,
+      "rpcRoundTripMs": 345,
+      "requestId": 10
+    },
+    {
+      "name": "local-function",
+      "visible": true,
+      "rows": [
+        {
+          "label": "$greeting, Variable",
+          "text": "$greeting\nstring => param #1 string $name = 'Guest'",
+          "selected": null
+        },
+        {
+          "label": "name: , Field",
+          "text": "name: ",
+          "selected": null
+        }
+      ],
+      "screenshot": "phpactor-local-function.png",
+      "events": [
+        {
+          "direction": "ui->worker",
+          "at": 3140.5,
+          "id": 1,
+          "method": "initialize",
+          "params": {
+            "processId": null,
+            "rootUri": null,
+            "capabilities": {
+              "general": {
+                "positionEncodings": [
+                  "utf-16"
+                ]
+              },
+              "textDocument": {
+                "completion": {
+                  "completionItem": {
+                    "snippetSupport": true
+                  }
+                },
+                "hover": {
+                  "contentFormat": [
+                    "markdown",
+                    "plaintext"
+                  ]
+                }
+              }
+            },
+            "initializationOptions": {
+              "phpVersion": "8.5"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 3511.399999976158,
+          "id": 1,
+          "result": {
+            "capabilities": {
+              "textDocumentSync": {
+                "openClose": true,
+                "change": 1
+              },
+              "completionProvider": {
+                "resolveProvider": false,
+                "triggerCharacters": [
+                  "$",
+                  ">",
+                  ":"
+                ]
+              },
+              "signatureHelpProvider": {
+                "triggerCharacters": [
+                  "(",
+                  ","
+                ]
+              },
+              "hoverProvider": true
+            },
+            "serverInfo": {
+              "name": "phpactor-wasm",
+              "version": "2026.10.07.0"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 3511.7999999821186,
+          "method": "textDocument/didOpen",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1",
+              "languageId": "php",
+              "version": 1,
+              "text": "<?php\n// example code\nphpinfo();"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 4358.0999999940395,
+          "id": 2,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 4722.0999999940395,
+          "id": 2,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "strlen",
+                "insertText": "strlen(${1:\\$string})${0}",
+                "detail": "strlen(string $string): int<0, max>",
+                "documentation": "\n\n\nGet string length\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "class ",
+                "insertText": "class ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "enum ",
+                "insertText": "enum ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "trait ",
+                "insertText": "trait ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "function ",
+                "insertText": "function ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "interface ",
+                "insertText": "interface ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 4734.199999988079,
+          "id": 3,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "strlen",
+            "insertText": "strlen(${1:\\$string})${0}",
+            "detail": "strlen(string $string): int<0, max>",
+            "documentation": "\n\n\nGet string length\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 4743.899999976158,
+          "id": 3,
+          "result": {
+            "label": "strlen",
+            "insertText": "strlen(${1:\\$string})${0}",
+            "detail": "strlen(string $string): int<0, max>",
+            "documentation": "\n\n\nGet string length\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 5063.0999999940395,
+          "id": 4,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 5252.799999982119,
+          "id": 4,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "strlen",
+                "insertText": "strlen(${1:\\$string})${0}",
+                "detail": "strlen(string $string): int<0, max>",
+                "documentation": "\n\n\nGet string length\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "class ",
+                "insertText": "class ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "enum ",
+                "insertText": "enum ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "trait ",
+                "insertText": "trait ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "function ",
+                "insertText": "function ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "interface ",
+                "insertText": "interface ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 46028.39999997616,
+          "id": 5,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 10
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 46273.29999998212,
+          "id": 5,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "greet",
+                "insertText": "greet()",
+                "detail": "pub greet(): string",
+                "documentation": "### Greeter::greet\n\n```php\n<?php public function greet(): string\n```",
+                "kind": 2,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "message",
+                "insertText": "message",
+                "detail": "pub $message: string",
+                "documentation": "### Greeter::message\n\n```php\n<?php public string $message;\n```",
+                "kind": 10
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 46276.89999997616,
+          "id": 6,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "greet",
+            "insertText": "greet()",
+            "detail": "pub greet(): string",
+            "documentation": "### Greeter::greet\n\n```php\n<?php public function greet(): string\n```",
+            "kind": 2,
+            "insertTextFormat": 2
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 46277.69999998808,
+          "id": 6,
+          "result": {
+            "label": "greet",
+            "insertText": "greet()",
+            "detail": "pub greet(): string",
+            "documentation": "### Greeter::greet\n\n```php\n<?php public function greet(): string\n```",
+            "kind": 2,
+            "insertTextFormat": 2
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 46548.09999999404,
+          "id": 7,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 9
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 46725.89999997616,
+          "id": 7,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "class",
+                "insertText": "class",
+                "detail": "Greeter",
+                "documentation": "",
+                "kind": 21
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 46728.39999997616,
+          "id": 8,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "class",
+            "insertText": "class",
+            "detail": "Greeter",
+            "documentation": "",
+            "kind": 21
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 46729,
+          "id": 8,
+          "result": {
+            "label": "class",
+            "insertText": "class",
+            "detail": "Greeter",
+            "documentation": "",
+            "kind": 21
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 46946.89999997616,
+          "id": 9,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 9
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 46977.09999999404,
+          "id": 10,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 7
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 47116.69999998808,
+          "id": 9,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "class",
+                "insertText": "class",
+                "detail": "Greeter",
+                "documentation": "",
+                "kind": 21
+              }
+            ]
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 47322.09999999404,
+          "id": 10,
+          "result": {
+            "isIncomplete": false,
+            "items": []
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 87760,
+          "id": 11,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 10
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 87911.79999998212,
+          "id": 11,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "$greeting",
+                "insertText": "$greeting",
+                "detail": "string => param #1 string $name = 'Guest'",
+                "documentation": "",
+                "kind": 6
+              },
+              {
+                "label": "name: ",
+                "insertText": "name: ",
+                "detail": "string $name = 'Guest'",
+                "documentation": "",
+                "kind": 5
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 87915.19999998808,
+          "id": 12,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "$greeting",
+            "insertText": "$greeting",
+            "detail": "string => param #1 string $name = 'Guest'",
+            "documentation": "",
+            "kind": 6
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 87918.59999999404,
+          "id": 12,
+          "result": {
+            "label": "$greeting",
+            "insertText": "$greeting",
+            "detail": "string => param #1 string $name = 'Guest'",
+            "documentation": "",
+            "kind": 6
+          }
+        }
+      ],
+      "invocationToRowsMs": 244,
+      "rpcRoundTripMs": 151.7999999821186,
+      "requestId": 11
+    },
+    {
+      "name": "builtin-signature",
+      "visible": true,
+      "rows": [
+        {
+          "label": "$greeting, Variable",
+          "text": "$greeting\nstring => param #1 string $string",
+          "selected": null
+        },
+        {
+          "label": "string: , Field",
+          "text": "string: ",
+          "selected": null
+        }
+      ],
+      "screenshot": "phpactor-builtin-signature.png",
+      "events": [
+        {
+          "direction": "ui->worker",
+          "at": 3140.5,
+          "id": 1,
+          "method": "initialize",
+          "params": {
+            "processId": null,
+            "rootUri": null,
+            "capabilities": {
+              "general": {
+                "positionEncodings": [
+                  "utf-16"
+                ]
+              },
+              "textDocument": {
+                "completion": {
+                  "completionItem": {
+                    "snippetSupport": true
+                  }
+                },
+                "hover": {
+                  "contentFormat": [
+                    "markdown",
+                    "plaintext"
+                  ]
+                }
+              }
+            },
+            "initializationOptions": {
+              "phpVersion": "8.5"
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 3511.399999976158,
+          "id": 1,
+          "result": {
+            "capabilities": {
+              "textDocumentSync": {
+                "openClose": true,
+                "change": 1
+              },
+              "completionProvider": {
+                "resolveProvider": false,
+                "triggerCharacters": [
+                  "$",
+                  ">",
+                  ":"
+                ]
+              },
+              "signatureHelpProvider": {
+                "triggerCharacters": [
+                  "(",
+                  ","
+                ]
+              },
+              "hoverProvider": true
+            },
+            "serverInfo": {
+              "name": "phpactor-wasm",
+              "version": "2026.10.07.0"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 3511.7999999821186,
+          "method": "textDocument/didOpen",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1",
+              "languageId": "php",
+              "version": 1,
+              "text": "<?php\n// example code\nphpinfo();"
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 4358.0999999940395,
+          "id": 2,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 4722.0999999940395,
+          "id": 2,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "strlen",
+                "insertText": "strlen(${1:\\$string})${0}",
+                "detail": "strlen(string $string): int<0, max>",
+                "documentation": "\n\n\nGet string length\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "class ",
+                "insertText": "class ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "enum ",
+                "insertText": "enum ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "trait ",
+                "insertText": "trait ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "function ",
+                "insertText": "function ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "interface ",
+                "insertText": "interface ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 4734.199999988079,
+          "id": 3,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "strlen",
+            "insertText": "strlen(${1:\\$string})${0}",
+            "detail": "strlen(string $string): int<0, max>",
+            "documentation": "\n\n\nGet string length\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 4743.899999976158,
+          "id": 3,
+          "result": {
+            "label": "strlen",
+            "insertText": "strlen(${1:\\$string})${0}",
+            "detail": "strlen(string $string): int<0, max>",
+            "documentation": "\n\n\nGet string length\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 5063.0999999940395,
+          "id": 4,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 5252.799999982119,
+          "id": 4,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "strlen",
+                "insertText": "strlen(${1:\\$string})${0}",
+                "detail": "strlen(string $string): int<0, max>",
+                "documentation": "\n\n\nGet string length\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "class ",
+                "insertText": "class ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "enum ",
+                "insertText": "enum ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "trait ",
+                "insertText": "trait ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "function ",
+                "insertText": "function ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "interface ",
+                "insertText": "interface ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 46028.39999997616,
+          "id": 5,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 10
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 46273.29999998212,
+          "id": 5,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "greet",
+                "insertText": "greet()",
+                "detail": "pub greet(): string",
+                "documentation": "### Greeter::greet\n\n```php\n<?php public function greet(): string\n```",
+                "kind": 2,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "message",
+                "insertText": "message",
+                "detail": "pub $message: string",
+                "documentation": "### Greeter::message\n\n```php\n<?php public string $message;\n```",
+                "kind": 10
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 46276.89999997616,
+          "id": 6,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "greet",
+            "insertText": "greet()",
+            "detail": "pub greet(): string",
+            "documentation": "### Greeter::greet\n\n```php\n<?php public function greet(): string\n```",
+            "kind": 2,
+            "insertTextFormat": 2
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 46277.69999998808,
+          "id": 6,
+          "result": {
+            "label": "greet",
+            "insertText": "greet()",
+            "detail": "pub greet(): string",
+            "documentation": "### Greeter::greet\n\n```php\n<?php public function greet(): string\n```",
+            "kind": 2,
+            "insertTextFormat": 2
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 46548.09999999404,
+          "id": 7,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 9
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 46725.89999997616,
+          "id": 7,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "class",
+                "insertText": "class",
+                "detail": "Greeter",
+                "documentation": "",
+                "kind": 21
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 46728.39999997616,
+          "id": 8,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "class",
+            "insertText": "class",
+            "detail": "Greeter",
+            "documentation": "",
+            "kind": 21
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 46729,
+          "id": 8,
+          "result": {
+            "label": "class",
+            "insertText": "class",
+            "detail": "Greeter",
+            "documentation": "",
+            "kind": 21
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 46946.89999997616,
+          "id": 9,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 9
+            }
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 46977.09999999404,
+          "id": 10,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 7
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 47116.69999998808,
+          "id": 9,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "class",
+                "insertText": "class",
+                "detail": "Greeter",
+                "documentation": "",
+                "kind": 21
+              }
+            ]
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 47322.09999999404,
+          "id": 10,
+          "result": {
+            "isIncomplete": false,
+            "items": []
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 87760,
+          "id": 11,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 10
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 87911.79999998212,
+          "id": 11,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "$greeting",
+                "insertText": "$greeting",
+                "detail": "string => param #1 string $name = 'Guest'",
+                "documentation": "",
+                "kind": 6
+              },
+              {
+                "label": "name: ",
+                "insertText": "name: ",
+                "detail": "string $name = 'Guest'",
+                "documentation": "",
+                "kind": 5
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 87915.19999998808,
+          "id": 12,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "$greeting",
+            "insertText": "$greeting",
+            "detail": "string => param #1 string $name = 'Guest'",
+            "documentation": "",
+            "kind": 6
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 87918.59999999404,
+          "id": 12,
+          "result": {
+            "label": "$greeting",
+            "insertText": "$greeting",
+            "detail": "string => param #1 string $name = 'Guest'",
+            "documentation": "",
+            "kind": 6
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 88086.39999997616,
+          "id": 13,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 7
+            }
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 88285.69999998808,
+          "id": 13,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "$greeting",
+                "insertText": "$greeting",
+                "detail": "string => param #1 string $string",
+                "documentation": "",
+                "kind": 6
+              },
+              {
+                "label": "string: ",
+                "insertText": "string: ",
+                "detail": "string $string",
+                "documentation": "",
+                "kind": 5
+              }
+            ]
+          }
+        },
+        {
+          "direction": "ui->worker",
+          "at": 88288.39999997616,
+          "id": 14,
+          "method": "completionItem/resolve",
+          "params": {
+            "label": "$greeting",
+            "insertText": "$greeting",
+            "detail": "string => param #1 string $string",
+            "documentation": "",
+            "kind": 6
+          }
+        },
+        {
+          "direction": "worker->ui",
+          "at": 88288.89999997616,
+          "id": 14,
+          "result": {
+            "label": "$greeting",
+            "insertText": "$greeting",
+            "detail": "string => param #1 string $string",
+            "documentation": "",
+            "kind": 6
+          }
+        }
+      ],
+      "invocationToRowsMs": 333,
+      "rpcRoundTripMs": 199.30000001192093,
+      "requestId": 13
+    }
+  ],
+  "console": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "warning",
+      "text": "⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition."
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":3140.5,\"id\":1,\"method\":\"initialize\",\"params\":{\"processId\":null,\"rootUri\":null,\"capabilities\":{\"general\":{\"positionEncodings\":[\"utf-16\"]},\"textDocument\":{\"completion\":{\"completionItem\":{\"snippetSupport\":true}},\"hover\":{\"contentFormat\":[\"markdown\",\"plaintext\"]}}},\"initializationOptions\":{\"phpVersion\":\"8.5\"}}}"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":3511.399999976158,\"id\":1,\"result\":{\"capabilities\":{\"textDocumentSync\":{\"openClose\":true,\"change\":1},\"completionProvider\":{\"resolveProvider\":false,\"triggerCharacters\":[\"$\",\">\",\":\"]},\"signatureHelpProvider\":{\"triggerCharacters\":[\"(\",\",\"]},\"hoverProvider\":true},\"serverInfo\":{\"name\":\"phpactor-wasm\",\"version\":\"2026.10.07.0\"}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":3511.7999999821186,\"method\":\"textDocument/didOpen\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"languageId\":\"php\",\"version\":1,\"text\":\"<?php\\n// example code\\nphpinfo();\"}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":3649.7999999821186,\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":2},\"contentChanges\":[{\"text\":\"<?php\\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\\n$greeting = greetUser('A');\\n$greeter = new Greeter();\\n$number = 1;\\n$number->\\n\"}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":4344.5999999940395,\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":3},\"contentChanges\":[{\"text\":\"<?php\\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\\n$greeting = greetUser('A');\\n$greeter = new Greeter();\\n$number = 1;\\nstrl\"}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":4358.0999999940395,\"id\":2,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":7,\"character\":4}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":4722.0999999940395,\"id\":2,\"result\":{\"isIncomplete\":false,\"items\":[{\"label\":\"strlen\",\"insertText\":\"strlen(${1:\\\\$string})${0}\",\"detail\":\"strlen(string $string): int<0, max>\",\"documentation\":\"\\n\\n\\nGet string length\\n\",\"kind\":3,\"insertTextFormat\":2},{\"label\":\"class \",\"insertText\":\"class \",\"detail\":\"\",\"documentation\":\"\",\"kind\":14},{\"label\":\"enum \",\"insertText\":\"enum \",\"detail\":\"\",\"documentation\":\"\",\"kind\":14},{\"label\":\"trait \",\"insertText\":\"trait \",\"detail\":\"\",\"documentation\":\"\",\"kind\":14},{\"label\":\"function \",\"insertText\":\"function \",\"detail\":\"\",\"documentation\":\"\",\"kind\":14},{\"label\":\"interface \",\"insertText\":\"interface \",\"detail\":\"\",\"documentation\":\"\",\"kind\":14}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":4734.199999988079,\"id\":3,\"method\":\"completionItem/resolve\",\"params\":{\"label\":\"strlen\",\"insertText\":\"strlen(${1:\\\\$string})${0}\",\"detail\":\"strlen(string $string): int<0, max>\",\"documentation\":\"\\n\\n\\nGet string length\\n\",\"kind\":3,\"insertTextFormat\":2}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":4743.899999976158,\"id\":3,\"result\":{\"label\":\"strlen\",\"insertText\":\"strlen(${1:\\\\$string})${0}\",\"detail\":\"strlen(string $string): int<0, max>\",\"documentation\":\"\\n\\n\\nGet string length\\n\",\"kind\":3,\"insertTextFormat\":2}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":5063.0999999940395,\"id\":4,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":7,\"character\":4}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":5075,\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":4},\"contentChanges\":[{\"text\":\"<?php\\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\\n$greeting = greetUser('A');\\n$greeter = new Greeter();\\n$number = 1;\\n$gre\"}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":5252.799999982119,\"id\":4,\"result\":{\"isIncomplete\":false,\"items\":[{\"label\":\"strlen\",\"insertText\":\"strlen(${1:\\\\$string})${0}\",\"detail\":\"strlen(string $string): int<0, max>\",\"documentation\":\"\\n\\n\\nGet string length\\n\",\"kind\":3,\"insertTextFormat\":2},{\"label\":\"class \",\"insertText\":\"class \",\"detail\":\"\",\"documentation\":\"\",\"kind\":14},{\"label\":\"enum \",\"insertText\":\"enum \",\"detail\":\"\",\"documentation\":\"\",\"kind\":14},{\"label\":\"trait \",\"insertText\":\"trait \",\"detail\":\"\",\"documentation\":\"\",\"kind\":14},{\"label\":\"function \",\"insertText\":\"function \",\"detail\":\"\",\"documentation\":\"\",\"kind\":14},{\"label\":\"interface \",\"insertText\":\"interface \",\"detail\":\"\",\"documentation\":\"\",\"kind\":14}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":46014.69999998808,\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":5},\"contentChanges\":[{\"text\":\"<?php\\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\\n$greeting = greetUser('A');\\n$greeter = new Greeter();\\n$number = 1;\\n$greeter->\"}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":46028.39999997616,\"id\":5,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":7,\"character\":10}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":46273.29999998212,\"id\":5,\"result\":{\"isIncomplete\":false,\"items\":[{\"label\":\"greet\",\"insertText\":\"greet()\",\"detail\":\"pub greet(): string\",\"documentation\":\"### Greeter::greet\\n\\n```php\\n<?php public function greet(): string\\n```\",\"kind\":2,\"insertTextFormat\":2},{\"label\":\"message\",\"insertText\":\"message\",\"detail\":\"pub $message: string\",\"documentation\":\"### Greeter::message\\n\\n```php\\n<?php public string $message;\\n```\",\"kind\":10}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":46276.89999997616,\"id\":6,\"method\":\"completionItem/resolve\",\"params\":{\"label\":\"greet\",\"insertText\":\"greet()\",\"detail\":\"pub greet(): string\",\"documentation\":\"### Greeter::greet\\n\\n```php\\n<?php public function greet(): string\\n```\",\"kind\":2,\"insertTextFormat\":2}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":46277.69999998808,\"id\":6,\"result\":{\"label\":\"greet\",\"insertText\":\"greet()\",\"detail\":\"pub greet(): string\",\"documentation\":\"### Greeter::greet\\n\\n```php\\n<?php public function greet(): string\\n```\",\"kind\":2,\"insertTextFormat\":2}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":46544.5,\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":6},\"contentChanges\":[{\"text\":\"<?php\\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\\n$greeting = greetUser('A');\\n$greeter = new Greeter();\\n$number = 1;\\nGreeter::\"}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":46548.09999999404,\"id\":7,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":7,\"character\":9}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":46725.89999997616,\"id\":7,\"result\":{\"isIncomplete\":false,\"items\":[{\"label\":\"class\",\"insertText\":\"class\",\"detail\":\"Greeter\",\"documentation\":\"\",\"kind\":21}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":46728.39999997616,\"id\":8,\"method\":\"completionItem/resolve\",\"params\":{\"label\":\"class\",\"insertText\":\"class\",\"detail\":\"Greeter\",\"documentation\":\"\",\"kind\":21}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":46729,\"id\":8,\"result\":{\"label\":\"class\",\"insertText\":\"class\",\"detail\":\"Greeter\",\"documentation\":\"\",\"kind\":21}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":46946.89999997616,\"id\":9,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":7,\"character\":9}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":46976.19999998808,\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":7},\"contentChanges\":[{\"text\":\"<?php\\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\\n$greeting = greetUser('A');\\n$greeter = new Greeter();\\n$number = 1;\\nnew Gre\"}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":46977.09999999404,\"id\":10,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":7,\"character\":7}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":47116.69999998808,\"id\":9,\"result\":{\"isIncomplete\":false,\"items\":[{\"label\":\"class\",\"insertText\":\"class\",\"detail\":\"Greeter\",\"documentation\":\"\",\"kind\":21}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":47322.09999999404,\"id\":10,\"result\":{\"isIncomplete\":false,\"items\":[]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":87756.5,\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":8},\"contentChanges\":[{\"text\":\"<?php\\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\\n$greeting = greetUser('A');\\n$greeter = new Greeter();\\n$number = 1;\\ngreetUser(\"}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":87760,\"id\":11,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":7,\"character\":10}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":87911.79999998212,\"id\":11,\"result\":{\"isIncomplete\":false,\"items\":[{\"label\":\"$greeting\",\"insertText\":\"$greeting\",\"detail\":\"string => param #1 string $name = 'Guest'\",\"documentation\":\"\",\"kind\":6},{\"label\":\"name: \",\"insertText\":\"name: \",\"detail\":\"string $name = 'Guest'\",\"documentation\":\"\",\"kind\":5}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":87915.19999998808,\"id\":12,\"method\":\"completionItem/resolve\",\"params\":{\"label\":\"$greeting\",\"insertText\":\"$greeting\",\"detail\":\"string => param #1 string $name = 'Guest'\",\"documentation\":\"\",\"kind\":6}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":87918.59999999404,\"id\":12,\"result\":{\"label\":\"$greeting\",\"insertText\":\"$greeting\",\"detail\":\"string => param #1 string $name = 'Guest'\",\"documentation\":\"\",\"kind\":6}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":88084.79999998212,\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":9},\"contentChanges\":[{\"text\":\"<?php\\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\\n$greeting = greetUser('A');\\n$greeter = new Greeter();\\n$number = 1;\\nstrlen(\"}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":88086.39999997616,\"id\":13,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":7,\"character\":7}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":88285.69999998808,\"id\":13,\"result\":{\"isIncomplete\":false,\"items\":[{\"label\":\"$greeting\",\"insertText\":\"$greeting\",\"detail\":\"string => param #1 string $string\",\"documentation\":\"\",\"kind\":6},{\"label\":\"string: \",\"insertText\":\"string: \",\"detail\":\"string $string\",\"documentation\":\"\",\"kind\":5}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":88288.39999997616,\"id\":14,\"method\":\"completionItem/resolve\",\"params\":{\"label\":\"$greeting\",\"insertText\":\"$greeting\",\"detail\":\"string => param #1 string $string\",\"documentation\":\"\",\"kind\":6}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":88288.89999997616,\"id\":14,\"result\":{\"label\":\"$greeting\",\"insertText\":\"$greeting\",\"detail\":\"string => param #1 string $string\",\"documentation\":\"\",\"kind\":6}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":88488.79999998212,\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":10},\"contentChanges\":[{\"text\":\"<?php\\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\\n$greeting = greetUser('A');\\n$greeter = new Greeter();\\n$number = 1;\\nstrl\"}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":88492.29999998212,\"id\":15,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":7,\"character\":4}}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":88667.59999999404,\"id\":15,\"result\":{\"isIncomplete\":false,\"items\":[{\"label\":\"strlen\",\"insertText\":\"strlen(${1:\\\\$string})${0}\",\"detail\":\"strlen(string $string): int<0, max>\",\"documentation\":\"\\n\\n\\nGet string length\\n\",\"kind\":3,\"insertTextFormat\":2},{\"label\":\"class \",\"insertText\":\"class \",\"detail\":\"\",\"documentation\":\"\",\"kind\":14},{\"label\":\"enum \",\"insertText\":\"enum \",\"detail\":\"\",\"documentation\":\"\",\"kind\":14},{\"label\":\"trait \",\"insertText\":\"trait \",\"detail\":\"\",\"documentation\":\"\",\"kind\":14},{\"label\":\"function \",\"insertText\":\"function \",\"detail\":\"\",\"documentation\":\"\",\"kind\":14},{\"label\":\"interface \",\"insertText\":\"interface \",\"detail\":\"\",\"documentation\":\"\",\"kind\":14}]}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":88670.19999998808,\"id\":16,\"method\":\"completionItem/resolve\",\"params\":{\"label\":\"strlen\",\"insertText\":\"strlen(${1:\\\\$string})${0}\",\"detail\":\"strlen(string $string): int<0, max>\",\"documentation\":\"\\n\\n\\nGet string length\\n\",\"kind\":3,\"insertTextFormat\":2}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"worker->ui\",\"at\":88670.89999997616,\"id\":16,\"result\":{\"label\":\"strlen\",\"insertText\":\"strlen(${1:\\\\$string})${0}\",\"detail\":\"strlen(string $string): int<0, max>\",\"documentation\":\"\\n\\n\\nGet string length\\n\",\"kind\":3,\"insertTextFormat\":2}}"
+    },
+    {
+      "type": "debug",
+      "text": "__LSP__{\"direction\":\"ui->worker\",\"at\":88701.29999998212,\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":11},\"contentChanges\":[{\"text\":\"<?php\\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\\n$greeting = greetUser('A');\\n$greeter = new Greeter();\\n$number = 1;\\nstrlen($string)\"}]}}"
+    }
+  ],
+  "errors": [],
+  "insertion": {
+    "before": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstrl",
+    "after": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstrlen($string)",
+    "screenshot": "phpactor-insert.png"
+  },
+  "finalEvents": [
+    {
+      "direction": "ui->worker",
+      "at": 3140.5,
+      "id": 1,
+      "method": "initialize",
+      "params": {
+        "processId": null,
+        "rootUri": null,
+        "capabilities": {
+          "general": {
+            "positionEncodings": [
+              "utf-16"
+            ]
+          },
+          "textDocument": {
+            "completion": {
+              "completionItem": {
+                "snippetSupport": true
+              }
+            },
+            "hover": {
+              "contentFormat": [
+                "markdown",
+                "plaintext"
+              ]
+            }
+          }
+        },
+        "initializationOptions": {
+          "phpVersion": "8.5"
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 3511.399999976158,
+      "id": 1,
+      "result": {
+        "capabilities": {
+          "textDocumentSync": {
+            "openClose": true,
+            "change": 1
+          },
+          "completionProvider": {
+            "resolveProvider": false,
+            "triggerCharacters": [
+              "$",
+              ">",
+              ":"
+            ]
+          },
+          "signatureHelpProvider": {
+            "triggerCharacters": [
+              "(",
+              ","
+            ]
+          },
+          "hoverProvider": true
+        },
+        "serverInfo": {
+          "name": "phpactor-wasm",
+          "version": "2026.10.07.0"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 3511.7999999821186,
+      "method": "textDocument/didOpen",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "languageId": "php",
+          "version": 1,
+          "text": "<?php\n// example code\nphpinfo();"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 4358.0999999940395,
+      "id": 2,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 4
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 4722.0999999940395,
+      "id": 2,
+      "result": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "strlen",
+            "insertText": "strlen(${1:\\$string})${0}",
+            "detail": "strlen(string $string): int<0, max>",
+            "documentation": "\n\n\nGet string length\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "class ",
+            "insertText": "class ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "enum ",
+            "insertText": "enum ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "trait ",
+            "insertText": "trait ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "function ",
+            "insertText": "function ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "interface ",
+            "insertText": "interface ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 4734.199999988079,
+      "id": 3,
+      "method": "completionItem/resolve",
+      "params": {
+        "label": "strlen",
+        "insertText": "strlen(${1:\\$string})${0}",
+        "detail": "strlen(string $string): int<0, max>",
+        "documentation": "\n\n\nGet string length\n",
+        "kind": 3,
+        "insertTextFormat": 2
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 4743.899999976158,
+      "id": 3,
+      "result": {
+        "label": "strlen",
+        "insertText": "strlen(${1:\\$string})${0}",
+        "detail": "strlen(string $string): int<0, max>",
+        "documentation": "\n\n\nGet string length\n",
+        "kind": 3,
+        "insertTextFormat": 2
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 5063.0999999940395,
+      "id": 4,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 4
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 5252.799999982119,
+      "id": 4,
+      "result": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "strlen",
+            "insertText": "strlen(${1:\\$string})${0}",
+            "detail": "strlen(string $string): int<0, max>",
+            "documentation": "\n\n\nGet string length\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "class ",
+            "insertText": "class ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "enum ",
+            "insertText": "enum ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "trait ",
+            "insertText": "trait ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "function ",
+            "insertText": "function ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "interface ",
+            "insertText": "interface ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 46028.39999997616,
+      "id": 5,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 10
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 46273.29999998212,
+      "id": 5,
+      "result": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "greet",
+            "insertText": "greet()",
+            "detail": "pub greet(): string",
+            "documentation": "### Greeter::greet\n\n```php\n<?php public function greet(): string\n```",
+            "kind": 2,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "message",
+            "insertText": "message",
+            "detail": "pub $message: string",
+            "documentation": "### Greeter::message\n\n```php\n<?php public string $message;\n```",
+            "kind": 10
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 46276.89999997616,
+      "id": 6,
+      "method": "completionItem/resolve",
+      "params": {
+        "label": "greet",
+        "insertText": "greet()",
+        "detail": "pub greet(): string",
+        "documentation": "### Greeter::greet\n\n```php\n<?php public function greet(): string\n```",
+        "kind": 2,
+        "insertTextFormat": 2
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 46277.69999998808,
+      "id": 6,
+      "result": {
+        "label": "greet",
+        "insertText": "greet()",
+        "detail": "pub greet(): string",
+        "documentation": "### Greeter::greet\n\n```php\n<?php public function greet(): string\n```",
+        "kind": 2,
+        "insertTextFormat": 2
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 46548.09999999404,
+      "id": 7,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 9
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 46725.89999997616,
+      "id": 7,
+      "result": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "class",
+            "insertText": "class",
+            "detail": "Greeter",
+            "documentation": "",
+            "kind": 21
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 46728.39999997616,
+      "id": 8,
+      "method": "completionItem/resolve",
+      "params": {
+        "label": "class",
+        "insertText": "class",
+        "detail": "Greeter",
+        "documentation": "",
+        "kind": 21
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 46729,
+      "id": 8,
+      "result": {
+        "label": "class",
+        "insertText": "class",
+        "detail": "Greeter",
+        "documentation": "",
+        "kind": 21
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 46946.89999997616,
+      "id": 9,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 9
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 46977.09999999404,
+      "id": 10,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 7
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 47116.69999998808,
+      "id": 9,
+      "result": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "class",
+            "insertText": "class",
+            "detail": "Greeter",
+            "documentation": "",
+            "kind": 21
+          }
+        ]
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 47322.09999999404,
+      "id": 10,
+      "result": {
+        "isIncomplete": false,
+        "items": []
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 87760,
+      "id": 11,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 10
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 87911.79999998212,
+      "id": 11,
+      "result": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "$greeting",
+            "insertText": "$greeting",
+            "detail": "string => param #1 string $name = 'Guest'",
+            "documentation": "",
+            "kind": 6
+          },
+          {
+            "label": "name: ",
+            "insertText": "name: ",
+            "detail": "string $name = 'Guest'",
+            "documentation": "",
+            "kind": 5
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 87915.19999998808,
+      "id": 12,
+      "method": "completionItem/resolve",
+      "params": {
+        "label": "$greeting",
+        "insertText": "$greeting",
+        "detail": "string => param #1 string $name = 'Guest'",
+        "documentation": "",
+        "kind": 6
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 87918.59999999404,
+      "id": 12,
+      "result": {
+        "label": "$greeting",
+        "insertText": "$greeting",
+        "detail": "string => param #1 string $name = 'Guest'",
+        "documentation": "",
+        "kind": 6
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 88086.39999997616,
+      "id": 13,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 7
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 88285.69999998808,
+      "id": 13,
+      "result": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "$greeting",
+            "insertText": "$greeting",
+            "detail": "string => param #1 string $string",
+            "documentation": "",
+            "kind": 6
+          },
+          {
+            "label": "string: ",
+            "insertText": "string: ",
+            "detail": "string $string",
+            "documentation": "",
+            "kind": 5
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 88288.39999997616,
+      "id": 14,
+      "method": "completionItem/resolve",
+      "params": {
+        "label": "$greeting",
+        "insertText": "$greeting",
+        "detail": "string => param #1 string $string",
+        "documentation": "",
+        "kind": 6
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 88288.89999997616,
+      "id": 14,
+      "result": {
+        "label": "$greeting",
+        "insertText": "$greeting",
+        "detail": "string => param #1 string $string",
+        "documentation": "",
+        "kind": 6
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 88492.29999998212,
+      "id": 15,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 4
+        }
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 88667.59999999404,
+      "id": 15,
+      "result": {
+        "isIncomplete": false,
+        "items": [
+          {
+            "label": "strlen",
+            "insertText": "strlen(${1:\\$string})${0}",
+            "detail": "strlen(string $string): int<0, max>",
+            "documentation": "\n\n\nGet string length\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          },
+          {
+            "label": "class ",
+            "insertText": "class ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "enum ",
+            "insertText": "enum ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "trait ",
+            "insertText": "trait ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "function ",
+            "insertText": "function ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          },
+          {
+            "label": "interface ",
+            "insertText": "interface ",
+            "detail": "",
+            "documentation": "",
+            "kind": 14
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 88670.19999998808,
+      "id": 16,
+      "method": "completionItem/resolve",
+      "params": {
+        "label": "strlen",
+        "insertText": "strlen(${1:\\$string})${0}",
+        "detail": "strlen(string $string): int<0, max>",
+        "documentation": "\n\n\nGet string length\n",
+        "kind": 3,
+        "insertTextFormat": 2
+      }
+    },
+    {
+      "direction": "worker->ui",
+      "at": 88670.89999997616,
+      "id": 16,
+      "result": {
+        "label": "strlen",
+        "insertText": "strlen(${1:\\$string})${0}",
+        "detail": "strlen(string $string): int<0, max>",
+        "documentation": "\n\n\nGet string length\n",
+        "kind": 3,
+        "insertTextFormat": 2
+      }
+    }
+  ]
+}
