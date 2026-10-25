@@ -13,7 +13,7 @@ The preview was prepared in this worktree:
 - Branch: `gla-115-lsp-preview`
 - Base: `be516894ac2dd0ff76b4e436684e0db53a350eff`
 - PHPantom adapter commit: `159d15ee50dd65dddef6dabb2c3044ece668ce6d`
-- Integrated preview revision: use the submitted branch HEAD recorded with this guide.
+- Integrated preview implementation commit: `c3a651d3cb0d1920a9a628d0680ff1de694f15a7` (the submitted branch adds a documentation-only commit after this revision).
 - Port: `7260`
 
 From that directory, run:
@@ -68,16 +68,16 @@ the URL.
 
 ## Verification scope
 
-| Check | Result | Detail |
-| --- | --- | --- |
-| `npm run build:types` | Passed (exit 0) | TypeScript project check. |
-| `npm run build` | Passed (exit 0) | Vite production build; existing Sandpack `eval` and large-chunk warnings remain. |
-| `node scripts/lsp/phpantom/smoke-test.mjs` | Passed | Actual release WASM/WASI exercised completion, hover, signature help, resolve, request IDs, errors, and PHP-version policy. |
-| `npx vitest run src/workers/__test__/usePHP.spec.ts` | Passed (3 tests) | Existing PHP-version change behavior. |
-| `npm run test:ci` | Failed (33 passed, 6 timed out) | Existing `php-worker.spec.ts` WASM startup cases for PHP 5.6 and 7.0–7.4 exceeded the configured 5-second timeout. |
-| `npm run test:ci -- src/workers/__test__/php-worker.spec.ts` | Failed (28 passed, 4 timed out) | Isolated run timed out on PHP 5.6, 7.0, 7.1, and 7.2. |
-| Same isolated worker test at base `be516894` | Failed (30 passed, 2 timed out) | Unchanged base also timed out on PHP 5.6 and 7.0, indicating this failure exists outside the preview changes; the failing version set varied between runs. |
-| HTTP `GET /` and WASM asset | Passed (200/200) | Local Vite server on `127.0.0.1:7260`; PID and separate startup logs are held by the operator. |
+| Check                                                        | Result                          | Detail                                                                                                                                                     |
+| ------------------------------------------------------------ | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run build:types`                                        | Passed (exit 0)                 | TypeScript project check.                                                                                                                                  |
+| `npm run build`                                              | Passed (exit 0)                 | Vite production build; existing Sandpack `eval` and large-chunk warnings remain.                                                                           |
+| `node scripts/lsp/phpantom/smoke-test.mjs`                   | Passed                          | Actual release WASM/WASI exercised completion, hover, signature help, resolve, request IDs, errors, and PHP-version policy.                                |
+| `npx vitest run src/workers/__test__/usePHP.spec.ts`         | Passed (3 tests)                | Existing PHP-version change behavior.                                                                                                                      |
+| `npm run test:ci`                                            | Failed (33 passed, 6 timed out) | Existing `php-worker.spec.ts` WASM startup cases for PHP 5.6 and 7.0–7.4 exceeded the configured 5-second timeout.                                         |
+| `npm run test:ci -- src/workers/__test__/php-worker.spec.ts` | Failed (28 passed, 4 timed out) | Isolated run timed out on PHP 5.6, 7.0, 7.1, and 7.2.                                                                                                      |
+| Same isolated worker test at base `be516894`                 | Failed (30 passed, 2 timed out) | Unchanged base also timed out on PHP 5.6 and 7.0, indicating this failure exists outside the preview changes; the failing version set varied between runs. |
+| HTTP `GET /` and WASM asset                                  | Passed (200/200)                | Local Vite server on `127.0.0.1:7260`; PID and separate startup logs are held by the operator.                                                             |
 
 The browser Worker and editor UI have not been verified by the implementer. A
 successful local HTTP response only confirms that Vite serves the page and WASM
