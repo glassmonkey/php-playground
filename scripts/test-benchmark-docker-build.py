@@ -21,6 +21,11 @@ SPEC.loader.exec_module(benchmark)
 
 
 class BenchmarkHarnessContractTest(unittest.TestCase):
+    def test_empty_run_summary_is_failure_not_success_or_exception(self):
+        summary = benchmark.summarize([])
+        self.assertEqual(summary["status"], "failed")
+        self.assertNotIn("median_duration_seconds", summary)
+
     def test_immutable_input_manifest_is_atomic_and_not_overwritten(self):
         with tempfile.TemporaryDirectory() as directory:
             manifest = Path(directory) / "inputs.json"
