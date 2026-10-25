@@ -111,6 +111,9 @@ FROM emscripten AS emscripten-libzip
 ARG PHP_VERSION
 ARG WITH_LIBZIP=no
 COPY --from=emscripten-libz /root/lib /root/lib-libz
+# Older libzip releases hard-code the zip target as SHARED and do not consume
+# BUILD_SHARED_LIBS. Normalize that source declaration so the existing OFF
+# setting selects a static archive, without a PHP-version condition.
 RUN if [ "$WITH_LIBZIP" = "yes" ]; then \
         /root/copy-lib.sh lib-libz; \
     else \
@@ -125,7 +128,13 @@ RUN if [ "$WITH_LIBZIP" = "yes" ]; then \
         cd /root && \
         curl -k https://libzip.org/download/libzip-$LIBZIP_VERSION.tar.gz -o libzip-$LIBZIP_VERSION.tar.gz && \
         tar -xzf libzip-$LIBZIP_VERSION.tar.gz && \
-        mv libzip-$LIBZIP_VERSION libzip; \
+        mv libzip-$LIBZIP_VERSION libzip && \
+        shared_target_count=$(grep -Fc 'ADD_LIBRARY(zip SHARED ' libzip/lib/CMakeLists.txt || true) && \
+        if [ "$shared_target_count" = "1" ]; then \
+            sed -i 's/ADD_LIBRARY(zip SHARED /ADD_LIBRARY(zip /' libzip/lib/CMakeLists.txt; \
+        elif [ "$shared_target_count" != "0" ]; then \
+            echo "Expected at most one explicit shared libzip target; found $shared_target_count" >&2; exit 1; \
+        fi; \
     else \
         echo "WITH_LIBZIP=$WITH_LIBZIP; skipping libzip download/configure/build/install"; \
     fi
