@@ -8,7 +8,7 @@ import shlex
 import subprocess
 import sys
 import tempfile
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from types import SimpleNamespace
 import unittest
 from pathlib import Path
@@ -21,6 +21,32 @@ SPEC.loader.exec_module(benchmark)
 
 
 class BenchmarkHarnessContractTest(unittest.TestCase):
+    def test_malformed_or_unapproved_base_is_rejected_before_docker(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            marker = root / "docker-invoked"
+            fake_docker = root / "fake-docker"
+            fake_docker.write_text(
+                f"#!/usr/bin/env python3\nfrom pathlib import Path; Path({str(marker)!r}).write_text('invoked')\n"
+            )
+            fake_docker.chmod(0o755)
+            for digest in ("sha256:" + "a" * 65, "sha256:" + "a" * 64):
+                argv = [
+                    "benchmark-docker-build.py", "--repo-root", str(root), "--repo-revision", "b" * 40,
+                    "--php-source-sha", "c" * 40, "--emsdk-repo-sha", "d" * 40,
+                    "--php-version", "8.5", "--emsdk-version", "6.0.13", "--base-image-digest", digest,
+                    "--platform", "linux/arm64", "--cpu-allocation", "2 CPU",
+                    "--memory-allocation", "5 GiB", "--build-resource", "memory=4g",
+                    "--builder-cpu-set", "0-1", "--builder-cpu-quota", "200000",
+                    "--builder-memory-bytes", "5368709120", "--builder", "gla96-a3c1",
+                    "--docker", str(fake_docker), "--mode", "cold", "--output", str(root / "out"),
+                ]
+                for key, value in benchmark.WEB_FEATURE_BUILD_ARGS.items():
+                    argv.extend(["--build-arg", f"{key}={value}"])
+                with patch.object(sys, "argv", argv), redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+                    self.assertEqual(benchmark.main(), 2)
+                self.assertFalse(marker.exists())
+
     def test_empty_run_summary_is_failure_not_success_or_exception(self):
         for records in ([], [{"id": "prime-00", "phase": "prime", "status": "succeeded"}]):
             summary = benchmark.summarize(records)
@@ -52,7 +78,7 @@ else: raise SystemExit("unexpected fake Docker command: " + repr(a))
                 "benchmark-docker-build.py", "--repo-root", str(repo), "--repo-revision", revision,
                 "--context-path", "src/wasm", "--php-source-sha", "0" * 40,
                 "--emsdk-repo-sha", "1" * 40, "--php-version", "5.6", "--emsdk-version", "6.0.13",
-                "--base-image-digest", "sha256:" + "a" * 64, "--platform", "linux/arm64",
+                "--base-image-digest", benchmark.FIXED_BASE_IMAGE_DIGEST, "--platform", "linux/arm64",
                 "--host", "test-host", "--host-arch", "arm64", "--cpu-allocation", "2 CPUs",
                 "--memory-allocation", "VM=6209429504; builder=5368709120; step=4g",
                 "--build-resource", "cpuset-cpus=0-1", "--build-resource", "memory=4g",
@@ -124,7 +150,7 @@ else: raise SystemExit("unexpected fake Docker argv: " + repr(a))
                 "benchmark-docker-build.py", "--repo-root", str(repo), "--repo-revision", revision,
                 "--context-path", "src/wasm", "--php-source-sha", "0" * 40,
                 "--emsdk-repo-sha", "1" * 40, "--php-version", "5.6", "--emsdk-version", "6.0.13",
-                "--base-image-digest", "sha256:" + "a" * 64, "--platform", "linux/arm64",
+                "--base-image-digest", benchmark.FIXED_BASE_IMAGE_DIGEST, "--platform", "linux/arm64",
                 "--host", "test-host", "--host-arch", "arm64", "--cpu-allocation", "2 CPUs",
                 "--memory-allocation", "VM=6209429504; builder=5368709120; step=4g",
                 "--build-resource", "cpuset-cpus=0-1", "--build-resource", "memory=4g",
@@ -307,7 +333,7 @@ else: raise SystemExit("unexpected fake Docker argv: " + repr(a))
             docker="docker", builder="gla96-a3c1", platform="linux/arm64",
             dockerfile=Path("Dockerfile"), tag_prefix="bench", build_arg=[],
             build_resource=["cpuset-cpus=0-1", "memory=4g"], emsdk_version="6.0.13",
-            emsdk_repo_sha="d" * 40, base_image="ubuntu", base_image_digest="sha256:" + "e" * 64,
+            emsdk_repo_sha="d" * 40, base_image=benchmark.FIXED_BASE_IMAGE, base_image_digest=benchmark.FIXED_BASE_IMAGE_DIGEST,
         )
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -356,7 +382,7 @@ else: raise SystemExit("unexpected fake Docker argv: " + repr(a))
             docker="docker", builder="gla96-a3c1", platform="linux/arm64",
             dockerfile=Path("Dockerfile"), tag_prefix="bench", build_arg=[],
             build_resource=["cpuset-cpus=0-1", "memory=4g"], emsdk_version="6.0.13",
-            emsdk_repo_sha="d" * 40, base_image="ubuntu", base_image_digest="sha256:" + "e" * 64,
+            emsdk_repo_sha="d" * 40, base_image=benchmark.FIXED_BASE_IMAGE, base_image_digest=benchmark.FIXED_BASE_IMAGE_DIGEST,
         )
         cold_command = benchmark.build_command(args, Path("/tmp/context"), "7.4", "c" * 40, "bench:cold", True, Path("/tmp/cold.log"))
         warm_command = benchmark.build_command(args, Path("/tmp/context"), "7.4", "c" * 40, "bench:warm", False, Path("/tmp/warm.log"))

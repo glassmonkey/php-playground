@@ -42,6 +42,44 @@ def sha256_file(path: Path) -> str:
 	return digest.hexdigest()
 
 
+BASE_IMAGE_REFERENCE_RE = re.compile(r"^[^@\s]+@sha256:[0-9a-f]{64}$")
+BASE_IMAGE_BUILD_ARG_RE = re.compile(r"^BASE_IMAGE=(.+)$")
+
+
+def validate_base_image_pin(argv: list[str], expected: str) -> dict[str, str]:
+	"""Require the frozen base reference to match the Buildx BASE_IMAGE arg."""
+	if not BASE_IMAGE_REFERENCE_RE.fullmatch(expected):
+		raise ValueError(
+			"expected_base_image must be <image>@sha256:<64 lowercase hex characters>"
+		)
+	actual_values: list[str] = []
+	index = 0
+	while index < len(argv):
+		argument = argv[index]
+		if argument == "--build-arg":
+			if index + 1 >= len(argv):
+				raise ValueError("--build-arg requires a value")
+			value = argv[index + 1]
+			index += 2
+		elif argument.startswith("--build-arg="):
+			value = argument.split("=", 1)[1]
+			index += 1
+		else:
+			index += 1
+			continue
+		match = BASE_IMAGE_BUILD_ARG_RE.fullmatch(value)
+		if match:
+			actual_values.append(match.group(1))
+	if len(actual_values) != 1:
+		raise ValueError(f"expected exactly one BASE_IMAGE build arg, found {len(actual_values)}")
+	actual = actual_values[0]
+	if not BASE_IMAGE_REFERENCE_RE.fullmatch(actual):
+		raise ValueError("BASE_IMAGE must be <image>@sha256:<64 lowercase hex characters>")
+	if actual != expected:
+		raise ValueError(f"BASE_IMAGE {actual!r} does not match frozen base {expected!r}")
+	return {"expected_base_image": expected, "actual_base_image": actual, "status": "passed"}
+
+
 def preflight_copy_sources(dockerfile: Path, context: Path) -> dict[str, Any]:
 	dockerfile = dockerfile.resolve(strict=True)
 	context = context.resolve(strict=True)
@@ -181,6 +219,13 @@ def execute(spec_path: Path) -> int:
 	pid = None
 	preflight_data = None
 	preflight_error = None
+	base_image_pin = None
+	base_image_pin_error = None
+	if spec.get("expected_base_image") is not None:
+		try:
+			base_image_pin = validate_base_image_pin(argv, spec["expected_base_image"])
+		except ValueError as error:
+			base_image_pin_error = f"{type(error).__name__}: {error}"
 	if spec.get("preflight"):
 		try:
 			preflight_data = validate_buildx_preflight(
@@ -197,14 +242,19 @@ def execute(spec_path: Path) -> int:
 				"checks": [],
 			}
 	
-	if preflight_error:
+	if preflight_error or base_image_pin_error:
 		ended = utc_now()
 		with log_path.open("wb") as log:
-			log.write((f"Dockerfile COPY preflight failed: {preflight_error}\n").encode())
+			if base_image_pin_error:
+				log.write((f"base image pin preflight failed: {base_image_pin_error}\n").encode())
+			if preflight_error:
+				log.write((f"Dockerfile COPY preflight failed: {preflight_error}\n").encode())
 			log.flush()
 			os.fsync(log.fileno())
 		core = terminal_result(spec, pid, started, ended, exit_code, spawn_error, wait_error, None)
 		core["preflight"] = preflight_data
+		core["base_image_pin"] = base_image_pin
+		core["base_image_pin_error"] = base_image_pin_error
 		core["preflight_error"] = preflight_error
 		atomic_json(result_path, core)
 	else:
@@ -321,6 +371,10 @@ def execute(spec_path: Path) -> int:
 		result["reporting_error"] = reporting_error
 	if preflight_data:
 		result["preflight"] = preflight_data
+	if base_image_pin:
+		result["base_image_pin"] = base_image_pin
+	if base_image_pin_error:
+		result["base_image_pin_error"] = base_image_pin_error
 	if preflight_error:
 		result["preflight_error"] = preflight_error
 	try:

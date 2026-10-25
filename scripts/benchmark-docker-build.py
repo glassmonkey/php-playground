@@ -37,6 +37,8 @@ WEB_FEATURE_BUILD_ARGS = {
     "WITH_WS_NETWORKING_PROXY": "no",
     "EMSCRIPTEN_ENVIRONMENT": "web",
 }
+FIXED_BASE_IMAGE = "ubuntu"
+FIXED_BASE_IMAGE_DIGEST = "sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac"
 STAGE_LINE = re.compile(r"^#(?P<step>\d+)\s+(?P<detail>.*)$")
 
 
@@ -374,6 +376,10 @@ def validate_args(args) -> tuple[Path, str, str, str, str | None, dict | None]:
             raise ValueError(f"{label} must be a full Git SHA")
     if not re.fullmatch(r"sha256:[0-9a-f]{64}", args.base_image_digest):
         raise ValueError("--base-image-digest must be sha256:<64 lowercase hex characters>")
+    if args.base_image != FIXED_BASE_IMAGE or args.base_image_digest != FIXED_BASE_IMAGE_DIGEST:
+        raise ValueError(
+            f"benchmark base image must match the frozen {FIXED_BASE_IMAGE}@{FIXED_BASE_IMAGE_DIGEST}"
+        )
     for label, value in (("--warmup-repo-revision", args.warmup_repo_revision), ("--warmup-php-source-sha", args.warmup_php_source_sha)):
         if value and not re.fullmatch(r"[0-9a-fA-F]{40,64}", value):
             raise ValueError(f"{label} must be a full Git SHA")

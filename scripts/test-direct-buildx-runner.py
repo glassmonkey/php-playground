@@ -245,6 +245,69 @@ class DirectBuildxRunnerTest(unittest.TestCase):
 			self.assertIn("php-artifactz", receipt["preflight_error"])
 			self.assertIn("available stages: build", receipt["preflight_error"])
 
+	def test_malformed_base_digest_is_rejected_before_spawn(self) -> None:
+		with tempfile.TemporaryDirectory() as temp:
+			root = Path(temp)
+			run_dir = root / "bad-base-run"
+			spec_path = self.make_spec(run_dir, 0)
+			spec = json.loads(spec_path.read_text())
+			marker = root / "child-ran.txt"
+			image = "ubuntu@sha256:" + "a" * 65
+			spec["argv"] = [
+				sys.executable,
+				"-c",
+				f"from pathlib import Path; Path({str(marker)!r}).write_text('spawned')",
+				"--build-arg",
+				f"BASE_IMAGE={image}",
+			]
+			spec["expected_base_image"] = image
+			spec_path.write_text(json.dumps(spec), encoding="utf-8")
+			result = subprocess.run(
+				[sys.executable, str(RUNNER), str(spec_path)],
+				capture_output=True,
+				text=True,
+				check=False,
+			)
+			self.assertEqual(result.returncode, 1, result.stderr)
+			self.assertFalse(marker.exists())
+			receipt = json.loads((run_dir / "results.json").read_text())
+			self.assertEqual(receipt["status"], "unknown")
+			self.assertIsNone(receipt["exit_code"])
+			self.assertIsNone(receipt["observed_start_utc"])
+			self.assertIn("64 lowercase hex", receipt["base_image_pin_error"])
+			self.assertEqual(json.loads((run_dir / "terminal-result.json").read_text()), receipt)
+
+	def test_base_image_must_match_the_frozen_digest_before_spawn(self) -> None:
+		with tempfile.TemporaryDirectory() as temp:
+			root = Path(temp)
+			run_dir = root / "mismatched-base-run"
+			spec_path = self.make_spec(run_dir, 0)
+			spec = json.loads(spec_path.read_text())
+			marker = root / "child-ran.txt"
+			expected = "ubuntu@sha256:" + "a" * 64
+			actual = "ubuntu@sha256:" + "b" * 64
+			spec["argv"] = [
+				sys.executable,
+				"-c",
+				f"from pathlib import Path; Path({str(marker)!r}).write_text('spawned')",
+				"--build-arg",
+				f"BASE_IMAGE={actual}",
+			]
+			spec["expected_base_image"] = expected
+			spec_path.write_text(json.dumps(spec), encoding="utf-8")
+			result = subprocess.run(
+				[sys.executable, str(RUNNER), str(spec_path)],
+				capture_output=True,
+				text=True,
+				check=False,
+			)
+			self.assertEqual(result.returncode, 1, result.stderr)
+			self.assertFalse(marker.exists())
+			receipt = json.loads((run_dir / "results.json").read_text())
+			self.assertEqual(receipt["status"], "unknown")
+			self.assertIsNone(receipt["exit_code"])
+			self.assertIn("does not match frozen base", receipt["base_image_pin_error"])
+
 	def test_optional_log_hash_reporting_error_keeps_child_terminal(self) -> None:
 		with tempfile.TemporaryDirectory() as temp:
 			root = Path(temp)
