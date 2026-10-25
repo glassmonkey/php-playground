@@ -1,0 +1,3545 @@
+{
+  "head": "4fd516045ee6aa958bb01c78be5cb76205537894+working-tree-widget-reset",
+  "url": "http://127.0.0.1:3471/?c=DwfgDgFmBQBmCuA7AxgFwJYHtEAIDmATgKZGoCqAzkQQBQWoHqJ44AkiAhgLZE4C8OAOQBxeEXqCAlAC4c9RsxwBvHMVTwCuQQAkiAGz2YhOAHRtOPANw4AvnCRosuDgBMXAOXhcARtQo0mVDY9IlhUABocQLZGPAhUGSjEIJU1DVxWELCcAGoY9DjUaztkPQ4KChxhYlJqZRwweG89dGQ5BiYWVh4Kjjwia0bm1pwEFAxsfBrUGkT5Tvq0zSEIdEFihqaWtvoODDaxx0nkYj2iWdkqPVhF0nScRCIAdzl9WFmNu1ZCEgxFAR%2BpEo1BoggAglJLNBvtM6gJHi9qr8QZIoewvL4CPwcABGKHyAD6QA&v=8.5&f=html",
+  "status": 200,
+  "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+  "phpVersion": "8.5",
+  "completionOn": true,
+  "fixture": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n",
+  "typed": 5924.700000017881,
+  "delayMs": 160,
+  "pauseMs": 1800,
+  "at1800": {
+    "rows": [],
+    "events": [
+      {
+        "direction": "worker->ui",
+        "at": 782.8000000119209,
+        "jsonrpc": "2.0",
+        "id": 1,
+        "result": {
+          "capabilities": {
+            "textDocumentSync": {
+              "openClose": true,
+              "change": 1
+            },
+            "completionProvider": {
+              "resolveProvider": false,
+              "triggerCharacters": [
+                "$",
+                ">",
+                ":"
+              ]
+            },
+            "signatureHelpProvider": {
+              "triggerCharacters": [
+                "(",
+                ","
+              ]
+            },
+            "hoverProvider": true
+          },
+          "serverInfo": {
+            "name": "phpactor-wasm",
+            "version": "2026.10.07.0"
+          }
+        }
+      },
+      {
+        "direction": "ui->worker",
+        "at": 782.9000000059605,
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1",
+            "languageId": "php",
+            "version": 1,
+            "text": "<?php\n// example code\nphpinfo();"
+          }
+        }
+      },
+      {
+        "direction": "ui->worker",
+        "at": 4944.300000011921,
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1",
+            "version": 2
+          },
+          "contentChanges": [
+            {
+              "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+            }
+          ]
+        }
+      },
+      {
+        "direction": "ui->worker",
+        "at": 5271.4000000059605,
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1",
+            "version": 3
+          },
+          "contentChanges": [
+            {
+              "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\ns"
+            }
+          ]
+        }
+      },
+      {
+        "direction": "ui->worker",
+        "at": 5385,
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "textDocument/completion",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1"
+          },
+          "position": {
+            "line": 7,
+            "character": 1
+          }
+        }
+      },
+      {
+        "direction": "ui->worker",
+        "at": 5435.9000000059605,
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1",
+            "version": 4
+          },
+          "contentChanges": [
+            {
+              "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nst"
+            }
+          ]
+        }
+      },
+      {
+        "direction": "ui->worker",
+        "at": 5598.700000017881,
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1",
+            "version": 5
+          },
+          "contentChanges": [
+            {
+              "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr"
+            }
+          ]
+        }
+      },
+      {
+        "direction": "ui->worker",
+        "at": 5762.100000023842,
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1",
+            "version": 6
+          },
+          "contentChanges": [
+            {
+              "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_"
+            }
+          ]
+        }
+      },
+      {
+        "direction": "ui->worker",
+        "at": 5965.800000011921,
+        "jsonrpc": "2.0",
+        "id": 3,
+        "method": "textDocument/completion",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1"
+          },
+          "position": {
+            "line": 7,
+            "character": 4
+          }
+        }
+      }
+    ]
+  },
+  "final": {
+    "lines": [
+      "<?php",
+      "function greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }",
+      "function addNumbers(int $left, int $right): int { return $left + $right; }",
+      "class Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }",
+      "$greeting = greetUser('A');",
+      "$greeter = new Greeter();",
+      "$number = 1;",
+      "str_"
+    ],
+    "rows": [
+      "str_containsstr_contains(string $haystack, string $needle): bool",
+      "str_decrementstr_decrement(string $string): string",
+      "str_ends_withstr_ends_with(string $haystack, string $needle): bool",
+      "str_getcsvstr_getcsv(string $string, string $separator = ',', string $enclosure = '\"', string $escape = '\\\\\\\\'): array",
+      "str_incrementstr_increment(string $string): string",
+      "str_ireplacestr_ireplace(mixed $search, array|string $replace, array|string $subject, $count = NULL): string|string[]",
+      "str_padstr_pad(string $string, int $length, string $pad_string = ' ', int $pad_type = 1): string",
+      "str_repeatstr_repeat(string $string, int $times): string",
+      "str_replacestr_replace(string|string[] $search, string|string[] $replace, string|string[] $subject, $count = NULL): string|string[]",
+      "str_rot13str_rot13(string $string): string",
+      "str_shufflestr_shuffle(string $string): string",
+      "str_splitstr_split(string $string, int $length = 1): string[]|false"
+    ],
+    "events": [
+      {
+        "direction": "worker->ui",
+        "at": 782.8000000119209,
+        "jsonrpc": "2.0",
+        "id": 1,
+        "result": {
+          "capabilities": {
+            "textDocumentSync": {
+              "openClose": true,
+              "change": 1
+            },
+            "completionProvider": {
+              "resolveProvider": false,
+              "triggerCharacters": [
+                "$",
+                ">",
+                ":"
+              ]
+            },
+            "signatureHelpProvider": {
+              "triggerCharacters": [
+                "(",
+                ","
+              ]
+            },
+            "hoverProvider": true
+          },
+          "serverInfo": {
+            "name": "phpactor-wasm",
+            "version": "2026.10.07.0"
+          }
+        }
+      },
+      {
+        "direction": "ui->worker",
+        "at": 782.9000000059605,
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1",
+            "languageId": "php",
+            "version": 1,
+            "text": "<?php\n// example code\nphpinfo();"
+          }
+        }
+      },
+      {
+        "direction": "ui->worker",
+        "at": 4944.300000011921,
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1",
+            "version": 2
+          },
+          "contentChanges": [
+            {
+              "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+            }
+          ]
+        }
+      },
+      {
+        "direction": "ui->worker",
+        "at": 5271.4000000059605,
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1",
+            "version": 3
+          },
+          "contentChanges": [
+            {
+              "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\ns"
+            }
+          ]
+        }
+      },
+      {
+        "direction": "ui->worker",
+        "at": 5385,
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "textDocument/completion",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1"
+          },
+          "position": {
+            "line": 7,
+            "character": 1
+          }
+        }
+      },
+      {
+        "direction": "ui->worker",
+        "at": 5435.9000000059605,
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1",
+            "version": 4
+          },
+          "contentChanges": [
+            {
+              "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nst"
+            }
+          ]
+        }
+      },
+      {
+        "direction": "ui->worker",
+        "at": 5598.700000017881,
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1",
+            "version": 5
+          },
+          "contentChanges": [
+            {
+              "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr"
+            }
+          ]
+        }
+      },
+      {
+        "direction": "ui->worker",
+        "at": 5762.100000023842,
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1",
+            "version": 6
+          },
+          "contentChanges": [
+            {
+              "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_"
+            }
+          ]
+        }
+      },
+      {
+        "direction": "ui->worker",
+        "at": 5965.800000011921,
+        "jsonrpc": "2.0",
+        "id": 3,
+        "method": "textDocument/completion",
+        "params": {
+          "textDocument": {
+            "uri": "inmemory://model/1"
+          },
+          "position": {
+            "line": 7,
+            "character": 4
+          }
+        }
+      },
+      {
+        "direction": "worker->ui",
+        "at": 8862.300000011921,
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "isIncomplete": false,
+          "items": [
+            {
+              "label": "strlen",
+              "insertText": "strlen(${1:\\$string})${0}",
+              "detail": "strlen(string $string): int<0, max>",
+              "documentation": "\n\n\nGet string length\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strcmp",
+              "insertText": "strcmp(${1:\\$string1}, ${2:\\$string2})${0}",
+              "detail": "strcmp(string $string1, string $string2): int",
+              "documentation": "\n\n\nBinary safe string comparison\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strncmp",
+              "insertText": "strncmp(${1:\\$string1}, ${2:\\$string2}, ${3:\\$length})${0}",
+              "detail": "strncmp(string $string1, string $string2, int $length): int",
+              "documentation": "\n\n\nBinary safe string comparison of the first n characters\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strcasecmp",
+              "insertText": "strcasecmp(${1:\\$string1}, ${2:\\$string2})${0}",
+              "detail": "strcasecmp(string $string1, string $string2): int",
+              "documentation": "\n\n\nBinary safe case-insensitive string comparison\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strncasecmp",
+              "insertText": "strncasecmp(${1:\\$string1}, ${2:\\$string2}, ${3:\\$length})${0}",
+              "detail": "strncasecmp(string $string1, string $string2, int $length): int",
+              "documentation": "\n\n\nBinary safe case-insensitive string comparison of the first n characters\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "set_error_handler",
+              "insertText": "set_error_handler(${1:\\$callback})${0}",
+              "detail": "set_error_handler(callable()|null $callback, int $error_levels = 30719): callable()|null",
+              "documentation": "\n\n\nSets a user-defined error handler function\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "set_exception_handler",
+              "insertText": "set_exception_handler(${1:\\$callback})${0}",
+              "detail": "set_exception_handler(callable()|null $callback): callable()|null",
+              "documentation": "\n\nSets a user-defined exception handler function\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strtotime",
+              "insertText": "strtotime(${1:\\$datetime})${0}",
+              "detail": "strtotime(string $datetime, int|null $baseTimestamp = NULL): int|false",
+              "documentation": "\n\n\nParse about any English textual datetime description into a Unix timestamp\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strftime",
+              "insertText": "strftime(${1:\\$format})${0}",
+              "detail": "strftime(string $format, int|null $timestamp = NULL): string|false",
+              "documentation": "\n\n\nFormat a local time/date according to locale settings\nThe following characters are recognized in the\nformat parameter string\n<table>\n<tr valign=\"top\" colspan=\"3\" bgcolor=\"silver\">\n<th>format</th>\n<th>Description</th>\n<th>Example returned values</th>\n<th>\nDay</th>\n</tr>\n<tr valign=\"top\">\n<td>%a</td>\n<td>An abbreviated textual representation of the day</td>\n<td>Sun through Sat</td>\n</tr>\n<tr valign=\"top\">\n<td>%A</td>\n<td>A full textual representation of the day</td>\n<td>Sunday through Saturday</td>\n</tr>\n<tr valign=\"top\">\n<td>%d</td>\n<td>Two-digit day of the month (with leading zeros)</td>\n<td>01 to 31</td>\n</tr>\n<tr valign=\"top\">\n<td>%e</td>\n<td>Day of the month, with a space preceding single digits</td>\n<td> 1 to 31</td>\n</tr>\n<tr valign=\"top\">\n<td>%j</td>\n<td>Day of the year, 3 digits with leading zeros</td>\n<td>001 to 366</td>\n</tr>\n<tr valign=\"top\">\n<td>%u</td>\n<td>ISO-8601 numeric representation of the day of the week</td>\n<td>1 (for Monday) though 7 (for Sunday)</td>\n</tr>\n<tr valign=\"top\">\n<td>%w</td>\n<td>Numeric representation of the day of the week</td>\n<td>0 (for Sunday) through 6 (for Saturday)</td>\n</tr>\n<tr valign=\"top\">\n<th colspan=\"3\" bgcolor=\"silver\">Week</th>\n</tr>\n<tr valign=\"top\">\n<td>%U</td>\n<td>Week number of the given year, starting with the first\nSunday as the first week</td>\n<td>13 (for the 13th full week of the year)</td>\n</tr>\n<tr valign=\"top\">\n<td>%V</td>\n<td>ISO-8601:1988 week number of the given year, starting with\nthe first week of the year with at least 4 weekdays, with Monday\nbeing the start of the week</td>\n<td>01 through 53 (where 53\naccounts for an overlapping week)</td>\n</tr>\n<tr valign=\"top\">\n<td>%W</td>\n<td>A numeric representation of the week of the year, starting\nwith the first Monday as the first week</td>\n<td>46 (for the 46th week of the year beginning\nwith a Monday)</td>\n</tr>\n<tr valign=\"top\">\n<th colspan=\"3\" bgcolor=\"silver\">Month</th>\n</tr>\n<tr valign=\"top\">\n<td>%b</td>\n<td>Abbreviated month name, based on the locale</td>\n<td>Jan through Dec</td>\n</tr>\n<tr valign=\"top\">\n<td>%B</td>\n<td>Full month name, based on the locale</td>\n<td>January through December</td>\n</tr>\n<tr valign=\"top\">\n<td>%h</td>\n<td>Abbreviated month name, based on the locale (an alias of %b)</td>\n<td>Jan through Dec</td>\n</tr>\n<tr valign=\"top\">\n<td>%m</td>\n<td>Two digit representation of the month</td>\n<td>01 (for January) through 12 (for December)</td>\n</tr>\n<tr valign=\"top\">\n<th colspan=\"3\" bgcolor=\"silver\">Year</th>\n</tr>\n<tr valign=\"top\">\n<td>%C</td>\n<td>Two digit representation of the century (year divided by 100, truncated to an integer)</td>\n<td>19 for the 20th Century</td>\n</tr>\n<tr valign=\"top\">\n<td>%g</td>\n<td>Two digit representation of the year going by ISO-8601:1988 standards (see %V)</td>\n<td>Example: 09 for the week of January 6, 2009</td>\n</tr>\n<tr valign=\"top\">\n<td>%G</td>\n<td>The full four-digit version of %g</td>\n<td>Example: 2008 for the week of January 3, 2009</td>\n</tr>\n<tr valign=\"top\">\n<td>%y</td>\n<td>Two digit representation of the year</td>\n<td>Example: 09 for 2009, 79 for 1979</td>\n</tr>\n<tr valign=\"top\">\n<td>%Y</td>\n<td>Four digit representation for the year</td>\n<td>Example: 2038</td>\n</tr>\n<tr valign=\"top\">\n<th colspan=\"3\" bgcolor=\"silver\">Time</th>\n</tr>\n<tr valign=\"top\">\n<td>%H</td>\n<td>Two digit representation of the hour in 24-hour format</td>\n<td>00 through 23</td>\n</tr>\n<tr valign=\"top\">\n<td>%I</td>\n<td>Two digit representation of the hour in 12-hour format</td>\n<td>01 through 12</td>\n</tr>\n<tr valign=\"top\">\n<td>%l (lower-case 'L')</td>\n<td>Hour in 12-hour format, with a space preceding single digits</td>\n<td> 1 through 12</td>\n</tr>\n<tr valign=\"top\">\n<td>%M</td>\n<td>Two digit representation of the minute</td>\n<td>00 through 59</td>\n</tr>\n<tr valign=\"top\">\n<td>%p</td>\n<td>UPPER-CASE 'AM' or 'PM' based on the given time</td>\n<td>Example: AM for 00:31, PM for 22:23</td>\n</tr>\n<tr valign=\"top\">\n<td>%P</td>\n<td>lower-case 'am' or 'pm' based on the given time</td>\n<td>Example: am for 00:31, pm for 22:23</td>\n</tr>\n<tr valign=\"top\">\n<td>%r</td>\n<td>Same as \"%I:%M:%S %p\"</td>\n<td>Example: 09:34:17 PM for 21:34:17</td>\n</tr>\n<tr valign=\"top\">\n<td>%R</td>\n<td>Same as \"%H:%M\"</td>\n<td>Example: 00:35 for 12:35 AM, 16:44 for 4:44 PM</td>\n</tr>\n<tr valign=\"top\">\n<td>%S</td>\n<td>Two digit representation of the second</td>\n<td>00 through 59</td>\n</tr>\n<tr valign=\"top\">\n<td>%T</td>\n<td>Same as \"%H:%M:%S\"</td>\n<td>Example: 21:34:17 for 09:34:17 PM</td>\n</tr>\n<tr valign=\"top\">\n<td>%X</td>\n<td>Preferred time representation based on locale, without the date</td>\n<td>Example: 03:59:16 or 15:59:16</td>\n</tr>\n<tr valign=\"top\">\n<td>%z</td>\n<td>Either the time zone offset from UTC or the abbreviation (depends\non operating system)</td>\n<td>Example: -0500 or EST for Eastern Time</td>\n</tr>\n<tr valign=\"top\">\n<td>%Z</td>\n<td>The time zone offset/abbreviation option NOT given by %z (depends\non operating system)</td>\n<td>Example: -0500 or EST for Eastern Time</td>\n</tr>\n<tr valign=\"top\">\n<th colspan=\"3\" bgcolor=\"silver\">Time and Date Stamps</th>\n</tr>\n<tr valign=\"top\">\n<td>%c</td>\n<td>Preferred date and time stamp based on local</td>\n<td>Example: Tue Feb 5 00:45:10 2009 for\nFebruary 4, 2009 at 12:45:10 AM</td>\n</tr>\n<tr valign=\"top\">\n<td>%D</td>\n<td>Same as \"%m/%d/%y\"</td>\n<td>Example: 02/05/09 for February 5, 2009</td>\n</tr>\n<tr valign=\"top\">\n<td>%F</td>\n<td>Same as \"%Y-%m-%d\" (commonly used in database datestamps)</td>\n<td>Example: 2009-02-05 for February 5, 2009</td>\n</tr>\n<tr valign=\"top\">\n<td>%s</td>\n<td>Unix Epoch Time timestamp (same as the time\nfunction)</td>\n<td>Example: 305815200 for September 10, 1979 08:40:00 AM</td>\n</tr>\n<tr valign=\"top\">\n<td>%x</td>\n<td>Preferred date representation based on locale, without the time</td>\n<td>Example: 02/05/09 for February 5, 2009</td>\n</tr>\n<tr valign=\"top\">\n<th colspan=\"3\" bgcolor=\"silver\">Miscellaneous</th>\n</tr>\n<tr valign=\"top\">\n<td>%n</td>\n<td>A newline character (\"\\n\")</td>\n<td>---</td>\n</tr>\n<tr valign=\"top\">\n<td>%t</td>\n<td>A Tab character (\"\\t\")</td>\n<td>---</td>\n</tr>\n<tr valign=\"top\">\n<td>%%</td>\n<td>A literal percentage character (\"%\")</td>\n<td>---</td>\n</tr>\n</table>\n<p>\nMaximum length of this parameter is 1023 characters.\n</p>\nContrary to ISO-9899:1999, Sun Solaris starts with Sunday as 1.\nAs a result, %u may not function as described in this manual.\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "srand",
+              "insertText": "srand(${1})${0}",
+              "detail": "srand(int|null $seed = NULL, int $mode = 0): void",
+              "documentation": "\n\n\nSeed the random number generator\n<p><strong>Note</strong>: As of PHP 7.1.0, {",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "set_time_limit",
+              "insertText": "set_time_limit(${1:\\$seconds})${0}",
+              "detail": "set_time_limit(int $seconds): bool",
+              "documentation": "\n\n\nLimits the maximum execution time\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_wrapper_register",
+              "insertText": "stream_wrapper_register(${1:\\$protocol}, ${2:\\$class})${0}",
+              "detail": "stream_wrapper_register(string $protocol, string $class, int $flags = 0): bool",
+              "documentation": "\n\n\nRegister a URL wrapper implemented as a PHP class\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_register_wrapper",
+              "insertText": "stream_register_wrapper(${1:\\$protocol}, ${2:\\$class})${0}",
+              "detail": "stream_register_wrapper(string $protocol, string $class, int $flags = 0): bool",
+              "documentation": "\n\n\nAlias:\n{",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_wrapper_unregister",
+              "insertText": "stream_wrapper_unregister(${1:\\$protocol})${0}",
+              "detail": "stream_wrapper_unregister(string $protocol): bool",
+              "documentation": "\n\n\nUnregister a URL wrapper\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_wrapper_restore",
+              "insertText": "stream_wrapper_restore(${1:\\$protocol})${0}",
+              "detail": "stream_wrapper_restore(string $protocol): bool",
+              "documentation": "\n\n\nRestores a previously unregistered built-in wrapper\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "sizeof",
+              "insertText": "sizeof(${1:\\$value})${0}",
+              "detail": "sizeof(array|Countable $value, int $mode = 0): int<0, max>",
+              "documentation": "\n\n\nAlias:\n{",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "sort",
+              "insertText": "sort(${1:\\$array})${0}",
+              "detail": "sort(array $array, int $flags = 0)",
+              "documentation": "\n\n\nSort an array\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "shuffle",
+              "insertText": "shuffle(${1:\\$array})${0}",
+              "detail": "shuffle(array $array)",
+              "documentation": "\n\n\nShuffle an array\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "sleep",
+              "insertText": "sleep(${1:\\$seconds})${0}",
+              "detail": "sleep(int<0, max> $seconds): int",
+              "documentation": "\n\n\nDelays the program execution for the given number of seconds\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "show_source",
+              "insertText": "show_source(${1:\\$filename})${0}",
+              "detail": "show_source(string $filename, bool $return = false): string|bool",
+              "documentation": "\n\n\nAlias:\n{",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "set_include_path",
+              "insertText": "set_include_path(${1:\\$include_path})${0}",
+              "detail": "set_include_path(string $include_path): string|false",
+              "documentation": "\n\n\nSets the include_path configuration option\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "sys_getloadavg",
+              "insertText": "sys_getloadavg()",
+              "detail": "sys_getloadavg(): array{float,float,float}|false",
+              "documentation": "\n\n\nGets system load average\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strptime",
+              "insertText": "strptime(${1:\\$timestamp}, ${2:\\$format})${0}",
+              "detail": "strptime(string $timestamp, string $format): array|false",
+              "documentation": "\n\n\nParse a time/date generated with <function>strftime</function>\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "sha1",
+              "insertText": "sha1(${1:\\$string})${0}",
+              "detail": "sha1(string $string, bool $binary = false): string",
+              "documentation": "\n\n\nCalculate the sha1 hash of a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "sha1_file",
+              "insertText": "sha1_file(${1:\\$filename})${0}",
+              "detail": "sha1_file(string $filename, bool $binary = false): string|false",
+              "documentation": "\n\n\nCalculate the sha1 hash of a file\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "syslog",
+              "insertText": "syslog(${1:\\$priority}, ${2:\\$message})${0}",
+              "detail": "syslog(int $priority, string $message)",
+              "documentation": "\n\n\nGenerate a system log message\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "setrawcookie",
+              "insertText": "setrawcookie(${1:\\$name})${0}",
+              "detail": "setrawcookie(string $name, string $value = '', array $options = array ()): bool",
+              "documentation": "\n\n\nSend a cookie without urlencoding the cookie value\n\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "setcookie",
+              "insertText": "setcookie(${1:\\$name})${0}",
+              "detail": "setcookie(string $name, string $value = '', array $options = array ()): bool",
+              "documentation": "\n\n\nSend a cookie\n\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strspn",
+              "insertText": "strspn(${1:\\$string}, ${2:\\$characters})${0}",
+              "detail": "strspn(string $string, string $characters, int $offset = 0, int|null $length = NULL): int",
+              "documentation": "\n\n\nFinds the length of the initial segment of a string consisting\nentirely of characters contained within a given mask.\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strcspn",
+              "insertText": "strcspn(${1:\\$string}, ${2:\\$characters})${0}",
+              "detail": "strcspn(string $string, string $characters, int $offset = 0, int|null $length = NULL): int",
+              "documentation": "\n\n\nFind length of initial segment not matching mask\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strcoll",
+              "insertText": "strcoll(${1:\\$string1}, ${2:\\$string2})${0}",
+              "detail": "strcoll(string $string1, string $string2): int",
+              "documentation": "\n\n\nLocale based string comparison\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strtok",
+              "insertText": "strtok(${1:\\$string})${0}",
+              "detail": "strtok(string $string, string|null $token = NULL): string|false",
+              "documentation": "\n\n\nTokenize string\nNote that only the first call to strtok uses the string argument.\nEvery subsequent call to strtok only needs the token to use, as it keeps track of where it is in the current string.\nTo start over, or to tokenize a new string you simply call strtok with the string argument again to initialize it.\nNote that you may put multiple tokens in the token parameter.\nThe string will be tokenized when any one of the characters in the argument are found.\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strtoupper",
+              "insertText": "strtoupper(${1:\\$string})${0}",
+              "detail": "strtoupper(string $string): string",
+              "documentation": "\n\n\nMake a string uppercase\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strtolower",
+              "insertText": "strtolower(${1:\\$string})${0}",
+              "detail": "strtolower(string $string): string",
+              "documentation": "\n\n\nMake a string lowercase\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_increment",
+              "insertText": "str_increment(${1:\\$string})${0}",
+              "detail": "str_increment(string $string): string",
+              "documentation": "\n\n\nIncrement an alphanumeric string\n\nReturns the incremented alphanumeric ASCII string.\n\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_decrement",
+              "insertText": "str_decrement(${1:\\$string})${0}",
+              "detail": "str_decrement(string $string): string",
+              "documentation": "\n\n\nDecrement an alphanumeric string\n\nReturns the decremented alphanumeric ASCII string.\n\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stristr",
+              "insertText": "stristr(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "stristr(string $haystack, string $needle, bool $before_needle = false): string|false",
+              "documentation": "\n\n\nCase-insensitive <function>strstr</function>\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strstr",
+              "insertText": "strstr(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "strstr(string $haystack, string $needle, bool $before_needle = false): string|false",
+              "documentation": "\n\n\nFind the first occurrence of a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strchr",
+              "insertText": "strchr(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "strchr(string $haystack, string $needle, bool $before_needle = false): string|false",
+              "documentation": "\n\n\nAlias:\n{",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strpos",
+              "insertText": "strpos(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "strpos(string $haystack, string $needle, int<0, max> $offset = 0): int<0, max>|false",
+              "documentation": "\n\n\nFind the position of the first occurrence of a substring in a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stripos",
+              "insertText": "stripos(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "stripos(string $haystack, string $needle, int $offset = 0): int|false",
+              "documentation": "\n\n\nFind position of first occurrence of a case-insensitive string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strrpos",
+              "insertText": "strrpos(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "strrpos(string $haystack, string $needle, int $offset = 0): int|false",
+              "documentation": "\n\n\nFind the position of the last occurrence of a substring in a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strripos",
+              "insertText": "strripos(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "strripos(string $haystack, string $needle, int $offset = 0): int|false",
+              "documentation": "\n\n\nFind position of last occurrence of a case-insensitive string in a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strrchr",
+              "insertText": "strrchr(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "strrchr(string $haystack, string $needle, bool $before_needle = false): string|false",
+              "documentation": "\n\n\nFind the last occurrence of a character in a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_contains",
+              "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "str_contains(string $haystack, string $needle): bool",
+              "documentation": "\n\n\nChecks if $needle is found in $haystack and returns a boolean value\n(true/false) whether or not the $needle was found.\n\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_starts_with",
+              "insertText": "str_starts_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "str_starts_with(string $haystack, string $needle): bool",
+              "documentation": "\n\n\nThe function returns {",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_ends_with",
+              "insertText": "str_ends_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "str_ends_with(string $haystack, string $needle): bool",
+              "documentation": "\n\n\nThe function returns {",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "substr",
+              "insertText": "substr(${1:\\$string}, ${2:\\$offset})${0}",
+              "detail": "substr(string $string, int $offset, int|null $length = NULL): string|false",
+              "documentation": "\n\n\nReturns the portion of string specified by the offset and length parameters.\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "substr_replace",
+              "insertText": "substr_replace(${1:\\$string}, ${2:\\$replace}, ${3:\\$offset})${0}",
+              "detail": "substr_replace(string[]|string $string, string[]|string $replace, int[]|int $offset, int[]|int $length = NULL): string|string[]",
+              "documentation": "\n\n\nReplace text within a portion of a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strtr",
+              "insertText": "strtr(${1:\\$str}, ${2:\\$replace_pairs})${0}",
+              "detail": "strtr(string $str, array $replace_pairs): string",
+              "documentation": "\n\n\nTranslate certain characters\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strrev",
+              "insertText": "strrev(${1:\\$string})${0}",
+              "detail": "strrev(string $string): string",
+              "documentation": "\n\n\nReverse a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "similar_text",
+              "insertText": "similar_text(${1:\\$string1}, ${2:\\$string2})${0}",
+              "detail": "similar_text(string $string1, string $string2, $percent = NULL): int",
+              "documentation": "\n\n\nCalculate the similarity between two strings\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stripcslashes",
+              "insertText": "stripcslashes(${1:\\$string})${0}",
+              "detail": "stripcslashes(string $string): string",
+              "documentation": "\n\n\nUn-quote string quoted with <function>addcslashes</function>\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stripslashes",
+              "insertText": "stripslashes(${1:\\$string})${0}",
+              "detail": "stripslashes(string $string): string",
+              "documentation": "\n\n\nUn-quotes a quoted string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_replace",
+              "insertText": "str_replace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+              "detail": "str_replace(string|string[] $search, string|string[] $replace, string|string[] $subject, $count = NULL): string|string[]",
+              "documentation": "\n\n\nReplace all occurrences of the search string with the replacement string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_ireplace",
+              "insertText": "str_ireplace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+              "detail": "str_ireplace(mixed $search, array|string $replace, array|string $subject, $count = NULL): string|string[]",
+              "documentation": "\n\n\nCase-insensitive version of <function>str_replace</function>.\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strip_tags",
+              "insertText": "strip_tags(${1:\\$string})${0}",
+              "detail": "strip_tags(string $string, string[]|string|null $allowed_tags = NULL): string",
+              "documentation": "\n\n\nStrip HTML and PHP tags from a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "setlocale",
+              "insertText": "setlocale(${1:\\$category}, ${2:\\$locales}, ${3:\\$rest})${0}",
+              "detail": "setlocale(int $category, string|string[]|int $locales, array $rest): string|false",
+              "documentation": "\n\n\nSet locale information\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_getcsv",
+              "insertText": "str_getcsv(${1:\\$string})${0}",
+              "detail": "str_getcsv(string $string, string $separator = ',', string $enclosure = '\"', string $escape = '\\\\\\\\'): array",
+              "documentation": "\n\n\nParse a CSV string into an array\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_repeat",
+              "insertText": "str_repeat(${1:\\$string}, ${2:\\$times})${0}",
+              "detail": "str_repeat(string $string, int $times): string",
+              "documentation": "\n\n\nRepeat a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strnatcmp",
+              "insertText": "strnatcmp(${1:\\$string1}, ${2:\\$string2})${0}",
+              "detail": "strnatcmp(string $string1, string $string2): int",
+              "documentation": "\n\n\nString comparisons using a \"natural order\" algorithm\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strnatcasecmp",
+              "insertText": "strnatcasecmp(${1:\\$string1}, ${2:\\$string2})${0}",
+              "detail": "strnatcasecmp(string $string1, string $string2): int",
+              "documentation": "\n\n\nCase insensitive string comparisons using a \"natural order\" algorithm\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "substr_count",
+              "insertText": "substr_count(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "substr_count(string $haystack, string $needle, int $offset = 0, int|null $length = NULL): int<0, max>",
+              "documentation": "\n\n\nCount the number of substring occurrences\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_pad",
+              "insertText": "str_pad(${1:\\$string}, ${2:\\$length})${0}",
+              "detail": "str_pad(string $string, int $length, string $pad_string = ' ', int $pad_type = 1): string",
+              "documentation": "\n\n\nPad a string to a certain length with another string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "sscanf",
+              "insertText": "sscanf(${1:\\$string}, ${2:\\$format}, ${3:\\$vars})${0}",
+              "detail": "sscanf(string $string, string $format, mixed[] $vars): array|int|null",
+              "documentation": "\n\n\nParses input from a string according to a format\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_rot13",
+              "insertText": "str_rot13(${1:\\$string})${0}",
+              "detail": "str_rot13(string $string): string",
+              "documentation": "\n\n\nPerform the rot13 transform on a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_shuffle",
+              "insertText": "str_shuffle(${1:\\$string})${0}",
+              "detail": "str_shuffle(string $string): string",
+              "documentation": "\n\n\nRandomly shuffles a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_word_count",
+              "insertText": "str_word_count(${1:\\$string})${0}",
+              "detail": "str_word_count(string $string, int $format = 0, string|null $characters = NULL): string[]|int",
+              "documentation": "\n\n\nReturn information about words used in a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_split",
+              "insertText": "str_split(${1:\\$string})${0}",
+              "detail": "str_split(string $string, int $length = 1): string[]|false",
+              "documentation": "\n\n\nConvert a string to an array\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strpbrk",
+              "insertText": "strpbrk(${1:\\$string}, ${2:\\$characters})${0}",
+              "detail": "strpbrk(string $string, $char_list = '', string $characters): string|false",
+              "documentation": "\n\n\nSearch a string for any of a set of characters\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "substr_compare",
+              "insertText": "substr_compare(${1:\\$haystack}, ${2:\\$needle}, ${3:\\$offset})${0}",
+              "detail": "substr_compare(string $haystack, string $needle, int $offset, int|null $length = NULL, bool $case_insensitive = false): int",
+              "documentation": "\n\n\nBinary safe comparison of two strings from an offset, up to length characters\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "scandir",
+              "insertText": "scandir(${1:\\$directory})${0}",
+              "detail": "scandir(string $directory, int $sorting_order = 0, resource $context = NULL): array|false",
+              "documentation": "\n\n\nList files and directories inside the specified path\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "system",
+              "insertText": "system(${1:\\$command})${0}",
+              "detail": "system(string $command, $result_code = NULL): string|false",
+              "documentation": "\n\n\nExecute an external program and display the output\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "shell_exec",
+              "insertText": "shell_exec(${1:\\$command})${0}",
+              "detail": "shell_exec(string $command): string|false|null",
+              "documentation": "\n\n\nExecute command via shell and return the complete output as a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "sys_get_temp_dir",
+              "insertText": "sys_get_temp_dir()",
+              "detail": "sys_get_temp_dir(): string",
+              "documentation": "\n\n\nReturns directory path used for temporary files\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stat",
+              "insertText": "stat(${1:\\$filename})${0}",
+              "detail": "stat(string $filename): array|false",
+              "documentation": "\n\n\nGives information about a file\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "sprintf",
+              "insertText": "sprintf(${1:\\$format}, ${2:\\$values})${0}",
+              "detail": "sprintf(string $format, mixed[] $values): string",
+              "documentation": "\n\n\nReturn a formatted string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "symlink",
+              "insertText": "symlink(${1:\\$target}, ${2:\\$link})${0}",
+              "detail": "symlink(string $target, string $link): bool",
+              "documentation": "\n\n\nCreates a symbolic link\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "sin",
+              "insertText": "sin(${1:\\$num})${0}",
+              "detail": "sin(float $num): float",
+              "documentation": "\n\n\nSine\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "sinh",
+              "insertText": "sinh(${1:\\$num})${0}",
+              "detail": "sinh(float $num): float",
+              "documentation": "\n\n\nHyperbolic sine\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "sqrt",
+              "insertText": "sqrt(${1:\\$num})${0}",
+              "detail": "sqrt(float $num): float",
+              "documentation": "\n\n\nSquare root\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "soundex",
+              "insertText": "soundex(${1:\\$string})${0}",
+              "detail": "soundex(string $string): string",
+              "documentation": "\n\n\nCalculate the soundex key of a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_select",
+              "insertText": "stream_select(${1:\\$read}, ${2:\\$write}, ${3:\\$except}, ${4:\\$seconds})${0}",
+              "detail": "stream_select(?array $read, ?array $write, ?array $except, int|null $seconds, int $microseconds = NULL, $context = NULL): int|false",
+              "documentation": "\n\n\nRuns the equivalent of the select() system call on the given\narrays of streams with a timeout specified by tv_sec and tv_usec\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_context_create",
+              "insertText": "stream_context_create(${1})${0}",
+              "detail": "stream_context_create(null|array $options = NULL, null|array $params = NULL): resource",
+              "documentation": "\n\n\nCreate a stream context\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_context_set_params",
+              "insertText": "stream_context_set_params(${1:\\$context}, ${2:\\$params})${0}",
+              "detail": "stream_context_set_params(resource $context, array $params): bool",
+              "documentation": "\n\n\nSet parameters for a stream/wrapper/context\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_context_get_params",
+              "insertText": "stream_context_get_params(${1:\\$context})${0}",
+              "detail": "stream_context_get_params(resource $context): array",
+              "documentation": "\n\n\nRetrieves parameters from a context\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_context_set_option",
+              "insertText": "stream_context_set_option(${1:\\$stream_or_context}, ${2:\\$options})${0}",
+              "detail": "stream_context_set_option(resource $stream_or_context, array $options): bool",
+              "documentation": "\n\n\nSets an option for a stream/wrapper/context\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_context_set_options",
+              "insertText": "stream_context_set_options(${1:\\$context}, ${2:\\$options})${0}",
+              "detail": "stream_context_set_options($context, array $options)",
+              "documentation": "Sets options on the specified context\n@link https://php.net/manual/en/function.stream-context-set-options.php\n@since 8.3",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_context_get_options",
+              "insertText": "stream_context_get_options(${1:\\$stream_or_context})${0}",
+              "detail": "stream_context_get_options(resource $stream_or_context): array",
+              "documentation": "\n\n\nRetrieve options for a stream/wrapper/context\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_context_get_default",
+              "insertText": "stream_context_get_default(${1})${0}",
+              "detail": "stream_context_get_default(null|array $options = NULL): resource",
+              "documentation": "\n\n\nRetreive the default stream context\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_context_set_default",
+              "insertText": "stream_context_set_default(${1:\\$options})${0}",
+              "detail": "stream_context_set_default(array $options): resource",
+              "documentation": "\n\n\nSet the default stream context\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_filter_prepend",
+              "insertText": "stream_filter_prepend(${1:\\$stream}, ${2:\\$filter_name}, ${3:\\$params})${0}",
+              "detail": "stream_filter_prepend(resource $stream, string $filter_name, int $mode = 0, mixed $params): resource|false",
+              "documentation": "\n\n\nAttach a filter to a stream\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_filter_append",
+              "insertText": "stream_filter_append(${1:\\$stream}, ${2:\\$filter_name}, ${3:\\$params})${0}",
+              "detail": "stream_filter_append(resource $stream, string $filter_name, int $mode = 0, mixed $params): resource|false",
+              "documentation": "\n\n\nAttach a filter to a stream\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_filter_remove",
+              "insertText": "stream_filter_remove(${1:\\$stream_filter})${0}",
+              "detail": "stream_filter_remove(resource $stream_filter): bool",
+              "documentation": "\n\n\nRemove a filter from a stream\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_socket_client",
+              "insertText": "stream_socket_client(${1:\\$address})${0}",
+              "detail": "stream_socket_client(string $address, $error_code = NULL, $error_message = NULL, float|null $timeout = NULL, int $flags = 4, resource $context = NULL): resource|false",
+              "documentation": "\n\n\nOpen Internet or Unix domain socket connection\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_socket_server",
+              "insertText": "stream_socket_server(${1:\\$address})${0}",
+              "detail": "stream_socket_server(string $address, $error_code = NULL, $error_message = NULL, int $flags = 12, resource $context = NULL): resource|false",
+              "documentation": "\n\n\nCreate an Internet or Unix domain server socket\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_socket_accept",
+              "insertText": "stream_socket_accept(${1:\\$socket})${0}",
+              "detail": "stream_socket_accept(resource $socket, float|null $timeout = NULL, $peer_name = NULL): resource|false",
+              "documentation": "\n\n\nAccept a connection on a socket created by {",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_socket_get_name",
+              "insertText": "stream_socket_get_name(${1:\\$socket}, ${2:\\$remote})${0}",
+              "detail": "stream_socket_get_name(resource $socket, bool $remote): string|false",
+              "documentation": "\n\n\nRetrieve the name of the local or remote sockets\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_socket_recvfrom",
+              "insertText": "stream_socket_recvfrom(${1:\\$socket}, ${2:\\$length})${0}",
+              "detail": "stream_socket_recvfrom(resource $socket, int $length, int $flags = 0, $address = NULL): string|false",
+              "documentation": "\n\n\nReceives data from a socket, connected or not\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_socket_sendto",
+              "insertText": "stream_socket_sendto(${1:\\$socket}, ${2:\\$data})${0}",
+              "detail": "stream_socket_sendto(resource $socket, string $data, int $flags = 0, string $address = ''): int|false",
+              "documentation": "\n\n\nSends a message to a socket, whether it is connected or not\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_socket_enable_crypto",
+              "insertText": "stream_socket_enable_crypto(${1:\\$stream}, ${2:\\$enable})${0}",
+              "detail": "stream_socket_enable_crypto(resource $stream, bool $enable, int|null $crypto_method = NULL, resource $session_stream = NULL): bool|int",
+              "documentation": "\n\n\nTurns encryption on/off on an already connected socket\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_socket_shutdown",
+              "insertText": "stream_socket_shutdown(${1:\\$stream}, ${2:\\$mode})${0}",
+              "detail": "stream_socket_shutdown(resource $stream, int $mode): bool",
+              "documentation": "\n\n\nShutdown a full-duplex connection\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_socket_pair",
+              "insertText": "stream_socket_pair(${1:\\$domain}, ${2:\\$type}, ${3:\\$protocol})${0}",
+              "detail": "stream_socket_pair(int $domain, int $type, int $protocol, $context = NULL): array|false",
+              "documentation": "\n\n\nCreates a pair of connected, indistinguishable socket streams\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_copy_to_stream",
+              "insertText": "stream_copy_to_stream(${1:\\$from}, ${2:\\$to})${0}",
+              "detail": "stream_copy_to_stream(resource $from, resource $to, int|null $length = NULL, int $offset = 0, $context = NULL): int|false",
+              "documentation": "\n\n\nCopies data from one stream to another\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_get_contents",
+              "insertText": "stream_get_contents(${1:\\$stream})${0}",
+              "detail": "stream_get_contents(resource $stream, int|null $length = NULL, int $offset = -1): string|false",
+              "documentation": "\n\n\nReads remainder of a stream into a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_supports_lock",
+              "insertText": "stream_supports_lock(${1:\\$stream})${0}",
+              "detail": "stream_supports_lock(resource $stream): bool",
+              "documentation": "\n\n\nTells whether the stream supports locking.\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_set_write_buffer",
+              "insertText": "stream_set_write_buffer(${1:\\$stream}, ${2:\\$size})${0}",
+              "detail": "stream_set_write_buffer(resource $stream, int $size): int",
+              "documentation": "\n\n\nSets write file buffering on the given stream\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "set_file_buffer",
+              "insertText": "set_file_buffer(${1:\\$stream}, ${2:\\$size})${0}",
+              "detail": "set_file_buffer(resource $stream, int $size): int",
+              "documentation": "\n\n\nAlias:\n{",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_set_read_buffer",
+              "insertText": "stream_set_read_buffer(${1:\\$stream}, ${2:\\$size})${0}",
+              "detail": "stream_set_read_buffer(resource $stream, int $size): int",
+              "documentation": "\n\n\nSets read file buffering on the given stream\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_set_blocking",
+              "insertText": "stream_set_blocking(${1:\\$stream}, ${2:\\$enable})${0}",
+              "detail": "stream_set_blocking(resource $stream, bool $enable): bool",
+              "documentation": "\n\n\nSet blocking/non-blocking mode on a stream\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "socket_set_blocking",
+              "insertText": "socket_set_blocking(${1:\\$stream}, ${2:\\$enable})${0}",
+              "detail": "socket_set_blocking(resource $stream, bool $enable): bool",
+              "documentation": "\n\n\nAlias:\n{",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_get_meta_data",
+              "insertText": "stream_get_meta_data(${1:\\$stream})${0}",
+              "detail": "stream_get_meta_data(resource $stream): array",
+              "documentation": "\n\n\nRetrieves header/meta data from streams/file pointers\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "socket_get_status",
+              "insertText": "socket_get_status(${1:\\$stream})${0}",
+              "detail": "socket_get_status(resource $stream): array",
+              "documentation": "\n\n\nAlias:\n{",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_get_line",
+              "insertText": "stream_get_line(${1:\\$stream}, ${2:\\$length})${0}",
+              "detail": "stream_get_line(resource $stream, int $length, string $ending = ''): string|false",
+              "documentation": "\n\n\nGets line from stream resource up to a given delimiter\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_resolve_include_path",
+              "insertText": "stream_resolve_include_path(${1:\\$filename})${0}",
+              "detail": "stream_resolve_include_path(string $filename): string|false",
+              "documentation": "\n\n\nResolve filename against the include path according to the same rules as fopen()/include().\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_get_wrappers",
+              "insertText": "stream_get_wrappers()",
+              "detail": "stream_get_wrappers(): array<int,string>",
+              "documentation": "\n\n\nRetrieve list of registered streams\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_get_transports",
+              "insertText": "stream_get_transports()",
+              "detail": "stream_get_transports(): array<int,string>",
+              "documentation": "\n\n\nRetrieve list of registered socket transports\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_is_local",
+              "insertText": "stream_is_local(${1:\\$stream})${0}",
+              "detail": "stream_is_local(mixed $stream, $context = NULL): bool",
+              "documentation": "\n\n\nChecks if a stream is a local stream\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_isatty",
+              "insertText": "stream_isatty(${1:\\$stream})${0}",
+              "detail": "stream_isatty(resource $stream): bool",
+              "documentation": "\n\n\nCheck if a stream is a TTY\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_set_chunk_size",
+              "insertText": "stream_set_chunk_size(${1:\\$stream}, ${2:\\$size})${0}",
+              "detail": "stream_set_chunk_size(resource $stream, int $size): int|false",
+              "documentation": "\n\n\nSet the stream chunk size.\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_set_timeout",
+              "insertText": "stream_set_timeout(${1:\\$stream}, ${2:\\$seconds})${0}",
+              "detail": "stream_set_timeout(resource $stream, int $seconds, int $microseconds = 0): bool",
+              "documentation": "\n\n\nSet timeout period on a stream\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "socket_set_timeout",
+              "insertText": "socket_set_timeout(${1:\\$stream}, ${2:\\$seconds})${0}",
+              "detail": "socket_set_timeout(resource $stream, int $seconds, int $microseconds = 0): bool",
+              "documentation": "\n\n\nAlias:\n{",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "settype",
+              "insertText": "settype(${1:\\$var}, ${2:\\$type})${0}",
+              "detail": "settype(mixed $var, string $type): bool",
+              "documentation": "\n\n\nSet the type of a variable\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strval",
+              "insertText": "strval(${1:\\$value})${0}",
+              "detail": "strval(mixed $value): string",
+              "documentation": "\n\n\nGet string value of a variable\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_bucket_make_writeable",
+              "insertText": "stream_bucket_make_writeable(${1:\\$brigade})${0}",
+              "detail": "stream_bucket_make_writeable(resource $brigade): object|null",
+              "documentation": "\n\n\nReturn a bucket object from the brigade for operating on\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_bucket_prepend",
+              "insertText": "stream_bucket_prepend(${1:\\$brigade}, ${2:\\$bucket})${0}",
+              "detail": "stream_bucket_prepend(resource $brigade, object $bucket): void",
+              "documentation": "\n\n\nPrepend bucket to brigade\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_bucket_append",
+              "insertText": "stream_bucket_append(${1:\\$brigade}, ${2:\\$bucket})${0}",
+              "detail": "stream_bucket_append(resource $brigade, object $bucket): void",
+              "documentation": "\n\n\nAppend bucket to brigade\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_bucket_new",
+              "insertText": "stream_bucket_new(${1:\\$stream}, ${2:\\$buffer})${0}",
+              "detail": "stream_bucket_new(resource $stream, string $buffer): object",
+              "documentation": "\n\n\nCreate a new bucket for use on the current stream\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_get_filters",
+              "insertText": "stream_get_filters()",
+              "detail": "stream_get_filters(): array<int,string>",
+              "documentation": "\n\n\nRetrieve list of registered filters\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_filter_register",
+              "insertText": "stream_filter_register(${1:\\$filter_name}, ${2:\\$class})${0}",
+              "detail": "stream_filter_register(string $filter_name, string $class): bool",
+              "documentation": "\n\n\nRegister a user defined stream filter\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "serialize",
+              "insertText": "serialize(${1:\\$value})${0}",
+              "detail": "serialize(mixed $value): string",
+              "documentation": "\n\n\nGenerates a storable representation of a value\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "spl_autoload",
+              "insertText": "spl_autoload(${1:\\$class})${0}",
+              "detail": "spl_autoload(string $class, string|null $file_extensions = NULL): void",
+              "documentation": "\n\n\nDefault implementation for __autoload()\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "spl_autoload_call",
+              "insertText": "spl_autoload_call(${1:\\$class})${0}",
+              "detail": "spl_autoload_call(string $class): void",
+              "documentation": "\n\n\nTry all registered __autoload() functions to load the requested class\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "spl_autoload_extensions",
+              "insertText": "spl_autoload_extensions(${1})${0}",
+              "detail": "spl_autoload_extensions(string|null $file_extensions = NULL): string",
+              "documentation": "\n\n\nRegister and return default file extensions for spl_autoload\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "spl_autoload_functions",
+              "insertText": "spl_autoload_functions()",
+              "detail": "spl_autoload_functions(): array|false",
+              "documentation": "\n\n\nReturn all registered __autoload() functions\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "spl_autoload_register",
+              "insertText": "spl_autoload_register(${1})${0}",
+              "detail": "spl_autoload_register(callable()|null $callback = NULL, bool $throw = true, bool $prepend = false): bool",
+              "documentation": "\n\n\nRegister given function as __autoload() implementation\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "spl_autoload_unregister",
+              "insertText": "spl_autoload_unregister(${1:\\$callback})${0}",
+              "detail": "spl_autoload_unregister(callable() $callback): bool",
+              "documentation": "\n\n\nUnregister given function as __autoload() implementation\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "spl_classes",
+              "insertText": "spl_classes()",
+              "detail": "spl_classes(): array",
+              "documentation": "\n\n\nReturn available SPL classes\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "spl_object_hash",
+              "insertText": "spl_object_hash(${1:\\$object})${0}",
+              "detail": "spl_object_hash(object $object): string",
+              "documentation": "\n\n\nReturn hash id for given object\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "spl_object_id",
+              "insertText": "spl_object_id(${1:\\$object})${0}",
+              "detail": "spl_object_id(object $object): int",
+              "documentation": "\n\n\nreturn the integer object handle for given object\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_name",
+              "insertText": "session_name(${1})${0}",
+              "detail": "session_name(string|null $name = NULL): string|false",
+              "documentation": "\n\n\nGet and/or set the current session name.<br/>\nBefore 7.2.0 checked cookie status and since 7.2.0 checks both cookie and session status to avoid PHP crash.\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_module_name",
+              "insertText": "session_module_name(${1})${0}",
+              "detail": "session_module_name(string|null $module = NULL): string|false",
+              "documentation": "\n\n\nGet and/or set the current session module.<br/>\nSince 7.2.0 it is forbidden to set the module name to \"user\".\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_save_path",
+              "insertText": "session_save_path(${1})${0}",
+              "detail": "session_save_path(string|null $path = NULL): string|false",
+              "documentation": "\n\n\nGet and/or set the current session save path\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_id",
+              "insertText": "session_id(${1})${0}",
+              "detail": "session_id(string|null $id = NULL): string|false",
+              "documentation": "\n\n\nGet and/or set the current session id\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_create_id",
+              "insertText": "session_create_id(${1})${0}",
+              "detail": "session_create_id(string $prefix = ''): string|false",
+              "documentation": "\n\n\nCreate new session id\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_regenerate_id",
+              "insertText": "session_regenerate_id(${1})${0}",
+              "detail": "session_regenerate_id(bool $delete_old_session = false): bool",
+              "documentation": "\n\n\nUpdate the current session id with a newly generated one\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_decode",
+              "insertText": "session_decode(${1:\\$data})${0}",
+              "detail": "session_decode(string $data): bool",
+              "documentation": "\n\n\nDecodes session data from a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_encode",
+              "insertText": "session_encode()",
+              "detail": "session_encode(): string|false",
+              "documentation": "\n\n\nEncodes the current session data as a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_destroy",
+              "insertText": "session_destroy()",
+              "detail": "session_destroy(): bool",
+              "documentation": "\n\n\nDestroys all data registered to a session\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_unset",
+              "insertText": "session_unset()",
+              "detail": "session_unset(): void|bool",
+              "documentation": "\n\n\nFree all session variables\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_gc",
+              "insertText": "session_gc()",
+              "detail": "session_gc(): int|false",
+              "documentation": "\n\n\nPerform session data garbage collection\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_get_cookie_params",
+              "insertText": "session_get_cookie_params()",
+              "detail": "session_get_cookie_params(): array",
+              "documentation": "\n\n\nGet the session cookie parameters\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_write_close",
+              "insertText": "session_write_close()",
+              "detail": "session_write_close(): void|bool",
+              "documentation": "\n\n\nWrite session data and end session\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_abort",
+              "insertText": "session_abort()",
+              "detail": "session_abort(): void|bool",
+              "documentation": "\n\n\n(PHP 5 >= 5.6.0)<br>\nDiscard session array changes and finish session\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_reset",
+              "insertText": "session_reset()",
+              "detail": "session_reset(): void|bool",
+              "documentation": "\n\n\n(PHP 5 >= 5.6.0)<br>\nRe-initialize session array with original values\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_status",
+              "insertText": "session_status()",
+              "detail": "session_status(): int",
+              "documentation": "\n\n\n(PHP 5 >= 5.4.0)<br>\nReturns the current session status\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_register_shutdown",
+              "insertText": "session_register_shutdown()",
+              "detail": "session_register_shutdown(): void",
+              "documentation": "\n\n\nPHP > 5.4.0 <br/>\nSession shutdown function\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_commit",
+              "insertText": "session_commit()",
+              "detail": "session_commit(): void|bool",
+              "documentation": "\n\n\nAlias of <b>session_write_close</b>\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_set_save_handler",
+              "insertText": "session_set_save_handler(${1:\\$sessionhandler})${0}",
+              "detail": "session_set_save_handler(SessionHandlerInterface $sessionhandler, bool $register_shutdown = true): bool",
+              "documentation": "\n\n\n(PHP 5.4)<br/>\nSets user-level session storage functions\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_cache_limiter",
+              "insertText": "session_cache_limiter(${1})${0}",
+              "detail": "session_cache_limiter(string|null $value = NULL): string|false",
+              "documentation": "\n\n\nGet and/or set the current cache limiter\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_cache_expire",
+              "insertText": "session_cache_expire(${1})${0}",
+              "detail": "session_cache_expire(int|null $value = NULL): int|false",
+              "documentation": "\n\n\nReturn current cache expire\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_set_cookie_params",
+              "insertText": "session_set_cookie_params(${1:\\$lifetime_or_options})${0}",
+              "detail": "session_set_cookie_params(int $lifetime_or_options, string|null $path = NULL, string|null $domain = NULL, bool|null $secure = NULL, bool|null $httponly = NULL): void|bool",
+              "documentation": "\n\n\nSet the session cookie parameters\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_start",
+              "insertText": "session_start(${1})${0}",
+              "detail": "session_start(array $options = array ()): bool",
+              "documentation": "\n\n\nInitialize session data\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "class ",
+              "insertText": "class ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "enum ",
+              "insertText": "enum ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "trait ",
+              "insertText": "trait ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "function ",
+              "insertText": "function ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "interface ",
+              "insertText": "interface ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            }
+          ]
+        },
+        "event": "response-replayed"
+      },
+      {
+        "direction": "worker->ui",
+        "at": 9236.600000023842,
+        "jsonrpc": "2.0",
+        "id": 3,
+        "result": {
+          "isIncomplete": false,
+          "items": [
+            {
+              "label": "str_increment",
+              "insertText": "str_increment(${1:\\$string})${0}",
+              "detail": "str_increment(string $string): string",
+              "documentation": "\n\n\nIncrement an alphanumeric string\n\nReturns the incremented alphanumeric ASCII string.\n\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_decrement",
+              "insertText": "str_decrement(${1:\\$string})${0}",
+              "detail": "str_decrement(string $string): string",
+              "documentation": "\n\n\nDecrement an alphanumeric string\n\nReturns the decremented alphanumeric ASCII string.\n\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_contains",
+              "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "str_contains(string $haystack, string $needle): bool",
+              "documentation": "\n\n\nChecks if $needle is found in $haystack and returns a boolean value\n(true/false) whether or not the $needle was found.\n\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_starts_with",
+              "insertText": "str_starts_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "str_starts_with(string $haystack, string $needle): bool",
+              "documentation": "\n\n\nThe function returns {",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_ends_with",
+              "insertText": "str_ends_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "str_ends_with(string $haystack, string $needle): bool",
+              "documentation": "\n\n\nThe function returns {",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_replace",
+              "insertText": "str_replace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+              "detail": "str_replace(string|string[] $search, string|string[] $replace, string|string[] $subject, $count = NULL): string|string[]",
+              "documentation": "\n\n\nReplace all occurrences of the search string with the replacement string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_ireplace",
+              "insertText": "str_ireplace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+              "detail": "str_ireplace(mixed $search, array|string $replace, array|string $subject, $count = NULL): string|string[]",
+              "documentation": "\n\n\nCase-insensitive version of <function>str_replace</function>.\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_getcsv",
+              "insertText": "str_getcsv(${1:\\$string})${0}",
+              "detail": "str_getcsv(string $string, string $separator = ',', string $enclosure = '\"', string $escape = '\\\\\\\\'): array",
+              "documentation": "\n\n\nParse a CSV string into an array\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_repeat",
+              "insertText": "str_repeat(${1:\\$string}, ${2:\\$times})${0}",
+              "detail": "str_repeat(string $string, int $times): string",
+              "documentation": "\n\n\nRepeat a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_pad",
+              "insertText": "str_pad(${1:\\$string}, ${2:\\$length})${0}",
+              "detail": "str_pad(string $string, int $length, string $pad_string = ' ', int $pad_type = 1): string",
+              "documentation": "\n\n\nPad a string to a certain length with another string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_rot13",
+              "insertText": "str_rot13(${1:\\$string})${0}",
+              "detail": "str_rot13(string $string): string",
+              "documentation": "\n\n\nPerform the rot13 transform on a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_shuffle",
+              "insertText": "str_shuffle(${1:\\$string})${0}",
+              "detail": "str_shuffle(string $string): string",
+              "documentation": "\n\n\nRandomly shuffles a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_word_count",
+              "insertText": "str_word_count(${1:\\$string})${0}",
+              "detail": "str_word_count(string $string, int $format = 0, string|null $characters = NULL): string[]|int",
+              "documentation": "\n\n\nReturn information about words used in a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_split",
+              "insertText": "str_split(${1:\\$string})${0}",
+              "detail": "str_split(string $string, int $length = 1): string[]|false",
+              "documentation": "\n\n\nConvert a string to an array\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "class ",
+              "insertText": "class ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "enum ",
+              "insertText": "enum ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "trait ",
+              "insertText": "trait ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "function ",
+              "insertText": "function ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "interface ",
+              "insertText": "interface ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            }
+          ]
+        },
+        "event": "response-replayed"
+      },
+      {
+        "direction": "worker->ui",
+        "at": 9667.700000017881,
+        "jsonrpc": "2.0",
+        "id": 4,
+        "result": {
+          "label": "str_contains",
+          "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})${0}",
+          "detail": "str_contains(string $haystack, string $needle): bool",
+          "documentation": "\n\n\nChecks if $needle is found in $haystack and returns a boolean value\n(true/false) whether or not the $needle was found.\n\n",
+          "kind": 3,
+          "insertTextFormat": 2
+        }
+      }
+    ],
+    "held": [
+      {
+        "direction": "worker->ui",
+        "at": 8862.300000011921,
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "isIncomplete": false,
+          "items": [
+            {
+              "label": "strlen",
+              "insertText": "strlen(${1:\\$string})${0}",
+              "detail": "strlen(string $string): int<0, max>",
+              "documentation": "\n\n\nGet string length\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strcmp",
+              "insertText": "strcmp(${1:\\$string1}, ${2:\\$string2})${0}",
+              "detail": "strcmp(string $string1, string $string2): int",
+              "documentation": "\n\n\nBinary safe string comparison\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strncmp",
+              "insertText": "strncmp(${1:\\$string1}, ${2:\\$string2}, ${3:\\$length})${0}",
+              "detail": "strncmp(string $string1, string $string2, int $length): int",
+              "documentation": "\n\n\nBinary safe string comparison of the first n characters\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strcasecmp",
+              "insertText": "strcasecmp(${1:\\$string1}, ${2:\\$string2})${0}",
+              "detail": "strcasecmp(string $string1, string $string2): int",
+              "documentation": "\n\n\nBinary safe case-insensitive string comparison\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strncasecmp",
+              "insertText": "strncasecmp(${1:\\$string1}, ${2:\\$string2}, ${3:\\$length})${0}",
+              "detail": "strncasecmp(string $string1, string $string2, int $length): int",
+              "documentation": "\n\n\nBinary safe case-insensitive string comparison of the first n characters\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "set_error_handler",
+              "insertText": "set_error_handler(${1:\\$callback})${0}",
+              "detail": "set_error_handler(callable()|null $callback, int $error_levels = 30719): callable()|null",
+              "documentation": "\n\n\nSets a user-defined error handler function\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "set_exception_handler",
+              "insertText": "set_exception_handler(${1:\\$callback})${0}",
+              "detail": "set_exception_handler(callable()|null $callback): callable()|null",
+              "documentation": "\n\nSets a user-defined exception handler function\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strtotime",
+              "insertText": "strtotime(${1:\\$datetime})${0}",
+              "detail": "strtotime(string $datetime, int|null $baseTimestamp = NULL): int|false",
+              "documentation": "\n\n\nParse about any English textual datetime description into a Unix timestamp\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strftime",
+              "insertText": "strftime(${1:\\$format})${0}",
+              "detail": "strftime(string $format, int|null $timestamp = NULL): string|false",
+              "documentation": "\n\n\nFormat a local time/date according to locale settings\nThe following characters are recognized in the\nformat parameter string\n<table>\n<tr valign=\"top\" colspan=\"3\" bgcolor=\"silver\">\n<th>format</th>\n<th>Description</th>\n<th>Example returned values</th>\n<th>\nDay</th>\n</tr>\n<tr valign=\"top\">\n<td>%a</td>\n<td>An abbreviated textual representation of the day</td>\n<td>Sun through Sat</td>\n</tr>\n<tr valign=\"top\">\n<td>%A</td>\n<td>A full textual representation of the day</td>\n<td>Sunday through Saturday</td>\n</tr>\n<tr valign=\"top\">\n<td>%d</td>\n<td>Two-digit day of the month (with leading zeros)</td>\n<td>01 to 31</td>\n</tr>\n<tr valign=\"top\">\n<td>%e</td>\n<td>Day of the month, with a space preceding single digits</td>\n<td> 1 to 31</td>\n</tr>\n<tr valign=\"top\">\n<td>%j</td>\n<td>Day of the year, 3 digits with leading zeros</td>\n<td>001 to 366</td>\n</tr>\n<tr valign=\"top\">\n<td>%u</td>\n<td>ISO-8601 numeric representation of the day of the week</td>\n<td>1 (for Monday) though 7 (for Sunday)</td>\n</tr>\n<tr valign=\"top\">\n<td>%w</td>\n<td>Numeric representation of the day of the week</td>\n<td>0 (for Sunday) through 6 (for Saturday)</td>\n</tr>\n<tr valign=\"top\">\n<th colspan=\"3\" bgcolor=\"silver\">Week</th>\n</tr>\n<tr valign=\"top\">\n<td>%U</td>\n<td>Week number of the given year, starting with the first\nSunday as the first week</td>\n<td>13 (for the 13th full week of the year)</td>\n</tr>\n<tr valign=\"top\">\n<td>%V</td>\n<td>ISO-8601:1988 week number of the given year, starting with\nthe first week of the year with at least 4 weekdays, with Monday\nbeing the start of the week</td>\n<td>01 through 53 (where 53\naccounts for an overlapping week)</td>\n</tr>\n<tr valign=\"top\">\n<td>%W</td>\n<td>A numeric representation of the week of the year, starting\nwith the first Monday as the first week</td>\n<td>46 (for the 46th week of the year beginning\nwith a Monday)</td>\n</tr>\n<tr valign=\"top\">\n<th colspan=\"3\" bgcolor=\"silver\">Month</th>\n</tr>\n<tr valign=\"top\">\n<td>%b</td>\n<td>Abbreviated month name, based on the locale</td>\n<td>Jan through Dec</td>\n</tr>\n<tr valign=\"top\">\n<td>%B</td>\n<td>Full month name, based on the locale</td>\n<td>January through December</td>\n</tr>\n<tr valign=\"top\">\n<td>%h</td>\n<td>Abbreviated month name, based on the locale (an alias of %b)</td>\n<td>Jan through Dec</td>\n</tr>\n<tr valign=\"top\">\n<td>%m</td>\n<td>Two digit representation of the month</td>\n<td>01 (for January) through 12 (for December)</td>\n</tr>\n<tr valign=\"top\">\n<th colspan=\"3\" bgcolor=\"silver\">Year</th>\n</tr>\n<tr valign=\"top\">\n<td>%C</td>\n<td>Two digit representation of the century (year divided by 100, truncated to an integer)</td>\n<td>19 for the 20th Century</td>\n</tr>\n<tr valign=\"top\">\n<td>%g</td>\n<td>Two digit representation of the year going by ISO-8601:1988 standards (see %V)</td>\n<td>Example: 09 for the week of January 6, 2009</td>\n</tr>\n<tr valign=\"top\">\n<td>%G</td>\n<td>The full four-digit version of %g</td>\n<td>Example: 2008 for the week of January 3, 2009</td>\n</tr>\n<tr valign=\"top\">\n<td>%y</td>\n<td>Two digit representation of the year</td>\n<td>Example: 09 for 2009, 79 for 1979</td>\n</tr>\n<tr valign=\"top\">\n<td>%Y</td>\n<td>Four digit representation for the year</td>\n<td>Example: 2038</td>\n</tr>\n<tr valign=\"top\">\n<th colspan=\"3\" bgcolor=\"silver\">Time</th>\n</tr>\n<tr valign=\"top\">\n<td>%H</td>\n<td>Two digit representation of the hour in 24-hour format</td>\n<td>00 through 23</td>\n</tr>\n<tr valign=\"top\">\n<td>%I</td>\n<td>Two digit representation of the hour in 12-hour format</td>\n<td>01 through 12</td>\n</tr>\n<tr valign=\"top\">\n<td>%l (lower-case 'L')</td>\n<td>Hour in 12-hour format, with a space preceding single digits</td>\n<td> 1 through 12</td>\n</tr>\n<tr valign=\"top\">\n<td>%M</td>\n<td>Two digit representation of the minute</td>\n<td>00 through 59</td>\n</tr>\n<tr valign=\"top\">\n<td>%p</td>\n<td>UPPER-CASE 'AM' or 'PM' based on the given time</td>\n<td>Example: AM for 00:31, PM for 22:23</td>\n</tr>\n<tr valign=\"top\">\n<td>%P</td>\n<td>lower-case 'am' or 'pm' based on the given time</td>\n<td>Example: am for 00:31, pm for 22:23</td>\n</tr>\n<tr valign=\"top\">\n<td>%r</td>\n<td>Same as \"%I:%M:%S %p\"</td>\n<td>Example: 09:34:17 PM for 21:34:17</td>\n</tr>\n<tr valign=\"top\">\n<td>%R</td>\n<td>Same as \"%H:%M\"</td>\n<td>Example: 00:35 for 12:35 AM, 16:44 for 4:44 PM</td>\n</tr>\n<tr valign=\"top\">\n<td>%S</td>\n<td>Two digit representation of the second</td>\n<td>00 through 59</td>\n</tr>\n<tr valign=\"top\">\n<td>%T</td>\n<td>Same as \"%H:%M:%S\"</td>\n<td>Example: 21:34:17 for 09:34:17 PM</td>\n</tr>\n<tr valign=\"top\">\n<td>%X</td>\n<td>Preferred time representation based on locale, without the date</td>\n<td>Example: 03:59:16 or 15:59:16</td>\n</tr>\n<tr valign=\"top\">\n<td>%z</td>\n<td>Either the time zone offset from UTC or the abbreviation (depends\non operating system)</td>\n<td>Example: -0500 or EST for Eastern Time</td>\n</tr>\n<tr valign=\"top\">\n<td>%Z</td>\n<td>The time zone offset/abbreviation option NOT given by %z (depends\non operating system)</td>\n<td>Example: -0500 or EST for Eastern Time</td>\n</tr>\n<tr valign=\"top\">\n<th colspan=\"3\" bgcolor=\"silver\">Time and Date Stamps</th>\n</tr>\n<tr valign=\"top\">\n<td>%c</td>\n<td>Preferred date and time stamp based on local</td>\n<td>Example: Tue Feb 5 00:45:10 2009 for\nFebruary 4, 2009 at 12:45:10 AM</td>\n</tr>\n<tr valign=\"top\">\n<td>%D</td>\n<td>Same as \"%m/%d/%y\"</td>\n<td>Example: 02/05/09 for February 5, 2009</td>\n</tr>\n<tr valign=\"top\">\n<td>%F</td>\n<td>Same as \"%Y-%m-%d\" (commonly used in database datestamps)</td>\n<td>Example: 2009-02-05 for February 5, 2009</td>\n</tr>\n<tr valign=\"top\">\n<td>%s</td>\n<td>Unix Epoch Time timestamp (same as the time\nfunction)</td>\n<td>Example: 305815200 for September 10, 1979 08:40:00 AM</td>\n</tr>\n<tr valign=\"top\">\n<td>%x</td>\n<td>Preferred date representation based on locale, without the time</td>\n<td>Example: 02/05/09 for February 5, 2009</td>\n</tr>\n<tr valign=\"top\">\n<th colspan=\"3\" bgcolor=\"silver\">Miscellaneous</th>\n</tr>\n<tr valign=\"top\">\n<td>%n</td>\n<td>A newline character (\"\\n\")</td>\n<td>---</td>\n</tr>\n<tr valign=\"top\">\n<td>%t</td>\n<td>A Tab character (\"\\t\")</td>\n<td>---</td>\n</tr>\n<tr valign=\"top\">\n<td>%%</td>\n<td>A literal percentage character (\"%\")</td>\n<td>---</td>\n</tr>\n</table>\n<p>\nMaximum length of this parameter is 1023 characters.\n</p>\nContrary to ISO-9899:1999, Sun Solaris starts with Sunday as 1.\nAs a result, %u may not function as described in this manual.\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "srand",
+              "insertText": "srand(${1})${0}",
+              "detail": "srand(int|null $seed = NULL, int $mode = 0): void",
+              "documentation": "\n\n\nSeed the random number generator\n<p><strong>Note</strong>: As of PHP 7.1.0, {",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "set_time_limit",
+              "insertText": "set_time_limit(${1:\\$seconds})${0}",
+              "detail": "set_time_limit(int $seconds): bool",
+              "documentation": "\n\n\nLimits the maximum execution time\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_wrapper_register",
+              "insertText": "stream_wrapper_register(${1:\\$protocol}, ${2:\\$class})${0}",
+              "detail": "stream_wrapper_register(string $protocol, string $class, int $flags = 0): bool",
+              "documentation": "\n\n\nRegister a URL wrapper implemented as a PHP class\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_register_wrapper",
+              "insertText": "stream_register_wrapper(${1:\\$protocol}, ${2:\\$class})${0}",
+              "detail": "stream_register_wrapper(string $protocol, string $class, int $flags = 0): bool",
+              "documentation": "\n\n\nAlias:\n{",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_wrapper_unregister",
+              "insertText": "stream_wrapper_unregister(${1:\\$protocol})${0}",
+              "detail": "stream_wrapper_unregister(string $protocol): bool",
+              "documentation": "\n\n\nUnregister a URL wrapper\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_wrapper_restore",
+              "insertText": "stream_wrapper_restore(${1:\\$protocol})${0}",
+              "detail": "stream_wrapper_restore(string $protocol): bool",
+              "documentation": "\n\n\nRestores a previously unregistered built-in wrapper\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "sizeof",
+              "insertText": "sizeof(${1:\\$value})${0}",
+              "detail": "sizeof(array|Countable $value, int $mode = 0): int<0, max>",
+              "documentation": "\n\n\nAlias:\n{",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "sort",
+              "insertText": "sort(${1:\\$array})${0}",
+              "detail": "sort(array $array, int $flags = 0)",
+              "documentation": "\n\n\nSort an array\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "shuffle",
+              "insertText": "shuffle(${1:\\$array})${0}",
+              "detail": "shuffle(array $array)",
+              "documentation": "\n\n\nShuffle an array\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "sleep",
+              "insertText": "sleep(${1:\\$seconds})${0}",
+              "detail": "sleep(int<0, max> $seconds): int",
+              "documentation": "\n\n\nDelays the program execution for the given number of seconds\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "show_source",
+              "insertText": "show_source(${1:\\$filename})${0}",
+              "detail": "show_source(string $filename, bool $return = false): string|bool",
+              "documentation": "\n\n\nAlias:\n{",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "set_include_path",
+              "insertText": "set_include_path(${1:\\$include_path})${0}",
+              "detail": "set_include_path(string $include_path): string|false",
+              "documentation": "\n\n\nSets the include_path configuration option\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "sys_getloadavg",
+              "insertText": "sys_getloadavg()",
+              "detail": "sys_getloadavg(): array{float,float,float}|false",
+              "documentation": "\n\n\nGets system load average\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strptime",
+              "insertText": "strptime(${1:\\$timestamp}, ${2:\\$format})${0}",
+              "detail": "strptime(string $timestamp, string $format): array|false",
+              "documentation": "\n\n\nParse a time/date generated with <function>strftime</function>\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "sha1",
+              "insertText": "sha1(${1:\\$string})${0}",
+              "detail": "sha1(string $string, bool $binary = false): string",
+              "documentation": "\n\n\nCalculate the sha1 hash of a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "sha1_file",
+              "insertText": "sha1_file(${1:\\$filename})${0}",
+              "detail": "sha1_file(string $filename, bool $binary = false): string|false",
+              "documentation": "\n\n\nCalculate the sha1 hash of a file\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "syslog",
+              "insertText": "syslog(${1:\\$priority}, ${2:\\$message})${0}",
+              "detail": "syslog(int $priority, string $message)",
+              "documentation": "\n\n\nGenerate a system log message\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "setrawcookie",
+              "insertText": "setrawcookie(${1:\\$name})${0}",
+              "detail": "setrawcookie(string $name, string $value = '', array $options = array ()): bool",
+              "documentation": "\n\n\nSend a cookie without urlencoding the cookie value\n\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "setcookie",
+              "insertText": "setcookie(${1:\\$name})${0}",
+              "detail": "setcookie(string $name, string $value = '', array $options = array ()): bool",
+              "documentation": "\n\n\nSend a cookie\n\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strspn",
+              "insertText": "strspn(${1:\\$string}, ${2:\\$characters})${0}",
+              "detail": "strspn(string $string, string $characters, int $offset = 0, int|null $length = NULL): int",
+              "documentation": "\n\n\nFinds the length of the initial segment of a string consisting\nentirely of characters contained within a given mask.\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strcspn",
+              "insertText": "strcspn(${1:\\$string}, ${2:\\$characters})${0}",
+              "detail": "strcspn(string $string, string $characters, int $offset = 0, int|null $length = NULL): int",
+              "documentation": "\n\n\nFind length of initial segment not matching mask\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strcoll",
+              "insertText": "strcoll(${1:\\$string1}, ${2:\\$string2})${0}",
+              "detail": "strcoll(string $string1, string $string2): int",
+              "documentation": "\n\n\nLocale based string comparison\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strtok",
+              "insertText": "strtok(${1:\\$string})${0}",
+              "detail": "strtok(string $string, string|null $token = NULL): string|false",
+              "documentation": "\n\n\nTokenize string\nNote that only the first call to strtok uses the string argument.\nEvery subsequent call to strtok only needs the token to use, as it keeps track of where it is in the current string.\nTo start over, or to tokenize a new string you simply call strtok with the string argument again to initialize it.\nNote that you may put multiple tokens in the token parameter.\nThe string will be tokenized when any one of the characters in the argument are found.\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strtoupper",
+              "insertText": "strtoupper(${1:\\$string})${0}",
+              "detail": "strtoupper(string $string): string",
+              "documentation": "\n\n\nMake a string uppercase\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strtolower",
+              "insertText": "strtolower(${1:\\$string})${0}",
+              "detail": "strtolower(string $string): string",
+              "documentation": "\n\n\nMake a string lowercase\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_increment",
+              "insertText": "str_increment(${1:\\$string})${0}",
+              "detail": "str_increment(string $string): string",
+              "documentation": "\n\n\nIncrement an alphanumeric string\n\nReturns the incremented alphanumeric ASCII string.\n\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_decrement",
+              "insertText": "str_decrement(${1:\\$string})${0}",
+              "detail": "str_decrement(string $string): string",
+              "documentation": "\n\n\nDecrement an alphanumeric string\n\nReturns the decremented alphanumeric ASCII string.\n\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stristr",
+              "insertText": "stristr(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "stristr(string $haystack, string $needle, bool $before_needle = false): string|false",
+              "documentation": "\n\n\nCase-insensitive <function>strstr</function>\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strstr",
+              "insertText": "strstr(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "strstr(string $haystack, string $needle, bool $before_needle = false): string|false",
+              "documentation": "\n\n\nFind the first occurrence of a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strchr",
+              "insertText": "strchr(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "strchr(string $haystack, string $needle, bool $before_needle = false): string|false",
+              "documentation": "\n\n\nAlias:\n{",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strpos",
+              "insertText": "strpos(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "strpos(string $haystack, string $needle, int<0, max> $offset = 0): int<0, max>|false",
+              "documentation": "\n\n\nFind the position of the first occurrence of a substring in a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stripos",
+              "insertText": "stripos(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "stripos(string $haystack, string $needle, int $offset = 0): int|false",
+              "documentation": "\n\n\nFind position of first occurrence of a case-insensitive string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strrpos",
+              "insertText": "strrpos(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "strrpos(string $haystack, string $needle, int $offset = 0): int|false",
+              "documentation": "\n\n\nFind the position of the last occurrence of a substring in a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strripos",
+              "insertText": "strripos(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "strripos(string $haystack, string $needle, int $offset = 0): int|false",
+              "documentation": "\n\n\nFind position of last occurrence of a case-insensitive string in a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strrchr",
+              "insertText": "strrchr(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "strrchr(string $haystack, string $needle, bool $before_needle = false): string|false",
+              "documentation": "\n\n\nFind the last occurrence of a character in a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_contains",
+              "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "str_contains(string $haystack, string $needle): bool",
+              "documentation": "\n\n\nChecks if $needle is found in $haystack and returns a boolean value\n(true/false) whether or not the $needle was found.\n\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_starts_with",
+              "insertText": "str_starts_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "str_starts_with(string $haystack, string $needle): bool",
+              "documentation": "\n\n\nThe function returns {",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_ends_with",
+              "insertText": "str_ends_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "str_ends_with(string $haystack, string $needle): bool",
+              "documentation": "\n\n\nThe function returns {",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "substr",
+              "insertText": "substr(${1:\\$string}, ${2:\\$offset})${0}",
+              "detail": "substr(string $string, int $offset, int|null $length = NULL): string|false",
+              "documentation": "\n\n\nReturns the portion of string specified by the offset and length parameters.\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "substr_replace",
+              "insertText": "substr_replace(${1:\\$string}, ${2:\\$replace}, ${3:\\$offset})${0}",
+              "detail": "substr_replace(string[]|string $string, string[]|string $replace, int[]|int $offset, int[]|int $length = NULL): string|string[]",
+              "documentation": "\n\n\nReplace text within a portion of a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strtr",
+              "insertText": "strtr(${1:\\$str}, ${2:\\$replace_pairs})${0}",
+              "detail": "strtr(string $str, array $replace_pairs): string",
+              "documentation": "\n\n\nTranslate certain characters\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strrev",
+              "insertText": "strrev(${1:\\$string})${0}",
+              "detail": "strrev(string $string): string",
+              "documentation": "\n\n\nReverse a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "similar_text",
+              "insertText": "similar_text(${1:\\$string1}, ${2:\\$string2})${0}",
+              "detail": "similar_text(string $string1, string $string2, $percent = NULL): int",
+              "documentation": "\n\n\nCalculate the similarity between two strings\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stripcslashes",
+              "insertText": "stripcslashes(${1:\\$string})${0}",
+              "detail": "stripcslashes(string $string): string",
+              "documentation": "\n\n\nUn-quote string quoted with <function>addcslashes</function>\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stripslashes",
+              "insertText": "stripslashes(${1:\\$string})${0}",
+              "detail": "stripslashes(string $string): string",
+              "documentation": "\n\n\nUn-quotes a quoted string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_replace",
+              "insertText": "str_replace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+              "detail": "str_replace(string|string[] $search, string|string[] $replace, string|string[] $subject, $count = NULL): string|string[]",
+              "documentation": "\n\n\nReplace all occurrences of the search string with the replacement string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_ireplace",
+              "insertText": "str_ireplace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+              "detail": "str_ireplace(mixed $search, array|string $replace, array|string $subject, $count = NULL): string|string[]",
+              "documentation": "\n\n\nCase-insensitive version of <function>str_replace</function>.\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strip_tags",
+              "insertText": "strip_tags(${1:\\$string})${0}",
+              "detail": "strip_tags(string $string, string[]|string|null $allowed_tags = NULL): string",
+              "documentation": "\n\n\nStrip HTML and PHP tags from a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "setlocale",
+              "insertText": "setlocale(${1:\\$category}, ${2:\\$locales}, ${3:\\$rest})${0}",
+              "detail": "setlocale(int $category, string|string[]|int $locales, array $rest): string|false",
+              "documentation": "\n\n\nSet locale information\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_getcsv",
+              "insertText": "str_getcsv(${1:\\$string})${0}",
+              "detail": "str_getcsv(string $string, string $separator = ',', string $enclosure = '\"', string $escape = '\\\\\\\\'): array",
+              "documentation": "\n\n\nParse a CSV string into an array\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_repeat",
+              "insertText": "str_repeat(${1:\\$string}, ${2:\\$times})${0}",
+              "detail": "str_repeat(string $string, int $times): string",
+              "documentation": "\n\n\nRepeat a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strnatcmp",
+              "insertText": "strnatcmp(${1:\\$string1}, ${2:\\$string2})${0}",
+              "detail": "strnatcmp(string $string1, string $string2): int",
+              "documentation": "\n\n\nString comparisons using a \"natural order\" algorithm\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strnatcasecmp",
+              "insertText": "strnatcasecmp(${1:\\$string1}, ${2:\\$string2})${0}",
+              "detail": "strnatcasecmp(string $string1, string $string2): int",
+              "documentation": "\n\n\nCase insensitive string comparisons using a \"natural order\" algorithm\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "substr_count",
+              "insertText": "substr_count(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "substr_count(string $haystack, string $needle, int $offset = 0, int|null $length = NULL): int<0, max>",
+              "documentation": "\n\n\nCount the number of substring occurrences\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_pad",
+              "insertText": "str_pad(${1:\\$string}, ${2:\\$length})${0}",
+              "detail": "str_pad(string $string, int $length, string $pad_string = ' ', int $pad_type = 1): string",
+              "documentation": "\n\n\nPad a string to a certain length with another string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "sscanf",
+              "insertText": "sscanf(${1:\\$string}, ${2:\\$format}, ${3:\\$vars})${0}",
+              "detail": "sscanf(string $string, string $format, mixed[] $vars): array|int|null",
+              "documentation": "\n\n\nParses input from a string according to a format\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_rot13",
+              "insertText": "str_rot13(${1:\\$string})${0}",
+              "detail": "str_rot13(string $string): string",
+              "documentation": "\n\n\nPerform the rot13 transform on a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_shuffle",
+              "insertText": "str_shuffle(${1:\\$string})${0}",
+              "detail": "str_shuffle(string $string): string",
+              "documentation": "\n\n\nRandomly shuffles a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_word_count",
+              "insertText": "str_word_count(${1:\\$string})${0}",
+              "detail": "str_word_count(string $string, int $format = 0, string|null $characters = NULL): string[]|int",
+              "documentation": "\n\n\nReturn information about words used in a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_split",
+              "insertText": "str_split(${1:\\$string})${0}",
+              "detail": "str_split(string $string, int $length = 1): string[]|false",
+              "documentation": "\n\n\nConvert a string to an array\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strpbrk",
+              "insertText": "strpbrk(${1:\\$string}, ${2:\\$characters})${0}",
+              "detail": "strpbrk(string $string, $char_list = '', string $characters): string|false",
+              "documentation": "\n\n\nSearch a string for any of a set of characters\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "substr_compare",
+              "insertText": "substr_compare(${1:\\$haystack}, ${2:\\$needle}, ${3:\\$offset})${0}",
+              "detail": "substr_compare(string $haystack, string $needle, int $offset, int|null $length = NULL, bool $case_insensitive = false): int",
+              "documentation": "\n\n\nBinary safe comparison of two strings from an offset, up to length characters\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "scandir",
+              "insertText": "scandir(${1:\\$directory})${0}",
+              "detail": "scandir(string $directory, int $sorting_order = 0, resource $context = NULL): array|false",
+              "documentation": "\n\n\nList files and directories inside the specified path\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "system",
+              "insertText": "system(${1:\\$command})${0}",
+              "detail": "system(string $command, $result_code = NULL): string|false",
+              "documentation": "\n\n\nExecute an external program and display the output\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "shell_exec",
+              "insertText": "shell_exec(${1:\\$command})${0}",
+              "detail": "shell_exec(string $command): string|false|null",
+              "documentation": "\n\n\nExecute command via shell and return the complete output as a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "sys_get_temp_dir",
+              "insertText": "sys_get_temp_dir()",
+              "detail": "sys_get_temp_dir(): string",
+              "documentation": "\n\n\nReturns directory path used for temporary files\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stat",
+              "insertText": "stat(${1:\\$filename})${0}",
+              "detail": "stat(string $filename): array|false",
+              "documentation": "\n\n\nGives information about a file\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "sprintf",
+              "insertText": "sprintf(${1:\\$format}, ${2:\\$values})${0}",
+              "detail": "sprintf(string $format, mixed[] $values): string",
+              "documentation": "\n\n\nReturn a formatted string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "symlink",
+              "insertText": "symlink(${1:\\$target}, ${2:\\$link})${0}",
+              "detail": "symlink(string $target, string $link): bool",
+              "documentation": "\n\n\nCreates a symbolic link\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "sin",
+              "insertText": "sin(${1:\\$num})${0}",
+              "detail": "sin(float $num): float",
+              "documentation": "\n\n\nSine\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "sinh",
+              "insertText": "sinh(${1:\\$num})${0}",
+              "detail": "sinh(float $num): float",
+              "documentation": "\n\n\nHyperbolic sine\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "sqrt",
+              "insertText": "sqrt(${1:\\$num})${0}",
+              "detail": "sqrt(float $num): float",
+              "documentation": "\n\n\nSquare root\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "soundex",
+              "insertText": "soundex(${1:\\$string})${0}",
+              "detail": "soundex(string $string): string",
+              "documentation": "\n\n\nCalculate the soundex key of a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_select",
+              "insertText": "stream_select(${1:\\$read}, ${2:\\$write}, ${3:\\$except}, ${4:\\$seconds})${0}",
+              "detail": "stream_select(?array $read, ?array $write, ?array $except, int|null $seconds, int $microseconds = NULL, $context = NULL): int|false",
+              "documentation": "\n\n\nRuns the equivalent of the select() system call on the given\narrays of streams with a timeout specified by tv_sec and tv_usec\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_context_create",
+              "insertText": "stream_context_create(${1})${0}",
+              "detail": "stream_context_create(null|array $options = NULL, null|array $params = NULL): resource",
+              "documentation": "\n\n\nCreate a stream context\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_context_set_params",
+              "insertText": "stream_context_set_params(${1:\\$context}, ${2:\\$params})${0}",
+              "detail": "stream_context_set_params(resource $context, array $params): bool",
+              "documentation": "\n\n\nSet parameters for a stream/wrapper/context\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_context_get_params",
+              "insertText": "stream_context_get_params(${1:\\$context})${0}",
+              "detail": "stream_context_get_params(resource $context): array",
+              "documentation": "\n\n\nRetrieves parameters from a context\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_context_set_option",
+              "insertText": "stream_context_set_option(${1:\\$stream_or_context}, ${2:\\$options})${0}",
+              "detail": "stream_context_set_option(resource $stream_or_context, array $options): bool",
+              "documentation": "\n\n\nSets an option for a stream/wrapper/context\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_context_set_options",
+              "insertText": "stream_context_set_options(${1:\\$context}, ${2:\\$options})${0}",
+              "detail": "stream_context_set_options($context, array $options)",
+              "documentation": "Sets options on the specified context\n@link https://php.net/manual/en/function.stream-context-set-options.php\n@since 8.3",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_context_get_options",
+              "insertText": "stream_context_get_options(${1:\\$stream_or_context})${0}",
+              "detail": "stream_context_get_options(resource $stream_or_context): array",
+              "documentation": "\n\n\nRetrieve options for a stream/wrapper/context\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_context_get_default",
+              "insertText": "stream_context_get_default(${1})${0}",
+              "detail": "stream_context_get_default(null|array $options = NULL): resource",
+              "documentation": "\n\n\nRetreive the default stream context\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_context_set_default",
+              "insertText": "stream_context_set_default(${1:\\$options})${0}",
+              "detail": "stream_context_set_default(array $options): resource",
+              "documentation": "\n\n\nSet the default stream context\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_filter_prepend",
+              "insertText": "stream_filter_prepend(${1:\\$stream}, ${2:\\$filter_name}, ${3:\\$params})${0}",
+              "detail": "stream_filter_prepend(resource $stream, string $filter_name, int $mode = 0, mixed $params): resource|false",
+              "documentation": "\n\n\nAttach a filter to a stream\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_filter_append",
+              "insertText": "stream_filter_append(${1:\\$stream}, ${2:\\$filter_name}, ${3:\\$params})${0}",
+              "detail": "stream_filter_append(resource $stream, string $filter_name, int $mode = 0, mixed $params): resource|false",
+              "documentation": "\n\n\nAttach a filter to a stream\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_filter_remove",
+              "insertText": "stream_filter_remove(${1:\\$stream_filter})${0}",
+              "detail": "stream_filter_remove(resource $stream_filter): bool",
+              "documentation": "\n\n\nRemove a filter from a stream\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_socket_client",
+              "insertText": "stream_socket_client(${1:\\$address})${0}",
+              "detail": "stream_socket_client(string $address, $error_code = NULL, $error_message = NULL, float|null $timeout = NULL, int $flags = 4, resource $context = NULL): resource|false",
+              "documentation": "\n\n\nOpen Internet or Unix domain socket connection\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_socket_server",
+              "insertText": "stream_socket_server(${1:\\$address})${0}",
+              "detail": "stream_socket_server(string $address, $error_code = NULL, $error_message = NULL, int $flags = 12, resource $context = NULL): resource|false",
+              "documentation": "\n\n\nCreate an Internet or Unix domain server socket\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_socket_accept",
+              "insertText": "stream_socket_accept(${1:\\$socket})${0}",
+              "detail": "stream_socket_accept(resource $socket, float|null $timeout = NULL, $peer_name = NULL): resource|false",
+              "documentation": "\n\n\nAccept a connection on a socket created by {",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_socket_get_name",
+              "insertText": "stream_socket_get_name(${1:\\$socket}, ${2:\\$remote})${0}",
+              "detail": "stream_socket_get_name(resource $socket, bool $remote): string|false",
+              "documentation": "\n\n\nRetrieve the name of the local or remote sockets\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_socket_recvfrom",
+              "insertText": "stream_socket_recvfrom(${1:\\$socket}, ${2:\\$length})${0}",
+              "detail": "stream_socket_recvfrom(resource $socket, int $length, int $flags = 0, $address = NULL): string|false",
+              "documentation": "\n\n\nReceives data from a socket, connected or not\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_socket_sendto",
+              "insertText": "stream_socket_sendto(${1:\\$socket}, ${2:\\$data})${0}",
+              "detail": "stream_socket_sendto(resource $socket, string $data, int $flags = 0, string $address = ''): int|false",
+              "documentation": "\n\n\nSends a message to a socket, whether it is connected or not\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_socket_enable_crypto",
+              "insertText": "stream_socket_enable_crypto(${1:\\$stream}, ${2:\\$enable})${0}",
+              "detail": "stream_socket_enable_crypto(resource $stream, bool $enable, int|null $crypto_method = NULL, resource $session_stream = NULL): bool|int",
+              "documentation": "\n\n\nTurns encryption on/off on an already connected socket\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_socket_shutdown",
+              "insertText": "stream_socket_shutdown(${1:\\$stream}, ${2:\\$mode})${0}",
+              "detail": "stream_socket_shutdown(resource $stream, int $mode): bool",
+              "documentation": "\n\n\nShutdown a full-duplex connection\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_socket_pair",
+              "insertText": "stream_socket_pair(${1:\\$domain}, ${2:\\$type}, ${3:\\$protocol})${0}",
+              "detail": "stream_socket_pair(int $domain, int $type, int $protocol, $context = NULL): array|false",
+              "documentation": "\n\n\nCreates a pair of connected, indistinguishable socket streams\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_copy_to_stream",
+              "insertText": "stream_copy_to_stream(${1:\\$from}, ${2:\\$to})${0}",
+              "detail": "stream_copy_to_stream(resource $from, resource $to, int|null $length = NULL, int $offset = 0, $context = NULL): int|false",
+              "documentation": "\n\n\nCopies data from one stream to another\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_get_contents",
+              "insertText": "stream_get_contents(${1:\\$stream})${0}",
+              "detail": "stream_get_contents(resource $stream, int|null $length = NULL, int $offset = -1): string|false",
+              "documentation": "\n\n\nReads remainder of a stream into a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_supports_lock",
+              "insertText": "stream_supports_lock(${1:\\$stream})${0}",
+              "detail": "stream_supports_lock(resource $stream): bool",
+              "documentation": "\n\n\nTells whether the stream supports locking.\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_set_write_buffer",
+              "insertText": "stream_set_write_buffer(${1:\\$stream}, ${2:\\$size})${0}",
+              "detail": "stream_set_write_buffer(resource $stream, int $size): int",
+              "documentation": "\n\n\nSets write file buffering on the given stream\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "set_file_buffer",
+              "insertText": "set_file_buffer(${1:\\$stream}, ${2:\\$size})${0}",
+              "detail": "set_file_buffer(resource $stream, int $size): int",
+              "documentation": "\n\n\nAlias:\n{",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_set_read_buffer",
+              "insertText": "stream_set_read_buffer(${1:\\$stream}, ${2:\\$size})${0}",
+              "detail": "stream_set_read_buffer(resource $stream, int $size): int",
+              "documentation": "\n\n\nSets read file buffering on the given stream\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_set_blocking",
+              "insertText": "stream_set_blocking(${1:\\$stream}, ${2:\\$enable})${0}",
+              "detail": "stream_set_blocking(resource $stream, bool $enable): bool",
+              "documentation": "\n\n\nSet blocking/non-blocking mode on a stream\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "socket_set_blocking",
+              "insertText": "socket_set_blocking(${1:\\$stream}, ${2:\\$enable})${0}",
+              "detail": "socket_set_blocking(resource $stream, bool $enable): bool",
+              "documentation": "\n\n\nAlias:\n{",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_get_meta_data",
+              "insertText": "stream_get_meta_data(${1:\\$stream})${0}",
+              "detail": "stream_get_meta_data(resource $stream): array",
+              "documentation": "\n\n\nRetrieves header/meta data from streams/file pointers\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "socket_get_status",
+              "insertText": "socket_get_status(${1:\\$stream})${0}",
+              "detail": "socket_get_status(resource $stream): array",
+              "documentation": "\n\n\nAlias:\n{",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_get_line",
+              "insertText": "stream_get_line(${1:\\$stream}, ${2:\\$length})${0}",
+              "detail": "stream_get_line(resource $stream, int $length, string $ending = ''): string|false",
+              "documentation": "\n\n\nGets line from stream resource up to a given delimiter\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_resolve_include_path",
+              "insertText": "stream_resolve_include_path(${1:\\$filename})${0}",
+              "detail": "stream_resolve_include_path(string $filename): string|false",
+              "documentation": "\n\n\nResolve filename against the include path according to the same rules as fopen()/include().\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_get_wrappers",
+              "insertText": "stream_get_wrappers()",
+              "detail": "stream_get_wrappers(): array<int,string>",
+              "documentation": "\n\n\nRetrieve list of registered streams\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_get_transports",
+              "insertText": "stream_get_transports()",
+              "detail": "stream_get_transports(): array<int,string>",
+              "documentation": "\n\n\nRetrieve list of registered socket transports\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_is_local",
+              "insertText": "stream_is_local(${1:\\$stream})${0}",
+              "detail": "stream_is_local(mixed $stream, $context = NULL): bool",
+              "documentation": "\n\n\nChecks if a stream is a local stream\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_isatty",
+              "insertText": "stream_isatty(${1:\\$stream})${0}",
+              "detail": "stream_isatty(resource $stream): bool",
+              "documentation": "\n\n\nCheck if a stream is a TTY\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_set_chunk_size",
+              "insertText": "stream_set_chunk_size(${1:\\$stream}, ${2:\\$size})${0}",
+              "detail": "stream_set_chunk_size(resource $stream, int $size): int|false",
+              "documentation": "\n\n\nSet the stream chunk size.\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_set_timeout",
+              "insertText": "stream_set_timeout(${1:\\$stream}, ${2:\\$seconds})${0}",
+              "detail": "stream_set_timeout(resource $stream, int $seconds, int $microseconds = 0): bool",
+              "documentation": "\n\n\nSet timeout period on a stream\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "socket_set_timeout",
+              "insertText": "socket_set_timeout(${1:\\$stream}, ${2:\\$seconds})${0}",
+              "detail": "socket_set_timeout(resource $stream, int $seconds, int $microseconds = 0): bool",
+              "documentation": "\n\n\nAlias:\n{",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "settype",
+              "insertText": "settype(${1:\\$var}, ${2:\\$type})${0}",
+              "detail": "settype(mixed $var, string $type): bool",
+              "documentation": "\n\n\nSet the type of a variable\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "strval",
+              "insertText": "strval(${1:\\$value})${0}",
+              "detail": "strval(mixed $value): string",
+              "documentation": "\n\n\nGet string value of a variable\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_bucket_make_writeable",
+              "insertText": "stream_bucket_make_writeable(${1:\\$brigade})${0}",
+              "detail": "stream_bucket_make_writeable(resource $brigade): object|null",
+              "documentation": "\n\n\nReturn a bucket object from the brigade for operating on\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_bucket_prepend",
+              "insertText": "stream_bucket_prepend(${1:\\$brigade}, ${2:\\$bucket})${0}",
+              "detail": "stream_bucket_prepend(resource $brigade, object $bucket): void",
+              "documentation": "\n\n\nPrepend bucket to brigade\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_bucket_append",
+              "insertText": "stream_bucket_append(${1:\\$brigade}, ${2:\\$bucket})${0}",
+              "detail": "stream_bucket_append(resource $brigade, object $bucket): void",
+              "documentation": "\n\n\nAppend bucket to brigade\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_bucket_new",
+              "insertText": "stream_bucket_new(${1:\\$stream}, ${2:\\$buffer})${0}",
+              "detail": "stream_bucket_new(resource $stream, string $buffer): object",
+              "documentation": "\n\n\nCreate a new bucket for use on the current stream\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_get_filters",
+              "insertText": "stream_get_filters()",
+              "detail": "stream_get_filters(): array<int,string>",
+              "documentation": "\n\n\nRetrieve list of registered filters\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "stream_filter_register",
+              "insertText": "stream_filter_register(${1:\\$filter_name}, ${2:\\$class})${0}",
+              "detail": "stream_filter_register(string $filter_name, string $class): bool",
+              "documentation": "\n\n\nRegister a user defined stream filter\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "serialize",
+              "insertText": "serialize(${1:\\$value})${0}",
+              "detail": "serialize(mixed $value): string",
+              "documentation": "\n\n\nGenerates a storable representation of a value\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "spl_autoload",
+              "insertText": "spl_autoload(${1:\\$class})${0}",
+              "detail": "spl_autoload(string $class, string|null $file_extensions = NULL): void",
+              "documentation": "\n\n\nDefault implementation for __autoload()\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "spl_autoload_call",
+              "insertText": "spl_autoload_call(${1:\\$class})${0}",
+              "detail": "spl_autoload_call(string $class): void",
+              "documentation": "\n\n\nTry all registered __autoload() functions to load the requested class\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "spl_autoload_extensions",
+              "insertText": "spl_autoload_extensions(${1})${0}",
+              "detail": "spl_autoload_extensions(string|null $file_extensions = NULL): string",
+              "documentation": "\n\n\nRegister and return default file extensions for spl_autoload\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "spl_autoload_functions",
+              "insertText": "spl_autoload_functions()",
+              "detail": "spl_autoload_functions(): array|false",
+              "documentation": "\n\n\nReturn all registered __autoload() functions\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "spl_autoload_register",
+              "insertText": "spl_autoload_register(${1})${0}",
+              "detail": "spl_autoload_register(callable()|null $callback = NULL, bool $throw = true, bool $prepend = false): bool",
+              "documentation": "\n\n\nRegister given function as __autoload() implementation\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "spl_autoload_unregister",
+              "insertText": "spl_autoload_unregister(${1:\\$callback})${0}",
+              "detail": "spl_autoload_unregister(callable() $callback): bool",
+              "documentation": "\n\n\nUnregister given function as __autoload() implementation\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "spl_classes",
+              "insertText": "spl_classes()",
+              "detail": "spl_classes(): array",
+              "documentation": "\n\n\nReturn available SPL classes\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "spl_object_hash",
+              "insertText": "spl_object_hash(${1:\\$object})${0}",
+              "detail": "spl_object_hash(object $object): string",
+              "documentation": "\n\n\nReturn hash id for given object\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "spl_object_id",
+              "insertText": "spl_object_id(${1:\\$object})${0}",
+              "detail": "spl_object_id(object $object): int",
+              "documentation": "\n\n\nreturn the integer object handle for given object\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_name",
+              "insertText": "session_name(${1})${0}",
+              "detail": "session_name(string|null $name = NULL): string|false",
+              "documentation": "\n\n\nGet and/or set the current session name.<br/>\nBefore 7.2.0 checked cookie status and since 7.2.0 checks both cookie and session status to avoid PHP crash.\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_module_name",
+              "insertText": "session_module_name(${1})${0}",
+              "detail": "session_module_name(string|null $module = NULL): string|false",
+              "documentation": "\n\n\nGet and/or set the current session module.<br/>\nSince 7.2.0 it is forbidden to set the module name to \"user\".\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_save_path",
+              "insertText": "session_save_path(${1})${0}",
+              "detail": "session_save_path(string|null $path = NULL): string|false",
+              "documentation": "\n\n\nGet and/or set the current session save path\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_id",
+              "insertText": "session_id(${1})${0}",
+              "detail": "session_id(string|null $id = NULL): string|false",
+              "documentation": "\n\n\nGet and/or set the current session id\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_create_id",
+              "insertText": "session_create_id(${1})${0}",
+              "detail": "session_create_id(string $prefix = ''): string|false",
+              "documentation": "\n\n\nCreate new session id\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_regenerate_id",
+              "insertText": "session_regenerate_id(${1})${0}",
+              "detail": "session_regenerate_id(bool $delete_old_session = false): bool",
+              "documentation": "\n\n\nUpdate the current session id with a newly generated one\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_decode",
+              "insertText": "session_decode(${1:\\$data})${0}",
+              "detail": "session_decode(string $data): bool",
+              "documentation": "\n\n\nDecodes session data from a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_encode",
+              "insertText": "session_encode()",
+              "detail": "session_encode(): string|false",
+              "documentation": "\n\n\nEncodes the current session data as a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_destroy",
+              "insertText": "session_destroy()",
+              "detail": "session_destroy(): bool",
+              "documentation": "\n\n\nDestroys all data registered to a session\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_unset",
+              "insertText": "session_unset()",
+              "detail": "session_unset(): void|bool",
+              "documentation": "\n\n\nFree all session variables\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_gc",
+              "insertText": "session_gc()",
+              "detail": "session_gc(): int|false",
+              "documentation": "\n\n\nPerform session data garbage collection\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_get_cookie_params",
+              "insertText": "session_get_cookie_params()",
+              "detail": "session_get_cookie_params(): array",
+              "documentation": "\n\n\nGet the session cookie parameters\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_write_close",
+              "insertText": "session_write_close()",
+              "detail": "session_write_close(): void|bool",
+              "documentation": "\n\n\nWrite session data and end session\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_abort",
+              "insertText": "session_abort()",
+              "detail": "session_abort(): void|bool",
+              "documentation": "\n\n\n(PHP 5 >= 5.6.0)<br>\nDiscard session array changes and finish session\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_reset",
+              "insertText": "session_reset()",
+              "detail": "session_reset(): void|bool",
+              "documentation": "\n\n\n(PHP 5 >= 5.6.0)<br>\nRe-initialize session array with original values\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_status",
+              "insertText": "session_status()",
+              "detail": "session_status(): int",
+              "documentation": "\n\n\n(PHP 5 >= 5.4.0)<br>\nReturns the current session status\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_register_shutdown",
+              "insertText": "session_register_shutdown()",
+              "detail": "session_register_shutdown(): void",
+              "documentation": "\n\n\nPHP > 5.4.0 <br/>\nSession shutdown function\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_commit",
+              "insertText": "session_commit()",
+              "detail": "session_commit(): void|bool",
+              "documentation": "\n\n\nAlias of <b>session_write_close</b>\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_set_save_handler",
+              "insertText": "session_set_save_handler(${1:\\$sessionhandler})${0}",
+              "detail": "session_set_save_handler(SessionHandlerInterface $sessionhandler, bool $register_shutdown = true): bool",
+              "documentation": "\n\n\n(PHP 5.4)<br/>\nSets user-level session storage functions\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_cache_limiter",
+              "insertText": "session_cache_limiter(${1})${0}",
+              "detail": "session_cache_limiter(string|null $value = NULL): string|false",
+              "documentation": "\n\n\nGet and/or set the current cache limiter\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_cache_expire",
+              "insertText": "session_cache_expire(${1})${0}",
+              "detail": "session_cache_expire(int|null $value = NULL): int|false",
+              "documentation": "\n\n\nReturn current cache expire\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_set_cookie_params",
+              "insertText": "session_set_cookie_params(${1:\\$lifetime_or_options})${0}",
+              "detail": "session_set_cookie_params(int $lifetime_or_options, string|null $path = NULL, string|null $domain = NULL, bool|null $secure = NULL, bool|null $httponly = NULL): void|bool",
+              "documentation": "\n\n\nSet the session cookie parameters\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "session_start",
+              "insertText": "session_start(${1})${0}",
+              "detail": "session_start(array $options = array ()): bool",
+              "documentation": "\n\n\nInitialize session data\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "class ",
+              "insertText": "class ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "enum ",
+              "insertText": "enum ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "trait ",
+              "insertText": "trait ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "function ",
+              "insertText": "function ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "interface ",
+              "insertText": "interface ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            }
+          ]
+        }
+      },
+      {
+        "direction": "worker->ui",
+        "at": 9236.600000023842,
+        "jsonrpc": "2.0",
+        "id": 3,
+        "result": {
+          "isIncomplete": false,
+          "items": [
+            {
+              "label": "str_increment",
+              "insertText": "str_increment(${1:\\$string})${0}",
+              "detail": "str_increment(string $string): string",
+              "documentation": "\n\n\nIncrement an alphanumeric string\n\nReturns the incremented alphanumeric ASCII string.\n\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_decrement",
+              "insertText": "str_decrement(${1:\\$string})${0}",
+              "detail": "str_decrement(string $string): string",
+              "documentation": "\n\n\nDecrement an alphanumeric string\n\nReturns the decremented alphanumeric ASCII string.\n\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_contains",
+              "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "str_contains(string $haystack, string $needle): bool",
+              "documentation": "\n\n\nChecks if $needle is found in $haystack and returns a boolean value\n(true/false) whether or not the $needle was found.\n\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_starts_with",
+              "insertText": "str_starts_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "str_starts_with(string $haystack, string $needle): bool",
+              "documentation": "\n\n\nThe function returns {",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_ends_with",
+              "insertText": "str_ends_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+              "detail": "str_ends_with(string $haystack, string $needle): bool",
+              "documentation": "\n\n\nThe function returns {",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_replace",
+              "insertText": "str_replace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+              "detail": "str_replace(string|string[] $search, string|string[] $replace, string|string[] $subject, $count = NULL): string|string[]",
+              "documentation": "\n\n\nReplace all occurrences of the search string with the replacement string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_ireplace",
+              "insertText": "str_ireplace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+              "detail": "str_ireplace(mixed $search, array|string $replace, array|string $subject, $count = NULL): string|string[]",
+              "documentation": "\n\n\nCase-insensitive version of <function>str_replace</function>.\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_getcsv",
+              "insertText": "str_getcsv(${1:\\$string})${0}",
+              "detail": "str_getcsv(string $string, string $separator = ',', string $enclosure = '\"', string $escape = '\\\\\\\\'): array",
+              "documentation": "\n\n\nParse a CSV string into an array\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_repeat",
+              "insertText": "str_repeat(${1:\\$string}, ${2:\\$times})${0}",
+              "detail": "str_repeat(string $string, int $times): string",
+              "documentation": "\n\n\nRepeat a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_pad",
+              "insertText": "str_pad(${1:\\$string}, ${2:\\$length})${0}",
+              "detail": "str_pad(string $string, int $length, string $pad_string = ' ', int $pad_type = 1): string",
+              "documentation": "\n\n\nPad a string to a certain length with another string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_rot13",
+              "insertText": "str_rot13(${1:\\$string})${0}",
+              "detail": "str_rot13(string $string): string",
+              "documentation": "\n\n\nPerform the rot13 transform on a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_shuffle",
+              "insertText": "str_shuffle(${1:\\$string})${0}",
+              "detail": "str_shuffle(string $string): string",
+              "documentation": "\n\n\nRandomly shuffles a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_word_count",
+              "insertText": "str_word_count(${1:\\$string})${0}",
+              "detail": "str_word_count(string $string, int $format = 0, string|null $characters = NULL): string[]|int",
+              "documentation": "\n\n\nReturn information about words used in a string\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "str_split",
+              "insertText": "str_split(${1:\\$string})${0}",
+              "detail": "str_split(string $string, int $length = 1): string[]|false",
+              "documentation": "\n\n\nConvert a string to an array\n",
+              "kind": 3,
+              "insertTextFormat": 2
+            },
+            {
+              "label": "class ",
+              "insertText": "class ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "enum ",
+              "insertText": "enum ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "trait ",
+              "insertText": "trait ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "function ",
+              "insertText": "function ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            },
+            {
+              "label": "interface ",
+              "insertText": "interface ",
+              "detail": "",
+              "documentation": "",
+              "kind": 14
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "traces": [
+    {
+      "at_ms": 5283,
+      "event": "provider-invoked",
+      "completion_id": 1,
+      "trigger_kind": 0,
+      "model_version": 3
+    },
+    {
+      "at_ms": 5283,
+      "event": "automatic-trigger-settle-started",
+      "completion_id": 1,
+      "delay_ms": 100
+    },
+    {
+      "at_ms": 5385,
+      "event": "rpc-sent",
+      "completion_id": 1,
+      "trigger_kind": 0,
+      "model_version": 3,
+      "position": {
+        "line": 8,
+        "column": 2
+      },
+      "wait_before_send_ms": 102
+    },
+    {
+      "at_ms": 5537,
+      "event": "automatic-retry-triggered",
+      "completion_id": 1,
+      "model_version": 4
+    },
+    {
+      "at_ms": 5538,
+      "event": "provider-discarded",
+      "completion_id": 1,
+      "reason": "cancelled-in-flight; worker-request-continues"
+    },
+    {
+      "at_ms": 5538,
+      "event": "provider-invoked",
+      "completion_id": 2,
+      "trigger_kind": 0,
+      "model_version": 4
+    },
+    {
+      "at_ms": 5538,
+      "event": "automatic-trigger-settle-started",
+      "completion_id": 2,
+      "delay_ms": 100
+    },
+    {
+      "at_ms": 5700,
+      "event": "automatic-retry-triggered",
+      "completion_id": 2,
+      "model_version": 5
+    },
+    {
+      "at_ms": 5700,
+      "event": "provider-discarded",
+      "completion_id": 2,
+      "reason": "cancelled-before-dispatch",
+      "settle_ms": 162
+    },
+    {
+      "at_ms": 5700,
+      "event": "provider-invoked",
+      "completion_id": 3,
+      "trigger_kind": 0,
+      "model_version": 5
+    },
+    {
+      "at_ms": 5700,
+      "event": "automatic-trigger-settle-started",
+      "completion_id": 3,
+      "delay_ms": 100
+    },
+    {
+      "at_ms": 5864,
+      "event": "automatic-retry-triggered",
+      "completion_id": 3,
+      "model_version": 6
+    },
+    {
+      "at_ms": 5864,
+      "event": "provider-discarded",
+      "completion_id": 3,
+      "reason": "cancelled-before-dispatch",
+      "settle_ms": 164
+    },
+    {
+      "at_ms": 5864,
+      "event": "provider-invoked",
+      "completion_id": 4,
+      "trigger_kind": 0,
+      "model_version": 6
+    },
+    {
+      "at_ms": 5864,
+      "event": "automatic-trigger-settle-started",
+      "completion_id": 4,
+      "delay_ms": 100
+    },
+    {
+      "at_ms": 5966,
+      "event": "rpc-sent",
+      "completion_id": 4,
+      "trigger_kind": 0,
+      "model_version": 6,
+      "position": {
+        "line": 8,
+        "column": 5
+      },
+      "wait_before_send_ms": 102
+    },
+    {
+      "at_ms": 9280,
+      "event": "rpc-response",
+      "completion_id": 1,
+      "elapsed_ms": 3895,
+      "cancelled": true
+    },
+    {
+      "at_ms": 9653,
+      "event": "rpc-response",
+      "completion_id": 4,
+      "elapsed_ms": 3687,
+      "cancelled": false
+    },
+    {
+      "at_ms": 9654,
+      "event": "provider-adopted",
+      "completion_id": 4,
+      "candidate_count": 19,
+      "model_version": 6,
+      "total_ms": 3790
+    }
+  ]
+}

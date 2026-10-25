@@ -135,12 +135,28 @@ function PhpEditor(params: {
 						);
 					},
 					triggerCompletion: () => {
-						if (editorInstance.hasTextFocus())
+						const editorNode = editorInstance.getDomNode();
+						const activeElementInEditor =
+							editorNode?.contains(document.activeElement) ?? false;
+						if (
+							editorInstance.hasTextFocus() ||
+							editorInstance.hasWidgetFocus() ||
+							activeElementInEditor
+						) {
 							editorInstance.trigger(
 								'phpactor-lsp',
-								'editor.action.triggerSuggest',
+								'hideSuggestWidget',
 								null
 							);
+							queueMicrotask(() => {
+								if (cancelled) return;
+								editorInstance.trigger(
+									'phpactor-lsp',
+									'editor.action.triggerSuggest',
+									null
+								);
+							});
+						}
 					},
 					onStatus: (state, message) => {
 						if (!cancelled) params.onLspStatus({ state, message });

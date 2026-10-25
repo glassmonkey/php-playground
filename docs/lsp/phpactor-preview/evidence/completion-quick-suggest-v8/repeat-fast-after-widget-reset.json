@@ -1,0 +1,444 @@
+{
+  "url": "http://127.0.0.1:3471/?c=DwfgDgFmBQBmCuA7AxgFwJYHtEAIDmATgKZGoCqAzkQQBQWoHqJ44AkiAhgLZE4C8OAOQBxeEXqCAlAC4c9RsxwBvHMVTwCuQQAkiAGz2YhOAHRtOPANw4AvnCRosuDgBMXAOXhcARtQo0mVDY9IlhUABocQLZGPAhUGSjEIJU1DVxWELCcAGoY9DjUaztkPQ4KChxhYlJqZRwweG89dGQ5BiYWVh4Kjjwia0bm1pwEFAxsfBrUGkT5Tvq0zSEIdEFihqaWtvoODDaxx0nkYj2iWdkqPVhF0nScRCIAdzl9WFmNu1ZCEgxFAR%2BpEo1BoggAglJLNBvtM6gJHi9qr8QZIoewvL4CPwcABGKHyAD6QA&v=8.5&f=html",
+  "status": 200,
+  "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+  "head": "4fd516045ee6aa958bb01c78be5cb76205537894+working-tree-widget-reset",
+  "phpVersion": "8.5",
+  "completionOn": true,
+  "cases": [
+    {
+      "name": "fast-10ms-1",
+      "lines": [
+        "<?php",
+        "function greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }",
+        "function addNumbers(int $left, int $right): int { return $left + $right; }",
+        "class Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }",
+        "$greeting = greetUser('A');",
+        "$greeter = new Greeter();",
+        "$number = 1;",
+        "str_"
+      ],
+      "rows": [
+        "str_containsstr_contains(string $haystack, string $needle): bool",
+        "str_decrementstr_decrement(string $string): string",
+        "str_ends_withstr_ends_with(string $haystack, string $needle): bool",
+        "str_getcsvstr_getcsv(string $string, string $separator = ',', string $enclosure = '\"', string $escape = '\\\\\\\\'): array",
+        "str_incrementstr_increment(string $string): string",
+        "str_ireplacestr_ireplace(mixed $search, array|string $replace, array|string $subject, $count = NULL): string|string[]",
+        "str_padstr_pad(string $string, int $length, string $pad_string = ' ', int $pad_type = 1): string",
+        "str_repeatstr_repeat(string $string, int $times): string",
+        "str_replacestr_replace(string|string[] $search, string|string[] $replace, string|string[] $subject, $count = NULL): string|string[]",
+        "str_rot13str_rot13(string $string): string",
+        "str_shufflestr_shuffle(string $string): string",
+        "str_splitstr_split(string $string, int $length = 1): string[]|false"
+      ],
+      "events": [
+        {
+          "direction": "out",
+          "at": 5551,
+          "jsonrpc": "2.0",
+          "id": 2,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "in",
+          "at": 6033.300000011921,
+          "jsonrpc": "2.0",
+          "id": 2,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "str_increment",
+                "insertText": "str_increment(${1:\\$string})${0}",
+                "detail": "str_increment(string $string): string",
+                "documentation": "\n\n\nIncrement an alphanumeric string\n\nReturns the incremented alphanumeric ASCII string.\n\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_decrement",
+                "insertText": "str_decrement(${1:\\$string})${0}",
+                "detail": "str_decrement(string $string): string",
+                "documentation": "\n\n\nDecrement an alphanumeric string\n\nReturns the decremented alphanumeric ASCII string.\n\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_contains",
+                "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})${0}",
+                "detail": "str_contains(string $haystack, string $needle): bool",
+                "documentation": "\n\n\nChecks if $needle is found in $haystack and returns a boolean value\n(true/false) whether or not the $needle was found.\n\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_starts_with",
+                "insertText": "str_starts_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+                "detail": "str_starts_with(string $haystack, string $needle): bool",
+                "documentation": "\n\n\nThe function returns {",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_ends_with",
+                "insertText": "str_ends_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+                "detail": "str_ends_with(string $haystack, string $needle): bool",
+                "documentation": "\n\n\nThe function returns {",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_replace",
+                "insertText": "str_replace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+                "detail": "str_replace(string|string[] $search, string|string[] $replace, string|string[] $subject, $count = NULL): string|string[]",
+                "documentation": "\n\n\nReplace all occurrences of the search string with the replacement string\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_ireplace",
+                "insertText": "str_ireplace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+                "detail": "str_ireplace(mixed $search, array|string $replace, array|string $subject, $count = NULL): string|string[]",
+                "documentation": "\n\n\nCase-insensitive version of <function>str_replace</function>.\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_getcsv",
+                "insertText": "str_getcsv(${1:\\$string})${0}",
+                "detail": "str_getcsv(string $string, string $separator = ',', string $enclosure = '\"', string $escape = '\\\\\\\\'): array",
+                "documentation": "\n\n\nParse a CSV string into an array\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_repeat",
+                "insertText": "str_repeat(${1:\\$string}, ${2:\\$times})${0}",
+                "detail": "str_repeat(string $string, int $times): string",
+                "documentation": "\n\n\nRepeat a string\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_pad",
+                "insertText": "str_pad(${1:\\$string}, ${2:\\$length})${0}",
+                "detail": "str_pad(string $string, int $length, string $pad_string = ' ', int $pad_type = 1): string",
+                "documentation": "\n\n\nPad a string to a certain length with another string\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_rot13",
+                "insertText": "str_rot13(${1:\\$string})${0}",
+                "detail": "str_rot13(string $string): string",
+                "documentation": "\n\n\nPerform the rot13 transform on a string\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_shuffle",
+                "insertText": "str_shuffle(${1:\\$string})${0}",
+                "detail": "str_shuffle(string $string): string",
+                "documentation": "\n\n\nRandomly shuffles a string\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_word_count",
+                "insertText": "str_word_count(${1:\\$string})${0}",
+                "detail": "str_word_count(string $string, int $format = 0, string|null $characters = NULL): string[]|int",
+                "documentation": "\n\n\nReturn information about words used in a string\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_split",
+                "insertText": "str_split(${1:\\$string})${0}",
+                "detail": "str_split(string $string, int $length = 1): string[]|false",
+                "documentation": "\n\n\nConvert a string to an array\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "class ",
+                "insertText": "class ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "enum ",
+                "insertText": "enum ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "trait ",
+                "insertText": "trait ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "function ",
+                "insertText": "function ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "interface ",
+                "insertText": "interface ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              }
+            ]
+          }
+        },
+        {
+          "direction": "in",
+          "at": 6043,
+          "jsonrpc": "2.0",
+          "id": 3,
+          "result": {
+            "label": "str_contains",
+            "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})${0}",
+            "detail": "str_contains(string $haystack, string $needle): bool",
+            "documentation": "\n\n\nChecks if $needle is found in $haystack and returns a boolean value\n(true/false) whether or not the $needle was found.\n\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          }
+        }
+      ]
+    },
+    {
+      "name": "fast-10ms-2",
+      "lines": [
+        "<?php",
+        "function greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }",
+        "function addNumbers(int $left, int $right): int { return $left + $right; }",
+        "class Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }",
+        "$greeting = greetUser('A');",
+        "$greeter = new Greeter();",
+        "$number = 1;",
+        "str_"
+      ],
+      "rows": [
+        "str_containsstr_contains(string $haystack, string $needle): bool",
+        "str_decrementstr_decrement(string $string): string",
+        "str_ends_withstr_ends_with(string $haystack, string $needle): bool",
+        "str_getcsvstr_getcsv(string $string, string $separator = ',', string $enclosure = '\"', string $escape = '\\\\\\\\'): array",
+        "str_incrementstr_increment(string $string): string",
+        "str_ireplacestr_ireplace(mixed $search, array|string $replace, array|string $subject, $count = NULL): string|string[]",
+        "str_padstr_pad(string $string, int $length, string $pad_string = ' ', int $pad_type = 1): string",
+        "str_repeatstr_repeat(string $string, int $times): string",
+        "str_replacestr_replace(string|string[] $search, string|string[] $replace, string|string[] $subject, $count = NULL): string|string[]",
+        "str_rot13str_rot13(string $string): string",
+        "str_shufflestr_shuffle(string $string): string",
+        "str_splitstr_split(string $string, int $length = 1): string[]|false"
+      ],
+      "events": [
+        {
+          "direction": "out",
+          "at": 7857.4000000059605,
+          "jsonrpc": "2.0",
+          "id": 4,
+          "method": "textDocument/completion",
+          "params": {
+            "textDocument": {
+              "uri": "inmemory://model/1"
+            },
+            "position": {
+              "line": 7,
+              "character": 4
+            }
+          }
+        },
+        {
+          "direction": "in",
+          "at": 8243.300000011921,
+          "jsonrpc": "2.0",
+          "id": 4,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "str_increment",
+                "insertText": "str_increment(${1:\\$string})${0}",
+                "detail": "str_increment(string $string): string",
+                "documentation": "\n\n\nIncrement an alphanumeric string\n\nReturns the incremented alphanumeric ASCII string.\n\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_decrement",
+                "insertText": "str_decrement(${1:\\$string})${0}",
+                "detail": "str_decrement(string $string): string",
+                "documentation": "\n\n\nDecrement an alphanumeric string\n\nReturns the decremented alphanumeric ASCII string.\n\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_contains",
+                "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})${0}",
+                "detail": "str_contains(string $haystack, string $needle): bool",
+                "documentation": "\n\n\nChecks if $needle is found in $haystack and returns a boolean value\n(true/false) whether or not the $needle was found.\n\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_starts_with",
+                "insertText": "str_starts_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+                "detail": "str_starts_with(string $haystack, string $needle): bool",
+                "documentation": "\n\n\nThe function returns {",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_ends_with",
+                "insertText": "str_ends_with(${1:\\$haystack}, ${2:\\$needle})${0}",
+                "detail": "str_ends_with(string $haystack, string $needle): bool",
+                "documentation": "\n\n\nThe function returns {",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_replace",
+                "insertText": "str_replace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+                "detail": "str_replace(string|string[] $search, string|string[] $replace, string|string[] $subject, $count = NULL): string|string[]",
+                "documentation": "\n\n\nReplace all occurrences of the search string with the replacement string\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_ireplace",
+                "insertText": "str_ireplace(${1:\\$search}, ${2:\\$replace}, ${3:\\$subject})${0}",
+                "detail": "str_ireplace(mixed $search, array|string $replace, array|string $subject, $count = NULL): string|string[]",
+                "documentation": "\n\n\nCase-insensitive version of <function>str_replace</function>.\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_getcsv",
+                "insertText": "str_getcsv(${1:\\$string})${0}",
+                "detail": "str_getcsv(string $string, string $separator = ',', string $enclosure = '\"', string $escape = '\\\\\\\\'): array",
+                "documentation": "\n\n\nParse a CSV string into an array\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_repeat",
+                "insertText": "str_repeat(${1:\\$string}, ${2:\\$times})${0}",
+                "detail": "str_repeat(string $string, int $times): string",
+                "documentation": "\n\n\nRepeat a string\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_pad",
+                "insertText": "str_pad(${1:\\$string}, ${2:\\$length})${0}",
+                "detail": "str_pad(string $string, int $length, string $pad_string = ' ', int $pad_type = 1): string",
+                "documentation": "\n\n\nPad a string to a certain length with another string\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_rot13",
+                "insertText": "str_rot13(${1:\\$string})${0}",
+                "detail": "str_rot13(string $string): string",
+                "documentation": "\n\n\nPerform the rot13 transform on a string\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_shuffle",
+                "insertText": "str_shuffle(${1:\\$string})${0}",
+                "detail": "str_shuffle(string $string): string",
+                "documentation": "\n\n\nRandomly shuffles a string\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_word_count",
+                "insertText": "str_word_count(${1:\\$string})${0}",
+                "detail": "str_word_count(string $string, int $format = 0, string|null $characters = NULL): string[]|int",
+                "documentation": "\n\n\nReturn information about words used in a string\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "str_split",
+                "insertText": "str_split(${1:\\$string})${0}",
+                "detail": "str_split(string $string, int $length = 1): string[]|false",
+                "documentation": "\n\n\nConvert a string to an array\n",
+                "kind": 3,
+                "insertTextFormat": 2
+              },
+              {
+                "label": "class ",
+                "insertText": "class ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "enum ",
+                "insertText": "enum ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "trait ",
+                "insertText": "trait ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "function ",
+                "insertText": "function ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              },
+              {
+                "label": "interface ",
+                "insertText": "interface ",
+                "detail": "",
+                "documentation": "",
+                "kind": 14
+              }
+            ]
+          }
+        },
+        {
+          "direction": "in",
+          "at": 8248,
+          "jsonrpc": "2.0",
+          "id": 5,
+          "result": {
+            "label": "str_contains",
+            "insertText": "str_contains(${1:\\$haystack}, ${2:\\$needle})${0}",
+            "detail": "str_contains(string $haystack, string $needle): bool",
+            "documentation": "\n\n\nChecks if $needle is found in $haystack and returns a boolean value\n(true/false) whether or not the $needle was found.\n\n",
+            "kind": 3,
+            "insertTextFormat": 2
+          }
+        }
+      ]
+    }
+  ]
+}

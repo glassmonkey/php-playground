@@ -1,0 +1,5080 @@
+{
+  "url": "http://127.0.0.1:3471/?v=8.5&f=html",
+  "head": "4fd516045ee6aa958bb01c78be5cb76205537894+working-tree-widget-reset",
+  "phpVersion": "8.5",
+  "completionOn": true,
+  "cases": [
+    {
+      "name": "slow-1",
+      "delayMs": 160,
+      "started": 3276.4000000059605,
+      "typed": 3953.5999999940395,
+      "pauseMs": 1800,
+      "snapshot": {
+        "lines": [
+          "<?php",
+          "function greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }",
+          "function addNumbers(int $left, int $right): int { return $left + $right; }",
+          "class Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }",
+          "$greeting = greetUser('A');",
+          "$greeter = new Greeter();",
+          "$number = 1;",
+          "str_"
+        ],
+        "rows": 0,
+        "rpc": [
+          {
+            "direction": "ui->worker",
+            "at": 310.90000000596046,
+            "data": {
+              "requestId": "id-1792940299069-0.8997561689243075",
+              "version": "8.5",
+              "code": "// example code\nphpinfo();"
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 870.7000000178814,
+            "data": "-please-ignore-"
+          },
+          {
+            "direction": "ui->worker",
+            "at": 870.7000000178814,
+            "data": {
+              "vsWorker": 1,
+              "req": "1",
+              "channel": "default",
+              "method": "$initialize",
+              "args": [
+                1
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 898.4000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "2",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 898.4000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "3",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 898.4000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "4",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 898.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "5",
+              "channel": "default",
+              "method": "$acceptNewModel",
+              "args": [
+                {
+                  "url": "inmemory://model/1",
+                  "lines": [
+                    "<?php",
+                    "// example code",
+                    "phpinfo();"
+                  ],
+                  "EOL": "\n",
+                  "versionId": 1
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 898.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "6",
+              "channel": "default",
+              "method": "$computeDefaultDocumentColors",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 898.5999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "7",
+              "channel": "default",
+              "method": "$computeLinks",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 898.5999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "8",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 1879.300000011921,
+            "data": {
+              "vsWorker": 1,
+              "req": "9",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 1879.800000011921,
+            "data": {
+              "vsWorker": 1,
+              "req": "10",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 2764.2000000178814,
+            "data": {
+              "vsWorker": 1,
+              "req": "11",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 1,
+                        "startColumn": 1,
+                        "endLineNumber": 3,
+                        "endColumn": 11
+                      },
+                      "rangeOffset": 0,
+                      "rangeLength": 32,
+                      "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 2,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": true,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "setValue"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3011.800000011921,
+            "data": {
+              "vsWorker": 1,
+              "req": "12",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3011.800000011921,
+            "data": {
+              "vsWorker": 1,
+              "req": "13",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3068.4000000059605,
+            "data": {
+              "requestId": "id-1792940301826-0.5225553576383357",
+              "version": "8.5",
+              "code": "function greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3289,
+            "data": {
+              "vsWorker": 1,
+              "req": "14",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 1,
+                        "endLineNumber": 8,
+                        "endColumn": 1
+                      },
+                      "rangeLength": 0,
+                      "text": "s",
+                      "rangeOffset": 380,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 3,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3300.0999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "15",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3300.4000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "16",
+              "channel": "default",
+              "method": "$textualSuggest",
+              "args": [
+                [
+                  "inmemory://model/1"
+                ],
+                "s",
+                "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
+                "g"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3456.5999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "17",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 2,
+                        "endLineNumber": 8,
+                        "endColumn": 2
+                      },
+                      "rangeLength": 0,
+                      "text": "t",
+                      "rangeOffset": 381,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 4,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3623.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "18",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 3,
+                        "endLineNumber": 8,
+                        "endColumn": 3
+                      },
+                      "rangeLength": 0,
+                      "text": "r",
+                      "rangeOffset": 382,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 5,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3790.0999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "19",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 4,
+                        "endLineNumber": 8,
+                        "endColumn": 4
+                      },
+                      "rangeLength": 0,
+                      "text": "_",
+                      "rangeOffset": 383,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 6,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3801.300000011921,
+            "data": {
+              "vsWorker": 1,
+              "req": "20",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3801.4000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "21",
+              "channel": "default",
+              "method": "$textualSuggest",
+              "args": [
+                [
+                  "inmemory://model/1"
+                ],
+                "str_",
+                "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
+                "g"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4039.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "22",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4040.0999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "23",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4094.7000000178814,
+            "data": {
+              "requestId": "id-1792940302853-0.48306477179674157",
+              "version": "8.5",
+              "code": "function greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_"
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4261.700000017881,
+            "data": {
+              "vsWorker": 1,
+              "req": "24",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4261.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "25",
+              "channel": "default",
+              "method": "$computeDefaultDocumentColors",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 5290.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "26",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 5291,
+            "data": {
+              "vsWorker": 1,
+              "req": "27",
+              "channel": "default",
+              "method": "$computeLinks",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          }
+        ]
+      },
+      "final": {
+        "rows": 0,
+        "rpc": [
+          {
+            "direction": "ui->worker",
+            "at": 310.90000000596046,
+            "data": {
+              "requestId": "id-1792940299069-0.8997561689243075",
+              "version": "8.5",
+              "code": "// example code\nphpinfo();"
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 870.7000000178814,
+            "data": "-please-ignore-"
+          },
+          {
+            "direction": "ui->worker",
+            "at": 870.7000000178814,
+            "data": {
+              "vsWorker": 1,
+              "req": "1",
+              "channel": "default",
+              "method": "$initialize",
+              "args": [
+                1
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 898.4000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "2",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 898.4000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "3",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 898.4000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "4",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 898.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "5",
+              "channel": "default",
+              "method": "$acceptNewModel",
+              "args": [
+                {
+                  "url": "inmemory://model/1",
+                  "lines": [
+                    "<?php",
+                    "// example code",
+                    "phpinfo();"
+                  ],
+                  "EOL": "\n",
+                  "versionId": 1
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 898.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "6",
+              "channel": "default",
+              "method": "$computeDefaultDocumentColors",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 898.5999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "7",
+              "channel": "default",
+              "method": "$computeLinks",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 898.5999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "8",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 1879.300000011921,
+            "data": {
+              "vsWorker": 1,
+              "req": "9",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 1879.800000011921,
+            "data": {
+              "vsWorker": 1,
+              "req": "10",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 2764.2000000178814,
+            "data": {
+              "vsWorker": 1,
+              "req": "11",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 1,
+                        "startColumn": 1,
+                        "endLineNumber": 3,
+                        "endColumn": 11
+                      },
+                      "rangeOffset": 0,
+                      "rangeLength": 32,
+                      "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 2,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": true,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "setValue"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3011.800000011921,
+            "data": {
+              "vsWorker": 1,
+              "req": "12",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3011.800000011921,
+            "data": {
+              "vsWorker": 1,
+              "req": "13",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3068.4000000059605,
+            "data": {
+              "requestId": "id-1792940301826-0.5225553576383357",
+              "version": "8.5",
+              "code": "function greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3289,
+            "data": {
+              "vsWorker": 1,
+              "req": "14",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 1,
+                        "endLineNumber": 8,
+                        "endColumn": 1
+                      },
+                      "rangeLength": 0,
+                      "text": "s",
+                      "rangeOffset": 380,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 3,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3300.0999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "15",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3300.4000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "16",
+              "channel": "default",
+              "method": "$textualSuggest",
+              "args": [
+                [
+                  "inmemory://model/1"
+                ],
+                "s",
+                "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
+                "g"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3456.5999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "17",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 2,
+                        "endLineNumber": 8,
+                        "endColumn": 2
+                      },
+                      "rangeLength": 0,
+                      "text": "t",
+                      "rangeOffset": 381,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 4,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3623.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "18",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 3,
+                        "endLineNumber": 8,
+                        "endColumn": 3
+                      },
+                      "rangeLength": 0,
+                      "text": "r",
+                      "rangeOffset": 382,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 5,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3790.0999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "19",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 4,
+                        "endLineNumber": 8,
+                        "endColumn": 4
+                      },
+                      "rangeLength": 0,
+                      "text": "_",
+                      "rangeOffset": 383,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 6,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3801.300000011921,
+            "data": {
+              "vsWorker": 1,
+              "req": "20",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3801.4000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "21",
+              "channel": "default",
+              "method": "$textualSuggest",
+              "args": [
+                [
+                  "inmemory://model/1"
+                ],
+                "str_",
+                "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
+                "g"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4039.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "22",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4040.0999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "23",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4094.7000000178814,
+            "data": {
+              "requestId": "id-1792940302853-0.48306477179674157",
+              "version": "8.5",
+              "code": "function greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_"
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4261.700000017881,
+            "data": {
+              "vsWorker": 1,
+              "req": "24",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4261.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "25",
+              "channel": "default",
+              "method": "$computeDefaultDocumentColors",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 5290.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "26",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 5291,
+            "data": {
+              "vsWorker": 1,
+              "req": "27",
+              "channel": "default",
+              "method": "$computeLinks",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "name": "slow-2",
+      "delayMs": 160,
+      "started": 3216.0999999940395,
+      "typed": 3889.5,
+      "pauseMs": 1800,
+      "snapshot": {
+        "lines": [
+          "<?php",
+          "function greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }",
+          "function addNumbers(int $left, int $right): int { return $left + $right; }",
+          "class Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }",
+          "$greeting = greetUser('A');",
+          "$greeter = new Greeter();",
+          "$number = 1;",
+          "str_"
+        ],
+        "rows": 0,
+        "rpc": [
+          {
+            "direction": "ui->worker",
+            "at": 256.5,
+            "data": {
+              "requestId": "id-1792940311853-0.8619576770818037",
+              "version": "8.5",
+              "code": "// example code\nphpinfo();"
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 608.1999999880791,
+            "data": "-please-ignore-"
+          },
+          {
+            "direction": "ui->worker",
+            "at": 608.1999999880791,
+            "data": {
+              "vsWorker": 1,
+              "req": "1",
+              "channel": "default",
+              "method": "$initialize",
+              "args": [
+                1
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 663.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "2",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 663.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "3",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 663.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "4",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 664.0999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "5",
+              "channel": "default",
+              "method": "$acceptNewModel",
+              "args": [
+                {
+                  "url": "inmemory://model/1",
+                  "lines": [
+                    "<?php",
+                    "// example code",
+                    "phpinfo();"
+                  ],
+                  "EOL": "\n",
+                  "versionId": 1
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 664.0999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "6",
+              "channel": "default",
+              "method": "$computeDefaultDocumentColors",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 664.1999999880791,
+            "data": {
+              "vsWorker": 1,
+              "req": "7",
+              "channel": "default",
+              "method": "$computeLinks",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 664.1999999880791,
+            "data": {
+              "vsWorker": 1,
+              "req": "8",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 1628.300000011921,
+            "data": {
+              "vsWorker": 1,
+              "req": "9",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 1628.5999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "10",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 2713.199999988079,
+            "data": {
+              "vsWorker": 1,
+              "req": "11",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 1,
+                        "startColumn": 1,
+                        "endLineNumber": 3,
+                        "endColumn": 11
+                      },
+                      "rangeOffset": 0,
+                      "rangeLength": 32,
+                      "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 2,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": true,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "setValue"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 2961.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "12",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 2961.699999988079,
+            "data": {
+              "vsWorker": 1,
+              "req": "13",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3017.5,
+            "data": {
+              "requestId": "id-1792940314614-0.3938805560721136",
+              "version": "8.5",
+              "code": "function greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3224.5999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "14",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 1,
+                        "endLineNumber": 8,
+                        "endColumn": 1
+                      },
+                      "rangeLength": 0,
+                      "text": "s",
+                      "rangeOffset": 380,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 3,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3240.0999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "15",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3240.199999988079,
+            "data": {
+              "vsWorker": 1,
+              "req": "16",
+              "channel": "default",
+              "method": "$textualSuggest",
+              "args": [
+                [
+                  "inmemory://model/1"
+                ],
+                "s",
+                "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
+                "g"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3391.5999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "17",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 2,
+                        "endLineNumber": 8,
+                        "endColumn": 2
+                      },
+                      "rangeLength": 0,
+                      "text": "t",
+                      "rangeOffset": 381,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 4,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3557.699999988079,
+            "data": {
+              "vsWorker": 1,
+              "req": "18",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 3,
+                        "endLineNumber": 8,
+                        "endColumn": 3
+                      },
+                      "rangeLength": 0,
+                      "text": "r",
+                      "rangeOffset": 382,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 5,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3724,
+            "data": {
+              "vsWorker": 1,
+              "req": "19",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 4,
+                        "endLineNumber": 8,
+                        "endColumn": 4
+                      },
+                      "rangeLength": 0,
+                      "text": "_",
+                      "rangeOffset": 383,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 6,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3734.4000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "20",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3734.4000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "21",
+              "channel": "default",
+              "method": "$textualSuggest",
+              "args": [
+                [
+                  "inmemory://model/1"
+                ],
+                "str_",
+                "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
+                "g"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3973,
+            "data": {
+              "vsWorker": 1,
+              "req": "22",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3973.0999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "23",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4027.0999999940395,
+            "data": {
+              "requestId": "id-1792940315624-0.25268453259568047",
+              "version": "8.5",
+              "code": "function greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_"
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4211.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "24",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4211.5999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "25",
+              "channel": "default",
+              "method": "$computeDefaultDocumentColors",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 5223.5999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "26",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 5224.300000011921,
+            "data": {
+              "vsWorker": 1,
+              "req": "27",
+              "channel": "default",
+              "method": "$computeLinks",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          }
+        ]
+      },
+      "final": {
+        "rows": 0,
+        "rpc": [
+          {
+            "direction": "ui->worker",
+            "at": 256.5,
+            "data": {
+              "requestId": "id-1792940311853-0.8619576770818037",
+              "version": "8.5",
+              "code": "// example code\nphpinfo();"
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 608.1999999880791,
+            "data": "-please-ignore-"
+          },
+          {
+            "direction": "ui->worker",
+            "at": 608.1999999880791,
+            "data": {
+              "vsWorker": 1,
+              "req": "1",
+              "channel": "default",
+              "method": "$initialize",
+              "args": [
+                1
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 663.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "2",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 663.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "3",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 663.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "4",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 664.0999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "5",
+              "channel": "default",
+              "method": "$acceptNewModel",
+              "args": [
+                {
+                  "url": "inmemory://model/1",
+                  "lines": [
+                    "<?php",
+                    "// example code",
+                    "phpinfo();"
+                  ],
+                  "EOL": "\n",
+                  "versionId": 1
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 664.0999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "6",
+              "channel": "default",
+              "method": "$computeDefaultDocumentColors",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 664.1999999880791,
+            "data": {
+              "vsWorker": 1,
+              "req": "7",
+              "channel": "default",
+              "method": "$computeLinks",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 664.1999999880791,
+            "data": {
+              "vsWorker": 1,
+              "req": "8",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 1628.300000011921,
+            "data": {
+              "vsWorker": 1,
+              "req": "9",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 1628.5999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "10",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 2713.199999988079,
+            "data": {
+              "vsWorker": 1,
+              "req": "11",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 1,
+                        "startColumn": 1,
+                        "endLineNumber": 3,
+                        "endColumn": 11
+                      },
+                      "rangeOffset": 0,
+                      "rangeLength": 32,
+                      "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 2,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": true,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "setValue"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 2961.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "12",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 2961.699999988079,
+            "data": {
+              "vsWorker": 1,
+              "req": "13",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3017.5,
+            "data": {
+              "requestId": "id-1792940314614-0.3938805560721136",
+              "version": "8.5",
+              "code": "function greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3224.5999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "14",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 1,
+                        "endLineNumber": 8,
+                        "endColumn": 1
+                      },
+                      "rangeLength": 0,
+                      "text": "s",
+                      "rangeOffset": 380,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 3,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3240.0999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "15",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3240.199999988079,
+            "data": {
+              "vsWorker": 1,
+              "req": "16",
+              "channel": "default",
+              "method": "$textualSuggest",
+              "args": [
+                [
+                  "inmemory://model/1"
+                ],
+                "s",
+                "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
+                "g"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3391.5999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "17",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 2,
+                        "endLineNumber": 8,
+                        "endColumn": 2
+                      },
+                      "rangeLength": 0,
+                      "text": "t",
+                      "rangeOffset": 381,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 4,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3557.699999988079,
+            "data": {
+              "vsWorker": 1,
+              "req": "18",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 3,
+                        "endLineNumber": 8,
+                        "endColumn": 3
+                      },
+                      "rangeLength": 0,
+                      "text": "r",
+                      "rangeOffset": 382,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 5,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3724,
+            "data": {
+              "vsWorker": 1,
+              "req": "19",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 4,
+                        "endLineNumber": 8,
+                        "endColumn": 4
+                      },
+                      "rangeLength": 0,
+                      "text": "_",
+                      "rangeOffset": 383,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 6,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3734.4000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "20",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3734.4000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "21",
+              "channel": "default",
+              "method": "$textualSuggest",
+              "args": [
+                [
+                  "inmemory://model/1"
+                ],
+                "str_",
+                "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
+                "g"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3973,
+            "data": {
+              "vsWorker": 1,
+              "req": "22",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3973.0999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "23",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4027.0999999940395,
+            "data": {
+              "requestId": "id-1792940315624-0.25268453259568047",
+              "version": "8.5",
+              "code": "function greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_"
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4211.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "24",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4211.5999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "25",
+              "channel": "default",
+              "method": "$computeDefaultDocumentColors",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 5223.5999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "26",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 5224.300000011921,
+            "data": {
+              "vsWorker": 1,
+              "req": "27",
+              "channel": "default",
+              "method": "$computeLinks",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "name": "fast-1",
+      "delayMs": 10,
+      "started": 3595.2000000178814,
+      "typed": 3664.7000000178814,
+      "pauseMs": 1800,
+      "snapshot": {
+        "lines": [
+          "<?php",
+          "function greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }",
+          "function addNumbers(int $left, int $right): int { return $left + $right; }",
+          "class Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }",
+          "$greeting = greetUser('A');",
+          "$greeter = new Greeter();",
+          "$number = 1;",
+          "str_"
+        ],
+        "rows": 0,
+        "rpc": [
+          {
+            "direction": "ui->worker",
+            "at": 254.40000000596046,
+            "data": {
+              "requestId": "id-1792940324632-0.05247200741156788",
+              "version": "8.5",
+              "code": "// example code\nphpinfo();"
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 602.6000000238419,
+            "data": "-please-ignore-"
+          },
+          {
+            "direction": "ui->worker",
+            "at": 602.7000000178814,
+            "data": {
+              "vsWorker": 1,
+              "req": "1",
+              "channel": "default",
+              "method": "$initialize",
+              "args": [
+                1
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 628.7000000178814,
+            "data": {
+              "vsWorker": 1,
+              "req": "2",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 628.7000000178814,
+            "data": {
+              "vsWorker": 1,
+              "req": "3",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 628.7000000178814,
+            "data": {
+              "vsWorker": 1,
+              "req": "4",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 628.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "5",
+              "channel": "default",
+              "method": "$acceptNewModel",
+              "args": [
+                {
+                  "url": "inmemory://model/1",
+                  "lines": [
+                    "<?php",
+                    "// example code",
+                    "phpinfo();"
+                  ],
+                  "EOL": "\n",
+                  "versionId": 1
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 628.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "6",
+              "channel": "default",
+              "method": "$computeDefaultDocumentColors",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 628.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "7",
+              "channel": "default",
+              "method": "$computeLinks",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 628.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "8",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 1610.6000000238419,
+            "data": {
+              "vsWorker": 1,
+              "req": "9",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 1610.800000011921,
+            "data": {
+              "vsWorker": 1,
+              "req": "10",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3092.600000023842,
+            "data": {
+              "vsWorker": 1,
+              "req": "11",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 1,
+                        "startColumn": 1,
+                        "endLineNumber": 3,
+                        "endColumn": 11
+                      },
+                      "rangeOffset": 0,
+                      "rangeLength": 32,
+                      "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 2,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": true,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "setValue"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3342.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "12",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3342.600000023842,
+            "data": {
+              "vsWorker": 1,
+              "req": "13",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3396.300000011921,
+            "data": {
+              "requestId": "id-1792940327774-0.44308769265503034",
+              "version": "8.5",
+              "code": "function greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3603.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "14",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 1,
+                        "endLineNumber": 8,
+                        "endColumn": 1
+                      },
+                      "rangeLength": 0,
+                      "text": "s",
+                      "rangeOffset": 380,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 3,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3613.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "15",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3613.600000023842,
+            "data": {
+              "vsWorker": 1,
+              "req": "16",
+              "channel": "default",
+              "method": "$textualSuggest",
+              "args": [
+                [
+                  "inmemory://model/1"
+                ],
+                "s",
+                "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
+                "g"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3622.800000011921,
+            "data": {
+              "vsWorker": 1,
+              "req": "17",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 2,
+                        "endLineNumber": 8,
+                        "endColumn": 2
+                      },
+                      "rangeLength": 0,
+                      "text": "t",
+                      "rangeOffset": 381,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 4,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3638.800000011921,
+            "data": {
+              "vsWorker": 1,
+              "req": "18",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 3,
+                        "endLineNumber": 8,
+                        "endColumn": 3
+                      },
+                      "rangeLength": 0,
+                      "text": "r",
+                      "rangeOffset": 382,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 5,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3652.7000000178814,
+            "data": {
+              "vsWorker": 1,
+              "req": "19",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 4,
+                        "endLineNumber": 8,
+                        "endColumn": 4
+                      },
+                      "rangeLength": 0,
+                      "text": "_",
+                      "rangeOffset": 383,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 6,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3663.7000000178814,
+            "data": {
+              "vsWorker": 1,
+              "req": "20",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3663.800000011921,
+            "data": {
+              "vsWorker": 1,
+              "req": "21",
+              "channel": "default",
+              "method": "$textualSuggest",
+              "args": [
+                [
+                  "inmemory://model/1"
+                ],
+                "str_",
+                "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
+                "g"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3903.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "22",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3903.7000000178814,
+            "data": {
+              "vsWorker": 1,
+              "req": "23",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3957,
+            "data": {
+              "requestId": "id-1792940328335-0.12874355724176112",
+              "version": "8.5",
+              "code": "function greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_"
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4591.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "24",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4592,
+            "data": {
+              "vsWorker": 1,
+              "req": "25",
+              "channel": "default",
+              "method": "$computeDefaultDocumentColors",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 5152.800000011921,
+            "data": {
+              "vsWorker": 1,
+              "req": "26",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 5153.600000023842,
+            "data": {
+              "vsWorker": 1,
+              "req": "27",
+              "channel": "default",
+              "method": "$computeLinks",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          }
+        ]
+      },
+      "final": {
+        "rows": 0,
+        "rpc": [
+          {
+            "direction": "ui->worker",
+            "at": 254.40000000596046,
+            "data": {
+              "requestId": "id-1792940324632-0.05247200741156788",
+              "version": "8.5",
+              "code": "// example code\nphpinfo();"
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 602.6000000238419,
+            "data": "-please-ignore-"
+          },
+          {
+            "direction": "ui->worker",
+            "at": 602.7000000178814,
+            "data": {
+              "vsWorker": 1,
+              "req": "1",
+              "channel": "default",
+              "method": "$initialize",
+              "args": [
+                1
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 628.7000000178814,
+            "data": {
+              "vsWorker": 1,
+              "req": "2",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 628.7000000178814,
+            "data": {
+              "vsWorker": 1,
+              "req": "3",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 628.7000000178814,
+            "data": {
+              "vsWorker": 1,
+              "req": "4",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 628.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "5",
+              "channel": "default",
+              "method": "$acceptNewModel",
+              "args": [
+                {
+                  "url": "inmemory://model/1",
+                  "lines": [
+                    "<?php",
+                    "// example code",
+                    "phpinfo();"
+                  ],
+                  "EOL": "\n",
+                  "versionId": 1
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 628.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "6",
+              "channel": "default",
+              "method": "$computeDefaultDocumentColors",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 628.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "7",
+              "channel": "default",
+              "method": "$computeLinks",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 628.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "8",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 1610.6000000238419,
+            "data": {
+              "vsWorker": 1,
+              "req": "9",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 1610.800000011921,
+            "data": {
+              "vsWorker": 1,
+              "req": "10",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3092.600000023842,
+            "data": {
+              "vsWorker": 1,
+              "req": "11",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 1,
+                        "startColumn": 1,
+                        "endLineNumber": 3,
+                        "endColumn": 11
+                      },
+                      "rangeOffset": 0,
+                      "rangeLength": 32,
+                      "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 2,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": true,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "setValue"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3342.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "12",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3342.600000023842,
+            "data": {
+              "vsWorker": 1,
+              "req": "13",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3396.300000011921,
+            "data": {
+              "requestId": "id-1792940327774-0.44308769265503034",
+              "version": "8.5",
+              "code": "function greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3603.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "14",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 1,
+                        "endLineNumber": 8,
+                        "endColumn": 1
+                      },
+                      "rangeLength": 0,
+                      "text": "s",
+                      "rangeOffset": 380,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 3,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3613.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "15",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3613.600000023842,
+            "data": {
+              "vsWorker": 1,
+              "req": "16",
+              "channel": "default",
+              "method": "$textualSuggest",
+              "args": [
+                [
+                  "inmemory://model/1"
+                ],
+                "s",
+                "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
+                "g"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3622.800000011921,
+            "data": {
+              "vsWorker": 1,
+              "req": "17",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 2,
+                        "endLineNumber": 8,
+                        "endColumn": 2
+                      },
+                      "rangeLength": 0,
+                      "text": "t",
+                      "rangeOffset": 381,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 4,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3638.800000011921,
+            "data": {
+              "vsWorker": 1,
+              "req": "18",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 3,
+                        "endLineNumber": 8,
+                        "endColumn": 3
+                      },
+                      "rangeLength": 0,
+                      "text": "r",
+                      "rangeOffset": 382,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 5,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3652.7000000178814,
+            "data": {
+              "vsWorker": 1,
+              "req": "19",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 4,
+                        "endLineNumber": 8,
+                        "endColumn": 4
+                      },
+                      "rangeLength": 0,
+                      "text": "_",
+                      "rangeOffset": 383,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 6,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3663.7000000178814,
+            "data": {
+              "vsWorker": 1,
+              "req": "20",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3663.800000011921,
+            "data": {
+              "vsWorker": 1,
+              "req": "21",
+              "channel": "default",
+              "method": "$textualSuggest",
+              "args": [
+                [
+                  "inmemory://model/1"
+                ],
+                "str_",
+                "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
+                "g"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3903.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "22",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3903.7000000178814,
+            "data": {
+              "vsWorker": 1,
+              "req": "23",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3957,
+            "data": {
+              "requestId": "id-1792940328335-0.12874355724176112",
+              "version": "8.5",
+              "code": "function greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_"
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4591.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "24",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4592,
+            "data": {
+              "vsWorker": 1,
+              "req": "25",
+              "channel": "default",
+              "method": "$computeDefaultDocumentColors",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 5152.800000011921,
+            "data": {
+              "vsWorker": 1,
+              "req": "26",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 5153.600000023842,
+            "data": {
+              "vsWorker": 1,
+              "req": "27",
+              "channel": "default",
+              "method": "$computeLinks",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "name": "fast-2",
+      "delayMs": 10,
+      "started": 3221,
+      "typed": 3290.5999999940395,
+      "pauseMs": 1800,
+      "snapshot": {
+        "lines": [
+          "<?php",
+          "function greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }",
+          "function addNumbers(int $left, int $right): int { return $left + $right; }",
+          "class Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }",
+          "$greeting = greetUser('A');",
+          "$greeter = new Greeter();",
+          "$number = 1;",
+          "str_"
+        ],
+        "rows": 0,
+        "rpc": [
+          {
+            "direction": "ui->worker",
+            "at": 265.19999998807907,
+            "data": {
+              "requestId": "id-1792940337187-0.8227013185102837",
+              "version": "8.5",
+              "code": "// example code\nphpinfo();"
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 593.5,
+            "data": "-please-ignore-"
+          },
+          {
+            "direction": "ui->worker",
+            "at": 593.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "1",
+              "channel": "default",
+              "method": "$initialize",
+              "args": [
+                1
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 622.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "2",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 622.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "3",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 622.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "4",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 622.6999999880791,
+            "data": {
+              "vsWorker": 1,
+              "req": "5",
+              "channel": "default",
+              "method": "$acceptNewModel",
+              "args": [
+                {
+                  "url": "inmemory://model/1",
+                  "lines": [
+                    "<?php",
+                    "// example code",
+                    "phpinfo();"
+                  ],
+                  "EOL": "\n",
+                  "versionId": 1
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 622.6999999880791,
+            "data": {
+              "vsWorker": 1,
+              "req": "6",
+              "channel": "default",
+              "method": "$computeDefaultDocumentColors",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 622.6999999880791,
+            "data": {
+              "vsWorker": 1,
+              "req": "7",
+              "channel": "default",
+              "method": "$computeLinks",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 622.6999999880791,
+            "data": {
+              "vsWorker": 1,
+              "req": "8",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 1602.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "9",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 1603.0999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "10",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 2719.199999988079,
+            "data": {
+              "vsWorker": 1,
+              "req": "11",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 1,
+                        "startColumn": 1,
+                        "endLineNumber": 3,
+                        "endColumn": 11
+                      },
+                      "rangeOffset": 0,
+                      "rangeLength": 32,
+                      "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 2,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": true,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "setValue"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 2967.199999988079,
+            "data": {
+              "vsWorker": 1,
+              "req": "12",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 2967.4000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "13",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3023.7999999821186,
+            "data": {
+              "requestId": "id-1792940339946-0.8853311654880507",
+              "version": "8.5",
+              "code": "function greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3229.2999999821186,
+            "data": {
+              "vsWorker": 1,
+              "req": "14",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 1,
+                        "endLineNumber": 8,
+                        "endColumn": 1
+                      },
+                      "rangeLength": 0,
+                      "text": "s",
+                      "rangeOffset": 380,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 3,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3241.199999988079,
+            "data": {
+              "vsWorker": 1,
+              "req": "15",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3241.199999988079,
+            "data": {
+              "vsWorker": 1,
+              "req": "16",
+              "channel": "default",
+              "method": "$textualSuggest",
+              "args": [
+                [
+                  "inmemory://model/1"
+                ],
+                "s",
+                "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
+                "g"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3250.4000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "17",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 2,
+                        "endLineNumber": 8,
+                        "endColumn": 2
+                      },
+                      "rangeLength": 0,
+                      "text": "t",
+                      "rangeOffset": 381,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 4,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3264.199999988079,
+            "data": {
+              "vsWorker": 1,
+              "req": "18",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 3,
+                        "endLineNumber": 8,
+                        "endColumn": 3
+                      },
+                      "rangeLength": 0,
+                      "text": "r",
+                      "rangeOffset": 382,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 5,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3277.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "19",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 4,
+                        "endLineNumber": 8,
+                        "endColumn": 4
+                      },
+                      "rangeLength": 0,
+                      "text": "_",
+                      "rangeOffset": 383,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 6,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3290.7999999821186,
+            "data": {
+              "vsWorker": 1,
+              "req": "20",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3290.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "21",
+              "channel": "default",
+              "method": "$textualSuggest",
+              "args": [
+                [
+                  "inmemory://model/1"
+                ],
+                "str_",
+                "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
+                "g"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3528.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "22",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3528.5999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "23",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3581.4000000059605,
+            "data": {
+              "requestId": "id-1792940340504-0.23108306336085815",
+              "version": "8.5",
+              "code": "function greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_"
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4218.199999988079,
+            "data": {
+              "vsWorker": 1,
+              "req": "24",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4218.4000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "25",
+              "channel": "default",
+              "method": "$computeDefaultDocumentColors",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4778.0999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "26",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4778.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "27",
+              "channel": "default",
+              "method": "$computeLinks",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          }
+        ]
+      },
+      "final": {
+        "rows": 0,
+        "rpc": [
+          {
+            "direction": "ui->worker",
+            "at": 265.19999998807907,
+            "data": {
+              "requestId": "id-1792940337187-0.8227013185102837",
+              "version": "8.5",
+              "code": "// example code\nphpinfo();"
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 593.5,
+            "data": "-please-ignore-"
+          },
+          {
+            "direction": "ui->worker",
+            "at": 593.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "1",
+              "channel": "default",
+              "method": "$initialize",
+              "args": [
+                1
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 622.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "2",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 622.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "3",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 622.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "4",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 622.6999999880791,
+            "data": {
+              "vsWorker": 1,
+              "req": "5",
+              "channel": "default",
+              "method": "$acceptNewModel",
+              "args": [
+                {
+                  "url": "inmemory://model/1",
+                  "lines": [
+                    "<?php",
+                    "// example code",
+                    "phpinfo();"
+                  ],
+                  "EOL": "\n",
+                  "versionId": 1
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 622.6999999880791,
+            "data": {
+              "vsWorker": 1,
+              "req": "6",
+              "channel": "default",
+              "method": "$computeDefaultDocumentColors",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 622.6999999880791,
+            "data": {
+              "vsWorker": 1,
+              "req": "7",
+              "channel": "default",
+              "method": "$computeLinks",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 622.6999999880791,
+            "data": {
+              "vsWorker": 1,
+              "req": "8",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 1602.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "9",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 1603.0999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "10",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 2719.199999988079,
+            "data": {
+              "vsWorker": 1,
+              "req": "11",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 1,
+                        "startColumn": 1,
+                        "endLineNumber": 3,
+                        "endColumn": 11
+                      },
+                      "rangeOffset": 0,
+                      "rangeLength": 32,
+                      "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 2,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": true,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "setValue"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 2967.199999988079,
+            "data": {
+              "vsWorker": 1,
+              "req": "12",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 2967.4000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "13",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3023.7999999821186,
+            "data": {
+              "requestId": "id-1792940339946-0.8853311654880507",
+              "version": "8.5",
+              "code": "function greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3229.2999999821186,
+            "data": {
+              "vsWorker": 1,
+              "req": "14",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 1,
+                        "endLineNumber": 8,
+                        "endColumn": 1
+                      },
+                      "rangeLength": 0,
+                      "text": "s",
+                      "rangeOffset": 380,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 3,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3241.199999988079,
+            "data": {
+              "vsWorker": 1,
+              "req": "15",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3241.199999988079,
+            "data": {
+              "vsWorker": 1,
+              "req": "16",
+              "channel": "default",
+              "method": "$textualSuggest",
+              "args": [
+                [
+                  "inmemory://model/1"
+                ],
+                "s",
+                "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
+                "g"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3250.4000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "17",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 2,
+                        "endLineNumber": 8,
+                        "endColumn": 2
+                      },
+                      "rangeLength": 0,
+                      "text": "t",
+                      "rangeOffset": 381,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 4,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3264.199999988079,
+            "data": {
+              "vsWorker": 1,
+              "req": "18",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 3,
+                        "endLineNumber": 8,
+                        "endColumn": 3
+                      },
+                      "rangeLength": 0,
+                      "text": "r",
+                      "rangeOffset": 382,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 5,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3277.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "19",
+              "channel": "default",
+              "method": "$acceptModelChanged",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "changes": [
+                    {
+                      "range": {
+                        "startLineNumber": 8,
+                        "startColumn": 4,
+                        "endLineNumber": 8,
+                        "endColumn": 4
+                      },
+                      "rangeLength": 0,
+                      "text": "_",
+                      "rangeOffset": 383,
+                      "forceMoveMarkers": false
+                    }
+                  ],
+                  "eol": "\n",
+                  "isEolChange": false,
+                  "versionId": 6,
+                  "isUndoing": false,
+                  "isRedoing": false,
+                  "isFlush": false,
+                  "detailedReasons": [
+                    {
+                      "metadata": {
+                        "source": "cursor",
+                        "kind": "type",
+                        "detailedSource": "keyboard"
+                      }
+                    }
+                  ],
+                  "detailedReasonsChangeLengths": [
+                    1
+                  ]
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3290.7999999821186,
+            "data": {
+              "vsWorker": 1,
+              "req": "20",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3290.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "21",
+              "channel": "default",
+              "method": "$textualSuggest",
+              "args": [
+                [
+                  "inmemory://model/1"
+                ],
+                "str_",
+                "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
+                "g"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3528.5,
+            "data": {
+              "vsWorker": 1,
+              "req": "22",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3528.5999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "23",
+              "channel": "default",
+              "method": "$findSectionHeaders",
+              "args": [
+                "inmemory://model/1",
+                {
+                  "foldingRules": {
+                    "markers": {
+                      "start": {},
+                      "end": {}
+                    }
+                  },
+                  "markSectionHeaderRegex": "\\bMARK:\\s*(?<separator>-?)\\s*(?<label>.*)$",
+                  "findMarkSectionHeaders": true,
+                  "findRegionSectionHeaders": true
+                }
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 3581.4000000059605,
+            "data": {
+              "requestId": "id-1792940340504-0.23108306336085815",
+              "version": "8.5",
+              "code": "function greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_"
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4218.199999988079,
+            "data": {
+              "vsWorker": 1,
+              "req": "24",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4218.4000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "25",
+              "channel": "default",
+              "method": "$computeDefaultDocumentColors",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4778.0999999940395,
+            "data": {
+              "vsWorker": 1,
+              "req": "26",
+              "channel": "default",
+              "method": "$ping",
+              "args": [],
+              "type": 0
+            }
+          },
+          {
+            "direction": "ui->worker",
+            "at": 4778.9000000059605,
+            "data": {
+              "vsWorker": 1,
+              "req": "27",
+              "channel": "default",
+              "method": "$computeLinks",
+              "args": [
+                "inmemory://model/1"
+              ],
+              "type": 0
+            }
+          }
+        ]
+      },
+      "errors": []
+    }
+  ]
+}

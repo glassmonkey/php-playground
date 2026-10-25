@@ -1,0 +1,249 @@
+{
+  "status": 200,
+  "head": "4fd516045ee6aa958bb01c78be5cb76205537894+working-tree-current",
+  "typed": 5888.9000000059605,
+  "rows": [],
+  "workerEvents": [
+    {
+      "direction": "worker->ui",
+      "at": 742.5,
+      "jsonrpc": "2.0",
+      "id": 1,
+      "result": {
+        "capabilities": {
+          "textDocumentSync": {
+            "openClose": true,
+            "change": 1
+          },
+          "completionProvider": {
+            "resolveProvider": false,
+            "triggerCharacters": [
+              "$",
+              ">",
+              ":"
+            ]
+          },
+          "signatureHelpProvider": {
+            "triggerCharacters": [
+              "(",
+              ","
+            ]
+          },
+          "hoverProvider": true
+        },
+        "serverInfo": {
+          "name": "phpactor-wasm",
+          "version": "2026.10.07.0"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 742.6999999880791,
+      "jsonrpc": "2.0",
+      "method": "textDocument/didOpen",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "languageId": "php",
+          "version": 1,
+          "text": "<?php\n// example code\nphpinfo();"
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 4910.5,
+      "jsonrpc": "2.0",
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 2
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\n"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 5235.5999999940395,
+      "jsonrpc": "2.0",
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 3
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\ns"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 5349.199999988079,
+      "jsonrpc": "2.0",
+      "id": 2,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 1
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 5399.5999999940395,
+      "jsonrpc": "2.0",
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 4
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nst"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 5563,
+      "jsonrpc": "2.0",
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 5
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr"
+          }
+        ]
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 5664.9000000059605,
+      "jsonrpc": "2.0",
+      "id": 3,
+      "method": "textDocument/completion",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1"
+        },
+        "position": {
+          "line": 7,
+          "character": 3
+        }
+      }
+    },
+    {
+      "direction": "ui->worker",
+      "at": 5726.4000000059605,
+      "jsonrpc": "2.0",
+      "method": "textDocument/didChange",
+      "params": {
+        "textDocument": {
+          "uri": "inmemory://model/1",
+          "version": 6
+        },
+        "contentChanges": [
+          {
+            "text": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_"
+          }
+        ]
+      }
+    }
+  ],
+  "traces": [
+    {
+      "at_ms": 5247,
+      "event": "provider-invoked",
+      "completion_id": 1,
+      "trigger_kind": 0,
+      "model_version": 3
+    },
+    {
+      "at_ms": 5248,
+      "event": "automatic-trigger-settle-started",
+      "completion_id": 1,
+      "delay_ms": 100
+    },
+    {
+      "at_ms": 5349,
+      "event": "rpc-sent",
+      "completion_id": 1,
+      "trigger_kind": 0,
+      "model_version": 3,
+      "position": {
+        "line": 8,
+        "column": 2
+      },
+      "wait_before_send_ms": 102
+    },
+    {
+      "at_ms": 5501,
+      "event": "automatic-retry-triggered",
+      "completion_id": 1,
+      "model_version": 4
+    },
+    {
+      "at_ms": 5502,
+      "event": "provider-invoked",
+      "completion_id": 2,
+      "trigger_kind": 0,
+      "model_version": 4
+    },
+    {
+      "at_ms": 5502,
+      "event": "automatic-trigger-settle-started",
+      "completion_id": 2,
+      "delay_ms": 100
+    },
+    {
+      "at_ms": 5502,
+      "event": "provider-discarded",
+      "completion_id": 1,
+      "reason": "cancelled-in-flight; worker-request-continues"
+    },
+    {
+      "at_ms": 5665,
+      "event": "automatic-retry-triggered",
+      "completion_id": 2,
+      "model_version": 5
+    },
+    {
+      "at_ms": 5665,
+      "event": "rpc-sent",
+      "completion_id": 2,
+      "trigger_kind": 0,
+      "model_version": 5,
+      "position": {
+        "line": 8,
+        "column": 4
+      },
+      "wait_before_send_ms": 163
+    },
+    {
+      "at_ms": 5828,
+      "event": "automatic-retry-triggered",
+      "completion_id": 2,
+      "model_version": 6
+    }
+  ],
+  "errors": []
+}

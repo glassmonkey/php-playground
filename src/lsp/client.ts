@@ -225,6 +225,11 @@ export class LspClient {
 	private completionBarrier: Promise<void> | undefined;
 	private completionRetryTimer: number | undefined;
 	private completionRetrySubscription: Monaco.IDisposable | undefined;
+	private automaticRetryVersion: number | undefined;
+	private readonly pendingAutomaticCompletionVersions = new Map<
+		number,
+		number
+	>();
 	private readonly pending = new Map<
 		number,
 		{ resolve: (value: unknown) => void; reject: (error: Error) => void }
@@ -322,10 +327,21 @@ export class LspClient {
 		});
 	}
 
-	private trackCompletionRequest(request: Promise<unknown>): void {
+	private trackCompletionRequest(
+		request: Promise<unknown>,
+		completionId: number,
+		version: number,
+		automatic: boolean
+	): void {
+		if (automatic)
+			this.pendingAutomaticCompletionVersions.set(completionId, version);
 		const observed = request.then(
-			() => undefined,
-			() => undefined
+			() => {
+				this.pendingAutomaticCompletionVersions.delete(completionId);
+			},
+			() => {
+				this.pendingAutomaticCompletionVersions.delete(completionId);
+			}
 		);
 		const previous = this.completionBarrier;
 		const barrier = previous
@@ -370,6 +386,7 @@ export class LspClient {
 					completion_id: completionId,
 					model_version: model.getVersionId(),
 				});
+				this.automaticRetryVersion = model.getVersionId();
 				this.options.triggerCompletion?.();
 			}, AUTO_TRIGGER_SETTLE_MS);
 		};
@@ -394,6 +411,7 @@ export class LspClient {
 		this.disposables.push(
 			this.options.model.onDidChangeContent(() => {
 				if (!this.disposed) {
+					this.automaticRetryVersion = undefined;
 					this.notify('textDocument/didChange', {
 						textDocument: {
 							uri: this.uri,
@@ -403,6 +421,19 @@ export class LspClient {
 							{ text: this.options.model.getValue() },
 						],
 					});
+					if (
+						[
+							...this.pendingAutomaticCompletionVersions.values(),
+						].some(
+							(requestVersion) =>
+								requestVersion !==
+								this.options.model.getVersionId()
+						)
+					)
+						this.scheduleAutomaticCompletionRetry(
+							this.options.model,
+							this.latestCompletionId
+						);
 				}
 			})
 		);
@@ -431,6 +462,10 @@ export class LspClient {
 						this.cancelAutomaticCompletionRetry();
 						const completionId = this.nextCompletionId++;
 						this.latestCompletionId = completionId;
+						const recoveryRetry =
+							this.automaticRetryVersion ===
+							requestedModel.getVersionId();
+						this.automaticRetryVersion = undefined;
 						const triggerKind = context.triggerKind;
 						const manualShortcut =
 							triggerKind === 0 &&
@@ -491,7 +526,11 @@ export class LspClient {
 								return { suggestions: [] };
 							}
 						}
-						if (automatic && this.completionBarrier) {
+						if (
+							automatic &&
+							!recoveryRetry &&
+							this.completionBarrier
+						) {
 							traceCompletion(
 								'automatic-trigger-waiting-for-inflight',
 								{
@@ -513,6 +552,15 @@ export class LspClient {
 											? 'cancelled-before-dispatch'
 											: 'superseded-before-dispatch',
 								});
+								if (
+									automatic &&
+									requestedModel.getVersionId() !==
+										invocationVersion
+								)
+									this.scheduleAutomaticCompletionRetry(
+										requestedModel,
+										completionId
+									);
 								return { suggestions: [] };
 							}
 						}
@@ -526,6 +574,15 @@ export class LspClient {
 									? 'cancelled-before-dispatch'
 									: 'superseded-before-dispatch',
 							});
+							if (
+								automatic &&
+								requestedModel.getVersionId() !==
+									invocationVersion
+							)
+								this.scheduleAutomaticCompletionRetry(
+									requestedModel,
+									completionId
+								);
 							return { suggestions: [] };
 						}
 						const version = requestedModel.getVersionId();
@@ -574,7 +631,12 @@ export class LspClient {
 									throw error;
 								}
 							);
-							this.trackCompletionRequest(request);
+							this.trackCompletionRequest(
+								request,
+								completionId,
+								version,
+								automatic
+							);
 							const completion = await raceCompletionCancellation(
 								request,
 								token
@@ -845,6 +907,7 @@ export class LspClient {
 		});
 		this.disposed = true;
 		this.cancelAutomaticCompletionRetry();
+		this.pendingAutomaticCompletionVersions.clear();
 		for (const disposable of this.disposables) disposable.dispose();
 		this.options.worker.removeEventListener('message', this.handleMessage);
 		this.options.worker.removeEventListener(
