@@ -1,0 +1,15 @@
+{
+	"name": "phpactor",
+	"version": "2026.10.07.0",
+	"source": "https://github.com/phpactor/phpactor/releases/download/2026.10.07.0/phpactor.phar",
+	"sha256": "b28bf6166e016d539fc2f2aec18ef918b12590e436a6f1ccbdf30b5bbdbdb16b",
+	"license": "MIT",
+	"runtimePhp": "8.5",
+	"analysisPhpOption": "php.version",
+	"dataAsset": "phpactor.data",
+	"dataBytes": 21851151,
+	"dataSha256": "2834909a34fa62d0fa98e88df6fbac6ace489ae445ac05bfa91781dc05ebc075",
+	"loaderAsset": "phpactor-loader.js",
+	"loaderBytes": 586971,
+	"loaderSha256": "d3d58a40f11748e46eff97ce2ae12e300147f42cf702944478dca4ac54705060"
+}
