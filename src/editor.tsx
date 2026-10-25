@@ -11,9 +11,6 @@ import {
 	Center,
 	Flex,
 	Spinner,
-	Switch,
-	Text,
-	Tooltip,
 	useColorModeValue,
 } from '@chakra-ui/react';
 import type { ReactElement } from 'react';
@@ -28,7 +25,7 @@ import { Preview } from './preview';
 import type { PreviewTheme } from './preview-theme';
 import { LspClient } from './lsp/client';
 
-type LspStatus = {
+export type LspStatus = {
 	state: 'off' | 'loading' | 'ready' | 'error';
 	message?: string;
 };
@@ -170,31 +167,9 @@ function EditorLayout(params: {
 	Editor: ReactElement;
 	Preview: ReactElement;
 	theme: PreviewTheme;
-	lspEnabled: boolean;
-	lspStatus: LspStatus;
-	onLspEnabledChange: (enabled: boolean) => void;
 }) {
 	const surface = useColorModeValue('gray.50', 'gray.800');
 	const foreground = useColorModeValue('gray.800', 'gray.100');
-	const completionStateColor = useColorModeValue('gray.600', 'gray.300');
-	const completionErrorColor = useColorModeValue('orange.600', 'orange.300');
-	const trackHoverFilter = useColorModeValue(
-		'brightness(0.95)',
-		'brightness(1.2)'
-	);
-	const unsupportedPhpVersion =
-		params.lspStatus.state === 'error' &&
-		params.lspStatus.message?.startsWith(
-			'PHPantom 0.11.1 WASI does not apply'
-		);
-	const completionError =
-		params.lspStatus.state !== 'error'
-			? undefined
-			: unsupportedPhpVersion
-				? 'PHP 8.4は未対応です。PHPantomはPHP 8.5固定です。'
-				: (params.lspStatus.message ??
-					'PHP補完を開始できませんでした。');
-	const completionStatusId = 'php-completion-status';
 
 	return (
 		<Flex
@@ -204,64 +179,6 @@ function EditorLayout(params: {
 			color={foreground}
 			height="100%"
 		>
-			<Flex align="center" gap="2" paddingBottom="3" flexWrap="wrap">
-				<Text
-					as="label"
-					htmlFor="php-completion-toggle"
-					fontSize="sm"
-					cursor="pointer"
-				>
-					補完
-				</Text>
-				<Switch
-					id="php-completion-toggle"
-					aria-label="PHP補完"
-					aria-describedby={
-						completionError ? completionStatusId : undefined
-					}
-					colorScheme="gray"
-					size="md"
-					isChecked={params.lspEnabled}
-					cursor="pointer"
-					sx={{
-						'&:hover .chakra-switch__track': {
-							filter: trackHoverFilter,
-						},
-						'.chakra-switch__input:focus-visible + .chakra-switch__track':
-							{
-								boxShadow:
-									'0 0 0 3px var(--chakra-colors-gray-500)',
-							},
-					}}
-					onChange={(event) =>
-						params.onLspEnabledChange(event.target.checked)
-					}
-				/>
-				<Text
-					fontSize="xs"
-					fontWeight="semibold"
-					color={completionStateColor}
-				>
-					{params.lspEnabled ? 'ON' : 'OFF'}
-				</Text>
-				{completionError && (
-					<Tooltip label={completionError} placement="top">
-						<Text
-							id={completionStatusId}
-							as="span"
-							role="status"
-							aria-live="polite"
-							aria-label={completionError}
-							color={completionErrorColor}
-							fontSize="sm"
-							fontWeight="bold"
-							cursor="help"
-						>
-							!
-						</Text>
-					</Tooltip>
-				)}
-			</Flex>
 			<Flex
 				justify="space-between"
 				direction={{ base: 'column', lg: 'row' }}
@@ -307,19 +224,13 @@ export function Editor(params: {
 	version: Version;
 	format: Format;
 	theme: PreviewTheme;
+	lspEnabled: boolean;
+	onLspStatusChange: (status: LspStatus) => void;
 	onChangeCode: (code: string) => void;
 }) {
 	// SandpackProvider resets its files whenever this object changes, which
 	// discards edits still waiting for the debounce. Keep the first one.
 	const [files] = React.useState(() => ({ '/app.php': params.initCode }));
-	const [lspEnabled, setLspEnabled] = React.useState(false);
-	const [lspStatus, setLspStatus] = React.useState<LspStatus>({
-		state: 'off',
-	});
-	const onLspStatus = React.useCallback(
-		(status: LspStatus) => setLspStatus(status),
-		[]
-	);
 
 	return (
 		<SandpackProvider
@@ -332,15 +243,12 @@ export function Editor(params: {
 		>
 			<EditorLayout
 				theme={params.theme}
-				lspEnabled={lspEnabled}
-				lspStatus={lspStatus}
-				onLspEnabledChange={setLspEnabled}
 				Editor={
 					<PhpEditor
 						theme={params.theme}
 						version={params.version}
-						lspEnabled={lspEnabled}
-						onLspStatus={onLspStatus}
+						lspEnabled={params.lspEnabled}
+						onLspStatus={params.onLspStatusChange}
 					/>
 				}
 				Preview={

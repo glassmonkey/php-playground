@@ -24,15 +24,14 @@ npm ci
 npm run dev -- --host 127.0.0.1 --port 7260 --strictPort --open false
 ```
 
-Open <http://127.0.0.1:7260/>. Select PHP version **8.5**, then turn on
-**補完**. The control shows only its **ON/OFF** state during normal use. Errors
-appear as a short help marker beside the switch; turning it off stops the
-Worker and removes its providers. With it on, change the execution version to
-**8.4**: the help marker explains that this PHPantom build only analyzes PHP
-8.5, and no LSP completion provider remains active. Change back to **8.5** while
-the switch is still on; the Worker initializes again. The existing PHP
-execution version selector remains available and is not changed by the
-preview.
+Open <http://127.0.0.1:7260/>. Select PHP version **8.5**, then select
+**Completion** next to **HTML Preview**. The checkbox remains off by default;
+turning it off stops the Worker and removes its providers. With it on, change
+the execution version to **8.4**: a short tooltip explains that this PHPantom
+build only analyzes PHP 8.5, and no LSP completion provider remains active.
+Change back to **8.5** while Completion is still checked; the Worker
+initializes again. The existing PHP execution version selector remains
+available and is not changed by the preview.
 
 The WASM file is a pinned upstream release asset and is deliberately not in Git.
 The fetch script verifies its SHA-256 and writes
