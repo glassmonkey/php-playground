@@ -31,6 +31,20 @@ export type LspStatus = {
 	message?: string;
 };
 
+function traceManualCompletionShortcut(shortcut: string) {
+	if (!import.meta.env.DEV) return;
+	try {
+		if (window.localStorage.getItem('phpactorLspTrace') !== '1') return;
+		console.info('[phpactor-lsp]', {
+			at_ms: Math.round(performance.now()),
+			event: 'manual-shortcut',
+			shortcut,
+		});
+	} catch {
+		// Diagnostics are optional and must not affect editor input.
+	}
+}
+
 function LoadSpinner() {
 	return (
 		<Center height="100%" width="100%" data-testid="loading-spinner">
@@ -60,6 +74,19 @@ function PhpEditor(params: {
 	const onMount: OnMount = (editor, monaco) => {
 		setEditorInstance(editor);
 		setMonacoInstance(monaco);
+		editor.onKeyDown((event) => {
+			if (
+				event.keyCode === monaco.KeyCode.Space &&
+				(event.ctrlKey || event.metaKey)
+			) {
+				traceManualCompletionShortcut('Ctrl/Command+Space');
+			} else if (
+				event.keyCode === monaco.KeyCode.Escape &&
+				event.altKey
+			) {
+				traceManualCompletionShortcut('Option+Escape');
+			}
+		});
 	};
 
 	React.useEffect(() => {
@@ -93,6 +120,7 @@ function PhpEditor(params: {
 					model,
 					monaco: monacoInstance,
 					phpVersion: params.version,
+					getPosition: () => editorInstance.getPosition(),
 					onStatus: (state, message) => {
 						if (!cancelled) params.onLspStatus({ state, message });
 					},

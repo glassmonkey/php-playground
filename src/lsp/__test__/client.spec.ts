@@ -82,6 +82,21 @@ class TestWorker {
 	}
 }
 
+class TestCancellationToken {
+	isCancellationRequested = false;
+	private readonly listeners = new Set<() => void>();
+
+	onCancellationRequested(listener: () => void): Monaco.IDisposable {
+		this.listeners.add(listener);
+		return { dispose: () => this.listeners.delete(listener) };
+	}
+
+	cancel(): void {
+		this.isCancellationRequested = true;
+		for (const listener of this.listeners) listener();
+	}
+}
+
 function testMonaco(model: Monaco.editor.ITextModel) {
 	const registrations: Array<{ provider: unknown; disposed: boolean }> = [];
 	const register = (provider: unknown) => {
@@ -146,29 +161,34 @@ function testModel(
 	word = { startColumn: 1, endColumn: 1 }
 ) {
 	let version = 1;
-	let changeListener: (() => void) | undefined;
+	let text = value;
+	const changeListeners = new Set<() => void>();
 	const model = {
 		uri: { toString: () => 'inmemory://model/preview.php' },
-		getValue: () => value,
-		getLineContent: () => value,
+		getValue: () => text,
+		getLineContent: () => text,
 		getVersionId: () => version,
 		onDidChangeContent: (listener: () => void) => {
-			changeListener = listener;
-			return { dispose: () => (changeListener = undefined) };
+			changeListeners.add(listener);
+			return { dispose: () => changeListeners.delete(listener) };
 		},
 		getWordUntilPosition: () => word,
 	};
 	return {
 		model: model as unknown as Monaco.editor.ITextModel,
-		change: () => {
+		change: (nextText?: string) => {
+			if (nextText !== undefined) text = nextText;
 			version++;
-			changeListener?.();
+			for (const listener of changeListeners) listener();
 		},
 	};
 }
 
 describe('Phpactor Monaco lifecycle', () => {
-	afterEach(() => vi.restoreAllMocks());
+	afterEach(() => {
+		vi.useRealTimers();
+		vi.restoreAllMocks();
+	});
 
 	it('replaces a typed dollar-prefixed variable from Phpactor insertText without duplicating $', async () => {
 		const source = "<?php $hello = 'world'; $hel";
@@ -214,6 +234,179 @@ describe('Phpactor Monaco lifecycle', () => {
 		sut.dispose();
 	});
 
+	it('settles an automatic trigger on the latest document and cursor before sending one request', async () => {
+		vi.useFakeTimers();
+		const source = "<?php $hello = 'world'; $hel";
+		const document = testModel(source, {
+			startColumn: 26,
+			endColumn: 29,
+		});
+		const monaco = testMonaco(document.model);
+		const worker = new TestWorker();
+		let cursor = { lineNumber: 1, column: 29 } as Monaco.Position;
+		const sut = await LspClient.connect({
+			worker: worker as unknown as Worker,
+			model: document.model,
+			monaco: monaco.monaco,
+			phpVersion: '8.5',
+			getPosition: () => cursor,
+			onStatus: vi.fn(),
+		});
+		const provider = monaco.getActive()[0]
+			.provider as Monaco.languages.CompletionItemProvider;
+		const pending = provider.provideCompletionItems(
+			document.model,
+			{ lineNumber: 1, column: 7 } as Monaco.Position,
+			{ triggerKind: 1, triggerCharacter: '$' },
+			new TestCancellationToken() as unknown as Monaco.CancellationToken
+		);
+
+		document.change(`${source}lo`);
+		cursor = { lineNumber: 1, column: 31 } as Monaco.Position;
+		await vi.advanceTimersByTimeAsync(99);
+		expect(
+			worker.sent.filter(
+				(message) => message.method === 'textDocument/completion'
+			)
+		).toHaveLength(0);
+		await vi.advanceTimersByTimeAsync(1);
+		const result = await pending;
+
+		const request = worker.lastCompletion;
+		expect(request?.params).toMatchObject({
+			position: { line: 0, character: 30 },
+		});
+		expect(result?.suggestions).toHaveLength(1);
+		sut.dispose();
+	});
+
+	it('does not send a cancelled automatic trigger or surface it as an error', async () => {
+		vi.useFakeTimers();
+		const document = testModel();
+		const monaco = testMonaco(document.model);
+		const worker = new TestWorker();
+		const onStatus = vi.fn();
+		const sut = await LspClient.connect({
+			worker: worker as unknown as Worker,
+			model: document.model,
+			monaco: monaco.monaco,
+			phpVersion: '8.5',
+			onStatus,
+		});
+		const provider = monaco.getActive()[0]
+			.provider as Monaco.languages.CompletionItemProvider;
+		const token = new TestCancellationToken();
+		const pending = provider.provideCompletionItems(
+			document.model,
+			{ lineNumber: 1, column: 7 } as Monaco.Position,
+			{ triggerKind: 1, triggerCharacter: '$' },
+			token as unknown as Monaco.CancellationToken
+		);
+
+		token.cancel();
+		expect(await pending).toEqual({ suggestions: [] });
+		await vi.advanceTimersByTimeAsync(100);
+		expect(
+			worker.sent.some(
+				(message) => message.method === 'textDocument/completion'
+			)
+		).toBe(false);
+		expect(onStatus).not.toHaveBeenCalledWith('error', expect.anything());
+		sut.dispose();
+	});
+
+	it('keeps only the latest automatic request behind an in-flight completion', async () => {
+		vi.useFakeTimers();
+		const document = testModel();
+		const monaco = testMonaco(document.model);
+		const worker = new TestWorker();
+		worker.delayCompletions = true;
+		const sut = await LspClient.connect({
+			worker: worker as unknown as Worker,
+			model: document.model,
+			monaco: monaco.monaco,
+			phpVersion: '8.5',
+			onStatus: vi.fn(),
+		});
+		const provider = monaco.getActive()[0]
+			.provider as Monaco.languages.CompletionItemProvider;
+		const context = { triggerKind: 1, triggerCharacter: '$' };
+		const token = () =>
+			new TestCancellationToken() as unknown as Monaco.CancellationToken;
+		const invoke = () =>
+			provider.provideCompletionItems(
+				document.model,
+				{ lineNumber: 1, column: 7 } as Monaco.Position,
+				context,
+				token()
+			);
+
+		const first = invoke();
+		await vi.advanceTimersByTimeAsync(100);
+		expect(worker.lastCompletion).toBeDefined();
+		const superseded = invoke();
+		await vi.advanceTimersByTimeAsync(100);
+		const latest = invoke();
+		await vi.advanceTimersByTimeAsync(100);
+		expect(
+			worker.sent.filter(
+				(message) => message.method === 'textDocument/completion'
+			)
+		).toHaveLength(1);
+
+		worker.delayCompletions = false;
+		worker.reply({
+			jsonrpc: '2.0',
+			id: worker.lastCompletion?.id,
+			result: { items: [{ label: 'first' }] },
+		});
+		await first;
+		expect(await superseded).toEqual({ suggestions: [] });
+		await latest;
+		expect(
+			worker.sent.filter(
+				(message) => message.method === 'textDocument/completion'
+			)
+		).toHaveLength(2);
+		sut.dispose();
+	});
+
+	it('dispatches manual Invoke immediately and lets a cancelled request finish without an error', async () => {
+		const document = testModel();
+		const monaco = testMonaco(document.model);
+		const worker = new TestWorker();
+		worker.delayCompletions = true;
+		const onStatus = vi.fn();
+		const sut = await LspClient.connect({
+			worker: worker as unknown as Worker,
+			model: document.model,
+			monaco: monaco.monaco,
+			phpVersion: '8.5',
+			onStatus,
+		});
+		const provider = monaco.getActive()[0]
+			.provider as Monaco.languages.CompletionItemProvider;
+		const token = new TestCancellationToken();
+		const pending = provider.provideCompletionItems(
+			document.model,
+			{ lineNumber: 1, column: 5 } as Monaco.Position,
+			{ triggerKind: 0 },
+			token as unknown as Monaco.CancellationToken
+		);
+
+		expect(worker.lastCompletion).toBeDefined();
+		token.cancel();
+		expect(await pending).toEqual({ suggestions: [] });
+		worker.reply({
+			jsonrpc: '2.0',
+			id: worker.lastCompletion?.id,
+			result: { items: [{ label: 'late' }] },
+		});
+		await Promise.resolve();
+		expect(onStatus).not.toHaveBeenCalledWith('error', expect.anything());
+		sut.dispose();
+	});
+
 	it('sends the selected analysis version and replaces providers when reinitialized', async () => {
 		const document = testModel();
 		const monaco = testMonaco(document.model);
@@ -237,7 +430,7 @@ describe('Phpactor Monaco lifecycle', () => {
 		const pending = completionProvider.provideCompletionItems(
 			document.model,
 			{ lineNumber: 1, column: 5 } as Monaco.Position,
-			{ triggerKind: 1, triggerCharacter: undefined },
+			{ triggerKind: 0 },
 			{
 				isCancellationRequested: false,
 				onCancellationRequested: () => ({ dispose: () => undefined }),

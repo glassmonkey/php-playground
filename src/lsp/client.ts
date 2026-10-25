@@ -66,11 +66,101 @@ type ClientOptions = {
 	model: Monaco.editor.ITextModel;
 	monaco: typeof Monaco;
 	phpVersion: string;
+	getPosition?: () => Monaco.Position | null;
 	onStatus: (status: ClientStatus, message?: string) => void;
 };
 
 const REQUEST_TIMEOUT_MS = 15_000;
+const AUTO_TRIGGER_SETTLE_MS = 100;
 const phpDocumentSelector = { language: 'php' };
+
+function traceCompletion(event: string, fields: Record<string, unknown>) {
+	if (!import.meta.env.DEV) return;
+	try {
+		if (window.localStorage.getItem('phpactorLspTrace') !== '1') return;
+		console.info('[phpactor-lsp]', {
+			at_ms: Math.round(performance.now()),
+			event,
+			...fields,
+		});
+	} catch {
+		// Diagnostics are optional and must not affect completion.
+	}
+}
+
+function settleAutomaticTrigger(
+	model: Monaco.editor.ITextModel,
+	token: Monaco.CancellationToken
+): Promise<boolean> {
+	return new Promise((resolve) => {
+		let timer: number | undefined;
+		let settled = false;
+		const subscriptions: Monaco.IDisposable[] = [];
+		const finish = (ready: boolean) => {
+			if (settled) return;
+			settled = true;
+			if (timer !== undefined) window.clearTimeout(timer);
+			for (const subscription of subscriptions) subscription.dispose();
+			resolve(ready);
+		};
+		const schedule = () => {
+			if (timer !== undefined) window.clearTimeout(timer);
+			timer = window.setTimeout(
+				() => finish(!token.isCancellationRequested),
+				AUTO_TRIGGER_SETTLE_MS
+			);
+		};
+
+		const modelChange = model.onDidChangeContent(schedule);
+		subscriptions.push(modelChange);
+		const cancellation = token.onCancellationRequested(() => finish(false));
+		subscriptions.push(cancellation);
+		if (settled) cancellation.dispose();
+		if (token.isCancellationRequested) finish(false);
+		else schedule();
+	});
+}
+
+function raceCompletionCancellation<T>(
+	request: Promise<T>,
+	token: Monaco.CancellationToken
+): Promise<{ kind: 'response'; value: T } | { kind: 'cancelled' }> {
+	return new Promise((resolve, reject) => {
+		let settled = false;
+		const subscriptions: Monaco.IDisposable[] = [];
+		const finish = (
+			result: { kind: 'response'; value: T } | { kind: 'cancelled' }
+		) => {
+			if (settled) return;
+			settled = true;
+			for (const subscription of subscriptions) subscription.dispose();
+			resolve(result);
+		};
+
+		const cancellation = token.onCancellationRequested(() =>
+			finish({ kind: 'cancelled' })
+		);
+		subscriptions.push(cancellation);
+		if (settled) {
+			cancellation.dispose();
+			return;
+		}
+		if (token.isCancellationRequested) {
+			finish({ kind: 'cancelled' });
+			return;
+		}
+		request.then(
+			(value) => finish({ kind: 'response', value }),
+			(error: unknown) => {
+				if (settled) return;
+				settled = true;
+				for (const subscription of subscriptions)
+					subscription.dispose();
+				reject(error);
+			}
+		);
+	});
+}
 
 function rpcError(): Error {
 	return new Error('Phpactor request failed.');
@@ -128,6 +218,9 @@ function completionKind(
 
 export class LspClient {
 	private nextId = 1;
+	private nextCompletionId = 1;
+	private latestCompletionId = 0;
+	private completionBarrier: Promise<void> | undefined;
 	private readonly pending = new Map<
 		number,
 		{ resolve: (value: unknown) => void; reject: (error: Error) => void }
@@ -225,6 +318,22 @@ export class LspClient {
 		});
 	}
 
+	private trackCompletionRequest(request: Promise<unknown>): void {
+		const observed = request.then(
+			() => undefined,
+			() => undefined
+		);
+		const previous = this.completionBarrier;
+		const barrier = previous
+			? Promise.all([previous, observed]).then(() => undefined)
+			: observed;
+		this.completionBarrier = barrier;
+		void barrier.then(() => {
+			if (this.completionBarrier === barrier)
+				this.completionBarrier = undefined;
+		});
+	}
+
 	private notify(method: string, params: unknown): void {
 		if (!this.disposed)
 			this.options.worker.postMessage({ jsonrpc: '2.0', method, params });
@@ -272,23 +381,169 @@ export class LspClient {
 					triggerCharacters: ['$', '>', ':', '\\'],
 					provideCompletionItems: async (
 						requestedModel,
-						position
+						position,
+						context,
+						token
 					) => {
-						if (!isCurrentModel(requestedModel))
+						const completionId = this.nextCompletionId++;
+						this.latestCompletionId = completionId;
+						const triggerKind = context.triggerKind;
+						const automatic = triggerKind !== 0;
+						const startedAt = performance.now();
+						traceCompletion('provider-invoked', {
+							completion_id: completionId,
+							trigger_kind: triggerKind,
+							trigger_character: context.triggerCharacter,
+							model_version: requestedModel.getVersionId(),
+						});
+						if (
+							token.isCancellationRequested ||
+							!isCurrentModel(requestedModel)
+						) {
+							traceCompletion('provider-discarded', {
+								completion_id: completionId,
+								reason: token.isCancellationRequested
+									? 'cancelled-before-dispatch'
+									: 'model-not-current',
+							});
 							return { suggestions: [] };
+						}
+						if (automatic) {
+							traceCompletion(
+								'automatic-trigger-settle-started',
+								{
+									completion_id: completionId,
+									delay_ms: AUTO_TRIGGER_SETTLE_MS,
+								}
+							);
+							const ready = await settleAutomaticTrigger(
+								requestedModel,
+								token
+							);
+							if (!ready || !isCurrentModel(requestedModel)) {
+								traceCompletion('provider-discarded', {
+									completion_id: completionId,
+									reason: token.isCancellationRequested
+										? 'cancelled-before-dispatch'
+										: 'model-not-current-before-dispatch',
+									settle_ms: Math.round(
+										performance.now() - startedAt
+									),
+								});
+								return { suggestions: [] };
+							}
+						}
+						if (automatic && this.completionBarrier) {
+							traceCompletion(
+								'automatic-trigger-waiting-for-inflight',
+								{
+									completion_id: completionId,
+								}
+							);
+							const waiting = await raceCompletionCancellation(
+								this.completionBarrier,
+								token
+							);
+							if (
+								waiting.kind === 'cancelled' ||
+								completionId !== this.latestCompletionId
+							) {
+								traceCompletion('provider-discarded', {
+									completion_id: completionId,
+									reason:
+										waiting.kind === 'cancelled'
+											? 'cancelled-before-dispatch'
+											: 'superseded-before-dispatch',
+								});
+								return { suggestions: [] };
+							}
+						}
+						if (
+							completionId !== this.latestCompletionId ||
+							token.isCancellationRequested
+						) {
+							traceCompletion('provider-discarded', {
+								completion_id: completionId,
+								reason: token.isCancellationRequested
+									? 'cancelled-before-dispatch'
+									: 'superseded-before-dispatch',
+							});
+							return { suggestions: [] };
+						}
 						const version = requestedModel.getVersionId();
+						const requestPosition =
+							this.options.getPosition?.() ?? position;
+						const requestStartedAt = performance.now();
+						traceCompletion('rpc-sent', {
+							completion_id: completionId,
+							trigger_kind: triggerKind,
+							model_version: version,
+							position: {
+								line: requestPosition.lineNumber,
+								column: requestPosition.column,
+							},
+							wait_before_send_ms: Math.round(
+								requestStartedAt - startedAt
+							),
+						});
 						try {
-							const result = await this.request<
+							const request = this.request<
 								LspCompletionList | LspCompletionItem[]
 							>('textDocument/completion', {
 								textDocument: { uri: this.uri },
-								position: currentPosition(position),
-							});
+								position: currentPosition(requestPosition),
+							}).then(
+								(result) => {
+									traceCompletion('rpc-response', {
+										completion_id: completionId,
+										elapsed_ms: Math.round(
+											performance.now() - requestStartedAt
+										),
+										cancelled:
+											token.isCancellationRequested,
+									});
+									return result;
+								},
+								(error: unknown) => {
+									traceCompletion('rpc-error', {
+										completion_id: completionId,
+										elapsed_ms: Math.round(
+											performance.now() - requestStartedAt
+										),
+										cancelled:
+											token.isCancellationRequested,
+									});
+									throw error;
+								}
+							);
+							this.trackCompletionRequest(request);
+							const completion = await raceCompletionCancellation(
+								request,
+								token
+							);
+							if (completion.kind === 'cancelled') {
+								traceCompletion('provider-discarded', {
+									completion_id: completionId,
+									reason: 'cancelled-in-flight; worker-request-continues',
+								});
+								return { suggestions: [] };
+							}
+							const result = completion.value;
 							if (
 								!isCurrentModel(requestedModel) ||
 								requestedModel.getVersionId() !== version
-							)
+							) {
+								traceCompletion('provider-discarded', {
+									completion_id: completionId,
+									reason: !isCurrentModel(requestedModel)
+										? 'model-not-current-at-response'
+										: 'document-version-changed-at-response',
+									request_version: version,
+									current_version:
+										requestedModel.getVersionId(),
+								});
 								return { suggestions: [] };
+							}
 							const list = Array.isArray(result)
 								? { items: result }
 								: result;
@@ -356,16 +611,36 @@ export class LspClient {
 									return [suggestion];
 								}
 							);
+							traceCompletion('provider-adopted', {
+								completion_id: completionId,
+								candidate_count: suggestions.length,
+								model_version: version,
+								total_ms: Math.round(
+									performance.now() - startedAt
+								),
+							});
 							return {
 								suggestions,
 								incomplete: Boolean(list.isIncomplete),
 							};
 						} catch (error) {
-							if (!this.disposed)
+							if (
+								!token.isCancellationRequested &&
+								!this.disposed
+							) {
 								this.options.onStatus(
 									'error',
 									(error as Error).message
 								);
+							}
+							traceCompletion('provider-error', {
+								completion_id: completionId,
+								cancelled: token.isCancellationRequested,
+								error_type:
+									error instanceof Error
+										? error.name
+										: 'unknown',
+							});
 							return { suggestions: [] };
 						}
 					},
