@@ -137,6 +137,41 @@ class DirectBuildxRunnerTest(unittest.TestCase):
 			self.assertTrue(receipt["raw_log_sha256"])
 			self.assertEqual(json.loads((root / "terminal-result.json").read_text()), receipt)
 
+	def test_buildx_metadata_and_local_export_paths_outside_run_dir_reject_before_spawn(self) -> None:
+		for bad_option in ("metadata", "export"):
+			with self.subTest(bad_option=bad_option), tempfile.TemporaryDirectory() as temp:
+				root = Path(temp)
+				run_dir = root / "current-run"
+				outside = root / "previous-run"
+				marker = root / "child-ran.txt"
+				spec_path = self.make_spec(run_dir, 0)
+				spec = json.loads(spec_path.read_text())
+				argv = [
+					sys.executable,
+					"-c",
+					f"from pathlib import Path; Path({str(marker)!r}).write_text('spawned')",
+				]
+				if bad_option == "metadata":
+					argv.extend(["--metadata-file", str(outside / "raw/build.metadata.json")])
+				else:
+					argv.extend(["--output", f"type=local,dest={outside / 'exported-assets'}"])
+				spec["argv"] = argv
+				spec_path.write_text(json.dumps(spec), encoding="utf-8")
+				result = subprocess.run(
+					[sys.executable, str(RUNNER), str(spec_path)],
+					capture_output=True,
+					text=True,
+					check=False,
+				)
+				self.assertEqual(result.returncode, 1, result.stderr)
+				self.assertFalse(marker.exists())
+				receipt = json.loads((run_dir / "results.json").read_text())
+				self.assertEqual(receipt["status"], "unknown")
+				self.assertIsNone(receipt["exit_code"])
+				self.assertIsNone(receipt["launch_attempted_at_utc"])
+				self.assertIn("outside run directory", receipt["output_path_preflight_error"])
+				self.assertEqual(json.loads((run_dir / "terminal-result.json").read_text()), receipt)
+
 	def test_dockerfile_copy_preflight_rejects_repo_root_before_spawn(self) -> None:
 		with tempfile.TemporaryDirectory() as temp:
 			root = Path(temp)

@@ -199,6 +199,61 @@ def validate_buildx_preflight(argv: list[str], cwd: Path, preflight: dict[str, A
 	return preflight_copy_sources(command_dockerfile, command_context)
 
 
+def validate_run_output_paths(argv: list[str], cwd: Path, run_dir: Path) -> dict[str, Any]:
+	"""Keep Buildx metadata and local exports inside their run's evidence directory."""
+	cwd = cwd.resolve(strict=True)
+	run_dir = run_dir.resolve(strict=False)
+	metadata_paths: list[str] = []
+	local_export_paths: list[str] = []
+	index = 0
+	while index < len(argv):
+		argument = argv[index]
+		if argument == "--metadata-file":
+			if index + 1 >= len(argv):
+				raise ValueError("--metadata-file requires a path")
+			value = argv[index + 1]
+			index += 2
+		elif argument.startswith("--metadata-file="):
+			value = argument.split("=", 1)[1]
+			index += 1
+		else:
+			value = None
+		if value is not None:
+			path = Path(value)
+			resolved = (cwd / path).resolve(strict=False) if not path.is_absolute() else path.resolve(strict=False)
+			if not resolved.is_relative_to(run_dir):
+				raise ValueError(f"--metadata-file path {resolved} is outside run directory {run_dir}")
+			metadata_paths.append(str(resolved))
+			continue
+		if argument in ("--output", "-o"):
+			if index + 1 >= len(argv):
+				raise ValueError(f"{argument} requires a value")
+			value = argv[index + 1]
+			index += 2
+		elif argument.startswith("--output="):
+			value = argument.split("=", 1)[1]
+			index += 1
+		else:
+			index += 1
+			continue
+		fields = dict(part.split("=", 1) for part in value.split(",") if "=" in part)
+		if fields.get("type") != "local":
+			continue
+		destination = fields.get("dest")
+		if not destination:
+			raise ValueError("local Buildx output requires dest=<path>")
+		path = Path(destination)
+		resolved = (cwd / path).resolve(strict=False) if not path.is_absolute() else path.resolve(strict=False)
+		if not resolved.is_relative_to(run_dir):
+			raise ValueError(f"local Buildx output destination {resolved} is outside run directory {run_dir}")
+		local_export_paths.append(str(resolved))
+	return {
+		"run_dir": str(run_dir),
+		"metadata_files": metadata_paths,
+		"local_export_destinations": local_export_paths,
+	}
+
+
 def execute(spec_path: Path) -> int:
 	spec = json.loads(spec_path.read_text(encoding="utf-8"))
 	argv = spec["argv"]
@@ -221,8 +276,14 @@ def execute(spec_path: Path) -> int:
 	pid = None
 	preflight_data = None
 	preflight_error = None
+	output_path_data = None
+	output_path_error = None
 	base_image_pin = None
 	base_image_pin_error = None
+	try:
+		output_path_data = validate_run_output_paths(argv, Path(spec["cwd"]), root)
+	except (OSError, ValueError) as error:
+		output_path_error = f"{type(error).__name__}: {error}"
 	if spec.get("expected_base_image") is not None or any(
 		argument.startswith("BASE_IMAGE=")
 		for index, argument in enumerate(argv)
@@ -248,13 +309,15 @@ def execute(spec_path: Path) -> int:
 				"checks": [],
 			}
 	
-	if preflight_error or base_image_pin_error:
+	if preflight_error or base_image_pin_error or output_path_error:
 		ended = utc_now()
 		with log_path.open("wb") as log:
 			if base_image_pin_error:
 				log.write((f"base image pin preflight failed: {base_image_pin_error}\n").encode())
 			if preflight_error:
 				log.write((f"Dockerfile COPY preflight failed: {preflight_error}\n").encode())
+			if output_path_error:
+				log.write((f"Buildx output path preflight failed: {output_path_error}\n").encode())
 			log.flush()
 			os.fsync(log.fileno())
 		core = terminal_result(spec, pid, started, ended, exit_code, spawn_error, wait_error, None)
@@ -262,6 +325,8 @@ def execute(spec_path: Path) -> int:
 		core["base_image_pin"] = base_image_pin
 		core["base_image_pin_error"] = base_image_pin_error
 		core["preflight_error"] = preflight_error
+		core["output_path_preflight"] = output_path_data
+		core["output_path_preflight_error"] = output_path_error
 		atomic_json(result_path, core)
 	else:
 		try:
@@ -377,6 +442,10 @@ def execute(spec_path: Path) -> int:
 		result["reporting_error"] = reporting_error
 	if preflight_data:
 		result["preflight"] = preflight_data
+	if output_path_data:
+		result["output_path_preflight"] = output_path_data
+	if output_path_error:
+		result["output_path_preflight_error"] = output_path_error
 	if base_image_pin:
 		result["base_image_pin"] = base_image_pin
 	if base_image_pin_error:
