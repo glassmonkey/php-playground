@@ -415,7 +415,7 @@ describe('Phpactor Monaco lifecycle', () => {
 		expect(onStatus).not.toHaveBeenCalledWith('error', expect.anything());
 	});
 
-	it('keeps only the latest automatic request behind an in-flight completion', async () => {
+	it('sends only the latest document after an in-flight automatic completion settles', async () => {
 		vi.useFakeTimers();
 		const document = testModel();
 		const monaco = testMonaco(document.model);
@@ -430,44 +430,67 @@ describe('Phpactor Monaco lifecycle', () => {
 		});
 		const provider = monaco.getActive()[0]
 			.provider as Monaco.languages.CompletionItemProvider;
-		const context = { triggerKind: 1, triggerCharacter: '$' };
-		const token = () =>
-			new TestCancellationToken() as unknown as Monaco.CancellationToken;
-		const invoke = () =>
+		const context = { triggerKind: 0 };
+		let cursor = { lineNumber: 2, column: 2 } as Monaco.Position;
+		const invoke = (token: TestCancellationToken) =>
 			provider.provideCompletionItems(
 				document.model,
-				{ lineNumber: 1, column: 7 } as Monaco.Position,
+				cursor,
 				context,
-				token()
+				token as unknown as Monaco.CancellationToken
 			);
 
-		const first = invoke();
+		const firstToken = new TestCancellationToken();
+		const first = invoke(firstToken);
 		await vi.advanceTimersByTimeAsync(100);
-		expect(worker.lastCompletion).toBeDefined();
-		const superseded = invoke();
-		await vi.advanceTimersByTimeAsync(100);
-		const latest = invoke();
-		await vi.advanceTimersByTimeAsync(100);
-		expect(
-			worker.sent.filter(
-				(message) => message.method === 'textDocument/completion'
-			)
-		).toHaveLength(1);
+		const firstRequest = worker.lastCompletion;
+		expect(firstRequest).toBeDefined();
 
-		worker.delayCompletions = false;
+		document.change('<?php\nst');
+		cursor = { lineNumber: 2, column: 3 } as Monaco.Position;
+		firstToken.cancel();
+		expect(await first).toEqual({ suggestions: [] });
+
+		const supersededToken = new TestCancellationToken();
+		const superseded = invoke(supersededToken);
+		await vi.advanceTimersByTimeAsync(100);
+		document.change('<?php\nstr');
+		cursor = { lineNumber: 2, column: 4 } as Monaco.Position;
+		supersededToken.cancel();
+		expect(await superseded).toEqual({ suggestions: [] });
+
+		document.change('<?php\nstr_');
+		cursor = { lineNumber: 2, column: 5 } as Monaco.Position;
+		const latestToken = new TestCancellationToken();
+		const latest = invoke(latestToken);
+		await vi.advanceTimersByTimeAsync(100);
+		const requests = worker.sent.filter(
+			(message) => message.method === 'textDocument/completion'
+		);
+		expect(requests).toHaveLength(1);
+
 		worker.reply({
 			jsonrpc: '2.0',
-			id: worker.lastCompletion?.id,
-			result: { items: [{ label: 'first' }] },
+			id: firstRequest?.id,
+			result: { items: [{ label: 'stale' }] },
 		});
-		await first;
-		expect(await superseded).toEqual({ suggestions: [] });
-		await latest;
-		expect(
-			worker.sent.filter(
-				(message) => message.method === 'textDocument/completion'
-			)
-		).toHaveLength(2);
+		await vi.advanceTimersByTimeAsync(0);
+		const completions = worker.sent.filter(
+			(message) => message.method === 'textDocument/completion'
+		);
+		expect(completions).toHaveLength(2);
+		expect(completions[1]).toMatchObject({
+			params: { position: { line: 1, character: 4 } },
+		});
+		expect(requests[0]?.id).toBe(firstRequest?.id);
+		worker.reply({
+			jsonrpc: '2.0',
+			id: completions[1]?.id,
+			result: { items: [{ label: 'latest' }] },
+		});
+		expect(await latest).toMatchObject({
+			suggestions: [{ label: 'latest' }],
+		});
 		sut.dispose();
 	});
 
@@ -522,81 +545,66 @@ describe('Phpactor Monaco lifecycle', () => {
 		sut.dispose();
 	});
 
-	it('sends the settled recovery request while the stale Worker response is still pending', async () => {
+	it('queues a manual completion behind the single in-flight automatic request', async () => {
 		vi.useFakeTimers();
 		const document = testModel('<?php\ns');
 		const monaco = testMonaco(document.model);
 		const worker = new TestWorker();
 		worker.delayCompletions = true;
-		let cursor = { lineNumber: 2, column: 2 } as Monaco.Position;
-		const providerRef: {
-			current: Monaco.languages.CompletionItemProvider | undefined;
-		} = { current: undefined };
-		let recovered:
-			| Promise<Monaco.languages.CompletionList | null | undefined>
-			| undefined;
-		const triggerCompletion = vi.fn(() => {
-			recovered = providerRef.current?.provideCompletionItems(
-				document.model,
-				cursor,
-				{ triggerKind: 0 },
-				new TestCancellationToken() as unknown as Monaco.CancellationToken
-			) as Promise<Monaco.languages.CompletionList | null | undefined>;
-		});
 		const sut = await LspClient.connect({
 			worker: worker as unknown as Worker,
 			model: document.model,
 			monaco: monaco.monaco,
 			phpVersion: '8.5',
-			getPosition: () => cursor,
-			triggerCompletion,
+			consumeManualCompletionShortcut: () => true,
 			onStatus: vi.fn(),
 		});
-		providerRef.current = monaco.getActive()[0]
+		const provider = monaco.getActive()[0]
 			.provider as Monaco.languages.CompletionItemProvider;
-		const firstToken = new TestCancellationToken();
-		const first = providerRef.current.provideCompletionItems(
+		const automatic = provider.provideCompletionItems(
 			document.model,
-			cursor,
+			{ lineNumber: 2, column: 2 } as Monaco.Position,
 			{ triggerKind: 0 },
-			firstToken as unknown as Monaco.CancellationToken
+			new TestCancellationToken() as unknown as Monaco.CancellationToken
 		);
 		await vi.advanceTimersByTimeAsync(100);
-		const staleRequest = worker.lastCompletion;
-		document.change('<?php\nst');
-		cursor = { lineNumber: 2, column: 3 } as Monaco.Position;
-		firstToken.cancel();
-		expect(await first).toEqual({ suggestions: [] });
-		await vi.advanceTimersByTimeAsync(100);
-		await vi.advanceTimersByTimeAsync(100);
-
-		const requests = worker.sent.filter(
-			(message) => message.method === 'textDocument/completion'
+		const automaticRequest = worker.lastCompletion;
+		const manual = provider.provideCompletionItems(
+			document.model,
+			{ lineNumber: 2, column: 2 } as Monaco.Position,
+			{ triggerKind: 0 },
+			new TestCancellationToken() as unknown as Monaco.CancellationToken
 		);
-		expect(triggerCompletion).toHaveBeenCalledTimes(1);
-		expect(requests).toHaveLength(2);
-		expect(requests[0]?.id).toBe(staleRequest?.id);
-		expect(requests[1]?.params).toMatchObject({
-			position: { line: 1, character: 2 },
-		});
+		await vi.advanceTimersByTimeAsync(0);
+		expect(
+			worker.sent.filter(
+				(message) => message.method === 'textDocument/completion'
+			)
+		).toHaveLength(1);
 
 		worker.reply({
 			jsonrpc: '2.0',
-			id: requests[1]?.id,
-			result: { items: [{ label: 'latest' }] },
+			id: automaticRequest?.id,
+			result: { items: [{ label: 'automatic' }] },
 		});
-		expect(await recovered).toMatchObject({
-			suggestions: [{ label: 'latest' }],
+		expect(await automatic).toMatchObject({
+			suggestions: [{ label: 'automatic' }],
 		});
+		await vi.advanceTimersByTimeAsync(0);
+		const manualRequest = worker.lastCompletion;
+		expect(manualRequest?.id).not.toBe(automaticRequest?.id);
 		worker.reply({
 			jsonrpc: '2.0',
-			id: requests[0]?.id,
-			result: { items: [{ label: 'stale' }] },
+			id: manualRequest?.id,
+			result: { items: [{ label: 'manual' }] },
+		});
+		expect(await manual).toMatchObject({
+			suggestions: [{ label: 'manual' }],
 		});
 		sut.dispose();
 	});
 
-	it('re-requests a newer model after typing while Monaco leaves the old provider uncancelled', async () => {
+	it('sends the latest version after an uncancelled old provider response settles', async () => {
 		vi.useFakeTimers();
 		const document = testModel('<?php\ns');
 		const monaco = testMonaco(document.model);
@@ -642,11 +650,23 @@ describe('Phpactor Monaco lifecycle', () => {
 		expect(triggerCompletion).toHaveBeenCalledTimes(1);
 		await vi.advanceTimersByTimeAsync(100);
 
-		const requests = worker.sent.filter(
+		let requests = worker.sent.filter(
+			(message) => message.method === 'textDocument/completion'
+		);
+		expect(requests).toHaveLength(1);
+		expect(requests[0]?.id).toBe(staleRequest?.id);
+
+		worker.reply({
+			jsonrpc: '2.0',
+			id: requests[0]?.id,
+			result: { items: [{ label: 'stale' }] },
+		});
+		expect(await first).toEqual({ suggestions: [] });
+		await vi.advanceTimersByTimeAsync(0);
+		requests = worker.sent.filter(
 			(message) => message.method === 'textDocument/completion'
 		);
 		expect(requests).toHaveLength(2);
-		expect(requests[0]?.id).toBe(staleRequest?.id);
 		expect(requests[1]?.params).toMatchObject({
 			position: { line: 1, character: 2 },
 		});
@@ -659,13 +679,58 @@ describe('Phpactor Monaco lifecycle', () => {
 		expect(await recovered).toMatchObject({
 			suggestions: [{ label: 'latest' }],
 		});
-		worker.reply({
-			jsonrpc: '2.0',
-			id: requests[0]?.id,
-			result: { items: [{ label: 'stale' }] },
-		});
-		expect(await first).toEqual({ suggestions: [] });
 		sut.dispose();
+	});
+
+	it('does not dispatch a latest completion after disposal releases the barrier', async () => {
+		vi.useFakeTimers();
+		const document = testModel('<?php\ns');
+		const monaco = testMonaco(document.model);
+		const worker = new TestWorker();
+		worker.delayCompletions = true;
+		const triggerCompletion = vi.fn();
+		const sut = await LspClient.connect({
+			worker: worker as unknown as Worker,
+			model: document.model,
+			monaco: monaco.monaco,
+			phpVersion: '8.5',
+			triggerCompletion,
+			onStatus: vi.fn(),
+		});
+		const provider = monaco.getActive()[0]
+			.provider as Monaco.languages.CompletionItemProvider;
+		const first = provider.provideCompletionItems(
+			document.model,
+			{ lineNumber: 2, column: 2 } as Monaco.Position,
+			{ triggerKind: 0 },
+			new TestCancellationToken() as unknown as Monaco.CancellationToken
+		);
+		await vi.advanceTimersByTimeAsync(100);
+		document.change('<?php\nst');
+		const waiting = provider.provideCompletionItems(
+			document.model,
+			{ lineNumber: 2, column: 3 } as Monaco.Position,
+			{ triggerKind: 0 },
+			new TestCancellationToken() as unknown as Monaco.CancellationToken
+		);
+		await vi.advanceTimersByTimeAsync(100);
+		expect(
+			worker.sent.filter(
+				(message) => message.method === 'textDocument/completion'
+			)
+		).toHaveLength(1);
+
+		sut.dispose();
+		expect(await first).toEqual({ suggestions: [] });
+		expect(await waiting).toEqual({ suggestions: [] });
+		await vi.advanceTimersByTimeAsync(100);
+		expect(
+			worker.sent.filter(
+				(message) => message.method === 'textDocument/completion'
+			)
+		).toHaveLength(1);
+		expect(worker.terminated).toBe(true);
+		expect(triggerCompletion).not.toHaveBeenCalled();
 	});
 
 	it('dispatches a marked manual Invoke immediately and lets a cancelled request finish without an error', async () => {
