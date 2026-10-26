@@ -103,3 +103,17 @@ Phpactor用runnerが8.5を選択できたと誤認したが、保存画面では
 - **再現と事実:** agent-browser `0.39.1`の専用session `gla115-ui-snapshot-7845ddba0ec6`で、両URLをPHP 8.5 / Completion ONで開いた。共通fixture本文をページ内Monaco modelへセットし、末尾`str_`のみkeyboard typeで入力（Ctrl+Spaceなし）。各ページでSuggest widgetが可視。Phpactor選択rowには`str_contains`のFunction/signature detailが出た。画像と詳細条件は`docs/lsp/ui-evaluation/evidence/wip-snapshot-2026-10-25T15-20-51Z/README.md`。
 - **未確認:** raw response、provider origin、request/version/cursor相関、正確な初回表示時刻/1.8秒AC、候補件数、repeatability、host browser version、PHPantom asset hash。これは現WIP画面の短いsnapshotであり、比較traceや安定修正の根拠に置換しない。
 - **初回setupの除外:** PHPantomで最初のfill操作後に旧サンプル文が残ったため、その表示は無効として証拠に含めず、Monaco model APIでfixture全体を初期化してから1回だけ有効観察。これ以外の追加試行はしていない。browser sessionは作業後close。
+
+## 2026-10-26 11:52 JST — #424 Loading / runtime診断の反映
+
+- **PR/head整理:** managerのhash照合・readbackで#420/#422はclose済み。現行成果は#421/#424/#425へ集約され、#424最新headは`9eafdcd247ce33dc3b3f2be5f1b34a64747cee76`。Loading診断とboot測定3ファイルは#424内に保存。#425の構造図・sequence・比較報告から直接参照する。
+- **Loading観測:** [#424診断](https://github.com/glassmonkey/php-playground/blob/9eafdcd247ce33dc3b3f2be5f1b34a64747cee76/docs/lsp/phpactor-preview/evidence/completion-loading-2026-10-26.md)のbrowser source headは`e4f36cb8d1544369712ecbbf2a17e704b0a0a633`、1自然`str_` run。nominal 160ms/key pauseを指定したが、agent-browser CLI overhead込みの観測provider間隔は354–458msであり160ms benchmarkではない。`Loading...`はMonaco native `.suggest-widget .message`で、初回request送信後に0 rowsで出現、最新requestのresult採用後に隠れた。4 requests中、先行3はUI cancel後もWorkerで継続。`recoveryRetry`は先行処理barrierを迂回。raw 19→visible 12。Loading visible累計約7.45秒、最新request応答はrequest後6.806秒。
+- **runtime切り分け:** [#424 boot計測報告](https://github.com/glassmonkey/php-playground/blob/9eafdcd247ce33dc3b3f2be5f1b34a64747cee76/docs/lsp/phpactor-boot-measurement.md)ではPHP runtime/virtualFS/dataを初期化して再利用する一方、各`php.run`はrequest shutdownし、dispatch/autoload/Phpactor boot/containerを繰り返すと整理。warm boot+container中央値10.4msはsource head `a1ccd14856e4c5761fe55dd027c8a0ebf54f65c2`でのNode-hosted WASM計測であり、browser Loadingの説明値に転用しない。container保持はruntime/dispatch変更を伴い、light bootとは別の未実装案。
+- **解釈/選択肢:** この1runはclient dispatch/cancellation/recoveryとWorker内処理の併存を示すが、Phpactor engineやbootが全遅延を生むとは断定しない。spinnerを隠すだけではpending時間は減らない。managerはp7へ、自動completionを処理中1件＋最新1件保持のlatest-only singleflightにする20分小実験のみ承認。runtime/container変更は対象外。
+
+
+## 2026-10-26 11:54 JST — manager承認のsingleflight小実験
+
+- **範囲:** 新head/READY通知後に限り、p7のlatest-only singleflight変更を検証する。通知まではbrowser再検証を始めない。
+- **再検証条件:** agent-browser専用隔離session、同じPHP 8.5 fixture / Completion ON、自然`str_` slow/fastを各2–3回。Ctrl+Spaceを使わず、実入力event間隔、全文/model version/position、RPC総数、cancel済みWorker requestの継続/応答採否、最新request/response、Loading start/endを同runで関連付ける。OFF/PHP 8.4へ保留要求中に切り替えた場合の抑止も観測する。
+- **停止条件:** 一件のruntime/Worker処理待ちだけで最新候補が長時間待つ根拠が出たら拡張せず、データと選択肢をmanagerへ返す。結果は#425 Draft内の別run記録とし、現比較値を置き換えず、採用判断はユーザーへ残す。
