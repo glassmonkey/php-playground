@@ -4,7 +4,7 @@
 
 現在のレビュー対象は[#421 PHPantom UI/Worker](https://github.com/glassmonkey/php-playground/pull/421)、[#424 Phpactor UI/Worker](https://github.com/glassmonkey/php-playground/pull/424)、[#425 比較・画面記録](https://github.com/glassmonkey/php-playground/pull/425)。#420/#422はmanagerが成果hashを照合してclose済みで、必要な履歴参照を除き現行成果はこの3本に集約する。以下は既存sourceと既存runから見える経路を層ごとに分けたもの。ここでいう`Loading`は、アプリ初回起動表示ではなく、**文字入力後に候補欄へ出るLoading**を指す。
 
-### 現試作の構成
+### #424 singleflight前の構成（baseline head `9eafdcd`）
 
 ```mermaid
 flowchart LR
@@ -46,7 +46,7 @@ flowchart LR
   UI -->|itemsをMonaco候補へ変換| Monaco
 ```
 
-構成図は最新#424 source `9eafdcd247ce33dc3b3f2be5f1b34a64747cee76`のadapter/Worker構成を示し、言語サーバ一般の必須設計を示すものではない。Phpactorの各`php.run`内のautoload/boot/container再構築は現adapterのrequest境界で発生し、Phpactor自体の必須要件ではない。Loading nodeは別source headでのp7一回観測を示し、latest source headでの再現を意味しない。初回ページasset・runtime準備とは別段階である。観測runでは最初のLSP request送信後にMonaco native messageが現れ、最新候補の採用後に消えた。他の速度条件での開始・終了条件や再現率は未確認。
+構成図とsequenceは#424 singleflight前のsource head `9eafdcd247ce33dc3b3f2be5f1b34a64747cee76`におけるadapter/Worker構成を示す。言語サーバ一般の必須設計ではない。Phpactorの各`php.run`内のautoload/boot/container再構築はこのadapterのrequest境界で発生し、Phpactor自体の必須要件ではない。Loading nodeは別source headでのp7一回観測であり、このbaseline以降の画面表示条件を示すものではない。初回ページasset・runtime準備とは別段階である。
 
 ### 入力後のrequest sequence
 
@@ -75,12 +75,12 @@ sequenceDiagram
       C->>C: 古いresponseを破棄
     end
   else Phpactor 現試作 adapter
-    opt 自動completionの場合
-      C->>C: 入力静止を100ms待つ（現source値）
+    opt baseline head `9eafdcd` の自動completion
+      C->>C: 入力静止を100ms待つ（baseline source値）
       alt recoveryRetryではない
         C->>C: 先行completion requestのbarrierを待つ
       else recoveryRetry
-        C->>C: 先行request barrierを迂回（現source）
+        C->>C: 先行request barrierを迂回（baseline source）
       end
     end
     C->>W: requestをpostMessage
@@ -108,24 +108,24 @@ sequenceDiagram
   end
 ```
 
-自動completionの100ms静止待ち・先行completion request待ち・文書版照合と再要求はPhpactor UI/clientの現実装値・振る舞いで、Phpactor language server固有の仕様ではない。hover/signatureもPhpactor側では同じ`php.run`のPHP request境界を通るが、自動completion専用の静止待ち・barrier・retryを全request種別へ一般化しない。UI側token cancellationは、実行中Worker/PHP処理への中断命令を意味しない。LoadingはMonaco native suggest-widgetの`.message`に出る`Loading...`として一回のbrowser traceで観測した。初回asset/runtime準備から別段階であり、詳細と条件は下記の#424診断に記録する。
+baseline head `9eafdcd`の自動completionにあった100ms静止待ち・先行request barrier・文書版照合とretryはPhpactor UI/client実装で、language server固有仕様ではない。後続head `388cbe6`ではlatest-only singleflightを独立確認した。slow試行では古い応答後に最新要求が出てraw 19件/画面12行、fast試行では1要求で同じ19/12件だった。詳細は[after-check記録](evidence/after-singleflight-2026-10-26T03-14Z/README.md)。hover/signatureもPhpactor側では同じ`php.run`のPHP request境界を通るが、自動completion専用の待ち・集約を他requestへ一般化しない。UI側token cancellationは、実行中Worker/PHP処理への中断命令を意味しない。
 
 | 層 | PHPantom（#421） | Phpactor（#424） | 差の主な所在・根拠の境界 |
 |---|---|---|---|
 | 初回起動 | WorkerがPHPantom WASM runtimeを読み込み、同じWorker内で再利用する。 | WorkerがPHP runtimeとdataを起動時に準備し、JS runtimeを再利用する。各`php.run`は独立requestとして終了する。 | runtime/adapter構成の実装差。browser初回asset/runtimeの統一計測はない。p4のNode-hosted `startPHP`→runtime/data readinessは中央値71.5msで、browser起動比較には使わない。 |
 | 入力ごとの処理 | requestをPHPantomの`lsp_handle`へ渡し、PHPantomがraw completion itemsを返す。 | `php.run`ごとにdispatchをincludeし、`Phpactor::boot()`とconfig/extensions/container構築後にhandlerを呼び、request終了する。 | raw items・metadataは各language serverの結果。Phpactorの毎回bootは現adapterの経路で、Phpactor必須制約ではない。bootのRTT寄与は未分離。 |
-| 要求queue・cancel | Worker内にPromise queueがあり、clientはrequest時のmodel/versionとresponse時の状態を照合して古い結果を破棄する。 | UI clientに100ms settle、通常自動completionのin-flight barrier、CancellationToken、最新versionへのretryがある。今回の`recoveryRetry`はbarrierを迂回した。 | queue/cancel/retryはadapter/UIとWorker連携の実装差。1runで4 request中3件がUI cancel後もWorkerで継続し、Loadingは最新response後に消えた。詳細は[#424 Loading診断](https://github.com/glassmonkey/php-playground/blob/9eafdcd247ce33dc3b3f2be5f1b34a64747cee76/docs/lsp/phpactor-preview/evidence/completion-loading-2026-10-26.md)。 |
+| 要求queue・cancel | Worker内にPromise queueがあり、clientはrequest時のmodel/versionとresponse時の状態を照合して古い結果を破棄する。 | baseline `9eafdcd`: 100ms settle、通常自動completionのin-flight barrier、CancellationToken、最新versionへのretry。after head `388cbe6`: automatic latest-only singleflightを確認。 | queue/cancel/retryはadapter/UIとWorker連携の実装差。baselineの4 request/3 obsolete/Loading約7.08秒は[#424 Loading診断](https://github.com/glassmonkey/php-playground/blob/9eafdcd247ce33dc3b3f2be5f1b34a64747cee76/docs/lsp/phpactor-preview/evidence/completion-loading-2026-10-26.md)。afterの別pace runは[独立追試](evidence/after-singleflight-2026-10-26T03-14Z/README.md)を参照。 |
 | Monaco表示 | LSP itemをMonaco suggestionへ変換し、range/insertText等を用いて表示する。raw item数とvisible row数が異なる場合がある。 | 同じくLSP itemをMonaco suggestionへ変換する。過去の`new Gre`ではraw `items: []`でも画面に5行あり、Completion OFFでも同じ表示を観測。Monaco word suggestion由来を支持するがprovider IDは未特定。 | 表示filter/変換と候補欄LoadingはUI/editor側。画面行をraw language-server候補として数えない。 |
 
 この切り分けでは、**候補内容・metadataの差**と**起動/要求経路・queue/cancel・Loading・Monaco表示の差**を混ぜない。既存sourceは構造の根拠、trace/screenshotはそのrunでの振る舞いの根拠。実測していない段階時間やLoading内部状態は未確定のまま扱う。採用判断は付けない。
 
 ### #424受領済みLoading観測とruntime根拠
 
-[#424 Loading診断](https://github.com/glassmonkey/php-playground/blob/9eafdcd247ce33dc3b3f2be5f1b34a64747cee76/docs/lsp/phpactor-preview/evidence/completion-loading-2026-10-26.md)は現在の#424 head `9eafdcd247ce33dc3b3f2be5f1b34a64747cee76`に保存された、source head `e4f36cb8d1544369712ecbbf2a17e704b0a0a633`での隔離browser 1 run。自然`str_`は160ms/keyのnominal pauseを指定したが、agent-browser CLI overhead込みの観測provider間隔は354–458msで、160ms/文字benchmarkではない。4 requestのうち先行3件はUI providerがcancelされた後もWorker/PHP側で継続した。自動`recoveryRetry`はin-flight completion barrierを迂回し、古い処理も並行して続いた。Monaco native `.suggest-widget .message`の`Loading...`は初回request送信後に出現し、観測中の合計約7.45秒表示された。最終requestはresponseまで6.806秒、raw 19 itemsを返し、最新versionで採用後に画面12行となった。provider invocation後のLoadingは最新responseが採用されるまで続いた。
+[#424 Loading診断](https://github.com/glassmonkey/php-playground/blob/9eafdcd247ce33dc3b3f2be5f1b34a64747cee76/docs/lsp/phpactor-preview/evidence/completion-loading-2026-10-26.md)は当時の#424 docs head `9eafdcd247ce33dc3b3f2be5f1b34a64747cee76`に保存された、source head `e4f36cb8d1544369712ecbbf2a17e704b0a0a633`での隔離browser 1 run。自然`str_`は160ms/keyのnominal pauseを指定したが、agent-browser CLI overhead込みの観測provider間隔は354–458msで、160ms/文字benchmarkではない。4 requestのうち先行3件はUI providerがcancelされた後もWorker/PHP側で継続した。自動`recoveryRetry`はin-flight completion barrierを迂回し、古い処理も並行して続いた。Monaco native `.suggest-widget .message`の`Loading...`は初回request送信後に出現し、観測中の合計約7.45秒表示された。最終requestはresponseまで6.806秒、raw 19 itemsを返し、最新versionで採用後に画面12行となった。provider invocation後のLoadingは最新responseが採用されるまで続いた。
 
 このrunはcandidate不足ではなく、入力中の複数dispatch・cancelしても継続するWorker処理・最新request応答待ちを含むadapter/UI経路でLoadingが長く続いた事実を示す。Phpactor serverや`Phpactor::boot()`単独を全遅延の原因とはしない。p4の[#424 boot計測報告](https://github.com/glassmonkey/php-playground/blob/9eafdcd247ce33dc3b3f2be5f1b34a64747cee76/docs/lsp/phpactor-boot-measurement.md)、[計測runner](https://github.com/glassmonkey/php-playground/blob/9eafdcd247ce33dc3b3f2be5f1b34a64747cee76/scripts/lsp/phpactor/diagnostics/measure-boot.mjs)、[dispatch profiler](https://github.com/glassmonkey/php-playground/blob/9eafdcd247ce33dc3b3f2be5f1b34a64747/scripts/lsp/phpactor/diagnostics/dispatch-profile.php)はruntime/virtualFSとPhpactor dataをWorker起動時に準備し、JS PHP object/Emscripten moduleを再利用する一方、各`php.run`はPHP request shutdownを経てdispatchを再includeし、autoload・`Phpactor::boot()`・container構築を繰り返すと整理している。Node-hosted `startPHP`→runtime/data readinessの中央値71.5msも同docに記録されたが、browser page asset loadやWorker初期化は含まず同条件の比較には使えない。container保持の常駐化は単純な設定変更ではなくruntime/dispatch境界の変更を要し、light bootとは別案。どちらも未実装・未検証である。warm boot+container中央値10.4msのNode-hosted WASM実測は開始source head `a1ccd14856e4c5761fe55dd027c8a0ebf54f65c2`における別計測であり、browser WorkerのLoadingやrequest RTTへ転用できず、全体遅延への寄与も特定しない。
 
-managerはp7に対し、runtime/containerを変更せず自動completionをlatest-only single-flight（処理中1件＋最新文書/positionを持つ後続1件）にする20分の小実験を承認した。実装・検証結果はまだなく、効果は未計測。spinnerを隠すだけでは待ち時間は減らず、pending状態も伝わらなくなる。これは実験範囲の承認であり、最終採用判断ではない。
+manager承認のlatest-only singleflightは#424 head `388cbe69654113a00a2272cc9e9b2e2a46c5c55`で実装され、独立after-checkではslow `str_` 2 runで各2 RPC（中間版への要求なし、最新raw 19→12行）、fast 1 runで1 RPC（raw 19→12行）だった。baseline agent-browser 1 runは4 RPC/3 obsolete、最新応答まで6.69秒、Loading約7.08秒。afterの独立slowは最終入力から最新候補応答まで3.127秒/2.934秒、fastは507msだった。pace・run数が一致しないため速度改善率は出せない。afterでLoadingの厳密な開始/終了は未計測。OFF時はworker close後に応答が観測されず、製品内部のstale-response guardは未検証。runtime/handlerの一件待ちを含む現scopeの検証は終了し、追加測定はしていない。詳細と証拠は[after-check記録](evidence/after-singleflight-2026-10-26T03-14Z/README.md)。
 
 ## 対象と方法
 
@@ -262,7 +262,7 @@ low/fast `str_`結果とsource traceは[run 14-35](evidence/phpactor-natural-aft
 - `s`へのcompletion requestのWorker responseを隔離harnessで保留し、Completion OFFを操作。Worker terminationと、OFF後1.4秒間にcompletion request/didChangeが0件、widget非表示を記録した。応答はWorker終了後にharnessが再配送せずdropしたため、製品のresponse guardを検証した結果としては扱わない。ON後、editorへ戻って自然に`tr_`を入力すると、version 6 / line 7 character 4の新要求でraw 19 items、画面12行が出た。
 - `str_`を表示後にPHP 8.4へ変更すると候補widgetが消え、その後1.5秒間completion requestは0件。PHP 8.5へ戻して同じfixtureへ自然入力すると、version 11 / line 7 character 4でraw 19 items、画面12行が出た。
 
-上記Node/Playwright runnerとそのtraceは従来測定の履歴として保持する。今回のsingleflight比較では直接実行しない。新head/READY通知後は[fixture.php](fixture.php)を流用し、`/opt/homebrew/bin/agent-browser`の専用sessionからkeyboard/pressで自然`str_`を入力する。page内の`agent-browser eval`で実input event時刻、全文/model version/position、Worker JSON-RPC request/response、候補rowと`.suggest-widget .message`のMutationObserver時刻を相関する。CLIへ指定したpauseを実入力間隔とみなさず、観測したkey/provider間隔を報告する。PHP 8.5 / Completion ONでslow/fastを各2–3回、pending中のCompletion OFFおよびPHP 8.4切替抑止を記録し、旧Playwright runは非同条件の履歴として別欄に置く。Ctrl+Spaceは使わない。runtime/Worker一件の処理待ちが支配的と読める場合は実験を広げずmanagerへ根拠を返す。
+上記Node/Playwright runnerとそのtraceは従来測定の履歴として保持し、今回のafter追試には使っていない。singleflight後のagent-browser操作、観測境界、slow/fast入力の限界は[after-check記録](evidence/after-singleflight-2026-10-26T03-14Z/README.md)に記録した。追試は完了し、現在のscopeで追加測定は行わない。
 
 これらの修正後結果は元の両UI比較表の値へ混ぜない。PHPantomの新head再測定は行っていないため、修正後の対比較ではなくPhpactor修正headの個別UI確認である。一次報告の候補比較と同じく採用判断は付けない。
 
@@ -272,7 +272,7 @@ low/fast `str_`結果とsource traceは[run 14-35](evidence/phpactor-natural-aft
 |---|---|---|
 | 言語サーバの候補・metadata | 同期後のraw responseに候補数・detail・kind・snippetの違いがある。特に`new Gre`のPhpactor rawは空、PHPantom rawは5。Phpactorの`Greeter::`は`::class`とstatic `create`が別item。 | raw内容の事実は高。候補差がライブラリ固有かadapter/config/context由来かの帰属は未分離。 |
 | 実行方式とrequest処理 | PHPantom Workerは持続WASI上で`lsp_handle`をqueue処理。Phpactor Workerはruntime/virtualFS/dataを再利用する一方、各`php.run`でPHP request shutdownを行い、dispatch/autoload/boot/containerを繰り返す。 | source構造は高。warm boot+container中央値10.4msはNode-hosted WASM上の別計測。browser RTT内の寄与や全遅延への比率は未分離。container保持にはruntime/dispatch変更、light bootは別の未検証案。 |
-| UI/client timingと変換 | Phpactor側に100ms settle、completion barrier、cancellation/retry。p7の1 browser runでは4 request中3件がUI cancel後もWorkerで継続し、recoveryRetryはbarrierを迂回。実入力間隔は354–458msで160ms benchmarkではない。React/Monaco frontend baselineも異なる。 | source/trace事実は高、そのrunでLoadingがprovider pending中に出たことも高。入力条件1回の結果で再現率は不明。`new Gre` 5行はMonaco由来が強いがprovider ID不明。画面表示にはReact/Monacoが混ざる。 |
+| UI/client timingと変換 | baseline `9eafdcd`では100ms settle、completion barrier/cancellation/retry。p7の1 runは4 request中3件がUI cancel後もWorkerで継続し、retryはbarrierを迂回。after `388cbe6`では独立slow各2 RPC、fast1 RPCで最新候補を表示。 | baselineのsource/trace事実は高だが単発。afterは小標本・pace不一致で改善率不明、slowは約2.9–3.1秒。`new Gre` 5行はMonaco由来が強いがprovider ID不明。React/Monaco frontend baselineも異なる。 |
 
 遅延completion入力変更caseでは隔離ページが旧responseを同じidでapp listenerへ後から再配送した後も、現在文書の候補が維持された。source上、PHPantomはcompletion response後にrequested modelがcurrentかつversion不変か確認し、hoverも同様にmodel/versionを確認する。PhpactorはcompletionでCancellationTokenと`raceCompletionCancellation`を使い、キャンセル時はprovider候補を空で返すほかresponse後もmodel/versionを確認する。hoverもmodel/version確認を持つ。ここで確認した範囲には明示的なper-request generation counterは見当たらない。これはsource構造の記述であり、OFF/terminate時のruntime配送guardとは分ける。
 
@@ -314,10 +314,10 @@ traceには全postMessageとtimestamp、response、文書version、位置、raw 
 
 managerの以前の#424 GitHub readback後、PHPantom `863c1337...` とPhpactor WIP head `3e9f56893ea5373b456b8fa12ede89fdc4b37776` をagent-browser `0.39.1`の隔離sessionで各1回開き、PHP 8.5 / Completion ON / 共通fixture末尾への自然`str_`入力後の画面を保存した。両方でSuggest widgetが見え、Phpactorでは選択候補のsignature detailも画面に出た。これは最新#424の一段前のheadで行った画面snapshotであり、詳細trace・性能値・候補件数を取る比較runではない。最新#424 sourceを使ったp7の別1runは[#424 Loading診断](https://github.com/glassmonkey/php-playground/blob/9eafdcd247ce33dc3b3f2be5f1b34a64747cee76/docs/lsp/phpactor-preview/evidence/completion-loading-2026-10-26.md)を参照。入力手順、head/asset識別、失敗setupの除外、当時の画像は[WIP snapshot記録](evidence/wip-snapshot-2026-10-25T15-20-51Z/README.md)に残す。
 
-## #424 singleflight after-check (separate run)
+## #424 singleflight後の独立追試
 
-Manager confirmed #424 OPEN/Draft at source head `388cbe69654113a00a2272cc9e9b2e2a46c5c55b`. In an isolated agent-browser 0.39.1 session at port 3471, PHP 8.5/Completion ON, natural `str_` input produced 2 completion RPCs on each slow run and 1 on the fast run. In slow runs, only initial `s` and final `str_` document versions sent requests; intermediate edits sent none. The old `s` response (raw 168) arrived before the latest request, and latest `str_` returned raw 19 with 12 widget rows. The fast run returned raw 19/12 rows from one final-version request. Observed Worker-message order had at most one outstanding completion request. This is a Worker boundary observation, not PHP runtime instrumentation.
+manager readbackで#424 OPEN/Draft、source head `388cbe69654113a00a2272cc9e9b2e2a46c5c55`を確認した。隔離agent-browser 0.39.1、port 3471、PHP 8.5/Completion ONの自然`str_`で、slow各2 RPC、fast 1 RPCだった。slowでは最初の`s`と最終`str_`だけ要求され、中間編集版の要求はなかった。古い`s`応答（raw 168）の後に最新要求が送られ、raw 19から画面12行を確認した。fastは最終版の1要求でraw 19/12行。Workerメッセージ境界で同時に未完了のcompletion requestは最大1件だった。これはPHP runtime内部の計測ではない。
 
-OFF caused `didClose` and no subsequent automatic request; no response was observed after worker close, which does not establish a product response-generation guard. PHP 8.4 showed the unsupported-version status and typing produced no completion RPC; restoring 8.5 and natural `str_` produced raw 19/12 rows. See [run notes and evidence](evidence/after-singleflight-2026-10-26T03-14Z/README.md). Loading node presence was not treated as visible: slow 1 exact start/end is unmeasured; slow 2 has visible style/rect samples and later hidden state; fast/recovery Loading was not sampled visible. DOM observations do not guarantee physical paint.
+Completion OFFでは`didClose`後に自動再要求を観測しなかった。worker終了後の応答も観測できず、製品内部のresponse guardの証拠ではない。PHP 8.4では非対応versionの表示があり、入力してもcompletion RPCは発生しなかった。8.5へ戻した自然`str_`ではraw 19件/12行を確認した。Loading nodeのDOM残存を可視と数えていない。slow 1の厳密な開始/終了は未計測、slow 2は表示style/rectと後の非表示を観測、fast/復帰runはLoadingの可視状態を観測できなかった。DOM観測はphysical paintを保証しない。詳細は[追試記録](evidence/after-singleflight-2026-10-26T03-14Z/README.md)。
 
-This after run is not pace-matched to the single agent-browser baseline (4 RPC/3 obsolete), nor to prior Playwright runs. It supports request-count/latest-result observations only; no improvement percentage or general speed claim. User-side confirmation was not performed. No product source changed.
+この追試はbaselineのagent-browser 1 run（4 RPC/3 obsolete、最終応答6.69秒・Loading約7.08秒）とも過去Playwright runとも入力paceが揃っていない。独立afterのslowは最終入力から最新候補応答まで3.127秒/2.934秒、fastは507ms。速度改善率や一般速度の主張には使わない。ユーザー本人の確認は未実施。製品source変更なし。
