@@ -4,6 +4,108 @@
 
 PRの役割は[#421 PHPantom UI/Worker](https://github.com/glassmonkey/php-playground/pull/421)、[#424 Phpactor UI/Worker](https://github.com/glassmonkey/php-playground/pull/424)、[#425 比較・画面記録](https://github.com/glassmonkey/php-playground/pull/425)。以下は既存sourceと既存runから見える経路を層ごとに分けたもの。ここでいう`Loading`は、アプリ初回起動表示ではなく、**文字入力後に候補欄へ出るLoading**を指す。
 
+### 現試作の構成
+
+```mermaid
+flowchart LR
+  subgraph browser[Browser page / 初回表示]
+    Assets[HTML・JS/CSS・Monaco assets]
+    Monaco[Monaco editor]
+    UI[UI adapter/client]
+    Loading[候補欄 Loading<br/>文字入力後のUI表示]
+    Assets --> Monaco
+    Monaco <--> UI
+    UI -.表示状態の通知条件はp7確認待ち.-> Loading
+  end
+
+  subgraph phantom[PHPantom 現試作]
+    PW[Web Worker]
+    PQueue[serial Promise queue]
+    WASM[WASM module + WASI runtime<br/>Worker内で初期化・再利用]
+    PServer[PHPantom LSP server<br/>lsp_handle]
+    PW --> PQueue --> WASM --> PServer
+  end
+
+  subgraph phpactor[Phpactor 現試作 adapter]
+    AW[Web Worker]
+    Runtime[PHP runtime + data<br/>Worker起動時に初期化]
+    Run[各php.run<br/>独立PHP request]
+    Dispatch[dispatch include + autoload]
+    Boot[Phpactor::boot<br/>config / extensions / container]
+    Handler[completion / hover / signature handler]
+    Shutdown[PHP request shutdown]
+    AW --> Runtime --> Run --> Dispatch --> Boot --> Handler --> Shutdown
+  end
+
+  UI -->|PHPantom RPC| PW
+  PServer -->|LSP result| PW
+  PW -->|response| UI
+  UI -->|Phpactor RPC| AW
+  Shutdown -->|LSP result| AW
+  AW -->|response| UI
+  UI -->|itemsをMonaco候補へ変換| Monaco
+```
+
+図は今回のadapter/Worker構成を示し、言語サーバ一般の必須設計を示すものではない。特にPhpactorの各`php.run`内でのautoload/boot/container再構築は現adapterのrequest境界で発生している。Phpactor自体が毎回bootを必要とするという意味ではない。初回ページasset・runtime準備と、入力後に候補欄へ出るLoadingも別の段階である。初回準備時間、Loadingの正確な表示条件、各段階の遅延内訳は測定・確認待ち。
+
+### 入力後のrequest sequence
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor U as User
+  participant M as Monaco
+  participant C as UI client
+  participant W as Web Worker
+  participant S as LSP server / PHP request
+
+  U->>M: 文字入力 / hover / signature操作
+  M->>C: provider request
+  alt PHPantom 現試作
+    C->>C: model / version / positionを記録
+    C->>W: LSP requestをpostMessage
+    W->>W: Promise queueで直列処理
+    W->>S: resident WASI内のlsp_handle
+    S-->>W: LSP result
+    W-->>C: response
+    C->>C: 現在modelとdocument versionを照合
+    alt 同じ文書版
+      C->>M: itemをMonaco候補へ変換
+    else 文書版が変化
+      C->>C: 古いresponseを破棄
+    end
+  else Phpactor 現試作 adapter
+    opt 自動completionの場合
+      C->>C: 入力静止を100ms待つ（現source値）
+      C->>C: 先行completion requestのbarrierを待つ
+    end
+    C->>W: requestをpostMessage
+    W->>S: php.runでPHP request開始
+    S->>S: dispatch / autoload / Phpactor boot / container
+    par PHP requestの実行
+      S->>S: completion / hover / signature handler
+      S->>S: PHP request shutdown
+      S-->>W: LSP result
+      W-->>C: response
+    and completion providerのcancel（発生した場合）
+      M-->>C: CancellationToken
+      C-->>M: UI側のprovider resultを破棄
+      Note over W,S: cancelはWorker/PHP requestへ中断を伝えず、処理はshutdownまで続く
+    end
+    C->>C: token・現在model・document versionを照合
+    alt 有効な最新文書
+      C->>M: itemをMonaco候補へ変換
+    else cancel済み / 古い文書版
+      C->>C: resultを破棄
+      opt 自動completionで文書が進んでいる
+        C->>C: 最新版を再要求
+      end
+    end
+  end
+```
+
+自動completionの100ms静止待ち・先行completion request待ち・文書版照合と再要求はPhpactor UI/clientの現実装値・振る舞いで、Phpactor language server固有の仕様ではない。hover/signatureもPhpactor側では同じ`php.run`のPHP request境界を通るが、自動completion専用の静止待ち・barrier・retryを全request種別へ一般化しない。UI側token cancellationは、実行中Worker/PHP処理への中断命令を意味しない。Loading indicatorは文字入力後の候補欄の表示段階として初回asset/runtime準備から分けてあるが、表示開始・消去・再表示の条件はp7回答待ち。p4のruntime根拠もmanager経由で受領後に追記する。
+
 | 層 | PHPantom（#421） | Phpactor（#424） | 差の主な所在・根拠の境界 |
 |---|---|---|---|
 | 初回起動 | WorkerがPHPantom WASM runtimeを読み込み、同じWorker内で再利用する。 | WorkerがPHP runtimeを起動する。runtime起動後も、各`php.run`は別requestとして終了する。 | runtime/adapter構成の実装差。起動時間の比較値はない。 |
