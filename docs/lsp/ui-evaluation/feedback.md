@@ -87,7 +87,7 @@ Phpactor用runnerが8.5を選択できたと誤認したが、保存画面では
 - **担当/managerへ共有:** Ctrl+Space必須を外した条件でslow/fastとも最終`str_`が表示され、slowは古い応答破棄後の最新version retryを観測。OFFと8.4切替中に自動再要求なし、8.5復帰後に自然要求が回復。実装変更依頼なし。元baseline PHPantom `863c133...` / Phpactor `ee48f47...`は保持し、修正後値は別欄に追記。
 - **除外run:** run `14-25`, `14-26`、state run `14-29-20-769Z`, `14-30-39-994Z`, `14-31-53-425Z` と `14-33-05-103Z`のstale-replay caseはcursor相関、待ち順、focus、synthetic replay等の問題でretry比較から除外。各フォルダREADMEで理由を記す。有効な区切りは1.8秒時点の`14-34-22-926Z`、長時間後のretryは`14-35-23-888Z`、OFF/version遷移は`14-33-05-103Z`内の個別trace。
 - **報告:** [evaluation.md](evaluation.md)に修正後Phpactorの自然入力・version/off遷移を別欄として追加。PHPantom新headとの対比較は未実施。採用判断なし。
-- **次head再測定手順:** `node scripts/lsp/ui-evaluation/measure-natural-completion.mjs phpactor <manager-confirmed-head> <manager-ready-reference>` はCtrl+Spaceを使わず、`fixture.php`全文を開いた後、空の末尾行へ`s`,`t`,`r`,`_`を160ms/10ms間隔で入力。生成される全文は`fixture.php`の末尾へ`str_`を追加した値、期待位置LSP line7/character4。paste後version2、自然入力のdidChangeは3,4,5,6（今回headでの観測値）。1.8秒停止状態と、その後latest version request/responseを別記する。`diagnose-natural-state-changes.mjs phpactor <head> <ready-ref>` はOFF・PHP8.4・8.5復帰を確認する。両scriptはhead一致とclean source worktreeを検証してから起動する。対象fixture/suffix/位置は[evaluation.md](evaluation.md)に記録。
+- **当時の再測定script記録:** 上記`measure-natural-completion.mjs` / `diagnose-natural-state-changes.mjs`はPlaywright runnerの履歴であり、今回承認されたsingleflight追試には直接実行しない。最新headでの追試方法は2026-10-26 11:54 JSTの計画項を参照し、agent-browser keyboard/pressとpage eval observerを使う。
 
 ## 2026-10-26 00:00 JST — 一次選定材料の区切り
 
@@ -115,5 +115,5 @@ Phpactor用runnerが8.5を選択できたと誤認したが、保存画面では
 ## 2026-10-26 11:54 JST — manager承認のsingleflight小実験
 
 - **範囲:** 新head/READY通知後に限り、p7のlatest-only singleflight変更を検証する。通知まではbrowser再検証を始めない。
-- **再検証条件:** agent-browser専用隔離session、同じPHP 8.5 fixture / Completion ON、自然`str_` slow/fastを各2–3回。Ctrl+Spaceを使わず、実入力event間隔、全文/model version/position、RPC総数、cancel済みWorker requestの継続/応答採否、最新request/response、Loading start/endを同runで関連付ける。OFF/PHP 8.4へ保留要求中に切り替えた場合の抑止も観測する。
+- **再検証条件:** READY後にagent-browser専用隔離sessionで同じPHP 8.5 fixture / Completion ONを使い、自然`str_` slow/fastを各2–3回。入力はagent-browser keyboard/press、観測は`agent-browser eval`内のperformance.now、model/version/position observer、Worker JSON-RPC capture、candidate/Loading DOM observerで行う。CLI指定pauseを実間隔とせず、観測したinput event/provider間隔を記録する。Ctrl+Spaceを合格根拠にしない。全文/model version/position、RPC総数、cancel済みWorker requestの継続/応答採否、最新request/response、Loading start/endを同runで関連付ける。OFF/PHP 8.4へ保留要求中に切り替えた場合の抑止も観測する。既存Playwright runnerを直接実行せず、過去値は非同条件の履歴として分ける。
 - **停止条件:** 一件のruntime/Worker処理待ちだけで最新候補が長時間待つ根拠が出たら拡張せず、データと選択肢をmanagerへ返す。結果は#425 Draft内の別run記録とし、現比較値を置き換えず、採用判断はユーザーへ残す。
