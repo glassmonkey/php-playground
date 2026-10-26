@@ -1,0 +1,95 @@
+{
+  "kind": "correctness-build-output-path-reconciliation",
+  "run_id": "gla96-enabled-7.4-common-pins-b18897b-20261026T024055Z",
+  "benchmark_eligible": false,
+  "repo_revision": "b18897b1a3642e71b11cd77dec8c7d3984a01de6",
+  "php_source_sha": "004cb827501d1ddaf98daacb185a53e0816f78a7",
+  "php_runtime_version": "7.4.34-dev",
+  "emsdk": {
+    "version": "6.0.13",
+    "repo_sha": "d7b4130688bfa348392b921ab04015aa15c4f154"
+  },
+  "base_image": "ubuntu@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+  "resources": {
+    "builder": "gla96-a3c1",
+    "cpuset": "0-1",
+    "builder_memory": "5GiB",
+    "step_memory": "4g",
+    "parallelism": 1
+  },
+  "pinned_dependencies": {
+    "zlib": {
+      "version": "1.3.2",
+      "sha256": "bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16"
+    },
+    "openssl": {
+      "version": "1.1.1w",
+      "sha256": "cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8"
+    }
+  },
+  "inputs_sha256": "5af5acf33d2f4e0a88794bb09bc415335fd359112f190e74f8c417d6f9e97273",
+  "build_result": {
+    "path": "../results.json",
+    "sha256": "d4e77e81a7f4f264262488676b6fae815aaa18672b5390a4b47f843830667e9d",
+    "exit_code": 0,
+    "observed_start_utc": "2026-10-26T02:42:23.941146Z",
+    "ended_at_utc": "2026-10-26T02:54:06.373856Z",
+    "raw_log": "build.log",
+    "raw_log_sha256": "8a759721d08a062ac19d1881477d367bd301b8557e55d6d0f0739b1627695c4b"
+  },
+  "invocation_issue": {
+    "actual_local_export_destination_from_argv": "../gla96-enabled-5.6-common-pins-db-ac172-escalated-20261025T1606Z/exported-assets",
+    "actual_metadata_file_from_argv": "../gla96-enabled-5.6-common-pins-db-ac172-escalated-20261025T1606Z/raw/build.metadata.json",
+    "expected_run_local_export_destination": "../gla96-enabled-7.4-common-pins-b18897b-20261026T024055Z/exported-assets",
+    "expected_run_metadata_file": "../gla96-enabled-7.4-common-pins-b18897b-20261026T024055Z/raw/build.metadata.json",
+    "cause": "The frozen spec path rewrite updated the Dockerfile and context but left the old 5.6 metadata and local-export destination arguments unchanged."
+  },
+  "buildx_output_evidence": {
+    "log_excerpt": "#95 exporting to client directory; copying files 9.59MB 0.1s done",
+    "files_observed_at_actual_destination": {
+      "php-7.4.js": {
+        "sha256": "90e094b37cf2dc0eee823127c62616892dbf82e6b35359d90134b6af5cb45a85",
+        "bytes": 112495
+      },
+      "php-7.4.wasm": {
+        "sha256": "8a2b1c18782b87afab29a768d2c0ebd41817c8e23f087fabec1d226778a5fe58",
+        "bytes": 8874659
+      },
+      "provenance.json": {
+        "sha256": "46b53b25d39e547da6e2fb06c4751bce1d3918354fce2875b647cd9c38b49dd1"
+      }
+    },
+    "metadata_file_recovered_to_current_run": {
+      "path": "build.metadata.json",
+      "sha256": "277f7bb10e732f77481ad35b6052deba86fee3a785da9c8f98c5c08efbe26564"
+    },
+    "result_image_digest": null
+  },
+  "reconciliation_actions": [
+    "Copied the 7.4 JS, Wasm, provenance and Buildx metadata into this run's dedicated paths without deleting the copies at the actual destination.",
+    "Restored the tracked PHP 5.6 raw/build.metadata.json from the committed b18897b tree; its restored SHA256 is a42fa61f3bdc22e3d3b18e574db0a14021c7b8a2ec67660413208afcf2777a5f.",
+    "Confirmed the preserved PHP 5.6 JS and Wasm hashes are unchanged: 243cd9ff8152947c175295b8c11175b042bb833f49dfc7bb5ceaed7654a6a618 and 572bac7429604eb494a91508b1663f5008e7a2e7a11503a069c2f1b09ea613db."
+  ],
+  "prior_evidence_impact": {
+    "php56_inputs_results_terminal_raw_build_log_and_js_wasm": "preserved",
+    "php56_raw_build_metadata": "restored from committed file",
+    "php56_exported_provenance_json": "overwritten by the 7.4 exporter; no local duplicate with the previously reported SHA c671806c8bfafb7c19f295d8887bc3f764266d2f2297c92f5044dd57c514fa1a was found during the bounded search. The previous file is not claimed recovered."
+  },
+  "runtime_smoke": {
+    "command": "node_modules/.bin/vitest run src/php-wasm/__tests__/enabled-libs-7.4.transient.test.ts",
+    "exit_code": 0,
+    "summary": "PHP 7.4.34-dev public runtime assertions passed for PNG bytes, SQLite insert/query, ZIP write/read, OpenSSL 1.1.1w encrypt/decrypt, zlib 1.3.2 compression round-trip, DOM XML, and mbstring.",
+    "raw_log": "runtime-smoke.log"
+  },
+  "worker_runtime_smoke": {
+    "command": "node_modules/.bin/vitest run src/workers/__test__/php-worker.spec.ts -t 'version: 7.4' -u",
+    "exit_code": 0,
+    "summary": "2 focused worker tests passed; the PHP 7.4 phpinfo snapshot was updated from the generated output.",
+    "raw_log": "php74-worker-smoke.log"
+  },
+  "remaining": [
+    "No image digest was read. This is correctness evidence only; no performance claim.",
+    "The runner must validate --output and --metadata-file are confined to the declared run directory before the next Buildx invocation.",
+    "GitHub provider reports PR406 conflicting/dirty while local ancestry is linear; provider state remains unresolved."
+  ]
+}

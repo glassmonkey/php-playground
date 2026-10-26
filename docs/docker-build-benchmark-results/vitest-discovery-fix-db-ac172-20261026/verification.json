@@ -70,8 +70,12 @@
     "result_json_sha256": "d8dc0cce11fa9310690c00df14d07a2319150c4bb81b02762a9a2ab35107813d",
     "sha256_reconciliation": {
       "earlier_manager_reported_sha256": "58c7b8dfb3a947c63d2f5d1f1c876d0f4982ae3d21ba48366ef4ef55592fb60f",
+      "earlier_manager_reported_run": "../candidate-5.6-php561dev-srcwasm-manager-elevated-1d8fe66-20261024T1325Z/results.json",
+      "earlier_manager_reported_repo_revision": "1d8fe66af54251de214491ed5e532ca716f36654",
       "current_worktree_and_committed_git_blob_sha256": "d8dc0cce11fa9310690c00df14d07a2319150c4bb81b02762a9a2ab35107813d",
-      "action": "Preserved the result file; the verification manifest records the hash read back from both the worktree file and committed Git blob."
+      "current_run": "../gla96-enabled-5.6-common-pins-db-ac172-escalated-20261025T1606Z/results.json",
+      "current_repo_revision": "dbac1726553fbc44cd57dfc5b910650dcd8b7669",
+      "action": "The two hashes belong to separate result files/runs, not a mutation of one file. Both files remain preserved and are referenced by their own run directory and repo revision."
     },
     "repo_revision": "dbac1726553fbc44cd57dfc5b910650dcd8b7669",
     "php_source_sha": "05fb10165081cb4fb55a9943b44cab62c627db7a",
