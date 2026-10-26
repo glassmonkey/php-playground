@@ -1,0 +1,9 @@
+
+ RUN  v4.1.12 /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed | 307 skipped (309)
+   Start at  01:15:50
+   Duration  300ms (transform 86ms, setup 15ms, import 49ms, tests 152ms, environment 0ms)
+

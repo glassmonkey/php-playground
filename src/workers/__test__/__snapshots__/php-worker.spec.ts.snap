@@ -32,8 +32,8 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 </table>
 <table>
 <tr><td class="e">System </td><td class="v">Emscripten emscripten 6.0.13 #1 wasm32 </td></tr>
-<tr><td class="e">Build Date </td><td class="v">Oct 24 2026 13:37:18 </td></tr>
-<tr><td class="e">Configure Command </td><td class="v"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--disable-cli&#039; &#039;--disable-libxml&#039; &#039;--without-libxml&#039; &#039;--disable-dom&#039; &#039;--disable-xml&#039; &#039;--disable-simplexml&#039; &#039;--disable-xmlwriter&#039; &#039;--enable-mbstring&#039; &#039;--enable-vrzno&#039; &#039;CC=/root/emsdk/upstream/emscripten/emcc&#039; &#039;CXX=/root/emsdk/upstream/emscripten/em++&#039; </td></tr>
+<tr><td class="e">Build Date </td><td class="v">Oct 25 2026 16:07:36 </td></tr>
+<tr><td class="e">Configure Command </td><td class="v"> &#039;./configure&#039;  &#039;PKG_CONFIG_PATH=/root/lib/lib/pkgconfig&#039; &#039;--disable-fiber-asm&#039; &#039;--enable-json&#039; &#039;--enable-embed=static&#039; &#039;--with-layout=GNU&#039; &#039;--disable-cgi&#039; &#039;--disable-all&#039; &#039;--enable-static=yes&#039; &#039;--enable-shared=no&#039; &#039;--enable-session&#039; &#039;--enable-filter&#039; &#039;--enable-calendar&#039; &#039;--disable-rpath&#039; &#039;--disable-phpdbg&#039; &#039;--without-pear&#039; &#039;--with-valgrind=no&#039; &#039;--without-pcre-jit&#039; &#039;--enable-bcmath&#039; &#039;--enable-ctype&#039; &#039;--disable-mbregex&#039; &#039;--enable-tokenizer&#039; &#039;--with-zlib&#039; &#039;--with-zlib-dir=/root/lib&#039; &#039;--enable-zip&#039; &#039;--with-libzip=/root/lib&#039; &#039;--disable-cli&#039; &#039;--enable-libxml&#039; &#039;--with-libxml&#039; &#039;--with-libxml-dir=/root/lib&#039; &#039;--enable-dom&#039; &#039;--enable-xml&#039; &#039;--enable-simplexml&#039; &#039;--enable-xmlwriter&#039; &#039;--with-sqlite3&#039; &#039;--enable-pdo&#039; &#039;--with-pdo-sqlite&#039; &#039;--with-png-dir=/root/lib&#039; &#039;--with-gd&#039; &#039;--enable-gd&#039; &#039;--with-openssl&#039; &#039;--with-openssl-dir=/root/lib&#039; &#039;--enable-mbstring&#039; &#039;--enable-vrzno&#039; &#039;CC=/root/emsdk/upstream/emscripten/emcc&#039; &#039;CXX=/root/emsdk/upstream/emscripten/em++&#039; </td></tr>
 <tr><td class="e">Server API </td><td class="v">PHP WASM SAPI </td></tr>
 <tr><td class="e">Virtual Directory Support </td><td class="v">disabled </td></tr>
 <tr><td class="e">Configuration File (php.ini) Path </td><td class="v">/usr/local/etc </td></tr>
@@ -52,9 +52,9 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 <tr><td class="e">Zend Multibyte Support </td><td class="v">provided by mbstring </td></tr>
 <tr><td class="e">IPv6 Support </td><td class="v">enabled </td></tr>
 <tr><td class="e">DTrace Support </td><td class="v">disabled </td></tr>
-<tr><td class="e">Registered PHP Streams</td><td class="v">php, file, glob, data, http, ftp</td></tr>
-<tr><td class="e">Registered Stream Socket Transports</td><td class="v">tcp, udp, unix, udg</td></tr>
-<tr><td class="e">Registered Stream Filters</td><td class="v">string.rot13, string.toupper, string.tolower, string.strip_tags, convert.*, consumed, dechunk</td></tr>
+<tr><td class="e">Registered PHP Streams</td><td class="v">https, ftps, compress.zlib, php, file, glob, data, http, ftp, zip</td></tr>
+<tr><td class="e">Registered Stream Socket Transports</td><td class="v">tcp, udp, unix, udg, ssl, sslv2, tls, tlsv1.0, tlsv1.1, tlsv1.2</td></tr>
+<tr><td class="e">Registered Stream Filters</td><td class="v">zlib.*, string.rot13, string.toupper, string.tolower, string.strip_tags, convert.*, consumed, dechunk</td></tr>
 </table>
 <table>
 <tr class="v"><td>
@@ -190,6 +190,17 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend&nbsp;Eng
 <tr><td class="e">date.sunset_zenith</td><td class="v">90.583333</td><td class="v">90.583333</td></tr>
 <tr><td class="e">date.timezone</td><td class="v"><i>no value</i></td><td class="v"><i>no value</i></td></tr>
 </table>
+<h2><a name="module_dom">dom</a></h2>
+<table>
+<tr><td class="e">DOM/XML </td><td class="v">enabled </td></tr>
+<tr><td class="e">DOM/XML API Version </td><td class="v">20031129 </td></tr>
+<tr><td class="e">libxml Version </td><td class="v">2.9.10 </td></tr>
+<tr><td class="e">HTML Support </td><td class="v">enabled </td></tr>
+<tr><td class="e">XPath Support </td><td class="v">enabled </td></tr>
+<tr><td class="e">XPointer Support </td><td class="v">enabled </td></tr>
+<tr><td class="e">Schema Support </td><td class="v">enabled </td></tr>
+<tr><td class="e">RelaxNG Support </td><td class="v">enabled </td></tr>
+</table>
 <h2><a name="module_ereg">ereg</a></h2>
 <table>
 <tr><td class="e">Regex Library </td><td class="v">Bundled library enabled </td></tr>
@@ -204,10 +215,32 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend&nbsp;Eng
 <tr><td class="e">filter.default</td><td class="v">unsafe_raw</td><td class="v">unsafe_raw</td></tr>
 <tr><td class="e">filter.default_flags</td><td class="v"><i>no value</i></td><td class="v"><i>no value</i></td></tr>
 </table>
+<h2><a name="module_gd">gd</a></h2>
+<table>
+<tr><td class="e">GD Support </td><td class="v">enabled </td></tr>
+<tr><td class="e">GD Version </td><td class="v">bundled (2.1.0 compatible) </td></tr>
+<tr><td class="e">GIF Read Support </td><td class="v">enabled </td></tr>
+<tr><td class="e">GIF Create Support </td><td class="v">enabled </td></tr>
+<tr><td class="e">PNG Support </td><td class="v">enabled </td></tr>
+<tr><td class="e">libPNG Version </td><td class="v">1.6.39 </td></tr>
+<tr><td class="e">WBMP Support </td><td class="v">enabled </td></tr>
+<tr><td class="e">XBM Support </td><td class="v">enabled </td></tr>
+</table>
+<table>
+<tr class="h"><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+<tr><td class="e">gd.jpeg_ignore_warning</td><td class="v">0</td><td class="v">0</td></tr>
+</table>
 <h2><a name="module_json">json</a></h2>
 <table>
 <tr><td class="e">json support </td><td class="v">enabled </td></tr>
 <tr><td class="e">json version </td><td class="v">1.2.1 </td></tr>
+</table>
+<h2><a name="module_libxml">libxml</a></h2>
+<table>
+<tr><td class="e">libXML support </td><td class="v">active </td></tr>
+<tr><td class="e">libXML Compiled Version </td><td class="v">2.9.10 </td></tr>
+<tr><td class="e">libXML Loaded Version </td><td class="v">20910-GITv2.9.10 </td></tr>
+<tr><td class="e">libXML streams </td><td class="v">enabled </td></tr>
 </table>
 <h2><a name="module_mbstring">mbstring</a></h2>
 <table>
@@ -232,6 +265,18 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend&nbsp;Eng
 <tr><td class="e">mbstring.strict_detection</td><td class="v">Off</td><td class="v">Off</td></tr>
 <tr><td class="e">mbstring.substitute_character</td><td class="v"><i>no value</i></td><td class="v"><i>no value</i></td></tr>
 </table>
+<h2><a name="module_openssl">openssl</a></h2>
+<table>
+<tr><td class="e">OpenSSL support </td><td class="v">enabled </td></tr>
+<tr><td class="e">OpenSSL Library Version </td><td class="v">OpenSSL 1.1.1w  11 Sep 2023 </td></tr>
+<tr><td class="e">OpenSSL Header Version </td><td class="v">OpenSSL 1.1.1w  11 Sep 2023 </td></tr>
+<tr><td class="e">Openssl default config </td><td class="v">/root/lib/ssl/openssl.cnf </td></tr>
+</table>
+<table>
+<tr class="h"><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+<tr><td class="e">openssl.cafile</td><td class="v"><i>no value</i></td><td class="v"><i>no value</i></td></tr>
+<tr><td class="e">openssl.capath</td><td class="v"><i>no value</i></td><td class="v"><i>no value</i></td></tr>
+</table>
 <h2><a name="module_pcre">pcre</a></h2>
 <table>
 <tr><td class="e">PCRE (Perl Compatible Regular Expressions) Support </td><td class="v">enabled </td></tr>
@@ -241,6 +286,16 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend&nbsp;Eng
 <tr class="h"><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
 <tr><td class="e">pcre.backtrack_limit</td><td class="v">1000000</td><td class="v">1000000</td></tr>
 <tr><td class="e">pcre.recursion_limit</td><td class="v">100000</td><td class="v">100000</td></tr>
+</table>
+<h2><a name="module_PDO">PDO</a></h2>
+<table>
+<tr class="h"><th>PDO support</th><th>enabled</th></tr>
+<tr><td class="e">PDO drivers </td><td class="v">sqlite </td></tr>
+</table>
+<h2><a name="module_pdo_sqlite">pdo_sqlite</a></h2>
+<table>
+<tr class="h"><th>PDO Driver for SQLite 3.x</th><th>enabled</th></tr>
+<tr><td class="e">SQLite Library </td><td class="v">3.8.10.2 </td></tr>
 </table>
 <h2><a name="module_Reflection">Reflection</a></h2>
 <table>
@@ -286,11 +341,27 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend&nbsp;Eng
 <tr><td class="e">session.use_strict_mode</td><td class="v">Off</td><td class="v">Off</td></tr>
 <tr><td class="e">session.use_trans_sid</td><td class="v">0</td><td class="v">0</td></tr>
 </table>
+<h2><a name="module_SimpleXML">SimpleXML</a></h2>
+<table>
+<tr class="h"><th>Simplexml support</th><th>enabled</th></tr>
+<tr><td class="e">Revision </td><td class="v">$Id: d7077fc935154236afb4fe70814ba358efdbdca4 $ </td></tr>
+<tr><td class="e">Schema support </td><td class="v">enabled </td></tr>
+</table>
 <h2><a name="module_SPL">SPL</a></h2>
 <table>
 <tr class="h"><th>SPL support</th><th>enabled</th></tr>
 <tr><td class="e">Interfaces </td><td class="v">Countable, OuterIterator, RecursiveIterator, SeekableIterator, SplObserver, SplSubject </td></tr>
 <tr><td class="e">Classes </td><td class="v">AppendIterator, ArrayIterator, ArrayObject, BadFunctionCallException, BadMethodCallException, CachingIterator, CallbackFilterIterator, DirectoryIterator, DomainException, EmptyIterator, FilesystemIterator, FilterIterator, GlobIterator, InfiniteIterator, InvalidArgumentException, IteratorIterator, LengthException, LimitIterator, LogicException, MultipleIterator, NoRewindIterator, OutOfBoundsException, OutOfRangeException, OverflowException, ParentIterator, RangeException, RecursiveArrayIterator, RecursiveCachingIterator, RecursiveCallbackFilterIterator, RecursiveDirectoryIterator, RecursiveFilterIterator, RecursiveIteratorIterator, RecursiveRegexIterator, RecursiveTreeIterator, RegexIterator, RuntimeException, SplDoublyLinkedList, SplFileInfo, SplFileObject, SplFixedArray, SplHeap, SplMinHeap, SplMaxHeap, SplObjectStorage, SplPriorityQueue, SplQueue, SplStack, SplTempFileObject, UnderflowException, UnexpectedValueException </td></tr>
+</table>
+<h2><a name="module_sqlite3">sqlite3</a></h2>
+<table>
+<tr class="h"><th>SQLite3 support</th><th>enabled</th></tr>
+<tr><td class="e">SQLite3 module version </td><td class="v">0.7-dev </td></tr>
+<tr><td class="e">SQLite Library </td><td class="v">3.8.10.2 </td></tr>
+</table>
+<table>
+<tr class="h"><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+<tr><td class="e">sqlite3.extension_dir</td><td class="v"><i>no value</i></td><td class="v"><i>no value</i></td></tr>
 </table>
 <h2><a name="module_standard">standard</a></h2>
 <table>
@@ -313,6 +384,36 @@ This program makes use of the Zend Scripting Language Engine:<br />Zend&nbsp;Eng
 <h2><a name="module_tokenizer">tokenizer</a></h2>
 <table>
 <tr><td class="e">Tokenizer Support </td><td class="v">enabled </td></tr>
+</table>
+<h2><a name="module_xml">xml</a></h2>
+<table>
+<tr><td class="e">XML Support </td><td class="v">active </td></tr>
+<tr><td class="e">XML Namespace Support </td><td class="v">active </td></tr>
+<tr><td class="e">libxml2 Version </td><td class="v">2.9.10 </td></tr>
+</table>
+<h2><a name="module_xmlwriter">xmlwriter</a></h2>
+<table>
+<tr><td class="e">XMLWriter </td><td class="v">enabled </td></tr>
+</table>
+<h2><a name="module_zip">zip</a></h2>
+<table>
+<tr><td class="e">Zip </td><td class="v">enabled </td></tr>
+<tr><td class="e">Zip version </td><td class="v">1.12.5 </td></tr>
+<tr><td class="e">Libzip version </td><td class="v">1.2.0 </td></tr>
+</table>
+<h2><a name="module_zlib">zlib</a></h2>
+<table>
+<tr class="h"><th>ZLib Support</th><th>enabled</th></tr>
+<tr><td class="e">Stream Wrapper </td><td class="v">compress.zlib:// </td></tr>
+<tr><td class="e">Stream Filter </td><td class="v">zlib.inflate, zlib.deflate </td></tr>
+<tr><td class="e">Compiled Version </td><td class="v">1.3.2 </td></tr>
+<tr><td class="e">Linked Version </td><td class="v">1.3.2 </td></tr>
+</table>
+<table>
+<tr class="h"><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+<tr><td class="e">zlib.output_compression</td><td class="v">Off</td><td class="v">Off</td></tr>
+<tr><td class="e">zlib.output_compression_level</td><td class="v">-1</td><td class="v">-1</td></tr>
+<tr><td class="e">zlib.output_handler</td><td class="v"><i>no value</i></td><td class="v"><i>no value</i></td></tr>
 </table>
 <h2>Additional Modules</h2>
 <table>
