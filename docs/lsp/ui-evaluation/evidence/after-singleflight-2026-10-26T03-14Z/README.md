@@ -1,0 +1,16 @@
+# Phpactor singleflight after-check
+
+- Target: PR #424 source head `388cbe69654113a00a2272cc9e9b2e2a46c5c55b` (manager readback, branch clean at start); `http://127.0.0.1:3471/`.
+- Tool: agent-browser 0.39.1, isolated session `gla115-after-7845ddba0ec6`; PHP 8.5, Completion ON for natural-input trials, shared `fixture.php`. Fixture body was initialized through Monaco model; suffixes were entered with agent-browser keyboard/press. No Ctrl+Space. Observed times are `performance.now()` model-change and Worker JSON-RPC boundaries. CLI pauses are not treated as typing intervals.
+
+| Run | Final document state | Completion RPCs and outcome | Latency / visible state |
+|---|---|---|---|
+| slow 1, `s`→`str_` | v3 (`s`) then v6 (`str_`, line 7 char 4); intermediate versions 4/5 produced no completion request | 2 requests: v3 returned raw 168 after the document reached v6; latest v6 returned raw 19. Widget ended with 12 rows. | latest request→response 378ms. Last edit→latest request 2.749s, response 3.127s. Loading timing not recoverable. |
+| slow 2, `s`→`str_` | v8→v11; intermediate v9/v10 produced no completion request | 2 requests: old v8 raw 168, then v11 raw 19; 12 rows after latest response. | last edit→latest request 2.558s, response 2.934s. Loading message was sampled visible during updates and hidden with 12 rows at 145157.6; DOM node presence alone was not counted as visible. |
+| fast `str_` | v13–v16; final line 7 char 4 | 1 request, raw 19, 12 rows | final model change→request 112ms; →response 507ms. Loading was not sampled visibly. |
+| OFF | v18 `s`; request id10, then Completion OFF and `didClose` | No completion retry after OFF; no id10 response observed after `didClose`. Worker termination limits this observation; it does not prove a product response-generation guard. | `didClose` 230ms after request. |
+| PHP 8.4 → 8.5 | 8.4 typed changes only, no completion RPC; UI showed 8.5-only support status. Restored 8.5 and naturally typed `str_` (v23–v26). | 8.5 recovery: one completion request, raw 19, 12 rows. | request 112ms after final model change; response 497ms later. |
+
+Observed model-change gaps in slow runs were roughly 301–404ms despite nominal CLI waits; this is not a controlled pace benchmark. The Worker message order in slow runs showed the old response immediately before dispatch of the newest request (about 0.2ms); maximum simultaneously outstanding completion RPCs observed was one. This is a boundary observation, not an internal PHP/runtime concurrency trace. The final 12-row widget followed the latest version response; no stale rows were observed, but internal stale-response rejection was not instrumented in this run.
+
+Evidence: [fast trace](fast-trace.json), [fast snapshot](fast.png), [8.5 recovery trace](recovery-85-trace.json), [8.5 recovery snapshot](recovery-85.png). Exact Loading start/end was not measured reliably; slow 1 is unmeasured, slow 2 has visible-state samples only. Physical paint is not guaranteed by DOM sampling. The iframe showed a parse error while the editor contained incomplete `str_`; it is not counted as an editor/LSP failure. User-side confirmation was not performed. These after observations are a separate run/head from the earlier single-run agent-browser baseline (4 RPC / 3 obsolete; non-matched pace), so no improvement rate or general speed claim is made.

@@ -1,0 +1,95 @@
+{
+  "trace": [
+    {
+      "kind": "change",
+      "length": 381,
+      "t": 173593.10000002384,
+      "version": 13
+    },
+    {
+      "kind": "tx",
+      "method": "textDocument/didChange",
+      "t": 173593.10000002384,
+      "version": 13
+    },
+    {
+      "kind": "change",
+      "length": 382,
+      "t": 173594.90000000596,
+      "version": 14
+    },
+    {
+      "kind": "tx",
+      "method": "textDocument/didChange",
+      "t": 173594.90000000596,
+      "version": 14
+    },
+    {
+      "kind": "change",
+      "length": 383,
+      "t": 173597.30000001192,
+      "version": 15
+    },
+    {
+      "kind": "tx",
+      "method": "textDocument/didChange",
+      "t": 173597.30000001192,
+      "version": 15
+    },
+    {
+      "kind": "change",
+      "length": 384,
+      "t": 173602,
+      "version": 16
+    },
+    {
+      "kind": "tx",
+      "method": "textDocument/didChange",
+      "t": 173602,
+      "version": 16
+    },
+    {
+      "id": 8,
+      "kind": "tx",
+      "method": "textDocument/completion",
+      "position": {
+        "character": 4,
+        "line": 7
+      },
+      "t": 173713.60000002384
+    },
+    {
+      "id": 8,
+      "items": 19,
+      "kind": "rx",
+      "t": 174109.10000002384
+    },
+    {
+      "id": 9,
+      "kind": "tx",
+      "method": "completionItem/resolve",
+      "t": 174110.5
+    },
+    {
+      "kind": "widget",
+      "message": "Loading...",
+      "rows": 12,
+      "t": 174110.90000000596
+    },
+    {
+      "display": "none",
+      "kind": "widgetState",
+      "message": "Loading...",
+      "rows": 12,
+      "t": 174112.40000000596,
+      "visible": false
+    },
+    {
+      "id": 9,
+      "kind": "rx",
+      "t": 174112.5
+    }
+  ],
+  "value": "<?php\nfunction greetUser(string $name = 'Guest'): string { return 'Hello ' . $name; }\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\nclass Greeter { public string $message; public function greet(): string { return 'hi'; } public static function create(): self { return new self(); } }\n$greeting = greetUser('A');\n$greeter = new Greeter();\n$number = 1;\nstr_",
+  "version": 16
+}
