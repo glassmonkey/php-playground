@@ -1,0 +1,56 @@
+{
+  "capture": "single-flight-before",
+  "tool": "agent-browser CLI",
+  "session": "phpactor-paired-singleflight-20261026",
+  "source_head": "9eafdcd247ce33dc3b3f2be5f1b34a64747cee76",
+  "server": "temporary baseline archive on 127.0.0.1:3472",
+  "page": "http://127.0.0.1:3472/?v=8.5&f=html",
+  "php_version": "8.5",
+  "completion": true,
+  "fixture": "shared Greeter/greetUser fixture, ending with an empty line",
+  "input": "natural str_ via agent-browser keyboard type; no Ctrl+Space",
+  "clock": "performance.now() milliseconds; Monaco onDidChangeContent and DOM MutationObserver captured via agent-browser eval",
+  "worker_initialization": "fixture set and allowed to sync for 3000 ms before measurement",
+  "model_changes": [
+    { "at_ms": 129073.0, "version": 4, "position": { "lineNumber": 8, "column": 1 }, "suffix": "r = 1;\\ns" },
+    { "at_ms": 129418.5, "version": 5, "position": { "lineNumber": 8, "column": 2 }, "suffix": " = 1;\\nst" },
+    { "at_ms": 129750.3, "version": 6, "position": { "lineNumber": 8, "column": 3 }, "suffix": "= 1;\\nstr" },
+    { "at_ms": 130083.3, "version": 7, "position": { "lineNumber": 8, "column": 4 }, "suffix": " 1;\\nstr_" }
+  ],
+  "model_change_intervals_ms": [345.5, 331.8, 333.0],
+  "completion_rpc": [
+    { "event": "rpc-sent", "at_ms": 129188, "completion_id": 1, "model_version": 4 },
+    { "event": "rpc-sent", "at_ms": 129621, "completion_id": 2, "model_version": 5 },
+    { "event": "rpc-sent", "at_ms": 129954, "completion_id": 3, "model_version": 6 },
+    { "event": "rpc-sent", "at_ms": 130287, "completion_id": 4, "model_version": 7 },
+    { "event": "rpc-response", "at_ms": 132783, "completion_id": 1, "elapsed_ms": 3595, "cancelled": true },
+    { "event": "rpc-response", "at_ms": 134606, "completion_id": 2, "elapsed_ms": 4985, "cancelled": true },
+    { "event": "rpc-response", "at_ms": 136391, "completion_id": 3, "elapsed_ms": 6437, "cancelled": true },
+    { "event": "rpc-response", "at_ms": 136771, "completion_id": 4, "elapsed_ms": 6484, "cancelled": false },
+    { "event": "provider-adopted", "at_ms": 136772, "completion_id": 4, "candidate_count": 19, "model_version": 7 }
+  ],
+  "suggest_widget_mutations": [
+    { "at_ms": 129074.9, "message": "", "message_display": "none", "rows": 0, "visible": false },
+    { "at_ms": 129593.2, "message": "", "message_display": "block", "rows": 0, "visible": true },
+    { "at_ms": 129595.5, "message": "Loading...", "message_display": "block", "rows": 0, "visible": true },
+    { "at_ms": 129851.9, "message": "Loading...", "message_display": "none", "rows": 0, "visible": false },
+    { "at_ms": 129903.8, "message": "", "message_display": "block", "rows": 0, "visible": true },
+    { "at_ms": 129904.6, "message": "Loading...", "message_display": "block", "rows": 0, "visible": true },
+    { "at_ms": 130184.7, "message": "Loading...", "message_display": "none", "rows": 0, "visible": false },
+    { "at_ms": 130235.9, "message": "", "message_display": "block", "rows": 0, "visible": true },
+    { "at_ms": 130237.9, "message": "Loading...", "message_display": "block", "rows": 0, "visible": true },
+    { "at_ms": 136778.2, "message": "Loading...", "message_display": "none", "rows": 12, "visible": true }
+  ],
+  "loading_visible_intervals_ms": [256.4, 280.1, 6540.3],
+  "loading_visible_total_ms": 7076.8,
+  "last_document_change_to_latest_response_ms": 6687.7,
+  "last_document_change_to_final_rows_ms": 6694.9,
+  "final_rows": 12,
+  "first_final_row": "str_contains",
+  "notes": [
+    "The command's nominal 160 ms waits were not treated as key intervals; actual Monaco model-change timestamps are recorded above.",
+    "DOM keydown/beforeinput timestamps were not obtained and are not claimed.",
+    "These values were transcribed from the agent-browser CLI page-eval and console output for this capture; console objects were displayed in CLI summary form.",
+    "This one baseline capture is not a performance distribution or equal-pace paired benchmark."
+  ]
+}
