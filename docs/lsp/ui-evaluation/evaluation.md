@@ -207,6 +207,12 @@ Phpactor UI sourceには自動trigger前の100ms settle、request cancellation�
 
 Completion checkboxをOFFにするとWorkerが終了し、ONで再初期化することを両方で確認。PHPantomはPHP 8.4選択時に「PHP 8.5を使用」とエラー表示し、8.5へ戻すと再初期化した。Phpactorは8.4が未検証という警告を表示し、8.5へ戻した。light/dark切替とCompletion checkbox/HTML Previewの画面上の並びを確認した。keyboard/focusの網羅的なアクセシビリティ評価はしていない。
 
+## PHPantom 7.4 / 8.5 言語差分追試
+
+新scopeではPHPantom採用前提で、言語version適用、builtins/signature、構文、diagnostics、版切替後のstale状態を調べる。現行測定済みhead `863c1337adb05a339dbbd6eb20a9c26eb7b63316`のtraceでは、PHPantom WASI 0.11.1が`initializationOptions.phpVersion=8.4`を`-32602`で拒否し、PHP 8.5 defaultを継続した。これは既存buildの制約で、新buildの結果ではない。7.4の実適用もまだ検証されていない。trace: [PHPantom 8.5 baseline](evidence/phpantom-2026-10-25T12-30-40-981Z/trace.json)。
+
+一次資料に基づく期待値、ケース別fixture、自然入力手順、parser受容/補完/diagnosticの区別、7.4→8.5→7.4 stale確認案は[PHPantom 7.4/8.5計画](phpantom-74-85/expectations-and-method.md)に整理した。PHP 8.0はnamed arguments/nullsafe/match、8.1はenum/readonly properties、8.2はreadonly class、8.5はpipe operatorと`array_first`/`array_last`などを導入した。これらは[PHP公式migration/new-feature docs](https://www.php.net/manual/en/migration80.new-features.php), [8.1 docs](https://www.php.net/manual/en/migration81.new-features.php), [8.2 release notes](https://www.php.net/releases/8.2/en.php), [8.5 release notes](https://www.php.net/releases/8.5/en.php)で確認した。ブラウザ追試はmanagerがnew build/headをreadbackして渡すまで未実施。
+
 ## 追加追試: 遅延応答と初回DOM表示
 
 応答遅延は隔離ページのWorker message capture listenerで注入した。指定methodのresponseをapp listenerへ渡す前に`stopImmediatePropagation()`で保留し、1.4秒後に同じdataのMessageEventを隔離ページ内でdispatchした。server、product Worker/sourceは変更していない。
