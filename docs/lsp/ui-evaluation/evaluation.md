@@ -312,7 +312,7 @@ traceには全postMessageとtimestamp、response、文書version、位置、raw 
 
 ### 過去のWIP UI snapshot（比較runから分離）
 
-managerの以前の#424 GitHub readback後、PHPantom `863c1337...` とPhpactor WIP head `3e9f56893ea5373b456b8fa12ede89fdc4b37776` をagent-browser `0.39.1`の隔離sessionで各1回開き、PHP 8.5 / Completion ON / 共通fixture末尾への自然`str_`入力後の画面を保存した。両方でSuggest widgetが見え、Phpactorでは選択候補のsignature detailも画面に出た。これは最新#424の一段前のheadで行った画面snapshotであり、詳細trace・性能値・候補件数を取る比較runではない。最新#424 sourceを使ったp7の別1runは[#424 Loading診断](https://github.com/glassmonkey/php-playground/blob/9eafdcd247ce33dc3b3f2be5f1b34a64747cee76/docs/lsp/phpactor-preview/evidence/completion-loading-2026-10-26.md)を参照。入力手順、head/asset識別、失敗setupの除外、当時の画像は[WIP snapshot記録](evidence/wip-snapshot-2026-10-25T15-20-51Z/README.md)に残す。
+managerの以前の#424 GitHub readback後、PHPantom `863c1337...` とPhpactor WIP head `3e9f56893ea5373b456b8fa12ede89fdc4b37776` をagent-browser `0.39.1`の隔離sessionで各1回開き、PHP 8.5 / Completion ON / 共通fixture末尾への自然`str_`入力後の画面を保存した。両方でSuggest widgetが見え、Phpactorでは選択候補のsignature detailも画面に出た。これは最新#424の一段前のheadで行った画面snapshotであり、詳細trace・性能値・候補件数を取る比較runではない。当時のsource head `e4f36cb8d1544369712ecbbf2a17e704b0a0a633`を使ったp7の別1runは[#424 Loading診断](https://github.com/glassmonkey/php-playground/blob/9eafdcd247ce33dc3b3f2be5f1b34a64747cee76/docs/lsp/phpactor-preview/evidence/completion-loading-2026-10-26.md)を参照。入力手順、head/asset識別、失敗setupの除外、当時の画像は[WIP snapshot記録](evidence/wip-snapshot-2026-10-25T15-20-51Z/README.md)に残す。
 
 ## #424 singleflight後の独立追試
 
