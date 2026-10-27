@@ -1,8 +1,0 @@
-{
-	"name": "php-playground-phpantom-worker-harness",
-	"private": true,
-	"type": "module",
-	"dependencies": {
-		"@bjorn3/browser_wasi_shim": "0.4.2"
-	}
-}

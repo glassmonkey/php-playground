@@ -232,7 +232,7 @@ async function handleMessage(data: unknown): Promise<void> {
 				`${PHPANTOM_VERSIONED_BUILD}:php${configuredPhpVersion}`
 			) {
 				throw new Error(
-					'PHPantom WASM does not include PHP 7.4/8.5 version selection. Rebuild it with ./scripts/lsp/phpantom/build-wasm.sh.'
+					`PHPantom WASM does not include PHP ${configuredPhpVersion} selection. Supported targets: ${versions.join(', ')}. Rebuild with make build-phpantom-runtime.`
 				);
 			}
 		}
