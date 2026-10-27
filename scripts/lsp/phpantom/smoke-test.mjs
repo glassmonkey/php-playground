@@ -547,6 +547,21 @@ assert.ok(
 );
 for (const [cycleIndex, phpVersion] of ['7.4', '8.5', '7.4'].entries()) {
 	const cycleWasm = freshPhpVersionEngine(phpVersion);
+	const expectedInVersion = phpVersion === '8.5';
+	const coldStrItems = completionItems(
+		completionAt(
+			cycleWasm,
+			`file:///playground/php-version-cycle-${cycleIndex}-str-cold.php`,
+			'<?php\nstr_c',
+			{ line: 1, character: 5 },
+			19
+		)
+	);
+	assert.equal(
+		coldStrItems.some((item) => item.filterText === 'str_contains'),
+		expectedInVersion,
+		`fresh-engine ${phpVersion} cold str_contains availability`
+	);
 	const strUri = `file:///playground/php-version-cycle-${cycleIndex}-str.php`;
 	const strlenItems = completionItems(
 		completionAt(cycleWasm, strUri, '<?php\nstrl', { line: 1, character: 4 }, 20)
@@ -564,7 +579,7 @@ for (const [cycleIndex, phpVersion] of ['7.4', '8.5', '7.4'].entries()) {
 	);
 	assert.equal(
 		strItems.some((item) => item.filterText === 'str_contains'),
-		phpVersion === '8.5',
+		expectedInVersion,
 		`fresh-engine ${phpVersion} cycle filters str_contains after strlen resolve`
 	);
 	const strSignature = signatureAt(
@@ -589,6 +604,13 @@ for (const [cycleIndex, phpVersion] of ['7.4', '8.5', '7.4'].entries()) {
 	const arrayItems = completionItems(
 		completionAt(cycleWasm, arrayUri, '<?php\narray_f', { line: 1, character: 7 }, 25)
 	);
+	for (const name of ['array_first', 'array_find', 'array_find_key']) {
+		assert.equal(
+			arrayItems.some((item) => item.filterText === name),
+			expectedInVersion,
+			`fresh-engine ${phpVersion} cold ${name} availability`
+		);
+	}
 	const arrayFillItem = arrayItems.find((item) => item.filterText === 'array_fill');
 	assert.ok(arrayFillItem, `${phpVersion} cycle retains array_fill`);
 	assert.match(
@@ -599,10 +621,24 @@ for (const [cycleIndex, phpVersion] of ['7.4', '8.5', '7.4'].entries()) {
 	const warmArrayItems = completionItems(
 		completionRequest(cycleWasm, arrayUri, { line: 1, character: 7 }, 27)
 	);
+	const arrayLastColdItems = completionItems(
+		completionAt(
+			cycleWasm,
+			`file:///playground/php-version-cycle-${cycleIndex}-array-last-cold.php`,
+			'<?php\narray_l',
+			{ line: 1, character: 8 },
+			29
+		)
+	);
+	assert.equal(
+		arrayLastColdItems.some((item) => item.filterText === 'array_last'),
+		expectedInVersion,
+		`fresh-engine ${phpVersion} cold array_last availability`
+	);
 	for (const name of ['array_first', 'array_find', 'array_find_key']) {
 		assert.equal(
 			warmArrayItems.some((item) => item.filterText === name),
-			phpVersion === '8.5',
+			expectedInVersion,
 			`fresh-engine ${phpVersion} cycle filters ${name} after array_fill resolve`
 		);
 		const signature = signatureAt(
@@ -629,7 +665,7 @@ for (const [cycleIndex, phpVersion] of ['7.4', '8.5', '7.4'].entries()) {
 	);
 	assert.equal(
 		arrayLastItems.some((item) => item.filterText === 'array_last'),
-		phpVersion === '8.5',
+		expectedInVersion,
 		`fresh-engine ${phpVersion} cycle filters array_last after array_fill resolve`
 	);
 	const arrayLastSignature = signatureAt(
