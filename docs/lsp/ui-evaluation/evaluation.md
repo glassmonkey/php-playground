@@ -272,6 +272,10 @@ low/fast `str_`結果とsource traceは[run 14-35](evidence/phpactor-natural-aft
 
 これらの修正後結果は元の両UI比較表の値へ混ぜない。PHPantomの新head再測定は行っていないため、修正後の対比較ではなくPhpactor修正headの個別UI確認である。一次報告の候補比較と同じく採用判断は付けない。
 
+## PHPantom PHP 7.4 / 8.5 version-filtering browser check
+
+#421の新head `95796444b1ea3d7f158f15f378a644e300c67d6c` をagent-browser隔離sessionで確認した。UI選択7.4/8.5/7.4それぞれに対応するPHPantom initialize/serverInfoとdocument再openを観測したが、7.4へ戻した後も自然入力`str_c`のraw/UI結果に8.0+ `str_contains`が残り、候補名を本文に含めない同一`<?php\n$x = ` + 自然`array_f`では7.4 raw/UIに8.5追加の`array_first`が出た。8.5 positive controlを挟み7.4で再現しており、空画面・未要求・word-based補助候補では説明できない。**このbuildのversion-aware completionは確認した範囲で未達**。case相関、trace、既知の未測定は[PHPantom version browser記録](phpantom-74-85/browser-2026-10-27-new-build.md)を参照。構文解析とdiagnosticsはこの追試では未評価であり、別々に残す。
+
 ## 差の原因と確度
 
 | 要因 | 観測・source根拠 | 確度と限界 |
