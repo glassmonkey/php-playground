@@ -218,6 +218,55 @@ function completionAt(wasmInstance, uri, sourceText, position, id) {
 		params: { textDocument: { uri }, position },
 	});
 }
+function completionRequest(wasmInstance, uri, position, id) {
+	return sendTo(wasmInstance, {
+		jsonrpc: '2.0',
+		id,
+		method: 'textDocument/completion',
+		params: { textDocument: { uri }, position },
+	});
+}
+function changeDocument(wasmInstance, uri, version, text) {
+	return sendTo(wasmInstance, {
+		jsonrpc: '2.0',
+		method: 'textDocument/didChange',
+		params: {
+			textDocument: { uri, version },
+			contentChanges: [{ text }],
+		},
+	});
+}
+function resolveCompletionItem(wasmInstance, item, id) {
+	return sendTo(wasmInstance, {
+		jsonrpc: '2.0',
+		id,
+		method: 'completionItem/resolve',
+		params: item,
+	});
+}
+function signatureAt(wasmInstance, uri, functionName, id) {
+	sendTo(wasmInstance, {
+		jsonrpc: '2.0',
+		method: 'textDocument/didOpen',
+		params: {
+			textDocument: {
+				uri,
+				languageId: 'php',
+				version: 1,
+				text: `<?php\n${functionName}(`,
+			},
+		},
+	});
+	return sendTo(wasmInstance, {
+		jsonrpc: '2.0',
+		id,
+		method: 'textDocument/signatureHelp',
+		params: {
+			textDocument: { uri },
+			position: { line: 1, character: functionName.length + 1 },
+		},
+	});
+}
 function freshPhpVersionEngine(phpVersion) {
 	const versionWasi = new WASI(
 		[],
@@ -334,6 +383,47 @@ for (const name of ['array_first', 'array_find', 'array_find_key']) {
 	assert.ok(
 		php85ArrayFunctions.some((item) => item.label.startsWith(name)),
 		`PHP 8.5 exposes the ${name} stub`
+	);
+}
+const php85ArrayLastUri = 'file:///playground/php-version-array-last.php';
+const php85ArrayLastItems = completionItems(
+	completionAt(
+		wasm,
+		php85ArrayLastUri,
+		'<?php\narray_l',
+		{ line: 1, character: 8 },
+		17
+	)
+);
+assert.ok(
+	php85ArrayLastItems.some((item) => item.label.startsWith('array_last')),
+	'PHP 8.5 exposes the PHP 8.5 array_last stub'
+);
+for (const name of [
+	'array_first',
+	'array_last',
+	'array_find',
+	'array_find_key',
+]) {
+	const item = [...php85ArrayFunctions, ...php85ArrayLastItems].find((candidate) =>
+		candidate.label.startsWith(name)
+	);
+	assert.ok(item, `PHP 8.5 has a completion item for ${name}`);
+	const resolved = resolveCompletionItem(wasm, item, 30 + name.length);
+	assert.match(
+		JSON.stringify(resolved?.result ?? ''),
+		new RegExp(name),
+		`PHP 8.5 resolves ${name}`
+	);
+	const signature = signatureAt(
+		wasm,
+		`file:///playground/php-version-signature-${name}.php`,
+		name,
+		40 + name.length
+	);
+	assert.ok(
+		signature.result?.signatures?.length,
+		`PHP 8.5 provides signature help for ${name}`
 	);
 }
 
@@ -457,19 +547,120 @@ assert.ok(
 );
 for (const [cycleIndex, phpVersion] of ['7.4', '8.5', '7.4'].entries()) {
 	const cycleWasm = freshPhpVersionEngine(phpVersion);
-	const cycleItems = completionItems(
-		completionAt(
-			cycleWasm,
-			`file:///playground/php-version-cycle-${cycleIndex}.php`,
-			'<?php\nstr_c',
-			{ line: 1, character: 5 },
-			20 + cycleIndex
-		)
+	const strUri = `file:///playground/php-version-cycle-${cycleIndex}-str.php`;
+	const strlenItems = completionItems(
+		completionAt(cycleWasm, strUri, '<?php\nstrl', { line: 1, character: 4 }, 20)
+	);
+	const strlenItem = strlenItems.find((item) => item.filterText === 'strlen');
+	assert.ok(strlenItem, `${phpVersion} cycle retains strlen`);
+	assert.match(
+		JSON.stringify(resolveCompletionItem(cycleWasm, strlenItem, 21)?.result ?? ''),
+		/strlen/,
+		`${phpVersion} cycle resolves strlen before newer string-function check`
+	);
+	changeDocument(cycleWasm, strUri, 2, '<?php\nstr_c');
+	const strItems = completionItems(
+		completionRequest(cycleWasm, strUri, { line: 1, character: 5 }, 22)
 	);
 	assert.equal(
-		cycleItems.some((item) => item.label.startsWith('str_contains')),
+		strItems.some((item) => item.filterText === 'str_contains'),
 		phpVersion === '8.5',
-		`fresh-engine ${phpVersion} cycle filters str_contains`
+		`fresh-engine ${phpVersion} cycle filters str_contains after strlen resolve`
+	);
+	const strSignature = signatureAt(
+		cycleWasm,
+		`file:///playground/php-version-cycle-${cycleIndex}-str-signature.php`,
+		'str_contains',
+		23
+	);
+	if (phpVersion === '8.5') {
+		const strItem = strItems.find((item) => item.filterText === 'str_contains');
+		assert.ok(strItem);
+		assert.match(
+			JSON.stringify(resolveCompletionItem(cycleWasm, strItem, 24)?.result ?? ''),
+			/haystack/
+		);
+		assert.ok(strSignature.result?.signatures?.length);
+	} else {
+		assert.equal(strSignature.result, null);
+	}
+
+	const arrayUri = `file:///playground/php-version-cycle-${cycleIndex}-array.php`;
+	const arrayItems = completionItems(
+		completionAt(cycleWasm, arrayUri, '<?php\narray_f', { line: 1, character: 7 }, 25)
+	);
+	const arrayFillItem = arrayItems.find((item) => item.filterText === 'array_fill');
+	assert.ok(arrayFillItem, `${phpVersion} cycle retains array_fill`);
+	assert.match(
+		JSON.stringify(resolveCompletionItem(cycleWasm, arrayFillItem, 26)?.result ?? ''),
+		/array_fill/,
+		`${phpVersion} cycle resolves array_fill before versioned array checks`
+	);
+	const warmArrayItems = completionItems(
+		completionRequest(cycleWasm, arrayUri, { line: 1, character: 7 }, 27)
+	);
+	for (const name of ['array_first', 'array_find', 'array_find_key']) {
+		assert.equal(
+			warmArrayItems.some((item) => item.filterText === name),
+			phpVersion === '8.5',
+			`fresh-engine ${phpVersion} cycle filters ${name} after array_fill resolve`
+		);
+		const signature = signatureAt(
+			cycleWasm,
+			`file:///playground/php-version-cycle-${cycleIndex}-${name}-signature.php`,
+			name,
+			28 + name.length
+		);
+		if (phpVersion === '8.5') {
+			const item = warmArrayItems.find((candidate) => candidate.filterText === name);
+			assert.ok(item);
+			assert.match(
+				JSON.stringify(resolveCompletionItem(cycleWasm, item, 38 + name.length)?.result ?? ''),
+				new RegExp(name)
+			);
+			assert.ok(signature.result?.signatures?.length);
+		} else {
+			assert.equal(signature.result, null);
+		}
+	}
+	changeDocument(cycleWasm, arrayUri, 2, '<?php\narray_l');
+	const arrayLastItems = completionItems(
+		completionRequest(cycleWasm, arrayUri, { line: 1, character: 8 }, 50)
+	);
+	assert.equal(
+		arrayLastItems.some((item) => item.filterText === 'array_last'),
+		phpVersion === '8.5',
+		`fresh-engine ${phpVersion} cycle filters array_last after array_fill resolve`
+	);
+	const arrayLastSignature = signatureAt(
+		cycleWasm,
+		`file:///playground/php-version-cycle-${cycleIndex}-array-last-signature.php`,
+		'array_last',
+		51
+	);
+	if (phpVersion === '8.5') {
+		const item = arrayLastItems.find((candidate) => candidate.filterText === 'array_last');
+		assert.ok(item);
+		assert.match(
+			JSON.stringify(resolveCompletionItem(cycleWasm, item, 52)?.result ?? ''),
+			/array_last/
+		);
+		assert.ok(arrayLastSignature.result?.signatures?.length);
+	} else {
+		assert.equal(arrayLastSignature.result, null);
+	}
+	const userFunctions = completionItems(
+		completionAt(
+			cycleWasm,
+			`file:///playground/php-version-cycle-${cycleIndex}-user.php`,
+			'<?php\n/** @since 8.5 */\nfunction cycleUserFutureApi(): void {}\ncycleUserF',
+			{ line: 3, character: 10 },
+			53
+		)
+	);
+	assert.ok(
+		userFunctions.some((item) => item.label.startsWith('cycleUserFutureApi')),
+		`fresh-engine ${phpVersion} cycle leaves user-source @since untouched`
 	);
 }
 

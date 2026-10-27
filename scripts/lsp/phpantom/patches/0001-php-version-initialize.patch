@@ -76,6 +76,35 @@ index 3f4ff19..a317838 100644
 @@ -278 +304 @@ impl LspDispatcher {
 -                "version": self.backend.version,
 +                "version": format!("{}+php-version-setting.1:php{}", self.backend.version, self.backend.php_version()),
+diff --git a/src/resolution/functions.rs b/src/resolution/functions.rs
+index bff8c3e..f427c13 100644
+--- a/src/resolution/functions.rs
++++ b/src/resolution/functions.rs
+@@ -190,5 +190,8 @@ impl Backend {
+-    /// Every function in the file goes into `global_functions` under the
+-    /// file's stub URI, corrected by [`crate::stub_patches`], so a later
+-    /// lookup of any of them is answered by Phase 1.  The classes the file
+-    /// declares are cached in `uri_classes_index` under the same URI, so a
+-    /// type one of its functions names (a return type, say) resolves too.
++    /// Every available function in the file goes into `global_functions`
++    /// under the file's stub URI, corrected by [`crate::stub_patches`], so a
++    /// later lookup of any of them is answered by Phase 1. Functions newer
++    /// than the configured PHP version must stay out of this cache as well
++    /// as `stub_function_index`, or completion can rediscover them here. The
++    /// classes the file declares are cached in `uri_classes_index` under the
++    /// same URI, so a type one of its functions names (a return type, say)
++    /// resolves too.
+@@ -202,0 +206,10 @@ impl Backend {
++        let unavailable = crate::stubs::unavailable_stub_names(
++            stub_content,
++            crate::stubs::embedded_stub_path(stub_content),
++            self.php_version(),
++        );
++        functions.retain(|function| {
++            !unavailable.as_ref().is_some_and(|names| {
++                names.contains(crate::stubs::StubSymbolKind::Function, &function.name)
++            })
++        });
 diff --git a/src/stubs.rs b/src/stubs.rs
 index a3aedeb..9fbc5dc 100644
 --- a/src/stubs.rs
