@@ -22,11 +22,33 @@ This is an evaluation plan for the PHPantom language version selection work in #
 | `array_find(array $array, callable $callback): mixed` | 8.4 | no builtin completion/signature | builtin completion/signature available | natural `array_fi`; complete and inspect callback signature |
 | `array_is_list(array $array): bool` | 8.1 | no builtin completion/signature | builtin completion/signature available | natural `array_is_`; complete and inspect signature |
 | `array_first(array $array): mixed`, `array_last(array $array): mixed` | 8.5 | no builtin completion/signature | builtin completion/signature available | natural `array_f` / `array_l`; complete and inspect signature |
+| Existing `array_map` stub signature | 7.4 / 8.0+ | second parameter variant is untyped `$arrays` (`from 5.3` to `7.4`) | typed `array $array` variant (`from 8.0`) plus variadic `array ...$arrays`; callback and array return remain | [`array-map-signature.php`](array-map-signature.php); request signature help after naturally typing `array_map(`; inspect active parameter text and metadata |
+| Removed `each()` | 7.2 deprecated / 8.0 removed | builtin completion/signature may remain with deprecation metadata | no builtin raw completion/signature | [`removed-each.php`](removed-each.php); type `eac` naturally, distinguish raw LSP item from Monaco word rows |
 | Existing common fixture (`greetUser`, `$greeting`, `Greeter`, `$greeter->`, `Greeter::`, `strl`/`strlen`) | 7.4-compatible subset | must remain usable | must remain usable | identical full text/cursor and natural input in both versions; raw items and visible rows recorded separately |
 
 The prior PHP 8.5 control run supplies regression observations, not exact ranking requirements: `strl` raw 4/visible 4; `$gre` 2/2; `$greeter->` 3/3 (`message`, `create`, `greet`); `Greeter::` 2/2 (`class`, `create`); `new Gre` raw 5/visible 2. `greetUser(` and `strlen(` each yielded a named-argument completion candidate. PHPantom showed both builtin and local function signature help and hover on `$greeter`. Preserve these as behavior checks while allowing order/detail differences; use raw Worker items to avoid counting Monaco word suggestions as LSP results. See the prior [8.5 trace](../evidence/phpantom-2026-10-25T12-30-40-981Z/trace.json) and [candidate comparison](../evaluation.md#同じ入力での観測).
 
-PHP manual sources: [7.4 new features](https://www.php.net/manual/en/migration74.new-features.php), [8.0 new features](https://www.php.net/manual/en/migration80.new-features.php), [8.1 new features](https://www.php.net/manual/en/migration81.new-features.php), [8.2 release features](https://www.php.net/releases/8.2/en.php), [8.3 new features](https://www.php.net/manual/en/migration83.new-features.php), [8.3 new functions](https://www.php.net/manual/en/migration83.new-functions.php), [`json_validate`](https://www.php.net/manual/en/function.json-validate.php), [8.4 new features](https://www.php.net/manual/en/migration84.new-features.php), [`array_find`](https://www.php.net/manual/en/function.array-find.php), [8.5 release features](https://www.php.net/releases/8.5/en.php), [`str_contains`](https://www.php.net/manual/en/function.str-contains.php), [`array_is_list`](https://www.php.net/array-is-list), [`array_first`](https://www.php.net/array-first), [`array_last`](https://www.php.net/array-last), [function arguments/named arguments](https://www.php.net/manual/en/functions.arguments.php), [enum overview](https://www.php.net/manual/en/language.enumerations.overview.php), [properties/readonly](https://www.php.net/manual/en/language.oop5.properties.php), [property hooks](https://www.php.net/manual/en/language.oop5.property-hooks.php). The expectation concerns PHP core availability and syntax. Extensions, stubs bundled in the build, and engine version actually applied can affect observed completions and must be recorded.
+### Existing function signature and removal evidence
+
+The pre-new-build PHPantom WASM at source worktree head `863c1337adb05a339dbbd6eb20a9c26eb7b63316` was inspected read-only. `assets/lsp/phpantom/phpantom_lsp.wasm` and the corresponding local `public/lsp/phpantom/phpantom_lsp.wasm` had matching SHA-256 `b591013fd512d0f5b815a0074f9646a4742a8af4b90173ff617215356e8444c0`. Extracted stub text contains the `array_map` parameter-level `PhpStormStubsElementAvailable` variants: typed `array $array` from 8.0; untyped `$arrays` from 5.3 through 7.4; and the additional variadic array parameter. The same bundled text contains `each(&$array): array`, `@removed 8.0`, and `Deprecated(... since: "7.2")`. This is evidence from the old available local WASM asset, not the new p6 build or a browser result. The source worktree was dirty with p6's unrelated in-progress source/patch changes; those files were not read or modified.
+
+Relevant extracted stub excerpt (from that hash):
+
+```php
+function array_map(
+    ?callable $callback,
+    #[PhpStormStubsElementAvailable(from: '8.0')] array $array,
+    #[PhpStormStubsElementAvailable(from: '5.3', to: '7.4')] $arrays,
+    array ...$arrays
+): array {}
+
+/** @removed 8.0 */
+#[Deprecated(reason: "Use a foreach loop instead", since: "7.2")]
+function each(&$array): array {}
+```
+
+PHP documents corroborate the selected probes: [current `array_map` signature and behavior](https://www.php.net/array-map), [PHP 8.0 internal-function type/stub initiative](https://wiki.php.net/rfc/internal_method_return_types), [`each()` deprecation/removal notice](https://www.php.net/each), and [PHP 8.0 removal list](https://www.php.net/manual/en/migration80.incompatible.php). The PHPantom [version-aware filtering design](https://github.com/PHPantom-dev/phpantom_lsp/blob/main/docs/ARCHITECTURE.md#version-aware-filtering) explains that these stub availability annotations are selected by target PHP version. Browser expectations remain conditional on proving that the selected version actually reached the engine.
+
 
 “7.4 syntax not supported” is the PHP language grammar expectation, not a claim that PHPantom will emit a diagnostic. The parser may use a fixed grammar independent of the selected target; if it accepts newer syntax without diagnostics, record parser acceptance and diagnostics separately, and do not infer PHP 7.4 runtime compatibility.
 
