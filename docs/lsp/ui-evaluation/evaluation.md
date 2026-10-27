@@ -1,5 +1,7 @@
 # GLA-115 両UIの一次批評
 
+#434の統合PHPantom UIについて、PHP版別自然補完・URL state・previewの独立追試を[production browser評価](phpantom-production-434/browser-2026-10-27.md)に保存した。これはDraft UI/Workerの確認であり、merge・deploy判断ではない。
+
 ## 仕様・振る舞いの構造
 
 現在のレビュー対象は[#421 PHPantom UI/Worker](https://github.com/glassmonkey/php-playground/pull/421)、[#424 Phpactor UI/Worker](https://github.com/glassmonkey/php-playground/pull/424)、[#425 比較・画面記録](https://github.com/glassmonkey/php-playground/pull/425)。#420/#422はmanagerが成果hashを照合してclose済みで、必要な履歴参照を除き現行成果はこの3本に集約する。以下は既存sourceと既存runから見える経路を層ごとに分けたもの。ここでいう`Loading`は、アプリ初回起動表示ではなく、**文字入力後に候補欄へ出るLoading**を指す。

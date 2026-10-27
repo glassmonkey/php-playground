@@ -1,0 +1,8 @@
+{
+  "url": "http://127.0.0.1:8705/lsp/phpantom/phpantom_lsp.wasm?sha256=2ba179568c31958b731d3eb70f69b788187fcb605094b39d289c4d4caa3ba3da",
+  "status": 200,
+  "bytes": 18530827,
+  "sha256": "2ba179568c31958b731d3eb70f69b788187fcb605094b39d289c4d4caa3ba3da",
+  "contentType": "application/wasm",
+  "method": "isolated-page fetch plus crypto.subtle SHA-256; not a capture of the Worker's internal response bytes"
+}

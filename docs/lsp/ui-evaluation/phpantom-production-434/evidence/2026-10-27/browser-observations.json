@@ -1,0 +1,85 @@
+{
+  "target": {
+    "pr": 434,
+    "sourceHead": "297eb093dab237fa378fa954f506378ea70e790c",
+    "url": "http://127.0.0.1:8705/",
+    "serverPid": 45416,
+    "branch": "gla-115-phpantom-autocomplete",
+    "wasmSha256ManagerReadback": "2ba179568c31958b731d3eb70f69b788187fcb605094b39d289c4d4caa3ba3da",
+    "wasmSha256BrowserDirectFetch": "2ba179568c31958b731d3eb70f69b788187fcb605094b39d289c4d4caa3ba3da",
+    "wasmBytes": 18530827
+  },
+  "browser": {
+    "tool": "agent-browser 0.39.1",
+    "userAgent": "HeadlessChrome/147.0.0.0",
+    "session": "phpantom-prod-434-20261027",
+    "observedAtUtc": "2026-10-27",
+    "completionDefault": true
+  },
+  "fixture": "<?php\n$x = strr",
+  "lspPosition": {"line": 1, "character": 9},
+  "naturalStrrByVersion": [
+    {"version":"5.6","worker":5,"modelVersion":31,"requestId":2,"rawHasStrrchr":true,"visibleHasStrrchr":true},
+    {"version":"7.0","worker":7,"modelVersion":46,"requestId":2,"rawHasStrrchr":true,"visibleHasStrrchr":true},
+    {"version":"7.1","worker":9,"modelVersion":61,"requestId":2,"rawHasStrrchr":true,"visibleHasStrrchr":true},
+    {"version":"7.2","worker":11,"modelVersion":76,"requestId":2,"rawHasStrrchr":true,"visibleHasStrrchr":true},
+    {"version":"7.3","worker":13,"modelVersion":91,"requestId":2,"rawHasStrrchr":true,"visibleHasStrrchr":true},
+    {"version":"7.4","worker":15,"modelVersion":106,"requestId":2,"rawHasStrrchr":true,"visibleHasStrrchr":true},
+    {"version":"8.0","worker":17,"modelVersion":121,"requestId":2,"rawHasStrrchr":true,"visibleHasStrrchr":true},
+    {"version":"8.1","worker":19,"modelVersion":136,"requestId":2,"rawHasStrrchr":true,"visibleHasStrrchr":true},
+    {"version":"8.2","worker":21,"modelVersion":151,"requestId":2,"rawHasStrrchr":true,"visibleHasStrrchr":true},
+    {"version":"8.3","worker":23,"modelVersion":166,"requestId":2,"rawHasStrrchr":true,"visibleHasStrrchr":true},
+    {"version":"8.4","worker":25,"modelVersion":181,"requestId":2,"rawHasStrrchr":true,"visibleHasStrrchr":true},
+    {"version":"8.5","worker":2,"modelVersion":16,"requestId":2,"rawHasStrrchr":true,"visibleHasStrrchr":true}
+  ],
+  "versionBoundaries": {
+    "7.4InitialWarmWorker27": {
+      "serverInfo": "0.11.1+php-version-setting.3:php7.4",
+      "resolved": ["strlen", "array_fill"],
+      "probes": [
+        {"prefix":"str_c","modelVersion":287,"requestId":14,"raw":["substr_compare", "substr_count", "mb_substr_count"],"has_str_contains":false,"visibleHasTarget":false},
+        {"prefix":"array_f","modelVersion":305,"requestId":16,"has_array_first":false,"has_array_find":false,"has_array_find_key":false,"visibleHasTargets":false},
+        {"prefix":"array_l","modelVersion":323,"requestId":18,"result":null,"visibleHasTarget":false}
+      ]
+    },
+    "8.5WarmWorker39": {
+      "serverInfo": "0.11.1+php-version-setting.3:php8.5",
+      "resolved": ["strlen", "array_fill"],
+      "probes": [
+        {"prefix":"str_c","modelVersion":377,"requestId":6,"has_str_contains":true,"visibleHasTarget":true},
+        {"prefix":"array_f","modelVersion":395,"requestId":8,"has_array_first":true,"has_array_find":true,"has_array_find_key":true,"visibleHasTargets":true},
+        {"prefix":"array_l","modelVersion":413,"requestId":10,"raw":["array_last($array)"],"visibleHasTarget":true}
+      ]
+    },
+    "7.4ReturnWarmWorker48": {
+      "serverInfo": "0.11.1+php-version-setting.3:php7.4",
+      "resolved": ["strlen", "array_fill"],
+      "probes": [
+        {"prefix":"str_c","modelVersion":467,"requestId":6,"has_str_contains":false,"visibleHasTarget":false},
+        {"prefix":"array_f","modelVersion":485,"requestId":8,"has_array_first":false,"has_array_find":false,"has_array_find_key":false,"visibleHasTargets":false},
+        {"prefix":"array_l","modelVersion":503,"requestId":10,"result":null,"visibleHasTarget":false}
+      ]
+    }
+  },
+  "strrchrSignatureHelp": {
+    "php8.0": {"serverInfo":"0.11.1+php-version-setting.3:php8.0","modelVersion":517,"requestId":2,"position":{"line":1,"character":8},"signature":"(string $haystack, string $needle): string|false","parameters":2},
+    "php8.3": {"serverInfo":"0.11.1+php-version-setting.3:php8.3","modelVersion":531,"requestId":2,"position":{"line":1,"character":8},"signature":"(string $haystack, string $needle, bool $before_needle = false): string|false","parameters":3}
+  },
+  "urlState": {
+    "missingAc": "initial URL omitted ac; UI checked and PHPantom Worker initialized",
+    "invalidAc": "ac=invalid; UI checked, code/version restored, Worker initialized",
+    "offReload": "ac=0; UI unchecked, no PHPantom Worker, no phpantom_lsp.wasm request in HAR",
+    "on": "UI toggle wrote ac=1 and created Worker with selected version",
+    "preservation": "c, v, f, share=keep were retained when toggling ac and changing version/format; typing updated c",
+    "reload": "after code was <?php\\necho 2;, reload restored same code, v=7.4, f=html, ac=1 and share=keep",
+    "history": "version change 7.4→8.5 then Back restored 7.4 and Forward restored 8.5; code and other query state stayed intact"
+  },
+  "previewTheme": {
+    "code": "<?php\\necho 2;",
+    "previewOutput": "2",
+    "beforeThemeSwitch": "preview document included dark background rgb(30, 30, 30)",
+    "afterThemeSwitchReload": "UI Theme checked; preview parent background rgb(255, 255, 255)"
+  },
+  "invalidExcluded": "One probe builder emitted literal backslash+n and had a one-line document/wrong cursor; excluded. Valid probes were rerun and required two model lines plus matching didChange/request position/response id.",
+  "assetBoundary": "A direct browser fetch returned HTTP 200 and matching bytes/hash. The network HAR did not expose the Worker's internal WASM response body, so this is not asserted as an independent hash of the instantiated Worker bytes."
+}
