@@ -7,10 +7,9 @@ import {
 	phpVersionInitializationError,
 } from '../../../src/lsp/phpantom/php-version.mjs';
 
-const wasmPath = new URL(
-	'../../../assets/lsp/phpantom/phpantom_lsp.wasm',
-	import.meta.url
-);
+const wasmPath =
+	process.env.PHPANTOM_WASM_PATH ??
+	new URL('../../../assets/lsp/phpantom/phpantom_lsp.wasm', import.meta.url);
 const moduleStarted = performance.now();
 const wasmBytes = await readFile(wasmPath);
 const wasi = new WASI(
@@ -199,31 +198,144 @@ assert.match(JSON.stringify(signature.result?.signatures ?? ''), /message/);
 
 const signatureUri = 'file:///playground/php-version.php';
 const signatureSource = "<?php\nstrrchr(";
-send({
-	jsonrpc: '2.0',
-	method: 'textDocument/didOpen',
-	params: {
-		textDocument: {
-			uri: signatureUri,
-			languageId: 'php',
-			version: 1,
-			text: signatureSource,
+function completionAt(wasmInstance, uri, sourceText, position, id) {
+	sendTo(wasmInstance, {
+		jsonrpc: '2.0',
+		method: 'textDocument/didOpen',
+		params: {
+			textDocument: {
+				uri,
+				languageId: 'php',
+				version: 1,
+				text: sourceText,
+			},
 		},
-	},
-});
-const php85Arguments = send({
-	jsonrpc: '2.0',
-	id: 11,
-	method: 'textDocument/completion',
-	params: {
-		textDocument: { uri: signatureUri },
-		position: { line: 1, character: 8 },
-	},
-});
+	});
+	return sendTo(wasmInstance, {
+		jsonrpc: '2.0',
+		id,
+		method: 'textDocument/completion',
+		params: { textDocument: { uri }, position },
+	});
+}
+function freshPhpVersionEngine(phpVersion) {
+	const versionWasi = new WASI(
+		[],
+		[],
+		[
+			new OpenFile(new File([])),
+			ConsoleStdout.lineBuffered(() => {}),
+			ConsoleStdout.lineBuffered(() => {}),
+		]
+	);
+	const versionInstance = new WebAssembly.Instance(module, {
+		wasi_snapshot_preview1: versionWasi.wasiImport,
+	});
+	versionWasi.initialize(versionInstance);
+	const versionWasm = versionInstance.exports;
+	const versionInit = sendTo(versionWasm, {
+		jsonrpc: '2.0',
+		id: 1,
+		method: 'initialize',
+		params: {
+			capabilities: {},
+			initializationOptions: { phpVersion },
+		},
+	});
+	assert.equal(
+		versionInit.result.serverInfo.version,
+		`0.11.1+php-version-setting.1:php${phpVersion}`
+	);
+	sendTo(versionWasm, {
+		jsonrpc: '2.0',
+		method: 'initialized',
+		params: {},
+	});
+	return versionWasm;
+}
+const php85Arguments = completionAt(
+	wasm,
+	signatureUri,
+	signatureSource,
+	{ line: 1, character: 8 },
+	11
+);
 assert.match(
 	JSON.stringify(php85Arguments.result ?? ''),
 	/before_needle/
 );
+const php85StringFunctions = completionItems(
+	completionAt(
+		wasm,
+		'file:///playground/php-version-str.php',
+		'<?php\nstr_c',
+		{ line: 1, character: 5 },
+		12
+	)
+);
+assert.ok(
+	php85StringFunctions.some((item) => item.label.startsWith('str_contains')),
+	'PHP 8.5 exposes the PHP 8.0 str_contains stub'
+);
+const php85StrContainsItem = php85StringFunctions.find((item) =>
+	item.label.startsWith('str_contains')
+);
+const php85ResolvedStrContains = sendTo(wasm, {
+	jsonrpc: '2.0',
+	id: 14,
+	method: 'completionItem/resolve',
+	params: php85StrContainsItem,
+});
+assert.match(
+	JSON.stringify(php85ResolvedStrContains.result ?? ''),
+	/haystack/,
+	'PHP 8.5 resolves str_contains from the available stub'
+);
+const php85StrContainsSignature = sendTo(wasm, {
+	jsonrpc: '2.0',
+	id: 15,
+	method: 'textDocument/didOpen',
+	params: {
+		textDocument: {
+			uri: 'file:///playground/php-version-str-signature.php',
+			languageId: 'php',
+			version: 1,
+			text: '<?php\nstr_contains(',
+		},
+	},
+});
+assert.equal(php85StrContainsSignature, null);
+const php85SignatureResponse = sendTo(wasm, {
+	jsonrpc: '2.0',
+	id: 16,
+	method: 'textDocument/signatureHelp',
+	params: {
+		textDocument: {
+			uri: 'file:///playground/php-version-str-signature.php',
+		},
+		position: { line: 1, character: 13 },
+	},
+});
+assert.match(
+	JSON.stringify(php85SignatureResponse.result?.signatures ?? ''),
+	/haystack/,
+	'PHP 8.5 resolves str_contains signature metadata'
+);
+const php85ArrayFunctions = completionItems(
+	completionAt(
+		wasm,
+		'file:///playground/php-version-array.php',
+		'<?php\narray_f',
+		{ line: 1, character: 7 },
+		13
+	)
+);
+for (const name of ['array_first', 'array_find', 'array_find_key']) {
+	assert.ok(
+		php85ArrayFunctions.some((item) => item.label.startsWith(name)),
+		`PHP 8.5 exposes the ${name} stub`
+	);
+}
 
 const php74Wasi = new WASI(
 	[],
@@ -251,31 +363,115 @@ assert.equal(
 	'0.11.1+php-version-setting.1:php7.4'
 );
 sendTo(php74Wasm, { jsonrpc: '2.0', method: 'initialized', params: {} });
+const php74Arguments = completionAt(
+	php74Wasm,
+	signatureUri,
+	signatureSource,
+	{ line: 1, character: 8 },
+	2
+);
+assert.doesNotMatch(
+	JSON.stringify(php74Arguments.result ?? ''),
+	/before_needle/
+);
+const php74StringFunctions = completionItems(
+	completionAt(
+		php74Wasm,
+		'file:///playground/php-version-str.php',
+		'<?php\nstr_c',
+		{ line: 1, character: 5 },
+		3
+	)
+);
+assert.ok(
+	!php74StringFunctions.some((item) => item.label.startsWith('str_contains')),
+	'PHP 7.4 excludes the PHP 8.0 str_contains stub'
+);
+const php74SignatureUri = 'file:///playground/php-version-str-signature.php';
 sendTo(php74Wasm, {
 	jsonrpc: '2.0',
 	method: 'textDocument/didOpen',
 	params: {
 		textDocument: {
-			uri: signatureUri,
+			uri: php74SignatureUri,
 			languageId: 'php',
 			version: 1,
-			text: signatureSource,
+			text: '<?php\nstr_contains(',
 		},
 	},
 });
-const php74Arguments = sendTo(php74Wasm, {
+const php74StrContainsSignature = sendTo(php74Wasm, {
 	jsonrpc: '2.0',
-	id: 2,
-	method: 'textDocument/completion',
+	id: 6,
+	method: 'textDocument/signatureHelp',
 	params: {
-		textDocument: { uri: signatureUri },
-		position: { line: 1, character: 8 },
+		textDocument: { uri: php74SignatureUri },
+		position: { line: 1, character: 13 },
 	},
 });
-assert.doesNotMatch(
-	JSON.stringify(php74Arguments.result ?? ''),
-	/before_needle/
+assert.equal(
+	php74StrContainsSignature.result,
+	null,
+	'PHP 7.4 does not resolve a signature for the unavailable stub'
 );
+const php74ArrayFunctions = completionItems(
+	completionAt(
+		php74Wasm,
+		'file:///playground/php-version-array.php',
+		'<?php\narray_f',
+		{ line: 1, character: 7 },
+		4
+	)
+);
+for (const name of ['array_first', 'array_find', 'array_find_key']) {
+	assert.ok(
+		!php74ArrayFunctions.some((item) => item.label.startsWith(name)),
+		`PHP 7.4 excludes the ${name} stub after a fresh initialization`
+	);
+}
+const php74ExistingFunctions = completionItems(
+	completionAt(
+		php74Wasm,
+		'file:///playground/php-version-existing.php',
+		'<?php\nstrl',
+		{ line: 1, character: 4 },
+		5
+	)
+);
+assert.ok(
+	php74ExistingFunctions.some((item) => item.label.startsWith('strlen')),
+	'PHP 7.4 retains the existing strlen builtin'
+);
+const php74UserFunctions = completionItems(
+	completionAt(
+		php74Wasm,
+		'file:///playground/php-version-user-function.php',
+		'<?php\n/** @since 8.5 */\nfunction userFutureApi(): void {}\nuserF',
+		{ line: 3, character: 5 },
+		7
+	)
+);
+assert.ok(
+	php74UserFunctions.some((item) => item.label.startsWith('userFutureApi')),
+	'PHP 7.4 keeps user-defined functions regardless of their @since docblock'
+);
+for (const [cycleIndex, phpVersion] of ['7.4', '8.5', '7.4'].entries()) {
+	const cycleWasm = freshPhpVersionEngine(phpVersion);
+	const cycleItems = completionItems(
+		completionAt(
+			cycleWasm,
+			`file:///playground/php-version-cycle-${cycleIndex}.php`,
+			'<?php\nstr_c',
+			{ line: 1, character: 5 },
+			20 + cycleIndex
+		)
+	);
+	assert.equal(
+		cycleItems.some((item) => item.label.startsWith('str_contains')),
+		phpVersion === '8.5',
+		`fresh-engine ${phpVersion} cycle filters str_contains`
+	);
+}
 
 const resolved = send({
 	jsonrpc: '2.0',

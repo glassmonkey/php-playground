@@ -1,20 +1,50 @@
+diff --git a/build.rs b/build.rs
+index c579d0b..1ec06c9 100644
+--- a/build.rs
++++ b/build.rs
+@@ -298,0 +299,12 @@ fn generate_stub_map(stubs_path: &Path) {
++    // Keep source paths beside embedded contents so runtime availability
++    // checks can distinguish PHP's bundled core stubs from extension stubs.
++    out.push_str("/// Paths corresponding to [`STUB_FILES`].\n");
++    out.push_str(&format!(
++        "pub(crate) static STUB_FILE_PATHS: [&str; {}] = [\n",
++        existing_files.len()
++    ));
++    for rel_path in &existing_files {
++        out.push_str(&format!("    \"{}\",\n", escape(rel_path)));
++    }
++    out.push_str("];\n\n");
++
+diff --git a/src/backend/settings.rs b/src/backend/settings.rs
+index 07afa09..09f8f0c 100644
+--- a/src/backend/settings.rs
++++ b/src/backend/settings.rs
+@@ -122 +122,7 @@ impl Backend {
+-                .or_insert_with(|| stubs::removed_stub_names(source, version))
++                .or_insert_with(|| {
++                    stubs::unavailable_stub_names(
++                        source,
++                        stubs::embedded_stub_path(source),
++                        version,
++                    )
++                })
+diff --git a/src/completion/handler/named_args.rs b/src/completion/handler/named_args.rs
+index 8d628b6..5b6f3bb 100644
+--- a/src/completion/handler/named_args.rs
++++ b/src/completion/handler/named_args.rs
+@@ -33,0 +34,5 @@ impl Backend {
++        // Named arguments are PHP 8.0 syntax and must not be suggested for older targets.
++        if self.php_version() < crate::types::PhpVersion::new(8, 0) {
++            return Vec::new();
++        }
++
+diff --git a/src/lsp_dispatch.rs b/src/lsp_dispatch.rs
+index 3f4ff19..a317838 100644
 --- a/src/lsp_dispatch.rs
 +++ b/src/lsp_dispatch.rs
-@@ -17,6 +17,7 @@
- };
- 
- use crate::Backend;
+@@ -19,0 +20 @@ use crate::Backend;
 +use crate::types::PhpVersion;
- use std::sync::Arc;
- 
- /// JSON-RPC error codes we return, from the LSP specification.
-@@ -42,7 +43,29 @@
-     pub fn new() -> LspDispatcher {
-         LspDispatcher {
-             backend: Backend::new_headless(),
-+        }
-+    }
-+
+@@ -47,0 +49,22 @@ impl LspDispatcher {
 +    /// Apply the target PHP version before the first LSP request.
 +    fn configure_php_version(&self, params: &Value) -> Result<(), String> {
 +        let Some(version) = params
@@ -32,44 +62,126 @@
 +            return Err(format!(
 +                "PHPantom preview supports PHP 7.4 and 8.5; received {version}."
 +            ));
-         }
++        }
 +        self.backend.set_php_version(version);
 +        Ok(())
-     }
- 
-     /// Handle one LSP JSON-RPC message. Returns a JSON-RPC response string for
-@@ -54,7 +77,10 @@
-         let params = value.get("params").cloned().unwrap_or(Value::Null);
- 
-         let outcome: Outcome = match method {
++    }
++
+@@ -57 +80,4 @@ impl LspDispatcher {
 -            "initialize" => Some(Ok(self.capabilities())),
 +            "initialize" => match self.configure_php_version(&params) {
 +                Ok(()) => Some(Ok(self.capabilities())),
 +                Err(message) => Some(Err((INVALID_PARAMS, message))),
 +            },
-             "shutdown" => Some(Ok(Value::Null)),
-             "initialized" | "exit" | "$/cancelRequest" => None,
-             "textDocument/didOpen" => {
-@@ -275,7 +301,7 @@
-             // can tell which build it is talking to.
-             "serverInfo": {
-                 "name": self.backend.name,
+@@ -278 +304 @@ impl LspDispatcher {
 -                "version": self.backend.version,
 +                "version": format!("{}+php-version-setting.1:php{}", self.backend.version, self.backend.php_version()),
-             }
-         })
-     }
---- a/src/completion/handler/named_args.rs
-+++ b/src/completion/handler/named_args.rs
-@@ -31,6 +31,11 @@
-         position: Position,
-         ctx: &FileContext,
-     ) -> Vec<CompletionItem> {
-+        // Named arguments are PHP 8.0 syntax and must not be suggested for older targets.
-+        if self.php_version() < crate::types::PhpVersion::new(8, 0) {
-+            return Vec::new();
-+        }
+diff --git a/src/stubs.rs b/src/stubs.rs
+index a3aedeb..9fbc5dc 100644
+--- a/src/stubs.rs
++++ b/src/stubs.rs
+@@ -110,0 +111,18 @@ pub fn build_stub_function_index() -> HashMap<&'static str, &'static str> {
++/// Return the bundled stub file path for a source embedded in this build.
++/// User documents cannot match because only `STUB_FILES` are searched.
++pub(crate) fn embedded_stub_path(source: &str) -> Option<&'static str> {
++    STUB_FILES
++        .iter()
++        .position(|stub| std::ptr::eq(stub.as_ptr(), source.as_ptr()))
++        .map(|index| STUB_FILE_PATHS[index])
++}
 +
-         // ── Primary path: AST-based detection via symbol map ────────
-         // The symbol map's `CallSite` data handles chains, nesting,
-         // and strings correctly.  Fall back to text scanning when the
++/// Whether phpstorm-stubs' pinned PHP core files describe PHP runtime
++/// symbols. Extension directories can use `@since` for extension releases,
++/// so they are deliberately excluded from PHP-version interpretation.
++fn is_php_core_function_stub(path: &str) -> bool {
++    path == "Core/Core.php"
++        || path == "Core/Core_c.php"
++        || path.starts_with("standard/standard_")
++}
++
+@@ -174,0 +193,61 @@ pub fn removed_stub_names(
++/// Stub names unavailable in a target PHP version because they were removed
++/// or introduced in a later PHP 8.x release.
++pub fn unavailable_stub_names<'a>(
++    source: &'a str,
++    path: Option<&str>,
++    php_version: crate::types::PhpVersion,
++) -> Option<RemovedStubNames<'a>> {
++    let mut names = removed_stub_names(source, php_version).unwrap_or_default();
++    if !path.is_some_and(is_php_core_function_stub) {
++        return (!names.is_empty()).then_some(names);
++    }
++    let mut search_from = 0;
++    while let Some(rel) = source[search_from..].find("@since") {
++        let tag_pos = search_from + rel;
++        let Some(doc_end) = source[tag_pos..].find("*/").map(|p| tag_pos + p + 2) else {
++            break;
++        };
++        search_from = doc_end;
++        let Some(doc_start) = source[..tag_pos].rfind("/**") else {
++            continue;
++        };
++        if !docblock_introduced_after_php_8(&source[doc_start..doc_end], php_version) {
++            continue;
++        }
++        let after = &source[doc_end..];
++        let after = &after[..after.find("/**").unwrap_or(after.len())];
++        if let Some((kind, name)) = first_declaration(after) {
++            if let StubSymbolKind::Function = kind {
++                names.functions.insert(name);
++            };
++        }
++    }
++    (!names.is_empty()).then_some(names)
++}
++
++/// Interpret exact `@since 8.X` tags only in pinned PHP core function stubs.
++/// Unrecognized versions and all other paths remain available.
++fn docblock_introduced_after_php_8(
++    docblock: &str,
++    php_version: crate::types::PhpVersion,
++) -> bool {
++    docblock.lines().any(|line| {
++        let trimmed = line.trim().trim_start_matches('*').trim();
++        let Some(rest) = trimmed.strip_prefix("@since") else {
++            return false;
++        };
++        let token = rest.trim();
++        let token = token.strip_prefix("PHP").unwrap_or(token).trim();
++        let token = token.split_whitespace().next().unwrap_or("");
++        let mut parts = token.split('.');
++        let (Some(major), Some(minor), None) = (parts.next(), parts.next(), parts.next()) else {
++            return false;
++        };
++        let (Ok(major), Ok(minor)) = (major.parse::<u8>(), minor.parse::<u8>()) else {
++            return false;
++        };
++        let introduced = crate::types::PhpVersion { major, minor };
++        introduced.major == 8 && introduced > php_version
++    })
++}
++
+@@ -302,0 +382,23 @@ define('MCRYPT_ENCRYPT', 0);
++    #[test]
++    fn function_since_php_8_is_filtered_before_its_release() {
++        let source = "<?php\n/**\n * @since 8.0\n */\nfunction str_contains() {}\n";
++        assert!(unavailable_stub_names(source, Some("Core/Core.php"), PHP_7_4)
++            .is_some_and(|names| names.functions.contains("str_contains")));
++        assert!(unavailable_stub_names(source, Some("Core/Core.php"), PHP_8_0).is_none());
++        assert!(unavailable_stub_names(source, Some("Core/Core.php"), PHP_8_4).is_none());
++    }
++
++    #[test]
++    fn extension_release_since_is_not_treated_as_php_version() {
++        let source = "<?php\n/**\n * @since 2.3.0\n */\nfunction extension_api() {}\n";
++        assert!(unavailable_stub_names(source, Some("curl/curl.php"), PHP_7_4).is_none());
++    }
++
++    #[test]
++    fn unknown_since_version_and_extension_since_are_retained() {
++        let unknown = "<?php\n/**\n * @since next release\n */\nfunction future_api() {}\n";
++        let extension = "<?php\n/**\n * @since 8.5\n */\nfunction extension_api() {}\n";
++        assert!(unavailable_stub_names(unknown, Some("Core/Core.php"), PHP_7_4).is_none());
++        assert!(unavailable_stub_names(extension, Some("curl/curl.php"), PHP_7_4).is_none());
++    }
++

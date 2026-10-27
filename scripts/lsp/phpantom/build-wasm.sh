@@ -58,7 +58,8 @@ patch -p1 -d "$source_dir" \
 )
 
 output="$target_dir/wasm32-wasip1/wasm-release/phpantom_lsp.wasm"
-mkdir -p "$repo_root/assets/lsp/phpantom"
-cp "$output" "$repo_root/assets/lsp/phpantom/phpantom_lsp.wasm"
+wasm_output="${PHPANTOM_WASM_OUTPUT:-$repo_root/assets/lsp/phpantom/phpantom_lsp.wasm}"
+mkdir -p "$(dirname "$wasm_output")"
+cp "$output" "$wasm_output"
 printf 'Built PHPantom %s with PHP-version initialization at %s\n' \
-	"$version" "$repo_root/assets/lsp/phpantom/phpantom_lsp.wasm"
+	"$version" "$wasm_output"
