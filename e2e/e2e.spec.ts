@@ -457,9 +457,10 @@ test.describe('auto complete URL state', () => {
     });
     await page.goto(`${PAGE}/?${params}`);
 
-    const autoComplete = page.getByTestId('checkbox-auto-complete');
+    const autoComplete = page.getByRole('checkbox', {name: 'Auto complete'});
     await expect(autoComplete).not.toBeChecked();
-    await autoComplete.check();
+    await page.getByText('Auto complete', {exact: true}).click();
+    await expect(autoComplete).toBeChecked();
     await expect(page).toHaveURL(/[?&]ac=1(?:&|$)/);
     await expect(page).toHaveURL(/[?&]share=keep(?:&|$)/);
 
@@ -514,8 +515,10 @@ test.describe('auto complete URL state', () => {
   test('defaults invalid ac values to enabled', async ({page}) => {
     await page.goto(`${PAGE}/?ac=invalid&share=keep`);
 
-    await expect(page.getByTestId('checkbox-auto-complete')).toBeChecked();
-    await page.getByTestId('checkbox-auto-complete').uncheck();
+    const autoComplete = page.getByRole('checkbox', {name: 'Auto complete'});
+    await expect(autoComplete).toBeChecked();
+    await page.getByText('Auto complete', {exact: true}).click();
+    await expect(autoComplete).not.toBeChecked();
     await expect(page).toHaveURL(/[?&]ac=0(?:&|$)/);
     await expect(page).toHaveURL(/[?&]share=keep(?:&|$)/);
   });
