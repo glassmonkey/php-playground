@@ -1,0 +1,376 @@
+diff --git a/build.rs b/build.rs
+index c579d0b..1ec06c9 100644
+--- a/build.rs
++++ b/build.rs
+@@ -298,0 +299,12 @@ fn generate_stub_map(stubs_path: &Path) {
++    // Keep source paths beside embedded contents so runtime availability
++    // checks can distinguish PHP's bundled core stubs from extension stubs.
++    out.push_str("/// Paths corresponding to [`STUB_FILES`].\n");
++    out.push_str(&format!(
++        "pub(crate) static STUB_FILE_PATHS: [&str; {}] = [\n",
++        existing_files.len()
++    ));
++    for rel_path in &existing_files {
++        out.push_str(&format!("    \"{}\",\n", escape(rel_path)));
++    }
++    out.push_str("];\n\n");
++
+diff --git a/src/backend/settings.rs b/src/backend/settings.rs
+index 07afa09..09f8f0c 100644
+--- a/src/backend/settings.rs
++++ b/src/backend/settings.rs
+@@ -122 +122,7 @@ impl Backend {
+-                .or_insert_with(|| stubs::removed_stub_names(source, version))
++                .or_insert_with(|| {
++                    stubs::unavailable_stub_names(
++                        source,
++                        stubs::embedded_stub_path(source),
++                        version,
++                    )
++                })
+diff --git a/src/completion/handler/named_args.rs b/src/completion/handler/named_args.rs
+index 8d628b6..5b6f3bb 100644
+--- a/src/completion/handler/named_args.rs
++++ b/src/completion/handler/named_args.rs
+@@ -33,0 +34,5 @@ impl Backend {
++        // Named arguments are PHP 8.0 syntax and must not be suggested for older targets.
++        if self.php_version() < crate::types::PhpVersion::new(8, 0) {
++            return Vec::new();
++        }
++
+diff --git a/src/docblock/tags.rs b/src/docblock/tags.rs
+index 2d52d21..4039b97 100644
+--- a/src/docblock/tags.rs
++++ b/src/docblock/tags.rs
+@@ -619,0 +620 @@ pub(crate) fn merge_param_docblock_into_parameters(
++    excluded_parameter_names: &[crate::atom::Atom],
+@@ -702 +703,5 @@ pub(crate) fn merge_param_docblock_into_parameters(
+-        if !parameters.iter().any(|p| p.name == tag_name) {
++        if !parameters.iter().any(|p| p.name == tag_name)
++            && !excluded_parameter_names
++                .iter()
++                .any(|name| name.as_str() == tag_name)
++        {
+diff --git a/src/lsp_dispatch.rs b/src/lsp_dispatch.rs
+index 3f4ff19..6944cb7 100644
+--- a/src/lsp_dispatch.rs
++++ b/src/lsp_dispatch.rs
+@@ -19,0 +20 @@ use crate::Backend;
++use crate::types::PhpVersion;
+@@ -47,0 +49,25 @@ impl LspDispatcher {
++    /// Apply the target PHP version before the first LSP request.
++    fn configure_php_version(&self, params: &Value) -> Result<(), String> {
++        let Some(version) = params
++            .get("initializationOptions")
++            .and_then(|options| options.get("phpVersion"))
++        else {
++            return Ok(());
++        };
++        let version = version
++            .as_str()
++            .ok_or_else(|| "initializationOptions.phpVersion must be a string.".to_string())?;
++        let version = PhpVersion::from_composer_constraint(version)
++            .ok_or_else(|| "initializationOptions.phpVersion must be major.minor.".to_string())?;
++        if !matches!(
++            (version.major, version.minor),
++            (5, 6) | (7, 0..=4) | (8, 0..=5)
++        ) {
++            return Err(format!(
++                "PHPantom supports PHP 5.6, 7.0–7.4, and 8.0–8.5; received {version}."
++            ));
++        }
++        self.backend.set_php_version(version);
++        Ok(())
++    }
++
+@@ -57 +83,4 @@ impl LspDispatcher {
+-            "initialize" => Some(Ok(self.capabilities())),
++            "initialize" => match self.configure_php_version(&params) {
++                Ok(()) => Some(Ok(self.capabilities())),
++                Err(message) => Some(Err((INVALID_PARAMS, message))),
++            },
+@@ -278 +307 @@ impl LspDispatcher {
+-                "version": self.backend.version,
++                "version": format!("{}+php-version-setting.3:php{}", self.backend.version, self.backend.php_version()),
+diff --git a/src/parser/classes/methods.rs b/src/parser/classes/methods.rs
+index 95a25a5..a2d18f2 100644
+--- a/src/parser/classes/methods.rs
++++ b/src/parser/classes/methods.rs
+@@ -52,0 +53 @@ pub(super) fn extract_method<'a>(
++        excluded_parameter_names,
+@@ -94,0 +96 @@ pub(super) fn extract_method<'a>(
++            &excluded_parameter_names,
+diff --git a/src/parser/functions.rs b/src/parser/functions.rs
+index 1b8ba74..9a58b55 100644
+--- a/src/parser/functions.rs
++++ b/src/parser/functions.rs
+@@ -123,0 +124 @@ impl Backend {
++                        excluded_parameter_names,
+@@ -190,0 +192 @@ impl Backend {
++                            &excluded_parameter_names,
+@@ -472,0 +475,101 @@ impl Backend {
++
++#[cfg(test)]
++mod parameter_version_reconstruction_tests {
++    use crate::{Backend, types::PhpVersion};
++
++    const SOURCE: &str = r#"<?php
++/**
++ * @param bool $before_needle Available from PHP 8.3.
++ * @param non-empty-string $stable Retained native parameter enrichment.
++ * @param bool $before_needle Available from PHP 8.3.
++ * @param string $virtualOption Extra argument read through func_get_args().
++ */
++function runtime_parameter_fixture(string $stable, #[\JetBrains\PhpStorm\Internal\PhpStormStubsElementAvailable(from: '8.3')] bool $before_needle = false): void {
++    func_get_args();
++}
++
++class RuntimeParameterFixture {
++    /**
++     * @param non-empty-string $stable Retained native parameter enrichment.
++     * @param bool $before_needle Available from PHP 8.3.
++     * @param string $virtualOption An unrelated virtual method parameter.
++     */
++    public function run(string $stable, #[\JetBrains\PhpStorm\Internal\PhpStormStubsElementAvailable(from: '8.3')] bool $before_needle = false): void { func_get_args(); }
++}
++"#;
++
++    fn has_parameter(parameters: &[crate::types::ParameterInfo], name: &str) -> bool {
++        parameters
++            .iter()
++            .any(|parameter| parameter.name.as_str() == name)
++    }
++
++    #[test]
++    fn docblock_merge_does_not_restore_excluded_native_parameters() {
++        for (version, expected_native) in [
++            (PhpVersion::new(8, 0), false),
++            (PhpVersion::new(8, 3), true),
++        ] {
++            let functions =
++                Backend::test_defaults().parse_functions_versioned(SOURCE, Some(version));
++            let function = functions
++                .iter()
++                .find(|function| function.name.as_str() == "runtime_parameter_fixture")
++                .unwrap();
++            assert_eq!(
++                has_parameter(&function.parameters, "$before_needle"),
++                expected_native,
++                "function at {version:?}"
++            );
++            assert!(
++                has_parameter(&function.parameters, "$virtualOption"),
++                "virtual @param retained at {version:?}"
++            );
++            assert_eq!(
++                function
++                    .parameters
++                    .iter()
++                    .find(|parameter| parameter.name.as_str() == "$stable")
++                    .unwrap()
++                    .type_hint
++                    .as_ref()
++                    .unwrap()
++                    .to_string(),
++                "non-empty-string",
++                "native docblock enrichment retained at {version:?}"
++            );
++
++            let classes = Backend::parse_php_versioned(SOURCE, Some(version));
++            let method = classes
++                .iter()
++                .find(|class| class.name.as_str() == "RuntimeParameterFixture")
++                .unwrap()
++                .methods
++                .iter()
++                .find(|method| method.name.as_str() == "run")
++                .unwrap();
++            assert_eq!(
++                has_parameter(&method.parameters, "$before_needle"),
++                expected_native,
++                "method at {version:?}"
++            );
++            assert!(
++                has_parameter(&method.parameters, "$virtualOption"),
++                "unrelated method @param retained at {version:?}"
++            );
++            assert_eq!(
++                method
++                    .parameters
++                    .iter()
++                    .find(|parameter| parameter.name.as_str() == "$stable")
++                    .unwrap()
++                    .type_hint
++                    .as_ref()
++                    .unwrap()
++                    .to_string(),
++                "non-empty-string",
++                "method native docblock enrichment retained at {version:?}"
++            );
++        }
++    }
++}
+diff --git a/src/parser/signature.rs b/src/parser/signature.rs
+index 57c05e8..885d456 100644
+--- a/src/parser/signature.rs
++++ b/src/parser/signature.rs
+@@ -18 +18,2 @@ use super::{
+-    extract_parameters, is_available_for_version, is_removed_for_version,
++    extract_parameters, is_available_for_version, is_param_available_for_version,
++    is_removed_for_version,
+@@ -24,0 +26,2 @@ pub(super) struct Signature<'a> {
++    /// Native parameter names removed by the target-version filter.
++    pub excluded_parameter_names: Vec<Atom>,
+@@ -70,0 +74,10 @@ pub(super) fn extract_signature<'a>(
++    let excluded_parameter_names = if let (Some(ctx), Some(ver)) = (doc_ctx, php_version) {
++        parameter_list
++            .parameters
++            .iter()
++            .filter(|param| !is_param_available_for_version(param, ctx, ver))
++            .map(|param| atom(crate::atom::bytes_to_str(param.variable.name)))
++            .collect()
++    } else {
++        Vec::new()
++    };
+@@ -102,0 +116 @@ pub(super) fn extract_signature<'a>(
++            excluded_parameter_names,
+@@ -201,0 +216 @@ pub(super) fn extract_signature<'a>(
++        excluded_parameter_names,
+diff --git a/src/resolution/functions.rs b/src/resolution/functions.rs
+index bff8c3e..f427c13 100644
+--- a/src/resolution/functions.rs
++++ b/src/resolution/functions.rs
+@@ -190,5 +190,8 @@ impl Backend {
+-    /// Every function in the file goes into `global_functions` under the
+-    /// file's stub URI, corrected by [`crate::stub_patches`], so a later
+-    /// lookup of any of them is answered by Phase 1.  The classes the file
+-    /// declares are cached in `uri_classes_index` under the same URI, so a
+-    /// type one of its functions names (a return type, say) resolves too.
++    /// Every available function in the file goes into `global_functions`
++    /// under the file's stub URI, corrected by [`crate::stub_patches`], so a
++    /// later lookup of any of them is answered by Phase 1. Functions newer
++    /// than the configured PHP version must stay out of this cache as well
++    /// as `stub_function_index`, or completion can rediscover them here. The
++    /// classes the file declares are cached in `uri_classes_index` under the
++    /// same URI, so a type one of its functions names (a return type, say)
++    /// resolves too.
+@@ -202,0 +206,10 @@ impl Backend {
++        let unavailable = crate::stubs::unavailable_stub_names(
++            stub_content,
++            crate::stubs::embedded_stub_path(stub_content),
++            self.php_version(),
++        );
++        functions.retain(|function| {
++            !unavailable.as_ref().is_some_and(|names| {
++                names.contains(crate::stubs::StubSymbolKind::Function, &function.name)
++            })
++        });
+diff --git a/src/stubs.rs b/src/stubs.rs
+index a3aedeb..90a5c28 100644
+--- a/src/stubs.rs
++++ b/src/stubs.rs
+@@ -110,0 +111,16 @@ pub fn build_stub_function_index() -> HashMap<&'static str, &'static str> {
++/// Return the bundled stub file path for a source embedded in this build.
++/// User documents cannot match because only `STUB_FILES` are searched.
++pub(crate) fn embedded_stub_path(source: &str) -> Option<&'static str> {
++    STUB_FILES
++        .iter()
++        .position(|stub| std::ptr::eq(stub.as_ptr(), source.as_ptr()))
++        .map(|index| STUB_FILE_PATHS[index])
++}
++
++/// Whether phpstorm-stubs' pinned PHP core files describe PHP runtime
++/// symbols. Extension directories can use `@since` for extension releases,
++/// so they are deliberately excluded from PHP-version interpretation.
++fn is_php_core_function_stub(path: &str) -> bool {
++    path == "Core/Core.php" || path == "Core/Core_c.php" || path.starts_with("standard/standard_")
++}
++
+@@ -174,0 +191,61 @@ pub fn removed_stub_names(
++/// Stub names unavailable in a target PHP version because they were removed
++/// or introduced in a later PHP release.
++pub fn unavailable_stub_names<'a>(
++    source: &'a str,
++    path: Option<&str>,
++    php_version: crate::types::PhpVersion,
++) -> Option<RemovedStubNames<'a>> {
++    let mut names = removed_stub_names(source, php_version).unwrap_or_default();
++    if !path.is_some_and(is_php_core_function_stub) {
++        return (!names.is_empty()).then_some(names);
++    }
++    let mut search_from = 0;
++    while let Some(rel) = source[search_from..].find("@since") {
++        let tag_pos = search_from + rel;
++        let Some(doc_end) = source[tag_pos..].find("*/").map(|p| tag_pos + p + 2) else {
++            break;
++        };
++        search_from = doc_end;
++        let Some(doc_start) = source[..tag_pos].rfind("/**") else {
++            continue;
++        };
++        if !docblock_introduced_after_php_8(&source[doc_start..doc_end], php_version) {
++            continue;
++        }
++        let after = &source[doc_end..];
++        let after = &after[..after.find("/**").unwrap_or(after.len())];
++        if let Some((kind, name)) = first_declaration(after) {
++            match kind {
++                StubSymbolKind::Function => names.functions.insert(name),
++                StubSymbolKind::Class => names.classes.insert(name),
++                StubSymbolKind::Constant => names.constants.insert(name),
++            };
++        }
++    }
++    (!names.is_empty()).then_some(names)
++}
++
++/// Interpret exact PHP `@since X.Y` tags only in pinned PHP core stubs.
++/// Extension stubs can use `@since` for extension releases, so their symbols
++/// remain available. Unknown formats also remain available.
++fn docblock_introduced_after_php_8(docblock: &str, php_version: crate::types::PhpVersion) -> bool {
++    docblock.lines().any(|line| {
++        let trimmed = line.trim().trim_start_matches('*').trim();
++        let Some(rest) = trimmed.strip_prefix("@since") else {
++            return false;
++        };
++        let token = rest.trim();
++        let token = token.strip_prefix("PHP").unwrap_or(token).trim();
++        let token = token.split_whitespace().next().unwrap_or("");
++        let mut parts = token.split('.');
++        let (Some(major), Some(minor), None) = (parts.next(), parts.next(), parts.next()) else {
++            return false;
++        };
++        let (Ok(major), Ok(minor)) = (major.parse::<u8>(), minor.parse::<u8>()) else {
++            return false;
++        };
++        let introduced = crate::types::PhpVersion { major, minor };
++        introduced > php_version
++    })
++}
++
+@@ -302,0 +380,25 @@ define('MCRYPT_ENCRYPT', 0);
++    #[test]
++    fn function_since_php_8_is_filtered_before_its_release() {
++        let source = "<?php\n/**\n * @since 8.0\n */\nfunction str_contains() {}\n";
++        assert!(
++            unavailable_stub_names(source, Some("Core/Core.php"), PHP_7_4)
++                .is_some_and(|names| names.functions.contains("str_contains"))
++        );
++        assert!(unavailable_stub_names(source, Some("Core/Core.php"), PHP_8_0).is_none());
++        assert!(unavailable_stub_names(source, Some("Core/Core.php"), PHP_8_4).is_none());
++    }
++
++    #[test]
++    fn extension_release_since_is_not_treated_as_php_version() {
++        let source = "<?php\n/**\n * @since 2.3.0\n */\nfunction extension_api() {}\n";
++        assert!(unavailable_stub_names(source, Some("curl/curl.php"), PHP_7_4).is_none());
++    }
++
++    #[test]
++    fn unknown_since_version_and_extension_since_are_retained() {
++        let unknown = "<?php\n/**\n * @since next release\n */\nfunction future_api() {}\n";
++        let extension = "<?php\n/**\n * @since 8.5\n */\nfunction extension_api() {}\n";
++        assert!(unavailable_stub_names(unknown, Some("Core/Core.php"), PHP_7_4).is_none());
++        assert!(unavailable_stub_names(extension, Some("curl/curl.php"), PHP_7_4).is_none());
++    }
++
