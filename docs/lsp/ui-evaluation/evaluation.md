@@ -270,11 +270,15 @@ low/fast `str_`結果とsource traceは[run 14-35](evidence/phpactor-natural-aft
 
 上記Node/Playwright runnerとそのtraceは従来測定の履歴として保持し、今回のafter追試には使っていない。singleflight後のagent-browser操作、観測境界、slow/fast入力の限界は[after-check記録](evidence/after-singleflight-2026-10-26T03-14Z/README.md)に記録した。追試は完了し、現在のscopeで追加測定は行わない。
 
-これらの修正後結果は元の両UI比較表の値へ混ぜない。PHPantomの新head再測定は行っていないため、修正後の対比較ではなくPhpactor修正headの個別UI確認である。一次報告の候補比較と同じく採用判断は付けない。
+これらのPhpactor修正後結果は元の両UI比較表の値へ混ぜない。このsingleflight追試時点ではPHPantomの新head再測定はなく、Phpactor修正headの個別UI確認だった。後日のPHPantom version checkは別節に分け、修正後の対比較とは扱わない。一次報告の候補比較と同じく採用判断は付けない。
 
-## PHPantom PHP 7.4 / 8.5 version-filtering browser check
+## PHPantom PHP 7.4 / 8.5 version-filtering browser check — baseline head 9579644
 
 #421の新head `95796444b1ea3d7f158f15f378a644e300c67d6c` をagent-browser隔離sessionで確認した。UI選択7.4/8.5/7.4それぞれに対応するPHPantom initialize/serverInfoとdocument再openを観測したが、7.4へ戻した後も自然入力`str_c`のraw/UI結果に8.0+ `str_contains`が残り、候補名を本文に含めない同一`<?php\n$x = ` + 自然`array_f`では7.4 raw/UIに8.5追加の`array_first`が出た。8.5 positive controlを挟み7.4で再現しており、空画面・未要求・word-based補助候補では説明できない。**このbuildのversion-aware completionは確認した範囲で未達**。case相関、trace、既知の未測定は[PHPantom version browser記録](phpantom-74-85/browser-2026-10-27-new-build.md)を参照。構文解析とdiagnosticsはこの追試では未評価であり、別々に残す。
+
+## PHPantom PHP 7.4 / 8.5 version-filtering browser check — post-fix head 91639e31
+
+#421 head `91639e31fda5ffeb63d6ec6cf81f5da9dc39f7b3` を別の隔離agent-browser sessionで確認した。CDPのWorker-target診断で、アプリWorker自身がfetchしたWASM responseのcloneを読み取り、bytes/hashを照合した（18,518,682 bytes、SHA-256 `ec6238fb1be525f2963cbfb0c59b0e6489ba44a1c0462b3f84b481ebe03afc34`、manager配信値と一致）。この一時計測は起動時間比較に使っていない。新headでは7.4の自然`array_f` raw/UI結果から`array_first`、`array_find`、`array_find_key`が消え、8.5で同候補が出た後の7.4でも消えた。一方、自然`array_l`では8.5-only `array_last`が7.4の初回と8.5→7.4復帰後のraw/UIに残る。`str_contains`は初回7.4 Workerでraw/UIに残り、復帰後Workerでは除外された。従ってversion filterは確認した3関数には効くが網羅ではなく、他の2ケースはWorker lifecycle間で不一致があった。詳細なmodel version/cursor、matching request/response、raw/UI行、WASM hash取得法、無効run除外は[head 91639記録](phpantom-74-85/browser-2026-10-27-head-91639.md)と[Worker trace](phpantom-74-85/evidence/head-91639/worker-trace.json)に保存した。`array_is_list`、`json_validate`、named arguments、構文解析とdiagnosticsは未測定。
 
 ## 差の原因と確度
 

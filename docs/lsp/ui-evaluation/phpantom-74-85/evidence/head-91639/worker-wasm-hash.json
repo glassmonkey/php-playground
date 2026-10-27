@@ -1,0 +1,12 @@
+{
+  "target": "http://127.0.0.1:7260/src/lsp/phpantom/worker.ts?worker_file&type=module",
+  "responseUrl": "http://127.0.0.1:7260/lsp/phpantom/phpantom_lsp.wasm",
+  "status": 200,
+  "encodedDataLength": 127,
+  "workerFetch": {
+    "url": "/lsp/phpantom/phpantom_lsp.wasm",
+    "status": 200,
+    "bytes": 18518682,
+    "sha256": "ec6238fb1be525f2963cbfb0c59b0e6489ba44a1c0462b3f84b481ebe03afc34"
+  }
+}

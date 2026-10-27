@@ -1,0 +1,666 @@
+{
+  "errors": [],
+  "scope": "post-asset-identification version roundtrip",
+  "workers": [
+    {
+      "index": 0,
+      "messages": [
+        {
+          "at": 297474.89999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"capabilities\":{\"textDocumentSync\":1,\"completionProvider\":{\"triggerCharacters\":[\">\",\":\",\"$\",\"\\\\\"],\"resolveProvider\":true},\"hoverProvider\":true,\"definitionProvider\":true,\"documentHighlightProvider\":true,\"renameProvider\":true,\"signatureHelpProvider\":{\"triggerCharacters\":[\"(\",\",\"]}},\"serverInfo\":{\"name\":\"PHPantom\",\"version\":\"0.11.1+php-version-setting.1:php7.4\"}}}"
+        },
+        {
+          "at": 327071.09999999404,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":2,\"result\":{\"isIncomplete\":false,\"items\":[{\"label\":\"strlen\",\"kind\":3,\"sortText\":\"b01_strlen\",\"filterText\":\"strlen\",\"insertText\":\"strlen()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"strlen\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"mb_strlen\",\"kind\":3,\"sortText\":\"c01_mb_strlen\",\"filterText\":\"mb_strlen\",\"insertText\":\"mb_strlen()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"mb_strlen\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"iconv_strlen\",\"kind\":3,\"sortText\":\"c01_iconv_strlen\",\"filterText\":\"iconv_strlen\",\"insertText\":\"iconv_strlen()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"iconv_strlen\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"grapheme_strlen\",\"kind\":3,\"sortText\":\"c01_grapheme_strlen\",\"filterText\":\"grapheme_strlen\",\"insertText\":\"grapheme_strlen()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"grapheme_strlen\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}]}}"
+        },
+        {
+          "at": 327088.89999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":3,\"result\":{\"label\":\"strlen\",\"kind\":3,\"documentation\":{\"kind\":\"markdown\",\"value\":\"Get string length\\n\\n[https://php.net/manual/en/function.strlen.php](https://php.net/manual/en/function.strlen.php)\\n\\n**$string** The string being measured for length.\\n\\n**return** `int<0, max>`  \\n    The length of the string on success, and 0 if the string is empty.\\n\\n```php\\n<?php\\nfunction strlen(string $string): int;\\n```\\n\\n🟣 `PHP`\"},\"sortText\":\"b01_strlen\",\"filterText\":\"strlen\",\"insertText\":\"strlen()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"strlen\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        },
+        {
+          "at": 337287.1999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":4,\"result\":{\"isIncomplete\":false,\"items\":[{\"label\":\"ARRAY_FILTER_USE_BOTH\",\"kind\":21,\"sortText\":\"b01_array_filter_use_both\",\"filterText\":\"ARRAY_FILTER_USE_BOTH\",\"insertText\":\"ARRAY_FILTER_USE_BOTH\",\"data\":{\"c\":\"\",\"m\":\"ARRAY_FILTER_USE_BOTH\",\"k\":\"global_constant\",\"u\":\"inmemory://model/1\"}},{\"label\":\"ARRAY_FILTER_USE_KEY\",\"kind\":21,\"sortText\":\"b01_array_filter_use_key\",\"filterText\":\"ARRAY_FILTER_USE_KEY\",\"insertText\":\"ARRAY_FILTER_USE_KEY\",\"data\":{\"c\":\"\",\"m\":\"ARRAY_FILTER_USE_KEY\",\"k\":\"global_constant\",\"u\":\"inmemory://model/1\"}},{\"label\":\"ARRAY_FILTER_USE_VALUE\",\"kind\":21,\"sortText\":\"b01_array_filter_use_value\",\"filterText\":\"ARRAY_FILTER_USE_VALUE\",\"insertText\":\"ARRAY_FILTER_USE_VALUE\",\"data\":{\"c\":\"\",\"m\":\"ARRAY_FILTER_USE_VALUE\",\"k\":\"global_constant\",\"u\":\"inmemory://model/1\"}},{\"label\":\"array_flip\",\"kind\":3,\"sortText\":\"b01_array_flip\",\"filterText\":\"array_flip\",\"insertText\":\"array_flip()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_flip\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"array_fill_keys\",\"kind\":3,\"sortText\":\"b01_array_fill_keys\",\"filterText\":\"array_fill_keys\",\"insertText\":\"array_fill_keys()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_fill_keys\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"array_filter\",\"kind\":3,\"sortText\":\"b01_array_filter\",\"filterText\":\"array_filter\",\"insertText\":\"array_filter()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_filter\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"array_fill\",\"kind\":3,\"sortText\":\"b01_array_fill\",\"filterText\":\"array_fill\",\"insertText\":\"array_fill()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_fill\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}]}}"
+        },
+        {
+          "at": 337292.1999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":5,\"result\":{\"label\":\"array_fill\",\"kind\":3,\"documentation\":{\"kind\":\"markdown\",\"value\":\"Fill an array with values\\n\\n[https://php.net/manual/en/function.array-fill.php](https://php.net/manual/en/function.array-fill.php)\\n\\n**$start_index** The first index of the returned array. Supports non-negative indexes only.\\n\\n**$count** Number of elements to insert\\n\\n**$value** Value to use for filling\\n\\n**return** the filled array\\n\\n```php\\n<?php\\nfunction array_fill(int $start_index, int $count, mixed $value): array;\\n```\\n\\n🟣 `PHP`\"},\"sortText\":\"b01_array_fill\",\"filterText\":\"array_fill\",\"insertText\":\"array_fill()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_fill\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        },
+        {
+          "at": 351005.09999999404,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":6,\"result\":{\"isIncomplete\":false,\"items\":[{\"label\":\"str_contains($haystack, $needle)\",\"kind\":3,\"detail\":\"bool\",\"sortText\":\"b01_str_contains\",\"filterText\":\"str_contains\",\"insertText\":\"str_contains(${1:\\\\$haystack}, ${2:\\\\$needle})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"str_contains\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"mb_substr_count\",\"kind\":3,\"sortText\":\"c01_mb_substr_count\",\"filterText\":\"mb_substr_count\",\"insertText\":\"mb_substr_count()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"mb_substr_count\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"substr_count\",\"kind\":3,\"sortText\":\"c01_substr_count\",\"filterText\":\"substr_count\",\"insertText\":\"substr_count()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"substr_count\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"substr_compare\",\"kind\":3,\"sortText\":\"c01_substr_compare\",\"filterText\":\"substr_compare\",\"insertText\":\"substr_compare()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"substr_compare\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}]}}"
+        },
+        {
+          "at": 351006,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":7,\"result\":{\"label\":\"str_contains($haystack, $needle)\",\"kind\":3,\"detail\":\"bool\",\"documentation\":{\"kind\":\"markdown\",\"value\":\"Checks if $needle is found in $haystack and returns a boolean value\\n(true/false) whether or not the $needle was found.\\n\\n[https://php.net/manual/en/function.str-contains.php](https://php.net/manual/en/function.str-contains.php)\\n\\n**$haystack** The string to search in.\\n\\n**$needle** The substring to search for in the haystack.\\n\\n**return** Returns true if needle is in haystack, false otherwise.\\n\\n```php\\n<?php\\nfunction str_contains(string $haystack, string $needle): bool;\\n```\\n\\n🟣 `PHP`\"},\"sortText\":\"b01_str_contains\",\"filterText\":\"str_contains\",\"insertText\":\"str_contains(${1:\\\\$haystack}, ${2:\\\\$needle})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"str_contains\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        },
+        {
+          "at": 363331.0999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":8,\"result\":{\"isIncomplete\":false,\"items\":[{\"label\":\"array_last($array)\",\"kind\":3,\"detail\":\"TValue|null\",\"sortText\":\"b01_array_last\",\"filterText\":\"array_last\",\"insertText\":\"array_last(${1:\\\\$array})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_last\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}]}}"
+        },
+        {
+          "at": 363331.6999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":9,\"result\":{\"label\":\"array_last($array)\",\"kind\":3,\"detail\":\"TValue|null\",\"documentation\":{\"kind\":\"markdown\",\"value\":\"Gets the last value of an array\\n\\nGet the last value of the given array.\\n\\n[https://php.net/manual/en/function.array-last.php](https://php.net/manual/en/function.array-last.php)\\n\\n**$array** `array<TKey, TValue>`  \\n    An array.\\n\\n**return** `TValue|null`  \\n    Returns the last value of array if the array is not empty; null otherwise.\\n\\n```php\\n<?php\\nfunction array_last(array $array): mixed;\\n```\\n\\n🟣 `PHP`\"},\"sortText\":\"b01_array_last\",\"filterText\":\"array_last\",\"insertText\":\"array_last(${1:\\\\$array})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_last\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        }
+      ],
+      "posts": [
+        {
+          "at": 297373.5,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"processId\":null,\"rootUri\":null,\"capabilities\":{\"general\":{\"positionEncodings\":[\"utf-16\"]},\"textDocument\":{\"completion\":{\"completionItem\":{\"snippetSupport\":true}},\"hover\":{\"contentFormat\":[\"markdown\",\"plaintext\"]}}},\"initializationOptions\":{\"phpVersion\":\"7.4\"}}}"
+        },
+        {
+          "at": 297475,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"initialized\",\"params\":{}}"
+        },
+        {
+          "at": 297475,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didOpen\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"languageId\":\"php\",\"version\":2,\"text\":\"<?php\\nfunction greetUser(string $name): string { return $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return \\\"hi\\\"; } public static function create(): self { return new self(); } }\\n$greeting = greetUser(\\\"A\\\");\\n$greeter = new Greeter();\\n$number = 1;\"}}}"
+        },
+        {
+          "at": 326972.1999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":3},\"contentChanges\":[{\"text\":\"<?php\\nfunction greetUser(string $name): string { return $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return \\\"hi\\\"; } public static function create(): self { return new self(); } }\\n$greeting = greetUser(\\\"A\\\");\\n$greeter = new Greeter();\\n$number = 1;\\n$value = \"}]}}"
+        },
+        {
+          "at": 327048.39999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":4},\"contentChanges\":[{\"text\":\"<?php\\nfunction greetUser(string $name): string { return $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return \\\"hi\\\"; } public static function create(): self { return new self(); } }\\n$greeting = greetUser(\\\"A\\\");\\n$greeter = new Greeter();\\n$number = 1;\\n$value = s\"}]}}"
+        },
+        {
+          "at": 327050,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":5},\"contentChanges\":[{\"text\":\"<?php\\nfunction greetUser(string $name): string { return $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return \\\"hi\\\"; } public static function create(): self { return new self(); } }\\n$greeting = greetUser(\\\"A\\\");\\n$greeter = new Greeter();\\n$number = 1;\\n$value = st\"}]}}"
+        },
+        {
+          "at": 327050.7999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":6},\"contentChanges\":[{\"text\":\"<?php\\nfunction greetUser(string $name): string { return $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return \\\"hi\\\"; } public static function create(): self { return new self(); } }\\n$greeting = greetUser(\\\"A\\\");\\n$greeter = new Greeter();\\n$number = 1;\\n$value = str\"}]}}"
+        },
+        {
+          "at": 327051.39999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":7},\"contentChanges\":[{\"text\":\"<?php\\nfunction greetUser(string $name): string { return $name; }\\nfunction addNumbers(int $left, int $right): int { return $left + $right; }\\nclass Greeter { public string $message; public function greet(): string { return \\\"hi\\\"; } public static function create(): self { return new self(); } }\\n$greeting = greetUser(\\\"A\\\");\\n$greeter = new Greeter();\\n$number = 1;\\n$value = strl\"}]}}"
+        },
+        {
+          "at": 327063.5,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":7,\"character\":13}}}"
+        },
+        {
+          "at": 327073.6999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"completionItem/resolve\",\"params\":{\"label\":\"strlen\",\"kind\":3,\"sortText\":\"b01_strlen\",\"filterText\":\"strlen\",\"insertText\":\"strlen()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"strlen\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        },
+        {
+          "at": 337198.39999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":8},\"contentChanges\":[{\"text\":\"<?php\\n$x = \"}]}}"
+        },
+        {
+          "at": 337270.59999999404,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":9},\"contentChanges\":[{\"text\":\"<?php\\n$x = a\"}]}}"
+        },
+        {
+          "at": 337271.59999999404,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":10},\"contentChanges\":[{\"text\":\"<?php\\n$x = ar\"}]}}"
+        },
+        {
+          "at": 337272.1999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":11},\"contentChanges\":[{\"text\":\"<?php\\n$x = arr\"}]}}"
+        },
+        {
+          "at": 337272.7999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":12},\"contentChanges\":[{\"text\":\"<?php\\n$x = arra\"}]}}"
+        },
+        {
+          "at": 337273.1999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":13},\"contentChanges\":[{\"text\":\"<?php\\n$x = array\"}]}}"
+        },
+        {
+          "at": 337273.6999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":14},\"contentChanges\":[{\"text\":\"<?php\\n$x = array_\"}]}}"
+        },
+        {
+          "at": 337274.1999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":15},\"contentChanges\":[{\"text\":\"<?php\\n$x = array_f\"}]}}"
+        },
+        {
+          "at": 337285.5,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":4,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":1,\"character\":12}}}"
+        },
+        {
+          "at": 337288.1999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":5,\"method\":\"completionItem/resolve\",\"params\":{\"label\":\"array_fill\",\"kind\":3,\"sortText\":\"b01_array_fill\",\"filterText\":\"array_fill\",\"insertText\":\"array_fill()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_fill\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        },
+        {
+          "at": 350919.39999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":16},\"contentChanges\":[{\"text\":\"<?php\\n$x = \"}]}}"
+        },
+        {
+          "at": 350989.09999999404,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":17},\"contentChanges\":[{\"text\":\"<?php\\n$x = s\"}]}}"
+        },
+        {
+          "at": 350991.2999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":18},\"contentChanges\":[{\"text\":\"<?php\\n$x = st\"}]}}"
+        },
+        {
+          "at": 350992.1999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":19},\"contentChanges\":[{\"text\":\"<?php\\n$x = str\"}]}}"
+        },
+        {
+          "at": 350992.89999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":20},\"contentChanges\":[{\"text\":\"<?php\\n$x = str_\"}]}}"
+        },
+        {
+          "at": 350993.39999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":21},\"contentChanges\":[{\"text\":\"<?php\\n$x = str_c\"}]}}"
+        },
+        {
+          "at": 351003.59999999404,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":6,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":1,\"character\":10}}}"
+        },
+        {
+          "at": 351005.89999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":7,\"method\":\"completionItem/resolve\",\"params\":{\"label\":\"str_contains($haystack, $needle)\",\"kind\":3,\"detail\":\"bool\",\"sortText\":\"b01_str_contains\",\"filterText\":\"str_contains\",\"insertText\":\"str_contains(${1:\\\\$haystack}, ${2:\\\\$needle})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"str_contains\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        },
+        {
+          "at": 363242.2999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":22},\"contentChanges\":[{\"text\":\"<?php\\n$x = \"}]}}"
+        },
+        {
+          "at": 363313.2999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":23},\"contentChanges\":[{\"text\":\"<?php\\n$x = a\"}]}}"
+        },
+        {
+          "at": 363315.2999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":24},\"contentChanges\":[{\"text\":\"<?php\\n$x = ar\"}]}}"
+        },
+        {
+          "at": 363316.2999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":25},\"contentChanges\":[{\"text\":\"<?php\\n$x = arr\"}]}}"
+        },
+        {
+          "at": 363316.89999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":26},\"contentChanges\":[{\"text\":\"<?php\\n$x = arra\"}]}}"
+        },
+        {
+          "at": 363317.5,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":27},\"contentChanges\":[{\"text\":\"<?php\\n$x = array\"}]}}"
+        },
+        {
+          "at": 363318,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":28},\"contentChanges\":[{\"text\":\"<?php\\n$x = array_\"}]}}"
+        },
+        {
+          "at": 363318.39999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":29},\"contentChanges\":[{\"text\":\"<?php\\n$x = array_l\"}]}}"
+        },
+        {
+          "at": 363330,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":8,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":1,\"character\":12}}}"
+        },
+        {
+          "at": 363331.5999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":9,\"method\":\"completionItem/resolve\",\"params\":{\"label\":\"array_last($array)\",\"kind\":3,\"detail\":\"TValue|null\",\"sortText\":\"b01_array_last\",\"filterText\":\"array_last\",\"insertText\":\"array_last(${1:\\\\$array})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_last\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        },
+        {
+          "at": 378674.2999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didClose\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"}}}"
+        }
+      ],
+      "url": "http://127.0.0.1:7260/src/lsp/phpantom/worker.ts?worker_file&type=module"
+    },
+    {
+      "index": 1,
+      "messages": [
+        {
+          "at": 378843.2999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"capabilities\":{\"textDocumentSync\":1,\"completionProvider\":{\"triggerCharacters\":[\">\",\":\",\"$\",\"\\\\\"],\"resolveProvider\":true},\"hoverProvider\":true,\"definitionProvider\":true,\"documentHighlightProvider\":true,\"renameProvider\":true,\"signatureHelpProvider\":{\"triggerCharacters\":[\"(\",\",\"]}},\"serverInfo\":{\"name\":\"PHPantom\",\"version\":\"0.11.1+php-version-setting.1:php8.5\"}}}"
+        },
+        {
+          "at": 393615.5,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":2,\"result\":{\"isIncomplete\":false,\"items\":[{\"label\":\"substr_compare\",\"kind\":3,\"sortText\":\"c01_substr_compare\",\"filterText\":\"substr_compare\",\"insertText\":\"substr_compare()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"substr_compare\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"str_contains\",\"kind\":3,\"sortText\":\"b01_str_contains\",\"filterText\":\"str_contains\",\"insertText\":\"str_contains()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"str_contains\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"substr_count\",\"kind\":3,\"sortText\":\"c01_substr_count\",\"filterText\":\"substr_count\",\"insertText\":\"substr_count()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"substr_count\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"mb_substr_count\",\"kind\":3,\"sortText\":\"c01_mb_substr_count\",\"filterText\":\"mb_substr_count\",\"insertText\":\"mb_substr_count()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"mb_substr_count\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}]}}"
+        },
+        {
+          "at": 393629.89999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":3,\"result\":{\"label\":\"str_contains\",\"kind\":3,\"documentation\":{\"kind\":\"markdown\",\"value\":\"Checks if $needle is found in $haystack and returns a boolean value\\n(true/false) whether or not the $needle was found.\\n\\n[https://php.net/manual/en/function.str-contains.php](https://php.net/manual/en/function.str-contains.php)\\n\\n**$haystack** The string to search in.\\n\\n**$needle** The substring to search for in the haystack.\\n\\n**return** Returns true if needle is in haystack, false otherwise.\\n\\n```php\\n<?php\\nfunction str_contains(string $haystack, string $needle): bool;\\n```\\n\\n🟣 `PHP`\"},\"sortText\":\"b01_str_contains\",\"filterText\":\"str_contains\",\"insertText\":\"str_contains()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"str_contains\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        },
+        {
+          "at": 397588.0999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":4,\"result\":{\"isIncomplete\":false,\"items\":[{\"label\":\"ARRAY_FILTER_USE_KEY\",\"kind\":21,\"sortText\":\"b01_array_filter_use_key\",\"filterText\":\"ARRAY_FILTER_USE_KEY\",\"insertText\":\"ARRAY_FILTER_USE_KEY\",\"data\":{\"c\":\"\",\"m\":\"ARRAY_FILTER_USE_KEY\",\"k\":\"global_constant\",\"u\":\"inmemory://model/1\"}},{\"label\":\"ARRAY_FILTER_USE_VALUE\",\"kind\":21,\"sortText\":\"b01_array_filter_use_value\",\"filterText\":\"ARRAY_FILTER_USE_VALUE\",\"insertText\":\"ARRAY_FILTER_USE_VALUE\",\"data\":{\"c\":\"\",\"m\":\"ARRAY_FILTER_USE_VALUE\",\"k\":\"global_constant\",\"u\":\"inmemory://model/1\"}},{\"label\":\"ARRAY_FILTER_USE_BOTH\",\"kind\":21,\"sortText\":\"b01_array_filter_use_both\",\"filterText\":\"ARRAY_FILTER_USE_BOTH\",\"insertText\":\"ARRAY_FILTER_USE_BOTH\",\"data\":{\"c\":\"\",\"m\":\"ARRAY_FILTER_USE_BOTH\",\"k\":\"global_constant\",\"u\":\"inmemory://model/1\"}},{\"label\":\"array_fill_keys\",\"kind\":3,\"sortText\":\"b01_array_fill_keys\",\"filterText\":\"array_fill_keys\",\"insertText\":\"array_fill_keys()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_fill_keys\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"array_filter\",\"kind\":3,\"sortText\":\"b01_array_filter\",\"filterText\":\"array_filter\",\"insertText\":\"array_filter()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_filter\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"array_flip\",\"kind\":3,\"sortText\":\"b01_array_flip\",\"filterText\":\"array_flip\",\"insertText\":\"array_flip()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_flip\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"array_find\",\"kind\":3,\"sortText\":\"b01_array_find\",\"filterText\":\"array_find\",\"insertText\":\"array_find()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_find\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"array_fill\",\"kind\":3,\"sortText\":\"b01_array_fill\",\"filterText\":\"array_fill\",\"insertText\":\"array_fill()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_fill\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"array_first\",\"kind\":3,\"sortText\":\"b01_array_first\",\"filterText\":\"array_first\",\"insertText\":\"array_first()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_first\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"array_find_key\",\"kind\":3,\"sortText\":\"b01_array_find_key\",\"filterText\":\"array_find_key\",\"insertText\":\"array_find_key()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_find_key\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}]}}"
+        },
+        {
+          "at": 397593.1999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":5,\"result\":{\"label\":\"array_fill\",\"kind\":3,\"documentation\":{\"kind\":\"markdown\",\"value\":\"Fill an array with values\\n\\n[https://php.net/manual/en/function.array-fill.php](https://php.net/manual/en/function.array-fill.php)\\n\\n**$start_index** The first index of the returned array. Supports non-negative indexes only.\\n\\n**$count** Number of elements to insert\\n\\n**$value** Value to use for filling\\n\\n**return** the filled array\\n\\n```php\\n<?php\\nfunction array_fill(int $start_index, int $count, mixed $value): array;\\n```\\n\\n🟣 `PHP`\"},\"sortText\":\"b01_array_fill\",\"filterText\":\"array_fill\",\"insertText\":\"array_fill()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_fill\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        },
+        {
+          "at": 401390.0999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":6,\"result\":{\"isIncomplete\":false,\"items\":[{\"label\":\"array_last($array)\",\"kind\":3,\"detail\":\"TValue|null\",\"sortText\":\"b01_array_last\",\"filterText\":\"array_last\",\"insertText\":\"array_last(${1:\\\\$array})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_last\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}]}}"
+        },
+        {
+          "at": 401390.89999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":7,\"result\":{\"label\":\"array_last($array)\",\"kind\":3,\"detail\":\"TValue|null\",\"documentation\":{\"kind\":\"markdown\",\"value\":\"Gets the last value of an array\\n\\nGet the last value of the given array.\\n\\n[https://php.net/manual/en/function.array-last.php](https://php.net/manual/en/function.array-last.php)\\n\\n**$array** `array<TKey, TValue>`  \\n    An array.\\n\\n**return** `TValue|null`  \\n    Returns the last value of array if the array is not empty; null otherwise.\\n\\n```php\\n<?php\\nfunction array_last(array $array): mixed;\\n```\\n\\n🟣 `PHP`\"},\"sortText\":\"b01_array_last\",\"filterText\":\"array_last\",\"insertText\":\"array_last(${1:\\\\$array})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_last\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        },
+        {
+          "at": 417486.5,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":8,\"result\":{\"isIncomplete\":false,\"items\":[{\"label\":\"str_contains($haystack, $needle)\",\"kind\":3,\"detail\":\"bool\",\"sortText\":\"b01_str_contains\",\"filterText\":\"str_contains\",\"insertText\":\"str_contains(${1:\\\\$haystack}, ${2:\\\\$needle})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"str_contains\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"substr_compare\",\"kind\":3,\"sortText\":\"c01_substr_compare\",\"filterText\":\"substr_compare\",\"insertText\":\"substr_compare()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"substr_compare\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"substr_count\",\"kind\":3,\"sortText\":\"c01_substr_count\",\"filterText\":\"substr_count\",\"insertText\":\"substr_count()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"substr_count\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"mb_substr_count\",\"kind\":3,\"sortText\":\"c01_mb_substr_count\",\"filterText\":\"mb_substr_count\",\"insertText\":\"mb_substr_count()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"mb_substr_count\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}]}}"
+        },
+        {
+          "at": 417487.2999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":9,\"result\":{\"label\":\"str_contains($haystack, $needle)\",\"kind\":3,\"detail\":\"bool\",\"documentation\":{\"kind\":\"markdown\",\"value\":\"Checks if $needle is found in $haystack and returns a boolean value\\n(true/false) whether or not the $needle was found.\\n\\n[https://php.net/manual/en/function.str-contains.php](https://php.net/manual/en/function.str-contains.php)\\n\\n**$haystack** The string to search in.\\n\\n**$needle** The substring to search for in the haystack.\\n\\n**return** Returns true if needle is in haystack, false otherwise.\\n\\n```php\\n<?php\\nfunction str_contains(string $haystack, string $needle): bool;\\n```\\n\\n🟣 `PHP`\"},\"sortText\":\"b01_str_contains\",\"filterText\":\"str_contains\",\"insertText\":\"str_contains(${1:\\\\$haystack}, ${2:\\\\$needle})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"str_contains\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        },
+        {
+          "at": 420753.1999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":10,\"result\":{\"isIncomplete\":false,\"items\":[{\"label\":\"ARRAY_FILTER_USE_KEY\",\"kind\":21,\"sortText\":\"b01_array_filter_use_key\",\"filterText\":\"ARRAY_FILTER_USE_KEY\",\"insertText\":\"ARRAY_FILTER_USE_KEY\",\"data\":{\"c\":\"\",\"m\":\"ARRAY_FILTER_USE_KEY\",\"k\":\"global_constant\",\"u\":\"inmemory://model/1\"}},{\"label\":\"ARRAY_FILTER_USE_VALUE\",\"kind\":21,\"sortText\":\"b01_array_filter_use_value\",\"filterText\":\"ARRAY_FILTER_USE_VALUE\",\"insertText\":\"ARRAY_FILTER_USE_VALUE\",\"data\":{\"c\":\"\",\"m\":\"ARRAY_FILTER_USE_VALUE\",\"k\":\"global_constant\",\"u\":\"inmemory://model/1\"}},{\"label\":\"ARRAY_FILTER_USE_BOTH\",\"kind\":21,\"sortText\":\"b01_array_filter_use_both\",\"filterText\":\"ARRAY_FILTER_USE_BOTH\",\"insertText\":\"ARRAY_FILTER_USE_BOTH\",\"data\":{\"c\":\"\",\"m\":\"ARRAY_FILTER_USE_BOTH\",\"k\":\"global_constant\",\"u\":\"inmemory://model/1\"}},{\"label\":\"array_fill($start_index, $count, $value)\",\"kind\":3,\"detail\":\"array\",\"sortText\":\"b01_array_fill\",\"filterText\":\"array_fill\",\"insertText\":\"array_fill(${1:\\\\$start_index}, ${2:\\\\$count}, ${3:\\\\$value})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_fill\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"array_first($array)\",\"kind\":3,\"detail\":\"TValue|null\",\"sortText\":\"b01_array_first\",\"filterText\":\"array_first\",\"insertText\":\"array_first(${1:\\\\$array})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_first\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"array_fill_keys($keys, $value)\",\"kind\":3,\"detail\":\"array<TKey, TValue>\",\"sortText\":\"b01_array_fill_keys\",\"filterText\":\"array_fill_keys\",\"insertText\":\"array_fill_keys(${1:\\\\$keys}, ${2:\\\\$value})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_fill_keys\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"array_filter\",\"kind\":3,\"sortText\":\"b01_array_filter\",\"filterText\":\"array_filter\",\"insertText\":\"array_filter()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_filter\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"array_flip\",\"kind\":3,\"sortText\":\"b01_array_flip\",\"filterText\":\"array_flip\",\"insertText\":\"array_flip()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_flip\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"array_find\",\"kind\":3,\"sortText\":\"b01_array_find\",\"filterText\":\"array_find\",\"insertText\":\"array_find()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_find\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"array_find_key\",\"kind\":3,\"sortText\":\"b01_array_find_key\",\"filterText\":\"array_find_key\",\"insertText\":\"array_find_key()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_find_key\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}]}}"
+        },
+        {
+          "at": 420754.1999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":11,\"result\":{\"label\":\"array_fill($start_index, $count, $value)\",\"kind\":3,\"detail\":\"array\",\"documentation\":{\"kind\":\"markdown\",\"value\":\"Fill an array with values\\n\\n[https://php.net/manual/en/function.array-fill.php](https://php.net/manual/en/function.array-fill.php)\\n\\n**$start_index** The first index of the returned array. Supports non-negative indexes only.\\n\\n**$count** Number of elements to insert\\n\\n**$value** Value to use for filling\\n\\n**return** the filled array\\n\\n```php\\n<?php\\nfunction array_fill(int $start_index, int $count, mixed $value): array;\\n```\\n\\n🟣 `PHP`\"},\"sortText\":\"b01_array_fill\",\"filterText\":\"array_fill\",\"insertText\":\"array_fill(${1:\\\\$start_index}, ${2:\\\\$count}, ${3:\\\\$value})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_fill\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        },
+        {
+          "at": 424178.2999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":12,\"result\":{\"isIncomplete\":false,\"items\":[{\"label\":\"array_last($array)\",\"kind\":3,\"detail\":\"TValue|null\",\"sortText\":\"b01_array_last\",\"filterText\":\"array_last\",\"insertText\":\"array_last(${1:\\\\$array})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_last\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}]}}"
+        },
+        {
+          "at": 424179,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":13,\"result\":{\"label\":\"array_last($array)\",\"kind\":3,\"detail\":\"TValue|null\",\"documentation\":{\"kind\":\"markdown\",\"value\":\"Gets the last value of an array\\n\\nGet the last value of the given array.\\n\\n[https://php.net/manual/en/function.array-last.php](https://php.net/manual/en/function.array-last.php)\\n\\n**$array** `array<TKey, TValue>`  \\n    An array.\\n\\n**return** `TValue|null`  \\n    Returns the last value of array if the array is not empty; null otherwise.\\n\\n```php\\n<?php\\nfunction array_last(array $array): mixed;\\n```\\n\\n🟣 `PHP`\"},\"sortText\":\"b01_array_last\",\"filterText\":\"array_last\",\"insertText\":\"array_last(${1:\\\\$array})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_last\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        }
+      ],
+      "posts": [
+        {
+          "at": 378679.5999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"processId\":null,\"rootUri\":null,\"capabilities\":{\"general\":{\"positionEncodings\":[\"utf-16\"]},\"textDocument\":{\"completion\":{\"completionItem\":{\"snippetSupport\":true}},\"hover\":{\"contentFormat\":[\"markdown\",\"plaintext\"]}}},\"initializationOptions\":{\"phpVersion\":\"8.5\"}}}"
+        },
+        {
+          "at": 378843.2999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"initialized\",\"params\":{}}"
+        },
+        {
+          "at": 378843.5,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didOpen\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"languageId\":\"php\",\"version\":29,\"text\":\"<?php\\n$x = array_l\"}}}"
+        },
+        {
+          "at": 393512.39999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":30},\"contentChanges\":[{\"text\":\"<?php\\\\n$x = \"}]}}"
+        },
+        {
+          "at": 393594,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":31},\"contentChanges\":[{\"text\":\"<?php\\\\n$x = s\"}]}}"
+        },
+        {
+          "at": 393595,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":32},\"contentChanges\":[{\"text\":\"<?php\\\\n$x = st\"}]}}"
+        },
+        {
+          "at": 393595.7999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":33},\"contentChanges\":[{\"text\":\"<?php\\\\n$x = str\"}]}}"
+        },
+        {
+          "at": 393596.5,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":34},\"contentChanges\":[{\"text\":\"<?php\\\\n$x = str_\"}]}}"
+        },
+        {
+          "at": 393597.0999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":35},\"contentChanges\":[{\"text\":\"<?php\\\\n$x = str_c\"}]}}"
+        },
+        {
+          "at": 393608.2999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":0,\"character\":17}}}"
+        },
+        {
+          "at": 393616.0999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"completionItem/resolve\",\"params\":{\"label\":\"str_contains\",\"kind\":3,\"sortText\":\"b01_str_contains\",\"filterText\":\"str_contains\",\"insertText\":\"str_contains()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"str_contains\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        },
+        {
+          "at": 397498.39999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":36},\"contentChanges\":[{\"text\":\"<?php\\\\n$x = \"}]}}"
+        },
+        {
+          "at": 397571.5999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":37},\"contentChanges\":[{\"text\":\"<?php\\\\n$x = a\"}]}}"
+        },
+        {
+          "at": 397573.5999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":38},\"contentChanges\":[{\"text\":\"<?php\\\\n$x = ar\"}]}}"
+        },
+        {
+          "at": 397574.2999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":39},\"contentChanges\":[{\"text\":\"<?php\\\\n$x = arr\"}]}}"
+        },
+        {
+          "at": 397574.89999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":40},\"contentChanges\":[{\"text\":\"<?php\\\\n$x = arra\"}]}}"
+        },
+        {
+          "at": 397575.2999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":41},\"contentChanges\":[{\"text\":\"<?php\\\\n$x = array\"}]}}"
+        },
+        {
+          "at": 397575.6999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":42},\"contentChanges\":[{\"text\":\"<?php\\\\n$x = array_\"}]}}"
+        },
+        {
+          "at": 397576.2999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":43},\"contentChanges\":[{\"text\":\"<?php\\\\n$x = array_f\"}]}}"
+        },
+        {
+          "at": 397586.5999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":4,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":0,\"character\":19}}}"
+        },
+        {
+          "at": 397589.0999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":5,\"method\":\"completionItem/resolve\",\"params\":{\"label\":\"array_fill\",\"kind\":3,\"sortText\":\"b01_array_fill\",\"filterText\":\"array_fill\",\"insertText\":\"array_fill()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_fill\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        },
+        {
+          "at": 401296.5,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":44},\"contentChanges\":[{\"text\":\"<?php\\\\n$x = \"}]}}"
+        },
+        {
+          "at": 401372.2999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":45},\"contentChanges\":[{\"text\":\"<?php\\\\n$x = a\"}]}}"
+        },
+        {
+          "at": 401374.5999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":46},\"contentChanges\":[{\"text\":\"<?php\\\\n$x = ar\"}]}}"
+        },
+        {
+          "at": 401375.39999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":47},\"contentChanges\":[{\"text\":\"<?php\\\\n$x = arr\"}]}}"
+        },
+        {
+          "at": 401376,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":48},\"contentChanges\":[{\"text\":\"<?php\\\\n$x = arra\"}]}}"
+        },
+        {
+          "at": 401376.5,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":49},\"contentChanges\":[{\"text\":\"<?php\\\\n$x = array\"}]}}"
+        },
+        {
+          "at": 401377.1999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":50},\"contentChanges\":[{\"text\":\"<?php\\\\n$x = array_\"}]}}"
+        },
+        {
+          "at": 401378,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":51},\"contentChanges\":[{\"text\":\"<?php\\\\n$x = array_l\"}]}}"
+        },
+        {
+          "at": 401388.6999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":6,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":0,\"character\":19}}}"
+        },
+        {
+          "at": 401390.6999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":7,\"method\":\"completionItem/resolve\",\"params\":{\"label\":\"array_last($array)\",\"kind\":3,\"detail\":\"TValue|null\",\"sortText\":\"b01_array_last\",\"filterText\":\"array_last\",\"insertText\":\"array_last(${1:\\\\$array})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_last\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        },
+        {
+          "at": 417394.39999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":52},\"contentChanges\":[{\"text\":\"<?php\\n$x = \"}]}}"
+        },
+        {
+          "at": 417468.2999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":53},\"contentChanges\":[{\"text\":\"<?php\\n$x = s\"}]}}"
+        },
+        {
+          "at": 417470.39999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":54},\"contentChanges\":[{\"text\":\"<?php\\n$x = st\"}]}}"
+        },
+        {
+          "at": 417471.0999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":55},\"contentChanges\":[{\"text\":\"<?php\\n$x = str\"}]}}"
+        },
+        {
+          "at": 417471.6999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":56},\"contentChanges\":[{\"text\":\"<?php\\n$x = str_\"}]}}"
+        },
+        {
+          "at": 417472.2999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":57},\"contentChanges\":[{\"text\":\"<?php\\n$x = str_c\"}]}}"
+        },
+        {
+          "at": 417484.5999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":8,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":1,\"character\":10}}}"
+        },
+        {
+          "at": 417487.1999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":9,\"method\":\"completionItem/resolve\",\"params\":{\"label\":\"str_contains($haystack, $needle)\",\"kind\":3,\"detail\":\"bool\",\"sortText\":\"b01_str_contains\",\"filterText\":\"str_contains\",\"insertText\":\"str_contains(${1:\\\\$haystack}, ${2:\\\\$needle})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"str_contains\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        },
+        {
+          "at": 420655,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":58},\"contentChanges\":[{\"text\":\"<?php\\n$x = \"}]}}"
+        },
+        {
+          "at": 420732.7999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":59},\"contentChanges\":[{\"text\":\"<?php\\n$x = a\"}]}}"
+        },
+        {
+          "at": 420734.89999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":60},\"contentChanges\":[{\"text\":\"<?php\\n$x = ar\"}]}}"
+        },
+        {
+          "at": 420736.5,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":61},\"contentChanges\":[{\"text\":\"<?php\\n$x = arr\"}]}}"
+        },
+        {
+          "at": 420737.0999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":62},\"contentChanges\":[{\"text\":\"<?php\\n$x = arra\"}]}}"
+        },
+        {
+          "at": 420737.5,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":63},\"contentChanges\":[{\"text\":\"<?php\\n$x = array\"}]}}"
+        },
+        {
+          "at": 420738.0999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":64},\"contentChanges\":[{\"text\":\"<?php\\n$x = array_\"}]}}"
+        },
+        {
+          "at": 420738.5999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":65},\"contentChanges\":[{\"text\":\"<?php\\n$x = array_f\"}]}}"
+        },
+        {
+          "at": 420750.89999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":10,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":1,\"character\":12}}}"
+        },
+        {
+          "at": 420754.0999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":11,\"method\":\"completionItem/resolve\",\"params\":{\"label\":\"array_fill($start_index, $count, $value)\",\"kind\":3,\"detail\":\"array\",\"sortText\":\"b01_array_fill\",\"filterText\":\"array_fill\",\"insertText\":\"array_fill(${1:\\\\$start_index}, ${2:\\\\$count}, ${3:\\\\$value})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_fill\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        },
+        {
+          "at": 424076.5999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":66},\"contentChanges\":[{\"text\":\"<?php\\n$x = \"}]}}"
+        },
+        {
+          "at": 424159.89999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":67},\"contentChanges\":[{\"text\":\"<?php\\n$x = a\"}]}}"
+        },
+        {
+          "at": 424161.89999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":68},\"contentChanges\":[{\"text\":\"<?php\\n$x = ar\"}]}}"
+        },
+        {
+          "at": 424163.0999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":69},\"contentChanges\":[{\"text\":\"<?php\\n$x = arr\"}]}}"
+        },
+        {
+          "at": 424163.89999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":70},\"contentChanges\":[{\"text\":\"<?php\\n$x = arra\"}]}}"
+        },
+        {
+          "at": 424164.39999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":71},\"contentChanges\":[{\"text\":\"<?php\\n$x = array\"}]}}"
+        },
+        {
+          "at": 424165.2999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":72},\"contentChanges\":[{\"text\":\"<?php\\n$x = array_\"}]}}"
+        },
+        {
+          "at": 424165.5999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":73},\"contentChanges\":[{\"text\":\"<?php\\n$x = array_l\"}]}}"
+        },
+        {
+          "at": 424176.89999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":12,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":1,\"character\":12}}}"
+        },
+        {
+          "at": 424178.89999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":13,\"method\":\"completionItem/resolve\",\"params\":{\"label\":\"array_last($array)\",\"kind\":3,\"detail\":\"TValue|null\",\"sortText\":\"b01_array_last\",\"filterText\":\"array_last\",\"insertText\":\"array_last(${1:\\\\$array})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_last\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        },
+        {
+          "at": 459366.5999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didClose\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"}}}"
+        }
+      ],
+      "url": "http://127.0.0.1:7260/src/lsp/phpantom/worker.ts?worker_file&type=module"
+    },
+    {
+      "index": 2,
+      "messages": [
+        {
+          "at": 459569.5999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"capabilities\":{\"textDocumentSync\":1,\"completionProvider\":{\"triggerCharacters\":[\">\",\":\",\"$\",\"\\\\\"],\"resolveProvider\":true},\"hoverProvider\":true,\"definitionProvider\":true,\"documentHighlightProvider\":true,\"renameProvider\":true,\"signatureHelpProvider\":{\"triggerCharacters\":[\"(\",\",\"]}},\"serverInfo\":{\"name\":\"PHPantom\",\"version\":\"0.11.1+php-version-setting.1:php7.4\"}}}"
+        },
+        {
+          "at": 470255,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":2,\"result\":{\"isIncomplete\":false,\"items\":[{\"label\":\"mb_substr_count\",\"kind\":3,\"sortText\":\"c01_mb_substr_count\",\"filterText\":\"mb_substr_count\",\"insertText\":\"mb_substr_count()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"mb_substr_count\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"substr_compare\",\"kind\":3,\"sortText\":\"c01_substr_compare\",\"filterText\":\"substr_compare\",\"insertText\":\"substr_compare()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"substr_compare\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"substr_count\",\"kind\":3,\"sortText\":\"c01_substr_count\",\"filterText\":\"substr_count\",\"insertText\":\"substr_count()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"substr_count\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}]}}"
+        },
+        {
+          "at": 470272.1999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":3,\"result\":{\"label\":\"substr_compare\",\"kind\":3,\"documentation\":{\"kind\":\"markdown\",\"value\":\"Binary safe comparison of two strings from an offset, up to length characters\\n\\n[https://php.net/manual/en/function.substr-compare.php](https://php.net/manual/en/function.substr-compare.php)\\n\\n**$haystack** The main string being compared.\\n\\n**$needle** The secondary string being compared.\\n\\n**$offset** The start position for the comparison. If negative, it starts counting from the end of the string.\\n\\n**$length** [optional] \\n\\n The length of the comparison.\\n\\n**$case_insensitive** [optional] \\n\\n If case_insensitivity is true, comparison is case insensitive.\\n\\n**return** if less than 0 if main_str from position offset is less than str, &gt; 0 if it is greater than str, and 0 if they are equal. If offset is equal to or greater than the length of main_str or length is set and is less than 1, a ValueError is thrown. Prior to PHP 8.0, a warning was raised and false was returned instead.\\n\\n```php\\n<?php\\nfunction substr_compare(string $haystack, string $needle, int $offset, ?int $length = null, bool $case_insensitive = false): int;\\n```\\n\\n🟣 `PHP`\"},\"sortText\":\"c01_substr_compare\",\"filterText\":\"substr_compare\",\"insertText\":\"substr_compare()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"substr_compare\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        },
+        {
+          "at": 474226.5,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":4,\"result\":{\"isIncomplete\":false,\"items\":[{\"label\":\"ARRAY_FILTER_USE_BOTH\",\"kind\":21,\"sortText\":\"b01_array_filter_use_both\",\"filterText\":\"ARRAY_FILTER_USE_BOTH\",\"insertText\":\"ARRAY_FILTER_USE_BOTH\",\"data\":{\"c\":\"\",\"m\":\"ARRAY_FILTER_USE_BOTH\",\"k\":\"global_constant\",\"u\":\"inmemory://model/1\"}},{\"label\":\"ARRAY_FILTER_USE_VALUE\",\"kind\":21,\"sortText\":\"b01_array_filter_use_value\",\"filterText\":\"ARRAY_FILTER_USE_VALUE\",\"insertText\":\"ARRAY_FILTER_USE_VALUE\",\"data\":{\"c\":\"\",\"m\":\"ARRAY_FILTER_USE_VALUE\",\"k\":\"global_constant\",\"u\":\"inmemory://model/1\"}},{\"label\":\"ARRAY_FILTER_USE_KEY\",\"kind\":21,\"sortText\":\"b01_array_filter_use_key\",\"filterText\":\"ARRAY_FILTER_USE_KEY\",\"insertText\":\"ARRAY_FILTER_USE_KEY\",\"data\":{\"c\":\"\",\"m\":\"ARRAY_FILTER_USE_KEY\",\"k\":\"global_constant\",\"u\":\"inmemory://model/1\"}},{\"label\":\"array_flip\",\"kind\":3,\"sortText\":\"b01_array_flip\",\"filterText\":\"array_flip\",\"insertText\":\"array_flip()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_flip\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"array_fill_keys\",\"kind\":3,\"sortText\":\"b01_array_fill_keys\",\"filterText\":\"array_fill_keys\",\"insertText\":\"array_fill_keys()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_fill_keys\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"array_filter\",\"kind\":3,\"sortText\":\"b01_array_filter\",\"filterText\":\"array_filter\",\"insertText\":\"array_filter()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_filter\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}},{\"label\":\"array_fill\",\"kind\":3,\"sortText\":\"b01_array_fill\",\"filterText\":\"array_fill\",\"insertText\":\"array_fill()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_fill\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}]}}"
+        },
+        {
+          "at": 474231.2999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":5,\"result\":{\"label\":\"array_fill\",\"kind\":3,\"documentation\":{\"kind\":\"markdown\",\"value\":\"Fill an array with values\\n\\n[https://php.net/manual/en/function.array-fill.php](https://php.net/manual/en/function.array-fill.php)\\n\\n**$start_index** The first index of the returned array. Supports non-negative indexes only.\\n\\n**$count** Number of elements to insert\\n\\n**$value** Value to use for filling\\n\\n**return** the filled array\\n\\n```php\\n<?php\\nfunction array_fill(int $start_index, int $count, mixed $value): array;\\n```\\n\\n🟣 `PHP`\"},\"sortText\":\"b01_array_fill\",\"filterText\":\"array_fill\",\"insertText\":\"array_fill()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_fill\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        },
+        {
+          "at": 477148.0999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":6,\"result\":{\"isIncomplete\":false,\"items\":[{\"label\":\"array_last($array)\",\"kind\":3,\"detail\":\"TValue|null\",\"sortText\":\"b01_array_last\",\"filterText\":\"array_last\",\"insertText\":\"array_last(${1:\\\\$array})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_last\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}]}}"
+        },
+        {
+          "at": 477148.6999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":7,\"result\":{\"label\":\"array_last($array)\",\"kind\":3,\"detail\":\"TValue|null\",\"documentation\":{\"kind\":\"markdown\",\"value\":\"Gets the last value of an array\\n\\nGet the last value of the given array.\\n\\n[https://php.net/manual/en/function.array-last.php](https://php.net/manual/en/function.array-last.php)\\n\\n**$array** `array<TKey, TValue>`  \\n    An array.\\n\\n**return** `TValue|null`  \\n    Returns the last value of array if the array is not empty; null otherwise.\\n\\n```php\\n<?php\\nfunction array_last(array $array): mixed;\\n```\\n\\n🟣 `PHP`\"},\"sortText\":\"b01_array_last\",\"filterText\":\"array_last\",\"insertText\":\"array_last(${1:\\\\$array})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_last\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        }
+      ],
+      "posts": [
+        {
+          "at": 459373.0999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"processId\":null,\"rootUri\":null,\"capabilities\":{\"general\":{\"positionEncodings\":[\"utf-16\"]},\"textDocument\":{\"completion\":{\"completionItem\":{\"snippetSupport\":true}},\"hover\":{\"contentFormat\":[\"markdown\",\"plaintext\"]}}},\"initializationOptions\":{\"phpVersion\":\"7.4\"}}}"
+        },
+        {
+          "at": 459569.6999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"initialized\",\"params\":{}}"
+        },
+        {
+          "at": 459569.7999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didOpen\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"languageId\":\"php\",\"version\":73,\"text\":\"<?php\\n$x = array_l\"}}}"
+        },
+        {
+          "at": 470155,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":74},\"contentChanges\":[{\"text\":\"<?php\\n$x = \"}]}}"
+        },
+        {
+          "at": 470232.1999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":75},\"contentChanges\":[{\"text\":\"<?php\\n$x = s\"}]}}"
+        },
+        {
+          "at": 470233.0999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":76},\"contentChanges\":[{\"text\":\"<?php\\n$x = st\"}]}}"
+        },
+        {
+          "at": 470234,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":77},\"contentChanges\":[{\"text\":\"<?php\\n$x = str\"}]}}"
+        },
+        {
+          "at": 470234.5,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":78},\"contentChanges\":[{\"text\":\"<?php\\n$x = str_\"}]}}"
+        },
+        {
+          "at": 470235.1999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":79},\"contentChanges\":[{\"text\":\"<?php\\n$x = str_c\"}]}}"
+        },
+        {
+          "at": 470247.6999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":1,\"character\":10}}}"
+        },
+        {
+          "at": 470256,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"completionItem/resolve\",\"params\":{\"label\":\"substr_compare\",\"kind\":3,\"sortText\":\"c01_substr_compare\",\"filterText\":\"substr_compare\",\"insertText\":\"substr_compare()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"substr_compare\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        },
+        {
+          "at": 474137.1999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":80},\"contentChanges\":[{\"text\":\"<?php\\n$x = \"}]}}"
+        },
+        {
+          "at": 474208.5,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":81},\"contentChanges\":[{\"text\":\"<?php\\n$x = a\"}]}}"
+        },
+        {
+          "at": 474210.5,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":82},\"contentChanges\":[{\"text\":\"<?php\\n$x = ar\"}]}}"
+        },
+        {
+          "at": 474211.2999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":83},\"contentChanges\":[{\"text\":\"<?php\\n$x = arr\"}]}}"
+        },
+        {
+          "at": 474211.89999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":84},\"contentChanges\":[{\"text\":\"<?php\\n$x = arra\"}]}}"
+        },
+        {
+          "at": 474212.39999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":85},\"contentChanges\":[{\"text\":\"<?php\\n$x = array\"}]}}"
+        },
+        {
+          "at": 474213,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":86},\"contentChanges\":[{\"text\":\"<?php\\n$x = array_\"}]}}"
+        },
+        {
+          "at": 474213.39999997616,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":87},\"contentChanges\":[{\"text\":\"<?php\\n$x = array_f\"}]}}"
+        },
+        {
+          "at": 474225.0999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":4,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":1,\"character\":12}}}"
+        },
+        {
+          "at": 474227.2999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":5,\"method\":\"completionItem/resolve\",\"params\":{\"label\":\"array_fill\",\"kind\":3,\"sortText\":\"b01_array_fill\",\"filterText\":\"array_fill\",\"insertText\":\"array_fill()$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_fill\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        },
+        {
+          "at": 477057.7999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":88},\"contentChanges\":[{\"text\":\"<?php\\n$x = \"}]}}"
+        },
+        {
+          "at": 477128.7999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":89},\"contentChanges\":[{\"text\":\"<?php\\n$x = a\"}]}}"
+        },
+        {
+          "at": 477130.7999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":90},\"contentChanges\":[{\"text\":\"<?php\\n$x = ar\"}]}}"
+        },
+        {
+          "at": 477131.5999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":91},\"contentChanges\":[{\"text\":\"<?php\\n$x = arr\"}]}}"
+        },
+        {
+          "at": 477132.1999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":92},\"contentChanges\":[{\"text\":\"<?php\\n$x = arra\"}]}}"
+        },
+        {
+          "at": 477132.6999999881,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":93},\"contentChanges\":[{\"text\":\"<?php\\n$x = array\"}]}}"
+        },
+        {
+          "at": 477133.2999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":94},\"contentChanges\":[{\"text\":\"<?php\\n$x = array_\"}]}}"
+        },
+        {
+          "at": 477133.7999999821,
+          "data": "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\",\"version\":95},\"contentChanges\":[{\"text\":\"<?php\\n$x = array_l\"}]}}"
+        },
+        {
+          "at": 477146.5999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":6,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"inmemory://model/1\"},\"position\":{\"line\":1,\"character\":12}}}"
+        },
+        {
+          "at": 477148.5999999941,
+          "data": "{\"jsonrpc\":\"2.0\",\"id\":7,\"method\":\"completionItem/resolve\",\"params\":{\"label\":\"array_last($array)\",\"kind\":3,\"detail\":\"TValue|null\",\"sortText\":\"b01_array_last\",\"filterText\":\"array_last\",\"insertText\":\"array_last(${1:\\\\$array})$0\",\"insertTextFormat\":2,\"data\":{\"c\":\"\",\"m\":\"array_last\",\"k\":\"function\",\"u\":\"inmemory://model/1\"}}}"
+        }
+      ],
+      "url": "http://127.0.0.1:7260/src/lsp/phpantom/worker.ts?worker_file&type=module"
+    }
+  ]
+}
