@@ -611,16 +611,6 @@ for (const [cycleIndex, phpVersion] of ['7.4', '8.5', '7.4'].entries()) {
 			`fresh-engine ${phpVersion} cold ${name} availability`
 		);
 	}
-	const arrayFillItem = arrayItems.find((item) => item.filterText === 'array_fill');
-	assert.ok(arrayFillItem, `${phpVersion} cycle retains array_fill`);
-	assert.match(
-		JSON.stringify(resolveCompletionItem(cycleWasm, arrayFillItem, 26)?.result ?? ''),
-		/array_fill/,
-		`${phpVersion} cycle resolves array_fill before versioned array checks`
-	);
-	const warmArrayItems = completionItems(
-		completionRequest(cycleWasm, arrayUri, { line: 1, character: 7 }, 27)
-	);
 	const arrayLastColdItems = completionItems(
 		completionAt(
 			cycleWasm,
@@ -634,6 +624,16 @@ for (const [cycleIndex, phpVersion] of ['7.4', '8.5', '7.4'].entries()) {
 		arrayLastColdItems.some((item) => item.filterText === 'array_last'),
 		expectedInVersion,
 		`fresh-engine ${phpVersion} cold array_last availability`
+	);
+	const arrayFillItem = arrayItems.find((item) => item.filterText === 'array_fill');
+	assert.ok(arrayFillItem, `${phpVersion} cycle retains array_fill`);
+	assert.match(
+		JSON.stringify(resolveCompletionItem(cycleWasm, arrayFillItem, 26)?.result ?? ''),
+		/array_fill/,
+		`${phpVersion} cycle resolves array_fill before versioned array checks`
+	);
+	const warmArrayItems = completionItems(
+		completionRequest(cycleWasm, arrayUri, { line: 1, character: 7 }, 27)
 	);
 	for (const name of ['array_first', 'array_find', 'array_find_key']) {
 		assert.equal(
