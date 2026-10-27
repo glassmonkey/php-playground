@@ -30,7 +30,7 @@ type OpenDocument = { version: number };
 const PHPANTOM_VERSION = '0.11.1';
 const PHPANTOM_VERSIONED_BUILD = '0.11.1+php-version-setting.3';
 const WASM_SHA256 =
-	'12b4f522e7419711ef915c7d522d9163ab27cf6d37ddfe0b8e12c6e34d92e6d5';
+	'2ba179568c31958b731d3eb70f69b788187fcb605094b39d289c4d4caa3ba3da';
 const WASM_URL = `/lsp/phpantom/phpantom_lsp.wasm?sha256=${WASM_SHA256}`;
 const documents = new Map<string, OpenDocument>();
 let runtime: Promise<PhpantomExports> | undefined;

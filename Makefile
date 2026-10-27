@@ -18,6 +18,12 @@ PHP_IMAGE := php-wasm:$(PHP_VERSION)
 
 DIST_DIR := $(PWD)/dist
 
+.PHONY: build-phpantom-runtime test-phpantom-runtime-native
+build-phpantom-runtime:
+	./scripts/lsp/phpantom/build-wasm.sh
+test-phpantom-runtime-native:
+	./scripts/lsp/phpantom/build-wasm.sh native-test
+
 
 .PHONY: build-image build-wasm build build-all build-5.6 build-7.0 build-7.1 build-7.2 build-7.3 build-7.4 build-8.0 build-8.1 build-8.2
 WITH_CACHE :=
