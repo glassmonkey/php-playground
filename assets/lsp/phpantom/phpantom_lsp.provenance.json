@@ -1,0 +1,26 @@
+{
+  "artifact": {
+    "bytes": 18530827,
+    "file": "phpantom_lsp.wasm",
+    "sha256": "2ba179568c31958b731d3eb70f69b788187fcb605094b39d289c4d4caa3ba3da"
+  },
+  "artifact_generated_utc": "2026-10-27T13:55:55Z",
+  "build_started_utc": "2026-10-27T13:52:32Z",
+  "cargo_lock_sha256": "0a601fc471628943f15c4e3f97649b99417b1037cf4f824bd835e8a3a12fad1d",
+  "cargo_version": "cargo 1.99.0 (5f94df478 2026-08-27)",
+  "docker": {
+    "base_image_ref": "rust:1.99.0-bookworm@sha256:114c7a4425406451c2866b6aafe69fe29b1b298832db1277d411ac73c82d04d6",
+    "builder_image_id": "sha256:72ee9685470b5c7fc85ad9c8014504f166339813033c4d8ffc5fe3241ecdfe0a",
+    "builder_image_ref": "phpantom-runtime-builder:0.11.1-rust1.99.0-ea43adab881c",
+    "platform": "linux/arm64",
+    "server_version": "29.5.3"
+  },
+  "phpantom_version": "0.11.1",
+  "runtime_patch_sha256": "ea43adab881c9214e9f693d0f11ed3cec93314f23d331210fc86de8c22fe04fc",
+  "rustc_verbose": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-unknown-linux-gnu\nrelease: 1.99.0\nLLVM version: 23.1.1",
+  "source_archive_sha256": "f5861b581a5503c7bf033df82390d08fbc9a971fa769afa90a310d0c623eb59d",
+  "source_commit": "49b9a7513ed19cbbfb79d5d08a3f3693ffb2b668",
+  "stubs_archive_sha256": "3ef62542d2f77ad30c7dab7dfa726e57e86dd5e3403780294119cf4f5ca6dcb7",
+  "stubs_commit": "2049ca3cfa1feabf52db074108fe776a5713cf02",
+  "target": "wasm32-wasip1"
+}

@@ -2,68 +2,93 @@
 set -euo pipefail
 
 version='0.11.1'
-commit='49b9a7513ed19cbbfb79d5d08a3f3693ffb2b668'
-source_sha256='f5861b581a5503c7bf033df82390d08fbc9a971fa769afa90a310d0c623eb59d'
-stubs_commit='2049ca3cfa1feabf52db074108fe776a5713cf02'
-stubs_sha256='3ef62542d2f77ad30c7dab7dfa726e57e86dd5e3403780294119cf4f5ca6dcb7'
+base_image_ref='rust:1.99.0-bookworm@sha256:114c7a4425406451c2866b6aafe69fe29b1b298832db1277d411ac73c82d04d6'
+build_mode="${1:-artifact}"
+if [[ "$build_mode" != artifact && "$build_mode" != native-test ]]; then
+	printf 'Usage: %s [artifact|native-test]\n' "$0" >&2
+	exit 2
+fi
 repo_root="$(cd "$(dirname "$0")/../../.." && pwd)"
-work_dir="$(mktemp -d "${TMPDIR:-/tmp}/phpantom-build.XXXXXX")"
-trap 'rm -rf "$work_dir"' EXIT
-source_archive="$work_dir/phpantom-source.tar.gz"
-stubs_archive="$work_dir/phpstorm-stubs.tar.gz"
-source_root="$work_dir/source"
-stubs_root="$work_dir/stubs"
-target_dir="${CARGO_TARGET_DIR:-$work_dir/target}"
-cargo_bin="${CARGO:-$(rustup which cargo --toolchain 1.99.0)}"
-rustc_bin="${RUSTC:-$(rustup which rustc --toolchain 1.99.0)}"
+script_dir="$repo_root/scripts/lsp/phpantom"
+docker_bin="${DOCKER:-docker}"
+output_root="${PHPANTOM_DOCKER_OUTPUT_DIR:-$repo_root/build/phpantom-docker-candidates}"
+patch_file="$script_dir/patches/0001-php-version-initialize.patch"
+patch_sha256="$(shasum -a 256 "$patch_file" | awk '{print $1}')"
+image_tag="phpantom-runtime-builder:$version-rust1.99.0-${patch_sha256:0:12}"
+attempt_id="$(date -u +%Y%m%dT%H%M%SZ)"
 
-curl --fail --location --retry 3 \
-	"https://github.com/PHPantom-dev/phpantom_lsp/archive/$commit.tar.gz" \
-	--output "$source_archive"
-actual_source_sha256="$(shasum -a 256 "$source_archive" | awk '{print $1}')"
-if [[ "$actual_source_sha256" != "$source_sha256" ]]; then
-	printf 'PHPantom source checksum mismatch: expected %s, got %s\n' \
-		"$source_sha256" "$actual_source_sha256" >&2
+command -v "$docker_bin" >/dev/null 2>&1 || {
+	printf 'Docker CLI is required to build PHPantom.\n' >&2
+	exit 1
+}
+
+mkdir -p "$output_root"
+attempt_dir="$(mktemp -d "$output_root/$attempt_id.XXXXXX")"
+mkdir "$attempt_dir/output"
+printf 'PHPantom Docker build attempt: %s\n' "$attempt_dir"
+
+if "$docker_bin" build --pull \
+	--build-arg "PATCH_SHA256=$patch_sha256" \
+	--tag "$image_tag" \
+	--file "$script_dir/Dockerfile" \
+	"$script_dir" >"$attempt_dir/docker-build.log" 2>&1; then
+	docker_build_status=0
+else
+	docker_build_status=$?
+	printf '%s\n' "$docker_build_status" >"$attempt_dir/docker-build.exit"
+	tail -n 80 "$attempt_dir/docker-build.log" >&2
+	printf 'Docker image build failed; logs and any output are retained at %s\n' "$attempt_dir" >&2
+	exit 1
+fi
+printf '%s\n' "$docker_build_status" >"$attempt_dir/docker-build.exit"
+
+image_id="$("$docker_bin" image inspect --format '{{.Id}}' "$image_tag")"
+image_platform="$("$docker_bin" image inspect --format '{{.Os}}/{{.Architecture}}' "$image_tag")"
+docker_server_version="$("$docker_bin" version --format '{{.Server.Version}}')"
+
+if "$docker_bin" run --rm \
+	--env "PHPANTOM_BUILDER_BASE_IMAGE_REF=$base_image_ref" \
+	--env "PHPANTOM_BUILDER_IMAGE_REF=$image_tag" \
+	--env "PHPANTOM_BUILDER_IMAGE_ID=$image_id" \
+	--env "PHPANTOM_BUILDER_IMAGE_PLATFORM=$image_platform" \
+	--env "PHPANTOM_DOCKER_SERVER_VERSION=$docker_server_version" \
+	--mount "type=bind,source=$attempt_dir/output,target=/output" \
+	"$image_tag" "$build_mode" >"$attempt_dir/docker-run.log" 2>&1; then
+	docker_run_status=0
+else
+	docker_run_status=$?
+	printf '%s\n' "$docker_run_status" >"$attempt_dir/docker-run.exit"
+	tail -n 100 "$attempt_dir/docker-run.log" >&2
+	printf 'Container build failed; logs and any output are retained at %s\n' "$attempt_dir" >&2
+	exit 1
+fi
+printf '%s\n' "$docker_run_status" >"$attempt_dir/docker-run.exit"
+
+if [[ "$build_mode" == native-test ]]; then
+	printf 'PHPantom Docker native regression test succeeded.\n'
+	printf 'Docker logs: %s/docker-build.log %s/docker-run.log\n' "$attempt_dir" "$attempt_dir"
+	exit 0
+fi
+
+artifact="$attempt_dir/output/phpantom_lsp.wasm"
+provenance="$attempt_dir/output/provenance.json"
+artifact_sha_file="$attempt_dir/output/phpantom_lsp.wasm.sha256"
+if [[ ! -s "$artifact" || ! -s "$provenance" || ! -s "$artifact_sha_file" ]]; then
+	printf 'Docker build did not export both the WASM and provenance; retained at %s\n' "$attempt_dir" >&2
 	exit 1
 fi
 
-curl --fail --location --retry 3 \
-	"https://github.com/JetBrains/phpstorm-stubs/archive/$stubs_commit.tar.gz" \
-	--output "$stubs_archive"
-actual_stubs_sha256="$(shasum -a 256 "$stubs_archive" | awk '{print $1}')"
-if [[ "$actual_stubs_sha256" != "$stubs_sha256" ]]; then
-	printf 'phpstorm-stubs checksum mismatch: expected %s, got %s\n' \
-		"$stubs_sha256" "$actual_stubs_sha256" >&2
+wasm_sha256="$(shasum -a 256 "$artifact" | awk '{print $1}')"
+recorded_sha256="$(cat "$artifact_sha_file")"
+if [[ "$wasm_sha256" != "$recorded_sha256" ]]; then
+	printf 'Exported WASM checksum differs from provenance: %s != %s\n' \
+		"$wasm_sha256" "$recorded_sha256" >&2
 	exit 1
 fi
 
-mkdir "$source_root" "$stubs_root"
-tar -xzf "$source_archive" -C "$source_root"
-tar -xzf "$stubs_archive" -C "$stubs_root"
-source_dir="$(find "$source_root" -mindepth 1 -maxdepth 1 -type d -print -quit)"
-stubs_dir="$(find "$stubs_root" -mindepth 1 -maxdepth 1 -type d -print -quit)"
-if [[ ! -f "$source_dir/Cargo.toml" || ! -f "$stubs_dir/PhpStormStubsMap.php" ]]; then
-	printf 'Pinned PHPantom source or phpstorm-stubs archive has an unexpected layout.\n' >&2
-	exit 1
-fi
-
-patch -p1 -d "$source_dir" \
-	-i "$repo_root/scripts/lsp/phpantom/patches/0001-php-version-initialize.patch"
-
-(
-	cd "$source_dir"
-	PHPANTOM_GIT_VERSION="$version" \
-	PHPANTOM_STUBS_DIR="$stubs_dir" \
-	CARGO_TARGET_DIR="$target_dir" \
-	RUSTC="$rustc_bin" "$cargo_bin" rustc --locked --lib --crate-type cdylib \
-		--profile wasm-release --target wasm32-wasip1
-)
-
-output="$target_dir/wasm32-wasip1/wasm-release/phpantom_lsp.wasm"
-wasm_output="${PHPANTOM_WASM_OUTPUT:-$repo_root/assets/lsp/phpantom/phpantom_lsp.wasm}"
-mkdir -p "$(dirname "$wasm_output")"
-cp "$output" "$wasm_output"
-wasm_sha256="$(shasum -a 256 "$wasm_output" | awk '{print $1}')"
+printf 'PHPantom Docker build succeeded.\n'
+printf 'Candidate WASM: %s\n' "$artifact"
+printf 'Provenance: %s\n' "$provenance"
 printf 'WASM SHA-256: %s\n' "$wasm_sha256"
-printf 'Built PHPantom %s with PHP-version initialization at %s\n' \
-	"$version" "$wasm_output"
+printf 'Docker logs: %s/docker-build.log %s/docker-run.log\n' "$attempt_dir" "$attempt_dir"
+printf 'The checked-in asset was not replaced.\n'

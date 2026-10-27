@@ -43,33 +43,45 @@ aware. Full inventories for every installed PHP extension are outside scope.
 - Runtime patch: `scripts/lsp/phpantom/patches/0001-php-version-initialize.patch`
 - Runtime patch SHA-256: `ea43adab881c9214e9f693d0f11ed3cec93314f23d331210fc86de8c22fe04fc`
 - Rust toolchain: `1.99.0`, target `wasm32-wasip1`; Cargo uses `--locked`
+- Docker build image: `rust:1.99.0-bookworm@sha256:114c7a4425406451c2866b6aafe69fe29b1b298832db1277d411ac73c82d04d6`
 - WASI shim: `@bjorn3/browser_wasi_shim` `0.4.2`, root lockfile pinned
-- Asset: `assets/lsp/phpantom/phpantom_lsp.wasm` (18,532,100 bytes)
-- Asset SHA-256: `12b4f522e7419711ef915c7d522d9163ab27cf6d37ddfe0b8e12c6e34d92e6d5`
+- Asset: `assets/lsp/phpantom/phpantom_lsp.wasm` (18,530,827 bytes)
+- Asset SHA-256: `2ba179568c31958b731d3eb70f69b788187fcb605094b39d289c4d4caa3ba3da`
+- Build provenance: `assets/lsp/phpantom/phpantom_lsp.provenance.json`
 - Worker version and cache URL pin the runtime marker `.3` and the asset hash.
 
-`build-wasm.sh` downloads both pinned archives, verifies their SHA-256 values,
-applies the checked-in patch, and builds with locked Rust dependencies. The
-WASM is included in the repository so clean checkout, `npm ci`, and Vite/Pages
-build do not require local Rust. Its checksum is also part of the Worker URL
-query to avoid reusing a stale cached asset after an update.
+`make build-phpantom-runtime` is the single host entry point. It builds and runs
+the pinned Docker builder, which downloads both pinned archives, verifies their
+SHA-256 values, applies the checked-in patch, and builds with locked Rust
+dependencies. The host does not need Rust. The candidate and `provenance.json`
+are exported beneath `build/phpantom-docker-candidates/`; a failed build does
+not replace the checked-in asset. The committed WASM lets clean checkout,
+`npm ci`, and Vite/Pages builds run without Docker or Rust. Its checksum is
+also part of the Worker URL query to avoid reusing a stale cached asset after
+an update.
 
-Rebuild the asset with Rust 1.99 and the WASI target installed:
+To rebuild the candidate and run the focused native parameter reconstruction
+regression separately:
 
 ```sh
-rustup toolchain install 1.99.0 --target wasm32-wasip1
-./scripts/lsp/phpantom/build-wasm.sh
-shasum -a 256 assets/lsp/phpantom/phpantom_lsp.wasm
+make build-phpantom-runtime
+make test-phpantom-runtime-native
 ```
 
-The build script's GitHub DNS/archive fetch failed in this environment and is
-not counted as a successful network retrieval. The local PHPantom source
-archive and phpstorm-stubs archive matched the pinned SHA-256 values above.
-The source archive identifies commit `49b9a7513ed19cbbfb79d5d08a3f3693ffb2b668`;
-the stubs extraction identifies commit
-`2049ca3cfa1feabf52db074108fe776a5713cf02`. The build used fresh archive
-extractions, applied only the checked-in patch, and ran Cargo with `--locked`.
-No pre-existing dirty source patch was mixed into the artifact.
+The default artifact build does not compile the native test harness. The
+explicit native test target uses the same pinned source, stubs, patch, Docker
+image, and Cargo lockfile without producing an artifact.
+
+The committed provenance records the builder image ID and platform, Docker
+server version, Rust/Cargo versions, pinned commits and archive hashes,
+Cargo.lock hash, patch hash, target, and exported artifact hash. The successful
+candidate run fetched both upstream archives, verified their SHA-256 values,
+used fresh extractions, applied only the checked-in patch, and built with Cargo
+`--locked`. No pre-existing dirty source patch was mixed into the artifact.
+The Docker native regression rerun from this build was intentionally stopped
+during test-binary compilation and is unverified; the accepted
+`a34b6782b2a5c9865cd5780826fdb192b1a1c020` source/patch native regression
+passed before this Docker replan.
 
 ## WASI regression harness
 
@@ -93,11 +105,11 @@ stale document versions; and JSON-RPC errors/notifications.
 
 | Check | Result | Evidence and limits |
 | --- | --- | --- |
-| Focused native parameter reconstruction regression | Passed | PHP 8.0 absent / 8.3 present for function and method; virtual `@param` and surviving native `non-empty-string` enrichment retained. 1 test passed. |
+| Focused native parameter reconstruction regression | Previously passed; Docker rerun incomplete | The accepted `a34b678` source/patch passed PHP 8.0 absent / 8.3 present for function and method, preserving virtual `@param` and surviving native `non-empty-string` enrichment. The Docker rerun was stopped during native test-binary compilation; its result is unverified. |
 | Existing pinned-core availability regression | Passed | 12 `stubs::tests` passed, including exact `@since` and extension-release controls. |
-| Full WASI smoke | Passed | `node scripts/lsp/phpantom/smoke-test.mjs`; 12-version cold/warm matrix, PHP 8.0/8.3 `strrchr`, `intdiv`/`array_key_first`, AssertionError, and PHP 8.4/8.5 cases passed. |
+| Full WASI smoke | Passed on Docker candidate | `PHPANTOM_WASM_PATH=<candidate> node scripts/lsp/phpantom/smoke-test.mjs`; all 12 supported versions, cold/warm regression, PHP 8.0/8.3 parameter availability, `intdiv`/`array_key_first`, AssertionError, and PHP 8.4/8.5 cases passed. |
 | `npm ci --ignore-scripts --offline` | Passed | Clean install from root lockfile; 751 packages installed, no vulnerabilities. |
 | `npm run build` | Passed | Vite production build used the final hash-pinned asset; existing large-chunk warning remains. |
-| WASM build | Passed | Fresh extractions of verified pinned archives, checked-in patch only, Rust 1.99, Cargo `--locked`; GitHub DNS retrieval failed and is not claimed. |
+| Docker WASM build | Passed | Actual `make build-phpantom-runtime`; Docker image `rust:1.99.0-bookworm@sha256:114c7a4425406451c2866b6aafe69fe29b1b298832db1277d411ac73c82d04d6`, Linux/arm64 builder. Both upstream archives were downloaded and checksum-verified; Cargo `--locked`. |
 | Asset and patch SHA-256 | Recorded above | The smoke and Vite build use the final asset hash. |
 | Browser Worker and integrated UI | Not verified in this lane | Requires integrated UI verification. |
