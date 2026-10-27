@@ -1,0 +1,75 @@
+--- a/src/lsp_dispatch.rs
++++ b/src/lsp_dispatch.rs
+@@ -17,6 +17,7 @@
+ };
+ 
+ use crate::Backend;
++use crate::types::PhpVersion;
+ use std::sync::Arc;
+ 
+ /// JSON-RPC error codes we return, from the LSP specification.
+@@ -42,7 +43,29 @@
+     pub fn new() -> LspDispatcher {
+         LspDispatcher {
+             backend: Backend::new_headless(),
++        }
++    }
++
++    /// Apply the target PHP version before the first LSP request.
++    fn configure_php_version(&self, params: &Value) -> Result<(), String> {
++        let Some(version) = params
++            .get("initializationOptions")
++            .and_then(|options| options.get("phpVersion"))
++        else {
++            return Ok(());
++        };
++        let version = version
++            .as_str()
++            .ok_or_else(|| "initializationOptions.phpVersion must be a string.".to_string())?;
++        let version = PhpVersion::from_composer_constraint(version)
++            .ok_or_else(|| "initializationOptions.phpVersion must be major.minor.".to_string())?;
++        if !matches!((version.major, version.minor), (7, 4) | (8, 5)) {
++            return Err(format!(
++                "PHPantom preview supports PHP 7.4 and 8.5; received {version}."
++            ));
+         }
++        self.backend.set_php_version(version);
++        Ok(())
+     }
+ 
+     /// Handle one LSP JSON-RPC message. Returns a JSON-RPC response string for
+@@ -54,7 +77,10 @@
+         let params = value.get("params").cloned().unwrap_or(Value::Null);
+ 
+         let outcome: Outcome = match method {
+-            "initialize" => Some(Ok(self.capabilities())),
++            "initialize" => match self.configure_php_version(&params) {
++                Ok(()) => Some(Ok(self.capabilities())),
++                Err(message) => Some(Err((INVALID_PARAMS, message))),
++            },
+             "shutdown" => Some(Ok(Value::Null)),
+             "initialized" | "exit" | "$/cancelRequest" => None,
+             "textDocument/didOpen" => {
+@@ -275,7 +301,7 @@
+             // can tell which build it is talking to.
+             "serverInfo": {
+                 "name": self.backend.name,
+-                "version": self.backend.version,
++                "version": format!("{}+php-version-setting.1:php{}", self.backend.version, self.backend.php_version()),
+             }
+         })
+     }
+--- a/src/completion/handler/named_args.rs
++++ b/src/completion/handler/named_args.rs
+@@ -31,6 +31,11 @@
+         position: Position,
+         ctx: &FileContext,
+     ) -> Vec<CompletionItem> {
++        // Named arguments are PHP 8.0 syntax and must not be suggested for older targets.
++        if self.php_version() < crate::types::PhpVersion::new(8, 0) {
++            return Vec::new();
++        }
++
+         // ── Primary path: AST-based detection via symbol map ────────
+         // The symbol map's `CallSite` data handles chains, nesting,
+         // and strings correctly.  Fall back to text scanning when the

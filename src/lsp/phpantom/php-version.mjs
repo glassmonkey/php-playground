@@ -5,8 +5,8 @@ export function phpVersionInitializationError(options) {
 	if (typeof phpVersion !== 'string' || !/^\d+\.\d+$/.test(phpVersion)) {
 		return 'initializationOptions.phpVersion must be a string such as "8.2".';
 	}
-	if (phpVersion !== '8.5') {
-		return `PHPantom 0.11.1 WASI does not apply initializationOptions.phpVersion; this build uses its PHP 8.5 default (received ${phpVersion}).`;
+	if (phpVersion !== '7.4' && phpVersion !== '8.5') {
+		return `PHPantom preview supports PHP 7.4 and 8.5 only (received ${phpVersion}).`;
 	}
 }
 

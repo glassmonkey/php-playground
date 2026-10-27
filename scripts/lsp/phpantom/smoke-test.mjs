@@ -42,31 +42,34 @@ for (const name of [
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
-function send(message) {
+function sendTo(wasmInstance, message) {
 	const request = encoder.encode(JSON.stringify(message));
-	const input = wasm.lsp_alloc(request.length);
+	const input = wasmInstance.lsp_alloc(request.length);
 	assert.notEqual(
 		input,
 		0,
 		'request buffer is allocated by the actual WASM module'
 	);
-	new Uint8Array(wasm.memory.buffer, input, request.length).set(request);
+	new Uint8Array(wasmInstance.memory.buffer, input, request.length).set(request);
 	let output = 0;
 	let outputLength = 0;
 	try {
-		output = wasm.lsp_handle(input, request.length);
+		output = wasmInstance.lsp_handle(input, request.length);
 		if (output === 0) return null;
-		outputLength = wasm.lsp_response_len();
+		outputLength = wasmInstance.lsp_response_len();
 		const bytes = new Uint8Array(
-			wasm.memory.buffer,
+			wasmInstance.memory.buffer,
 			output,
 			outputLength
 		).slice();
 		return JSON.parse(decoder.decode(bytes));
 	} finally {
-		wasm.lsp_dealloc(input, request.length);
-		if (output !== 0) wasm.lsp_dealloc(output, outputLength);
+		wasmInstance.lsp_dealloc(input, request.length);
+		if (output !== 0) wasmInstance.lsp_dealloc(output, outputLength);
 	}
+}
+function send(message) {
+	return sendTo(wasm, message);
 }
 
 const started = performance.now();
@@ -78,6 +81,11 @@ const init = send({
 });
 const initializeResponseMs = performance.now() - started;
 assert.equal(init.id, 1, 'request id is preserved');
+assert.equal(
+	init.result.serverInfo.version,
+	'0.11.1+php-version-setting.1:php8.5',
+	'engine confirms the custom PHP-version-setting build'
+);
 assert.ok(
 	init.result.capabilities.completionProvider.resolveProvider,
 	'completion resolve is advertised'
@@ -189,6 +197,86 @@ const signature = request(
 );
 assert.match(JSON.stringify(signature.result?.signatures ?? ''), /message/);
 
+const signatureUri = 'file:///playground/php-version.php';
+const signatureSource = "<?php\nstrrchr(";
+send({
+	jsonrpc: '2.0',
+	method: 'textDocument/didOpen',
+	params: {
+		textDocument: {
+			uri: signatureUri,
+			languageId: 'php',
+			version: 1,
+			text: signatureSource,
+		},
+	},
+});
+const php85Arguments = send({
+	jsonrpc: '2.0',
+	id: 11,
+	method: 'textDocument/completion',
+	params: {
+		textDocument: { uri: signatureUri },
+		position: { line: 1, character: 8 },
+	},
+});
+assert.match(
+	JSON.stringify(php85Arguments.result ?? ''),
+	/before_needle/
+);
+
+const php74Wasi = new WASI(
+	[],
+	[],
+	[
+		new OpenFile(new File([])),
+		ConsoleStdout.lineBuffered(() => {}),
+		ConsoleStdout.lineBuffered(() => {}),
+	]
+);
+const php74Instance = await WebAssembly.instantiate(module, {
+	wasi_snapshot_preview1: php74Wasi.wasiImport,
+});
+php74Wasi.initialize(php74Instance);
+const php74Wasm = php74Instance.exports;
+const php74Init = sendTo(php74Wasm, {
+	jsonrpc: '2.0',
+	id: 1,
+	method: 'initialize',
+	params: { capabilities: {}, initializationOptions: { phpVersion: '7.4' } },
+});
+assert.equal(php74Init.error, undefined, '7.4 is accepted by the WASM engine');
+assert.equal(
+	php74Init.result.serverInfo.version,
+	'0.11.1+php-version-setting.1:php7.4'
+);
+sendTo(php74Wasm, { jsonrpc: '2.0', method: 'initialized', params: {} });
+sendTo(php74Wasm, {
+	jsonrpc: '2.0',
+	method: 'textDocument/didOpen',
+	params: {
+		textDocument: {
+			uri: signatureUri,
+			languageId: 'php',
+			version: 1,
+			text: signatureSource,
+		},
+	},
+});
+const php74Arguments = sendTo(php74Wasm, {
+	jsonrpc: '2.0',
+	id: 2,
+	method: 'textDocument/completion',
+	params: {
+		textDocument: { uri: signatureUri },
+		position: { line: 1, character: 8 },
+	},
+});
+assert.doesNotMatch(
+	JSON.stringify(php74Arguments.result ?? ''),
+	/before_needle/
+);
+
 const resolved = send({
 	jsonrpc: '2.0',
 	id: 7,
@@ -199,8 +287,9 @@ assert.equal(resolved.id, 7, 'resolve response keeps its request id');
 
 assert.match(
 	phpVersionInitializationError({ phpVersion: '8.2' }),
-	/does not apply/
+	/supports PHP 7.4 and 8.5/
 );
+assert.equal(phpVersionInitializationError({ phpVersion: '7.4' }), undefined);
 assert.equal(phpVersionInitializationError({ phpVersion: '8.5' }), undefined);
 assert.match(
 	phpVersionInitializationError({ phpVersion: 82 }),
@@ -227,7 +316,10 @@ assert.equal(
 	'notification has no response'
 );
 
-console.log(`PHPantom ${init.result.serverInfo.version}`);
+console.log(`PHPantom engine ${init.result.serverInfo.version}`);
+console.log(
+	`PHP 7.4 engine ${php74Init.result.serverInfo.version}; named-argument completion is suppressed below PHP 8.0.`
+);
 console.log(`WASM: ${wasmBytes.byteLength} bytes`);
 console.log(
 	`module startup (local file read + compile + instantiate): ${moduleStartupMs.toFixed(2)} ms`

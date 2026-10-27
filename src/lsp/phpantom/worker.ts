@@ -27,6 +27,7 @@ type PhpantomExports = WebAssembly.Exports & {
 type OpenDocument = { version: number };
 
 const PHPANTOM_VERSION = '0.11.1';
+const PHPANTOM_VERSIONED_BUILD = '0.11.1+php-version-setting.1';
 const WASM_URL = '/lsp/phpantom/phpantom_lsp.wasm';
 const documents = new Map<string, OpenDocument>();
 let runtime: Promise<PhpantomExports> | undefined;
@@ -206,6 +207,28 @@ async function handleMessage(data: unknown): Promise<void> {
 
 	try {
 		const response = sendToPhpantom(await loadRuntime(), message);
+		if (message.method === 'initialize') {
+			const result = response && isMessage(response.result) ? response.result : undefined;
+			const serverInfo = result && isMessage(result.serverInfo)
+				? result.serverInfo
+				: undefined;
+			const initializationOptions = isMessage(message.params)
+				? message.params.initializationOptions
+				: undefined;
+			const configuredPhpVersion =
+				isMessage(initializationOptions) &&
+				typeof initializationOptions.phpVersion === 'string'
+					? initializationOptions.phpVersion
+					: '8.5';
+			if (
+				serverInfo?.version !==
+				`${PHPANTOM_VERSIONED_BUILD}:php${configuredPhpVersion}`
+			) {
+				throw new Error(
+					'PHPantom WASM does not include PHP 7.4/8.5 version selection. Rebuild it with ./scripts/lsp/phpantom/build-wasm.sh.'
+				);
+			}
+		}
 		updateDocumentState(message);
 		if (response !== null) self.postMessage(response);
 	} catch (error) {
