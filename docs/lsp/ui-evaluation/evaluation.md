@@ -129,6 +129,8 @@ manager承認のlatest-only singleflightは#424 head `388cbe69654113a00a2272cc9e
 
 ## 対象と方法
 
+PHP 7.4/8.5 builtin completionの失敗baselineと修正版追試は[version-filter評価記録](phpantom-74-85/expectations-and-method.md)から参照できる。最新のv3 browser retestは#421 head `d92b99f04d9d0cb7b6410bc52a668807d2ccc4a8`で、`strlen`/`array_fill` UI resolve後の7.4 negativeと8.5 positiveを別Worker・別版で確認した。詳細、Worker trace、実fetch asset hash、画面証拠は[独立v3追試](phpantom-74-85/browser-2026-10-27-cache-filter-v3.md)。過去headの失敗証拠は上書きしていない。
+
 2026-10-25に、PHP 8.5をUI上で確認して測定した。対象headはPHPantom `863c1337adb05a339dbbd6eb20a9c26eb7b63316` とPhpactor `ee48f4733c802fa39fc3abd54441dd9737017ee8`。両source worktreeは測定時点でclean、対象Viteはそれぞれ7260/3471で稼働していた。隔離Playwright BrowserContext、Chrome `156.0.8078.47`、viewport 1440×1000を使用し、既存の利用者プロファイルには触れていない。
 
 同期runはPHPantom [trace](evidence/phpantom-2026-10-25T12-30-40-981Z/trace.json)、Phpactor [最終trace](evidence/phpactor-2026-10-25T12-38-22-832Z/trace.json)。共通コードは[fixture.php](fixture.php)。各手動候補ケースは全文と`didChange` versionを確認後、カーソル末尾のpositionにCtrl+Spaceを2回送り、対応するWorker responseをrequest idで対応付けた。r1は各ケースの初回request、r2は同じ全文/versionでの再request。ページ起動・初期化待ちの時間は含めない。旧fixtureは[fixture-v1.php](fixture-v1.php)に保存した。
