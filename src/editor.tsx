@@ -73,7 +73,12 @@ function PhpCodeCallback(params: { onChangeCode: (code: string) => void }) {
 	const { sandpack } = useSandpack();
 	const { files, activeFile } = sandpack;
 	const code = files[activeFile].code;
-	params.onChangeCode(code);
+	const previousCode = React.useRef(code);
+	React.useEffect(() => {
+		if (previousCode.current === code) return;
+		previousCode.current = code;
+		params.onChangeCode(code);
+	}, [code]);
 	return <></>;
 }
 
@@ -128,6 +133,7 @@ export function Editor(params: {
 	initCode: string;
 	version: Version;
 	format: Format;
+	autoComplete: boolean;
 	theme: PreviewTheme;
 	onChangeCode: (code: string) => void;
 }) {

@@ -183,11 +183,7 @@ async function setPreviewFormat(page: Page, format: 'html' | 'console') {
   const formatSwitch = page.getByTestId('checkbox-format');
   const shouldBeChecked = format === 'html';
   if ((await formatSwitch.isChecked()) !== shouldBeChecked) {
-    if (shouldBeChecked) {
-      await formatSwitch.check();
-    } else {
-      await formatSwitch.uncheck();
-    }
+    await page.getByText('HTML Preview', {exact: true}).click();
   }
   await expect(formatSwitch).toBeChecked({checked: shouldBeChecked});
 }
@@ -281,7 +277,7 @@ test.describe('default page', () => {
 
   test('default URL', async ({ page }) => {
     const defaultPage = `${PAGE}/?c=DwfgDgFmBQD0sAICmAPAhgWzAGyQgxgPYAmS0kYAlgHYBmhAFAJQDcQA&v=${defaultVersion}&f=html`
-    await page.waitForURL(defaultPage)
+    await expect(page).toHaveURL(defaultPage)
     expect(page.url()).toContain(defaultPage)
   })
 
@@ -448,6 +444,83 @@ test.describe('default page', () => {
   })
 })
 
+test.describe('auto complete URL state', () => {
+  test('preserves query state and restores code, format, and toggle through history', async ({page}) => {
+    const initialCode = "<?php\necho 'before';";
+    const initialCompressedCode = lzString.compressToEncodedURIComponent(initialCode);
+    const params = new URLSearchParams({
+      v: '8.4',
+      c: initialCompressedCode,
+      f: 'html',
+      share: 'keep',
+      ac: '0',
+    });
+    await page.goto(`${PAGE}/?${params}`);
+
+    const autoComplete = page.getByTestId('checkbox-auto-complete');
+    await expect(autoComplete).not.toBeChecked();
+    await autoComplete.check();
+    await expect(page).toHaveURL(/[?&]ac=1(?:&|$)/);
+    await expect(page).toHaveURL(/[?&]share=keep(?:&|$)/);
+
+    const versionSelector = page.locator('#select-input-php');
+    await versionSelector.fill('8.3');
+    await page.keyboard.press('Tab');
+    await expect(page).toHaveURL(/[?&]v=8.3(?:&|$)/);
+    await expect(page).toHaveURL(/[?&]ac=1(?:&|$)/);
+    await expect(page).toHaveURL(/[?&]share=keep(?:&|$)/);
+
+    await page.getByText('HTML Preview', {exact: true}).click();
+    await expect(page).toHaveURL(/[?&]f=console(?:&|$)/);
+    await expect(page.getByTestId('checkbox-format')).not.toBeChecked();
+    await expect(page.getByTestId('checkbox-auto-complete')).toBeChecked();
+
+    const editor = page.getByRole('code');
+    const editorContent = editor.locator('.editor-scrollable[role="presentation"]');
+    await editor.click();
+    await page.keyboard.press('End');
+    await page.keyboard.type("\necho 'edited';");
+    await expect(editorContent).toContainText("echo 'edited';");
+    await expect.poll(() => new URL(page.url()).searchParams.get('c')).not.toBe(initialCompressedCode);
+    await expect(page).toHaveURL(/[?&]ac=1(?:&|$)/);
+    await expect(page).toHaveURL(/[?&]share=keep(?:&|$)/);
+
+    await page.reload();
+    await expect(page.getByTestId('checkbox-auto-complete')).toBeChecked();
+    await expect(page.getByTestId('checkbox-format')).not.toBeChecked();
+    await expect(page.getByRole('code')).toContainText("echo 'edited';");
+
+    await page.goBack();
+    await expect(page.getByRole('code')).toContainText("echo 'before';");
+    await page.goBack();
+    await expect(page.getByTestId('checkbox-format')).toBeChecked();
+    await expect(page.getByTestId('checkbox-auto-complete')).toBeChecked();
+    await page.goBack();
+    await expect(page).toHaveURL(/[?&]v=8.4(?:&|$)/);
+    await expect(page.getByTestId('checkbox-auto-complete')).toBeChecked();
+    await page.goBack();
+    await expect(page.getByTestId('checkbox-auto-complete')).not.toBeChecked();
+    await expect(page.getByRole('code')).toContainText("echo 'before';");
+    await page.goForward();
+    await expect(page.getByTestId('checkbox-auto-complete')).toBeChecked();
+    await page.goForward();
+    await expect(page).toHaveURL(/[?&]v=8.3(?:&|$)/);
+    await page.goForward();
+    await expect(page.getByTestId('checkbox-format')).not.toBeChecked();
+    await page.goForward();
+    await expect(page.getByRole('code')).toContainText("echo 'edited';");
+  });
+
+  test('defaults invalid ac values to enabled', async ({page}) => {
+    await page.goto(`${PAGE}/?ac=invalid&share=keep`);
+
+    await expect(page.getByTestId('checkbox-auto-complete')).toBeChecked();
+    await page.getByTestId('checkbox-auto-complete').uncheck();
+    await expect(page).toHaveURL(/[?&]ac=0(?:&|$)/);
+    await expect(page).toHaveURL(/[?&]share=keep(?:&|$)/);
+  });
+});
+
 test.describe('select version', () => {
   // Run different versions in parallel
   test.describe.configure({ mode: 'parallel' });
@@ -467,7 +540,7 @@ test.describe('select version', () => {
         await page.keyboard.down("Tab");
 
         // html preview
-        await page.getByTestId('checkbox-format').check()
+        await setPreviewFormat(page, 'html')
         await expect(page.getByTestId('preview-html')).toHaveAttribute('srcdoc', versionPattern(v))
         expect(page.url()).toContain(`v=${v}`)
       })
@@ -489,7 +562,7 @@ test.describe('select version', () => {
         // display code in editor
         await expect(editorContent).toHaveText('<? echo(1+1);')
         // run and result is 2
-        await page.getByTestId('checkbox-format').uncheck()
+        await setPreviewFormat(page, 'console')
         await expect(await page.getByTestId('preview-console')).toHaveText('2')
       })
 
@@ -515,7 +588,7 @@ test.describe('select version', () => {
         // display code in editor
         await expect(editorContent).toHaveText('<? declare(strict_types=1);echo(1+1);')
         // run and result is 2
-        await page.getByTestId('checkbox-format').uncheck()
+        await setPreviewFormat(page, 'console')
         await expect(await page.getByTestId('preview-console')).toHaveText('2')
       })
       test(`not compute text`, async ({page}) => {
@@ -536,7 +609,7 @@ test.describe('select version', () => {
         // display code in editor
         await expect(editorContent).toHaveText('<!---->Hello, World')
         // run and result is 2
-        await page.getByTestId('checkbox-format').uncheck()
+        await setPreviewFormat(page, 'console')
         await expect(await page.getByTestId('preview-console')).toHaveText('<!---->Hello, World')
       })
       test(`include compute text`, async ({page}) => {
@@ -557,7 +630,7 @@ test.describe('select version', () => {
         // display code in editor
         await expect(editorContent).toHaveText('<!----><body><?echo "x"."y"."z"?></body>')
         // run and result is 2
-        await page.getByTestId('checkbox-format').uncheck()
+        await setPreviewFormat(page, 'console')
         await expect(await page.getByTestId('preview-console')).toHaveText('<!----><body>xyz</body>')
       })
       test(`infinite loop and comment out`, async ({page}) => {
@@ -568,7 +641,7 @@ test.describe('select version', () => {
         await page.keyboard.down("Tab");
 
         // switch to console preview
-        await page.getByTestId('checkbox-format').uncheck()
+        await setPreviewFormat(page, 'console')
 
         const editor = page.getByRole('code')
         const editorContent = editor.locator('.editor-scrollable[role="presentation"]')
