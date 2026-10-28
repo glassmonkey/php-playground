@@ -10,7 +10,7 @@ on:
       - rust/**
       - .github/workflows/phpantom-runtime.yml
   pull_request:
-    branches: [main]
+    branches: [master]
     paths:
       - Cargo.toml
       - Cargo.lock
