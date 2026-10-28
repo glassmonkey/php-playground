@@ -201,6 +201,8 @@ fn source_versioned_same_name_parameter_variants_select_the_matching_signature()
         let start = text.find("function setlocale(").unwrap();
         let end = start + text[start..].find("): string|false").unwrap();
         let signature = &text[start..end];
+        let doc_start = text[..start].rfind("/**").unwrap();
+        let doc = &text[doc_start..start];
         let names = ["$category", "$locales", "$rest"]
             .into_iter()
             .filter(|name| signature.contains(name))
@@ -209,9 +211,11 @@ fn source_versioned_same_name_parameter_variants_select_the_matching_signature()
         if target == "7.4" {
             assert!(!signature.contains("$locales"));
             assert_eq!(signature.matches("$rest").count(), 1);
+            assert!(!doc.contains("$locales"));
         } else {
             assert!(signature.contains("$locales"));
             assert_eq!(signature.matches("$rest").count(), 1);
+            assert!(doc.contains("$locales"));
         }
     }
 }
