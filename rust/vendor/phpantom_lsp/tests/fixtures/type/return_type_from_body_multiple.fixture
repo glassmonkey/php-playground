@@ -1,0 +1,31 @@
+// test: return type inferred from method body with multiple returns (union)
+// feature: completion
+// Adapted from phpactor return-statement/multiple_return.test
+// expect: barMethod(
+// expect: bazMethod(
+---
+<?php
+
+class MultiReturnFactory {
+    public function create(bool $flag) {
+        if ($flag) {
+            return new BarResult();
+        }
+        return new BazResult();
+    }
+}
+
+class BarResult {
+    public function barMethod(): void {}
+    public function bazMethod(): void {}
+}
+
+class BazResult {
+    public function bazMethod(): void {}
+    public function barMethod(): void {}
+}
+
+function testMultiReturn(MultiReturnFactory $factory): void {
+    $result = $factory->create(true);
+    $result-><>
+}

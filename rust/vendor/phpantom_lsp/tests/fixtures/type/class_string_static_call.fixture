@@ -1,0 +1,20 @@
+// test: class-string variable used for static call resolves return type
+// feature: completion
+// Adapted from phpactor type/class-string-static-call.test
+
+// expect: doSomething(
+---
+<?php
+
+class Foo
+{
+    public static function demo(): self
+    {
+    }
+
+    public function doSomething(): void {}
+}
+
+$bar = Foo::class;
+$result = $bar::demo();
+$result-><>

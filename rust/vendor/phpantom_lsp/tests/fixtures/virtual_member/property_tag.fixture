@@ -1,0 +1,15 @@
+// test: virtual property from @property tag appears in completion
+// feature: completion
+// Adapted from phpactor virtual_member/property.test
+// expect: title
+---
+<?php
+
+/**
+ * @property string $title
+ */
+class Foo {
+}
+
+$foo = new Foo();
+$foo-><>

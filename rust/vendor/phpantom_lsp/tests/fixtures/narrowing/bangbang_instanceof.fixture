@@ -1,0 +1,17 @@
+// test: double negation with instanceof narrows type
+// feature: completion
+// Adapted from phpactor if-statement/bangbang.test
+
+// expect: fooMethod(
+---
+<?php
+
+class Foobar {
+    public function fooMethod(): void {}
+}
+
+function test($foobar): void {
+    if (!!$foobar instanceof Foobar) {
+        $foobar-><>
+    }
+}

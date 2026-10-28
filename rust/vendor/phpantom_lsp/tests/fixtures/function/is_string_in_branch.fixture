@@ -1,0 +1,16 @@
+// test: negated is_string() in if branch retains object members
+// feature: completion
+// Adapted from phpactor if-statement/else.test (negated is_string branch)
+// expect: doWork(
+---
+<?php
+
+class Service {
+    public function doWork(): void {}
+}
+
+function test(Service|string $val): void {
+    if (!is_string($val)) {
+        $val-><>
+    }
+}

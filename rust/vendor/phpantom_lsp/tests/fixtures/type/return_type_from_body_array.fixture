@@ -1,0 +1,24 @@
+// test: return type inferred from method body returning array of objects
+// feature: completion
+// When a method returns `[new Foo()]`, the inferred type should be
+// `list<Foo>` so that foreach iteration resolves the element type.
+// expect: barMethod(
+---
+<?php
+
+class ArrayReturnFactory {
+    public function getItems() {
+        return [new ArrayReturnItem()];
+    }
+}
+
+class ArrayReturnItem {
+    public function barMethod(): void {}
+}
+
+function testArrayReturn(ArrayReturnFactory $f): void {
+    $items = $f->getItems();
+    foreach ($items as $item) {
+        $item-><>
+    }
+}

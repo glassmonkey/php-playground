@@ -1,0 +1,17 @@
+// test: partially completed method with text after cursor still completes
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest 'Partially completed method with text after'
+// expect: bbb(
+---
+<?php
+
+class Foobar
+{
+    public function aaa()
+    {
+        $this->bb<>new Foobar();
+    }
+
+    public function bbb() {}
+    public function ccc() {}
+}

@@ -1,0 +1,32 @@
+// test: conditional return type resolves based on class-string argument
+// feature: completion
+// Adapted from phpactor type/conditional-type.test
+// expect: fooMethod(
+---
+<?php
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+/** @api */
+interface TreeMapper
+{
+    /**
+     * @template T of object
+     *
+     * @param string|class-string<T> $signature
+     * @param mixed $source
+     * @return (
+     *     $signature is class-string<T>
+     *         ? T
+     *         : mixed
+     * )
+     */
+    public function map(string $signature, $source);
+}
+
+function test(TreeMapper $mapper): void {
+    $result = $mapper->map(Foo::class, 'bar');
+    $result-><>
+}

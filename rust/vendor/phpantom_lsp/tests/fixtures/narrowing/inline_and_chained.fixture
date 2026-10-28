@@ -1,0 +1,24 @@
+// test: chained && instanceof checks narrow type through the entire condition
+// feature: completion
+// expect: laravelMethod(
+// expect: adminMethod(
+---
+<?php
+
+class BaseRequest {
+    public function baseMethod(): string { return ''; }
+}
+
+class LaravelRequest extends BaseRequest {
+    public function laravelMethod(): bool { return true; }
+}
+
+class AdminRequest extends LaravelRequest {
+    public function adminMethod(): bool { return true; }
+}
+
+function process(BaseRequest $request): void {
+    if ($request instanceof LaravelRequest && $request instanceof AdminRequest && $request-><>adminMethod()) {
+        return;
+    }
+}

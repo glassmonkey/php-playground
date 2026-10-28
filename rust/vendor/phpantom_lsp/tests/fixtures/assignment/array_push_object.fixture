@@ -1,0 +1,17 @@
+// test: array push tracks pushed object type for subscript access
+// feature: completion
+// Adapted from phpactor assignment/array_add.test
+// expect: name
+---
+<?php
+
+class User {
+    public string $name = '';
+    public function getName(): string { return $this->name; }
+}
+
+function test(): void {
+    $items = [];
+    $items[] = new User();
+    $items[0]-><>
+}

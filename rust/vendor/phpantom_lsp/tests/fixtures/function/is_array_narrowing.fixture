@@ -1,0 +1,17 @@
+// test: is_array() narrows type so else branch retains object members
+// feature: completion
+// Adapted from phpactor function narrowing patterns
+// expect: process(
+---
+<?php
+
+class Processor {
+    public function process(): void {}
+}
+
+function test(Processor|array $input): void {
+    if (is_array($input)) {
+        return;
+    }
+    $input-><>
+}

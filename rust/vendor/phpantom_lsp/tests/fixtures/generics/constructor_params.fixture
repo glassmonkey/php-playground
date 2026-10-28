@@ -1,0 +1,24 @@
+// test: constructor argument infers template type
+// feature: completion
+// Adapted from phpactor generics/constructor-params.test
+// expect: bazMethod(
+---
+<?php
+
+/** @template T */
+class Foo {
+    /**
+     * @param T $bar
+     */
+    public function __construct($bar) {}
+
+    /** @return T */
+    public function bar() {}
+}
+
+class Baz {
+    public function bazMethod(): void {}
+}
+
+$foo = new Foo(new Baz());
+$foo->bar()-><>

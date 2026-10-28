@@ -1,0 +1,28 @@
+// test: elseif instanceof chain narrows type at each branch
+// feature: completion
+// Adapted from phpactor if-statement/elseif.test using instanceof instead of is_*()
+// expect: catMethod(
+---
+<?php
+
+class Dog {
+    public function dogMethod(): void {}
+}
+
+class Cat {
+    public function catMethod(): void {}
+}
+
+class Bird {
+    public function birdMethod(): void {}
+}
+
+function test(Dog|Cat|Bird $animal): void {
+    if ($animal instanceof Dog) {
+        return;
+    } elseif ($animal instanceof Bird) {
+        return;
+    }
+
+    $animal-><>
+}

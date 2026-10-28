@@ -1,0 +1,15 @@
+// test: static return type resolves to the declaring class
+// feature: completion
+// Adapted from phpactor type/static.test
+// expect: bazMethod(
+---
+<?php
+
+class Bar {
+    public function bazMethod(): void {}
+
+    public function baz(): static { return $this; }
+}
+
+$b = new Bar();
+$b->baz()-><>

@@ -1,0 +1,22 @@
+// test: foreach over method return type array resolves item members
+// feature: completion
+// Adapted from phpactor foreach patterns
+// expect: getName(
+---
+<?php
+
+class Item
+{
+    public function getName(): string {}
+}
+
+class Repository
+{
+    /** @return Item[] */
+    public function findAll(): array {}
+}
+
+$repo = new Repository();
+foreach ($repo->findAll() as $item) {
+    $item-><>
+}

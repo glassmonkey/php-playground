@@ -1,0 +1,23 @@
+// test: class-string<T> template parameter resolves T to the concrete class
+// feature: completion
+// Adapted from phpactor generics/class-string-generic.test
+// expect: doSomething(
+---
+<?php
+
+class Foo {
+    public function doSomething(): void {}
+}
+
+class Factory {
+    /**
+     * @template T
+     * @param class-string<T> $class
+     * @return T
+     */
+    public function create($class): object {}
+}
+
+$f = new Factory();
+$result = $f->create(Foo::class);
+$result-><>

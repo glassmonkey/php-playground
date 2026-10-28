@@ -1,0 +1,15 @@
+// test: reset() returns first element type from typed array
+// feature: completion
+// Adapted from phpactor function/reset.test
+// expect: fooMethod(
+---
+<?php
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+/** @var Foo[] $items */
+
+$item = reset($items);
+$item-><>

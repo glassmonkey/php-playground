@@ -1,0 +1,17 @@
+// test: return type inferred as void when method body has no return statements
+// feature: completion
+// Adapted from phpactor return-statement/no_return.test
+// expect_absent: doSomething(
+---
+<?php
+
+class VoidInferenceTarget {
+    public function doSomething() {
+        echo "hello";
+    }
+}
+
+function testVoidInference(VoidInferenceTarget $obj): void {
+    $result = $obj->doSomething();
+    $result-><>
+}

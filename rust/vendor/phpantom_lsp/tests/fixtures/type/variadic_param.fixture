@@ -1,0 +1,14 @@
+// test: variadic parameter resolves to array type inside function body
+// feature: completion
+// Adapted from phpactor type/variadic.test
+// expect: fooMethod(
+---
+<?php
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+function test(Foo ...$foos): void {
+    $foos[0]-><>
+}

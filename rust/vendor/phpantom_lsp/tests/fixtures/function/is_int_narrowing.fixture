@@ -1,0 +1,17 @@
+// test: is_int() narrows type so else branch retains object members
+// feature: completion
+// Adapted from phpactor function/is_int.test and if-statement/else.test
+// expect: barMethod(
+---
+<?php
+
+class Barfoo {
+    public function barMethod(): void {}
+}
+
+function test(Barfoo|int $val): void {
+    if (is_int($val)) {
+        return;
+    }
+    $val-><>
+}

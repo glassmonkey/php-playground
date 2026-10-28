@@ -1,0 +1,32 @@
+// test: class-string generic with nested return type resolves T wrapped in generic
+// feature: completion
+// Adapted from phpactor generics/class-string-generic-nested-return.test
+// expect: doSomething(
+---
+<?php
+
+class Widget {
+    public function doSomething(): void {}
+}
+
+/**
+ * @template T
+ */
+class Bar {
+    /** @return T */
+    public function unwrap() {}
+}
+
+class Foo {
+    /**
+     * @template T
+     * @param class-string<T> $class
+     * @return Bar<T>
+     */
+    public function foobar($class)
+    {
+    }
+}
+
+$f = new Foo();
+$f->foobar(Widget::class)->unwrap()-><>

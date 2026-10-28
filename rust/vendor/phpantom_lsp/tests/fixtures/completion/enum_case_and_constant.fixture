@@ -1,0 +1,14 @@
+// test: enum case and constant appear in :: completion
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest 'enum'
+// expect: FOOBAR
+// expect: FOO
+---
+<?php
+
+enum Enum1 {
+    case FOOBAR;
+    const FOO = 'FOO';
+}
+
+Enum1::F<>

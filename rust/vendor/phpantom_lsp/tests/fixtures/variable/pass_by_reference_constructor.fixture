@@ -1,0 +1,21 @@
+// test: constructor by-ref parameter sets type on variable after call
+// feature: completion
+// After calling new Foo(&$bar) where $bar is typed as Baz, $bar should resolve to Baz
+// expect: doWork(
+---
+<?php
+
+class Baz {
+    public function doWork(): void {}
+}
+
+class Foo {
+    public function __construct(Baz &$bar)
+    {
+        $bar = new Baz();
+    }
+}
+
+new Foo($bar);
+
+$bar-><>

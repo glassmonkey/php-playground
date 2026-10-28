@@ -1,0 +1,12 @@
+// test: foreach key over a `T[]` annotation keeps the full array-key domain
+// feature: hover
+// expect: $k = int|string
+---
+<?php
+
+/** @param string[] $names */
+function f(array $names): void {
+    foreach ($names as $k => $name) {
+        $<>k;
+    }
+}

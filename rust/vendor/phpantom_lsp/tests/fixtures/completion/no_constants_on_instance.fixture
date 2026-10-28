@@ -1,0 +1,19 @@
+// test: constants not shown on instance access
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest 'No constants for instance'
+// expect: bar(
+// expect_absent: FOOBAR
+// expect_absent: BARFOO
+---
+<?php
+
+class Foobar
+{
+    const FOOBAR = 'foobar';
+    const BARFOO = 'barfoo';
+
+    public function bar(): string {}
+}
+
+$foobar = new Foobar();
+$foobar-><>

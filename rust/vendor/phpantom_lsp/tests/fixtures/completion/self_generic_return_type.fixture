@@ -1,0 +1,55 @@
+// test: method chaining resolves when return type is self<...> with generic args
+// feature: completion
+// When a static method returns `self<RuleError>` and instance methods
+// return `self<T&LineRuleError>`, chained calls should resolve the
+// owning class so that subsequent methods are offered.
+// expect: identifier(
+---
+<?php
+
+namespace PHPStan\Rules;
+
+class RuleError {}
+class LineRuleError extends RuleError {}
+
+/**
+ * @template-covariant T of RuleError
+ */
+final class RuleErrorBuilder
+{
+    /**
+     * @return self<RuleError>
+     */
+    public static function message(string $message): self
+    {
+        return new self();
+    }
+
+    /**
+     * @return self<T&LineRuleError>
+     */
+    public function line(int $line): self
+    {
+        return $this;
+    }
+
+    /**
+     * @return self<T>
+     */
+    public function identifier(string $identifier): self
+    {
+        return $this;
+    }
+
+    /**
+     * @return T
+     */
+    public function build(): RuleError
+    {
+        return new RuleError();
+    }
+}
+
+RuleErrorBuilder::message('error')
+    ->line(42)
+    -><>

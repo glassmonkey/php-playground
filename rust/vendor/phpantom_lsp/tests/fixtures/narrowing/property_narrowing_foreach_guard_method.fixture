@@ -1,0 +1,36 @@
+// test: property access narrows after negated instanceof guard with continue in foreach inside class method
+// feature: completion
+// When $arg?->value is checked with instanceof inside a foreach in a
+// class method and the negated branch continues, $arg->value should be
+// narrowed to the checked type on subsequent access.
+// expect: getContents(
+---
+<?php
+
+class StringNode {
+    public string $raw;
+    public function getContents(): string { return ''; }
+}
+
+class IntNode {
+    public int $raw;
+}
+
+class Arg {
+    public StringNode|IntNode $value;
+}
+
+class Parser
+{
+    /** @param list<Arg> $args */
+    public function parse(array $args): void
+    {
+        foreach ($args as $arg) {
+            if (! $arg?->value instanceof StringNode) {
+                continue;
+            }
+
+            $arg->value-><>
+        }
+    }
+}

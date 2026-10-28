@@ -1,0 +1,261 @@
+//! Completion inside the method-name string of array callables:
+//! `[Class::class, 'method']` and `[$obj, 'method']`.
+
+use crate::common::{complete_at, create_psr4_workspace, create_test_backend};
+use tower_lsp_server::gen_lsp_types::*;
+
+fn method_labels(items: &[CompletionItem]) -> Vec<String> {
+    items
+        .iter()
+        .filter(|i| i.kind == Some(CompletionItemKind::Method))
+        .filter_map(|i| i.filter_text.clone())
+        .collect()
+}
+
+fn find_method<'a>(items: &'a [CompletionItem], name: &str) -> Option<&'a CompletionItem> {
+    items.iter().find(|i| {
+        i.kind == Some(CompletionItemKind::Method) && i.filter_text.as_deref() == Some(name)
+    })
+}
+
+/// `[$this, '|']` offers the enclosing class's instance methods.
+#[tokio::test]
+async fn completes_this_callable_methods() {
+    let backend = create_test_backend();
+    let uri = Uri::parse("file:///this_callable.php").unwrap();
+    let text = concat!(
+        "<?php\n",
+        "class Controller {\n",
+        "    public function indexPage(): void {}\n",
+        "    public function showPage(): void {}\n",
+        "    public function register(): void {\n",
+        "        $route = [$this, ''];\n",
+        "    }\n",
+        "}\n",
+    );
+    // Cursor inside the empty string on line 5 (the `''`).
+    let line = text.lines().position(|l| l.contains("$route")).unwrap() as u32;
+    let col = text
+        .lines()
+        .nth(line as usize)
+        .unwrap()
+        .find("'']")
+        .unwrap() as u32
+        + 1;
+
+    let items = complete_at(&backend, &uri, text, line, col).await;
+    let labels = method_labels(&items);
+    assert!(labels.contains(&"indexPage".to_string()), "got {labels:?}");
+    assert!(labels.contains(&"showPage".to_string()), "got {labels:?}");
+    assert!(labels.contains(&"register".to_string()), "got {labels:?}");
+}
+
+/// The insert text is the plain method name, not a snippet with parens.
+#[tokio::test]
+async fn inserts_plain_method_name() {
+    let backend = create_test_backend();
+    let uri = Uri::parse("file:///plain_insert.php").unwrap();
+    let text = concat!(
+        "<?php\n",
+        "class Controller {\n",
+        "    public function handle(string $request): void {}\n",
+        "    public function register(): void {\n",
+        "        $route = [$this, ''];\n",
+        "    }\n",
+        "}\n",
+    );
+    let line = text.lines().position(|l| l.contains("$route")).unwrap() as u32;
+    let col = text
+        .lines()
+        .nth(line as usize)
+        .unwrap()
+        .find("'']")
+        .unwrap() as u32
+        + 1;
+
+    let items = complete_at(&backend, &uri, text, line, col).await;
+    let handle = find_method(&items, "handle").expect("handle method");
+    assert_eq!(handle.insert_text.as_deref(), Some("handle"));
+    assert_ne!(handle.insert_text_format, Some(InsertTextFormat::Snippet));
+}
+
+/// `[$handler, '|']` offers the methods of the class the variable holds,
+/// read through a function's return type.
+#[tokio::test]
+async fn completes_variable_callable_from_function_return() {
+    let backend = create_test_backend();
+    let uri = Uri::parse("file:///variable_callable.php").unwrap();
+    let text = concat!(
+        "<?php\n",
+        "class Handler {\n",
+        "    public function onSave(): void {}\n",
+        "}\n",
+        "function makeHandler(): Handler { return new Handler(); }\n",
+        "$handler = makeHandler();\n",
+        "$route = [$handler, ''];\n",
+    );
+    let line = text.lines().position(|l| l.contains("$route")).unwrap() as u32;
+    let col = text
+        .lines()
+        .nth(line as usize)
+        .unwrap()
+        .find("'']")
+        .unwrap() as u32
+        + 1;
+
+    let labels = method_labels(&complete_at(&backend, &uri, text, line, col).await);
+    assert!(labels.contains(&"onSave".to_string()), "got {labels:?}");
+}
+
+/// A partial prefix filters the offered methods.
+#[tokio::test]
+async fn filters_by_prefix() {
+    let backend = create_test_backend();
+    let uri = Uri::parse("file:///prefix_filter.php").unwrap();
+    let text = concat!(
+        "<?php\n",
+        "class Controller {\n",
+        "    public function indexPage(): void {}\n",
+        "    public function showPage(): void {}\n",
+        "    public function register(): void {\n",
+        "        $route = [$this, 'ind'];\n",
+        "    }\n",
+        "}\n",
+    );
+    let line = text.lines().position(|l| l.contains("$route")).unwrap() as u32;
+    // Cursor after `ind`.
+    let col = text
+        .lines()
+        .nth(line as usize)
+        .unwrap()
+        .find("ind']")
+        .unwrap() as u32
+        + 3;
+
+    let items = complete_at(&backend, &uri, text, line, col).await;
+    let labels = method_labels(&items);
+    assert!(labels.contains(&"indexPage".to_string()), "got {labels:?}");
+    assert!(!labels.contains(&"showPage".to_string()), "got {labels:?}");
+}
+
+/// A plain data array (`['foo', 'bar']`) must not trigger method completion.
+#[tokio::test]
+async fn rejects_plain_string_array() {
+    let backend = create_test_backend();
+    let uri = Uri::parse("file:///plain_array.php").unwrap();
+    let text = concat!(
+        "<?php\n",
+        "class Controller {\n",
+        "    public function register(): void {\n",
+        "        $data = ['foo', ''];\n",
+        "    }\n",
+        "}\n",
+    );
+    let line = text.lines().position(|l| l.contains("$data")).unwrap() as u32;
+    let col = text
+        .lines()
+        .nth(line as usize)
+        .unwrap()
+        .find("'']")
+        .unwrap() as u32
+        + 1;
+
+    let items = complete_at(&backend, &uri, text, line, col).await;
+    assert!(
+        method_labels(&items).is_empty(),
+        "plain string array should not offer methods, got {:?}",
+        method_labels(&items)
+    );
+}
+
+/// `[Class::class, '|']` resolves the class across files (PSR-4) and
+/// offers its methods, including inherited ones.
+#[tokio::test]
+async fn completes_class_const_callable_cross_file() {
+    let composer = r#"{"autoload":{"psr-4":{"App\\":"src/"}}}"#;
+    let controller = concat!(
+        "<?php\n",
+        "namespace App;\n",
+        "class BaseController {\n",
+        "    public function middleware(): void {}\n",
+        "}\n",
+    );
+    let index = concat!(
+        "<?php\n",
+        "namespace App;\n",
+        "class IndexController extends BaseController {\n",
+        "    public function indexPage(): void {}\n",
+        "}\n",
+    );
+    let routes = concat!(
+        "<?php\n",
+        "namespace App;\n",
+        "$route = [IndexController::class, ''];\n",
+    );
+    let (backend, _dir) = create_psr4_workspace(
+        composer,
+        &[
+            ("src/BaseController.php", controller),
+            ("src/IndexController.php", index),
+            ("src/routes.php", routes),
+        ],
+    );
+    let uri = Uri::parse("file:///routes.php").unwrap();
+
+    let line = routes.lines().position(|l| l.contains("$route")).unwrap() as u32;
+    let col = routes
+        .lines()
+        .nth(line as usize)
+        .unwrap()
+        .find("'']")
+        .unwrap() as u32
+        + 1;
+
+    let items = complete_at(&backend, &uri, routes, line, col).await;
+    let labels = method_labels(&items);
+    assert!(labels.contains(&"indexPage".to_string()), "got {labels:?}");
+    assert!(
+        labels.contains(&"middleware".to_string()),
+        "inherited method should be offered, got {labels:?}"
+    );
+}
+
+/// `[\Node::class, '|']` is the global class even when the file imports
+/// another `Node`, and `[Node::class, '|']` is the imported one.
+#[tokio::test]
+async fn class_callable_follows_imports_and_leading_backslash() {
+    let backend = create_test_backend();
+    let uri = Uri::parse("file:///callable_imports.php").unwrap();
+    let text = concat!(
+        "<?php\n",
+        "namespace {\n",
+        "    class Node { public static function globalOnly(): void {} }\n",
+        "}\n",
+        "namespace Lib {\n",
+        "    class Node { public static function libOnly(): void {} }\n",
+        "}\n",
+        "namespace App {\n",
+        "    use Lib\\Node;\n",
+        "    $global = [\\Node::class, ''];\n",
+        "    $imported = [Node::class, ''];\n",
+        "}\n",
+    );
+    for (marker, expected, unexpected) in [
+        ("$global", "globalOnly", "libOnly"),
+        ("$imported", "libOnly", "globalOnly"),
+    ] {
+        let line = text.lines().position(|l| l.contains(marker)).unwrap() as u32;
+        let col = text
+            .lines()
+            .nth(line as usize)
+            .unwrap()
+            .find("'']")
+            .unwrap() as u32
+            + 1;
+        let labels = method_labels(&complete_at(&backend, &uri, text, line, col).await);
+        assert!(
+            labels.contains(&expected.to_string()) && !labels.contains(&unexpected.to_string()),
+            "{marker}: got {labels:?}"
+        );
+    }
+}

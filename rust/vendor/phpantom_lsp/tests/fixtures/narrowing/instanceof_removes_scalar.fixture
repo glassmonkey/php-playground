@@ -1,0 +1,17 @@
+// test: instanceof narrows union without removing scalar types outside branch
+// feature: completion
+// Adapted from phpactor if-statement/instanceof_removes_scalar.test
+// expect: fooMethod(
+---
+<?php
+
+class Foobar {
+    public function fooMethod(): void {}
+}
+
+/** @var Foobar|string|int $foobar */
+$foobar = null;
+
+if ($foobar instanceof Foobar) {
+    $foobar-><>
+}

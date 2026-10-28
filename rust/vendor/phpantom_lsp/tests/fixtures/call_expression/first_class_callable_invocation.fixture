@@ -1,0 +1,13 @@
+// test: first-class callable invocation resolves return type
+// feature: completion
+// Adapted from phpactor call-expression/1st-class-callable.test
+// expect: format(
+---
+<?php
+class DateTime {
+    public function format(string $f): string {}
+}
+function createDate(): DateTime {}
+$callable = createDate(...);
+$result = $callable();
+$result-><>

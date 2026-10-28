@@ -1,0 +1,17 @@
+// test: nested function signature help targets the inner function call
+// feature: signature_help
+// Adapted from phpactor WorseSignatureHelperTest 'nested function with parameters, 2nd active'
+// expect_sig_label: (string $good, int $by): mixed
+// expect_sig_active: 1
+// expect_sig_param: string $good
+// expect_sig_param: int $by
+---
+<?php
+
+function hello(string $foo, int $bar) {}
+function goodbye(string $good, int $by) {}
+
+hello(goodbye(
+    "hello",
+    <>
+));

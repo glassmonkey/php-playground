@@ -1,0 +1,21 @@
+// test: @mixin provides access to mixed-in class properties
+// feature: completion
+// Adapted from phpactor reflection/mixin_properties.test
+// expect: foo
+---
+<?php
+
+class A
+{
+    public string $foo;
+}
+
+/**
+ * @mixin A
+ */
+class B
+{
+}
+
+$b = new B();
+$b-><>

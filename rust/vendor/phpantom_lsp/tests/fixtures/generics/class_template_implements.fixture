@@ -1,0 +1,33 @@
+// test: @template-implements resolves interface generic parameter
+// feature: completion
+// Adapted from phpactor generics/class_template_implements1.test
+// expect: bazMethod(
+---
+<?php
+
+/**
+ * @template Y
+ */
+interface Second {
+    /**
+     * @return Y
+     */
+    public function boo();
+}
+
+class Baz {
+    public function bazMethod(): void {}
+}
+
+/**
+ * @template-implements Second<Baz>
+ */
+class Foo implements Second
+{
+    public function boo()
+    {
+    }
+}
+
+$foo = new Foo();
+$foo->boo()-><>

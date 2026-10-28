@@ -1,0 +1,11 @@
+// test: array union with + resolves to array
+// feature: hover
+// Adapted from phpactor binary-expression/array-union.test
+// expect_hover: $result => array
+---
+<?php
+
+function test(): void {
+    $result = [] + ['a' => 1];
+    $<>result;
+}

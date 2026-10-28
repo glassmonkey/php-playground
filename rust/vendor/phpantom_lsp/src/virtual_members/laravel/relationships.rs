@@ -1,0 +1,872 @@
+//! Eloquent relationship classification, property type synthesis, and
+//! body-text inference.
+//!
+//! This module handles the mapping from Eloquent relationship method
+//! return types (e.g. `HasMany<Post, $this>`) to virtual property types
+//! (e.g. `Illuminate\Database\Eloquent\Collection<Post>`), as well as
+//! inferring relationship types from method body text when no `@return`
+//! annotation is present.
+
+use crate::atom::atom;
+use crate::class_lookup::{Fqn, ResolvedClassLoader};
+use std::sync::Arc;
+
+use crate::php_type::{PhpType, TypeKind};
+use crate::types::{ClassInfo, ELOQUENT_COLLECTION_FQN};
+use crate::util::{short_name, strip_fqn_prefix};
+
+use super::helpers::{camel_to_snake, snake_to_camel};
+
+/// Eloquent query methods whose constraint callback depends on a relation
+/// argument. Argument binding locates each method's relation and callback,
+/// and callable inference refines the callback's parameter from the
+/// relation argument's type (a name, a union of names, or a relation
+/// object). Existence constraints receive the related model's builder. The
+/// `*Morph*` methods take the candidate models from their `$types` argument
+/// instead, falling back to the relation's declared target. `with` receives
+/// the terminal relation, and `withWhereHas` and `withWhereRelation`, which
+/// also run the closure for eager loading, receive the relation alongside
+/// the builder.
+pub(crate) const RELATION_QUERY_METHODS: &[&str] = &[
+    "has",
+    "orHas",
+    "doesntHave",
+    "orDoesntHave",
+    "whereHas",
+    "orWhereHas",
+    "with",
+    "withWhereHas",
+    "withWhereRelation",
+    "whereDoesntHave",
+    "orWhereDoesntHave",
+    "whereRelation",
+    "orWhereRelation",
+    "whereDoesntHaveRelation",
+    "orWhereDoesntHaveRelation",
+    "hasMorph",
+    "doesntHaveMorph",
+    "whereHasMorph",
+    "orWhereHasMorph",
+    "whereDoesntHaveMorph",
+    "orWhereDoesntHaveMorph",
+    "whereMorphRelation",
+    "orWhereMorphRelation",
+    "whereMorphDoesntHaveRelation",
+    "orWhereMorphDoesntHaveRelation",
+];
+
+/// The [`RELATION_QUERY_METHODS`] entry a called method name refers to,
+/// matched case-insensitively the way PHP resolves method names.
+pub(crate) fn relation_query_method(name: &str) -> Option<&'static str> {
+    RELATION_QUERY_METHODS
+        .iter()
+        .find(|method| method.eq_ignore_ascii_case(name))
+        .copied()
+}
+
+/// Fully-qualified relationship class names used by
+/// [`infer_relationship_from_body`].
+const RELATIONSHIP_METHOD_FQN_MAP: &[(&str, &str)] = &[
+    (
+        "hasOne",
+        "Illuminate\\Database\\Eloquent\\Relations\\HasOne",
+    ),
+    (
+        "hasMany",
+        "Illuminate\\Database\\Eloquent\\Relations\\HasMany",
+    ),
+    (
+        "belongsTo",
+        "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
+    ),
+    (
+        "belongsToMany",
+        "Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany",
+    ),
+    (
+        "morphOne",
+        "Illuminate\\Database\\Eloquent\\Relations\\MorphOne",
+    ),
+    (
+        "morphMany",
+        "Illuminate\\Database\\Eloquent\\Relations\\MorphMany",
+    ),
+    (
+        "morphTo",
+        "Illuminate\\Database\\Eloquent\\Relations\\MorphTo",
+    ),
+    (
+        "morphToMany",
+        "Illuminate\\Database\\Eloquent\\Relations\\MorphToMany",
+    ),
+    (
+        "morphedByMany",
+        "Illuminate\\Database\\Eloquent\\Relations\\MorphToMany",
+    ),
+    (
+        "hasManyThrough",
+        "Illuminate\\Database\\Eloquent\\Relations\\HasManyThrough",
+    ),
+    (
+        "hasOneThrough",
+        "Illuminate\\Database\\Eloquent\\Relations\\HasOneThrough",
+    ),
+];
+
+/// Whether `short` is the short name of a relationship class that
+/// [`infer_relationship_from_body`] can produce.
+pub(crate) fn is_inferable_relationship_short_name(short: &str) -> bool {
+    RELATIONSHIP_METHOD_FQN_MAP
+        .iter()
+        .any(|(_, fqn)| short_name(fqn) == short)
+}
+
+/// Known Eloquent relationship class short names that yield a single
+/// (nullable) related model instance when accessed as a property.
+const SINGULAR_RELATIONSHIPS: &[&str] = &["HasOne", "MorphOne", "BelongsTo", "HasOneThrough"];
+
+/// Known Eloquent relationship class short names that yield a
+/// `Collection<TRelated>` when accessed as a property.
+const COLLECTION_RELATIONSHIPS: &[&str] = &[
+    "HasMany",
+    "MorphMany",
+    "BelongsToMany",
+    "HasManyThrough",
+    "MorphToMany",
+];
+
+/// The `MorphTo` relationship resolves to the generic `Model` base class
+/// because the concrete related type is determined at runtime.
+const MORPH_TO: &str = "MorphTo";
+
+/// The FQN namespace prefix for Eloquent relationship classes.
+///
+/// When a return type is fully-qualified, we verify it lives under this
+/// namespace before classifying it as a relationship.  This prevents
+/// false positives from user classes that happen to share short names
+/// with Eloquent relationships (e.g. `App\Relations\HasMany`).
+const ELOQUENT_RELATIONS_NS: &str = "Illuminate\\Database\\Eloquent\\Relations\\";
+
+/// The category of a relationship return type.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum RelationshipKind {
+    /// HasOne, MorphOne, BelongsTo — singular nullable model.
+    Singular,
+    /// HasMany, MorphMany, BelongsToMany, HasManyThrough, MorphToMany — Collection.
+    Collection,
+    /// MorphTo — generic Model.
+    MorphTo,
+}
+
+/// Classify a relationship return type into its [`RelationshipKind`].
+///
+/// Accepts both short names (`HasMany`) and fully-qualified names
+/// (`\Illuminate\Database\Eloquent\Relations\HasMany`).  Generic
+/// parameters are stripped before matching.
+///
+/// When the base type is namespace-qualified (contains `\`), the
+/// function verifies that it lives under
+/// `Illuminate\Database\Eloquent\Relations\` before classifying.
+/// This prevents false positives from user classes whose short name
+/// collides with an Eloquent relationship class (e.g. a custom
+/// `App\Relations\HasMany` that does not extend Eloquent's).
+///
+/// Unqualified names (no `\`) are matched by short name only, which
+/// is the common case for body-inferred types and docblock annotations
+/// that use `use` imports.
+pub(crate) fn classify_relationship_typed(return_type: &PhpType) -> Option<RelationshipKind> {
+    let base = return_type.base_name()?;
+    let sname = short_name(base);
+
+    if base.contains('\\') && !base.starts_with(ELOQUENT_RELATIONS_NS) {
+        return None;
+    }
+
+    if SINGULAR_RELATIONSHIPS.contains(&sname) {
+        return Some(RelationshipKind::Singular);
+    }
+    if COLLECTION_RELATIONSHIPS.contains(&sname) {
+        return Some(RelationshipKind::Collection);
+    }
+    if sname == MORPH_TO {
+        return Some(RelationshipKind::MorphTo);
+    }
+
+    None
+}
+
+/// Extract the `TRelated` type from a relationship return type's
+/// generic parameters.
+///
+/// Given `HasMany<Post, $this>`, returns `Some(&PhpType::named("Post"))`.
+/// Given `HasOne<\App\Models\Profile, $this>`, returns
+/// `Some(&PhpType::named("\App\Models\Profile"))`.
+///
+/// Returns `None` if no generic parameters are present.
+pub(super) fn extract_related_type_typed(return_type: &PhpType) -> Option<&PhpType> {
+    if let TypeKind::Generic(g) = return_type.kind() {
+        let first = g.args.first()?;
+        if first.is_empty() {
+            return None;
+        }
+        return Some(first);
+    }
+    None
+}
+
+/// Relationship class short names that expose a `$pivot` on the related
+/// model — the many-to-many family (`MorphToMany`/`MorphedByMany` extend
+/// `BelongsToMany`).
+const PIVOT_RELATIONSHIPS: &[&str] = &["BelongsToMany", "MorphToMany", "MorphedByMany"];
+
+/// Whether a relationship return type is a many-to-many relationship, i.e.
+/// one whose related models carry a `$pivot` attribute at runtime.
+///
+/// Accepts short names and fully-qualified Eloquent relation names, applying
+/// the same namespace guard as [`classify_relationship_typed`].
+pub(crate) fn is_pivot_relationship(return_type: &PhpType) -> bool {
+    let Some(base) = return_type.base_name() else {
+        return false;
+    };
+    if base.contains('\\') && !base.starts_with(ELOQUENT_RELATIONS_NS) {
+        return false;
+    }
+    PIVOT_RELATIONSHIPS.contains(&short_name(base))
+}
+
+/// Cheap byte pre-filter: whether PHP `source` could declare a many-to-many
+/// relationship, either through a `BelongsToMany`/`MorphToMany` return type
+/// or a `belongsToMany`/`morphToMany`/`morphedByMany` builder call.
+pub(crate) fn source_may_declare_pivot_relationship(source: &[u8]) -> bool {
+    memchr::memmem::find(source, b"ToMany").is_some()
+        || memchr::memmem::find(source, b"edByMany").is_some()
+}
+
+/// Whether `class` declares at least one many-to-many relationship method,
+/// i.e. one whose related models carry a `$pivot`.
+pub(crate) fn class_declares_pivot_relationship(class: &ClassInfo) -> bool {
+    class
+        .methods
+        .iter()
+        .any(|m| m.return_type.as_ref().is_some_and(is_pivot_relationship))
+}
+
+/// Extract the `TPivotModel` type from a many-to-many relationship return
+/// type's generics.
+///
+/// Laravel types `BelongsToMany` as
+/// `BelongsToMany<TRelatedModel, TDeclaringModel, TPivotModel, TAccessor>`,
+/// so the custom pivot class is the **third** generic argument. Given
+/// `BelongsToMany<Permission, $this, PermissionRole>` this returns
+/// `Some(&PhpType::named("PermissionRole"))`.
+///
+/// Returns `None` when there is no third argument, it is empty, or it is a
+/// `$this`/`static`/`self` self-reference (the default `Pivot`).
+pub(crate) fn extract_pivot_type_typed(return_type: &PhpType) -> Option<&PhpType> {
+    if let TypeKind::Generic(g) = return_type.kind() {
+        let pivot = g.args.get(2)?;
+        if pivot.is_empty() || pivot.is_self_ref() {
+            return None;
+        }
+        return Some(pivot);
+    }
+    None
+}
+
+/// Extract the literal `TAccessor` name from a many-to-many relationship's
+/// fourth generic argument.
+///
+/// Given `BelongsToMany<User, $this, Membership, 'participation'>`, returns
+/// `participation`. Non-literal or empty accessor types cannot name a virtual
+/// property and return `None`.
+pub(crate) fn extract_pivot_accessor_typed(return_type: &PhpType) -> Option<crate::atom::Atom> {
+    let TypeKind::Generic(g) = return_type.kind() else {
+        return None;
+    };
+    let accessor = g.args.get(3)?.as_literal()?.string_content()?;
+    if accessor.is_empty() {
+        return None;
+    }
+    Some(atom(&accessor))
+}
+
+/// Pre-built `Illuminate\Database\Eloquent\Model` type for fallback related types.
+fn eloquent_model_type() -> PhpType {
+    PhpType::named(atom("Illuminate\\Database\\Eloquent\\Model"))
+}
+
+/// Build the property type string for a relationship.
+///
+/// - Singular relationships → the related type as-is (nullable).
+/// - Collection relationships → the custom collection class (if set) or
+///   `Illuminate\Database\Eloquent\Collection`, parameterised with `<TRelated>`.
+/// - MorphTo → `Illuminate\Database\Eloquent\Model`.
+pub(super) fn build_property_type(
+    kind: RelationshipKind,
+    related_type: Option<&PhpType>,
+    custom_collection: Option<&str>,
+) -> Option<PhpType> {
+    match kind {
+        RelationshipKind::Singular => related_type.cloned(),
+        RelationshipKind::Collection => {
+            let inner = related_type.cloned().unwrap_or_else(eloquent_model_type);
+            let collection_class = custom_collection.unwrap_or(ELOQUENT_COLLECTION_FQN);
+            Some(PhpType::generic(collection_class, vec![inner]))
+        }
+        RelationshipKind::MorphTo => Some(eloquent_model_type()),
+    }
+}
+
+/// Whether `name` (case-insensitively) resolves to a relationship method
+/// on `class`.
+///
+/// Eloquent relation property access (`$model->orderProducts`) flows
+/// through `Model::__get()` → `getRelationValue()` → `isRelation()` →
+/// `method_exists()`, all of which are case-insensitive.  So accessing a
+/// relation as `$model->orderproducts` resolves the same relationship at
+/// runtime.  Property matching is otherwise case-sensitive, so callers
+/// use this to grant relation-backed virtual properties the same
+/// case-insensitivity PHP method calls already have.
+pub(crate) fn class_has_relation_method_ci(class: &ClassInfo, name: &str) -> bool {
+    class
+        .get_method(name)
+        .and_then(|m| m.return_type.as_ref())
+        .is_some_and(|rt| classify_relationship_typed(rt).is_some())
+}
+
+/// Map a `*_count` virtual property name back to the relationship method
+/// name that produced it.
+///
+/// Returns `Some(method_name)` when `property_name` ends with `_count`
+/// and the stripped/camelCased remainder is a relationship method on
+/// `class`.  Go-to-definition uses this so that clicking on
+/// `posts_count` jumps to the `posts()` method, and
+/// `master_recipe_count` jumps to `masterRecipe()`.
+pub(crate) fn count_property_to_relationship_method(
+    class: &ClassInfo,
+    property_name: &str,
+) -> Option<String> {
+    let base = property_name.strip_suffix("_count")?;
+    if base.is_empty() {
+        return None;
+    }
+    let method_name = snake_to_camel(base);
+    let method = class.get_method(&method_name)?;
+    let return_type = method.return_type.as_ref()?;
+    if classify_relationship_typed(return_type).is_some() {
+        Some(method_name)
+    } else {
+        None
+    }
+}
+
+/// Infer a relationship return type from a method's body text.
+///
+/// When a relationship method has no `@return` annotation, this function
+/// scans the body for patterns like `$this->hasMany(Post::class)` and
+/// synthesizes a fully-qualified return type string (e.g.
+/// `Illuminate\Database\Eloquent\Relations\HasMany<Post>`).
+///
+/// Supports all standard Eloquent relationship builder methods:
+/// `hasOne`, `hasMany`, `belongsTo`, `belongsToMany`, `morphOne`,
+/// `morphMany`, `morphTo`, `morphToMany`, `morphedByMany`,
+/// `hasManyThrough`, and `hasOneThrough`.
+///
+/// Returns `None` if no recognisable pattern is found.
+pub fn infer_relationship_from_body(body_text: &str) -> Option<PhpType> {
+    for &(method_name, fqn) in RELATIONSHIP_METHOD_FQN_MAP {
+        let needle = format!("$this->{method_name}(");
+        let Some(call_pos) = body_text.find(&needle) else {
+            continue;
+        };
+
+        // `morphTo` never carries a related-model generic parameter;
+        // the concrete type is determined at runtime.
+        //
+        // The FQN is prefixed with `\` so that the post-parse
+        // name-resolution pass (`resolve_to_fqn`, invoked via
+        // `build_type_resolver` in `parser/name_resolution.rs`) treats it as
+        // already-qualified and does not prepend the declaring file's
+        // namespace. `resolve_to_fqn` strips the leading `\` back off
+        // to produce the canonical FQN form.
+        if method_name == "morphTo" {
+            return Some(PhpType::named(atom(&format!("\\{fqn}"))));
+        }
+
+        let args_start = call_pos + needle.len();
+        let after_paren = &body_text[args_start..];
+
+        if let Some(class_arg) = extract_class_argument(after_paren) {
+            return Some(PhpType::generic(
+                format!("\\{fqn}"),
+                vec![PhpType::named(atom(&class_arg))],
+            ));
+        }
+
+        // No `::class` argument found — return the bare relationship
+        // name without generics.  The provider will handle it the same
+        // way it handles annotated relationships without generics.
+        return Some(PhpType::named(atom(&format!("\\{fqn}"))));
+    }
+
+    None
+}
+
+/// Extract a class name from the first `X::class` argument in a
+/// parenthesised argument list.
+///
+/// Given the text after the opening `(`, e.g. `Post::class, 'user_id')`,
+/// returns `Some("Post")`.  Also handles fully-qualified names like
+/// `\App\Models\Post::class` and `self::class` / `static::class`.
+///
+/// Returns `None` if no `::class` token is found before the closing `)`.
+fn extract_class_argument(after_paren: &str) -> Option<String> {
+    let end = after_paren.find(')')?;
+    let args_region = &after_paren[..end];
+
+    let first_arg = args_region.split(',').next().unwrap_or(args_region);
+    let class_pos = first_arg.find("::class")?;
+    let before = first_arg[..class_pos].trim();
+
+    if before.is_empty() {
+        return None;
+    }
+
+    let name = strip_fqn_prefix(before);
+    let short_name = short_name(name);
+
+    if short_name.is_empty() {
+        return None;
+    }
+
+    Some(short_name.to_string())
+}
+
+/// Build a `{snake_name}_count` property name for a relationship method.
+///
+/// Used by the provider to synthesize `*_count` properties for each
+/// relationship.
+pub(super) fn count_property_name(method_name: &str) -> String {
+    format!("{}_count", camel_to_snake(method_name))
+}
+
+/// Extract a literal custom pivot accessor from an `->as('name')` chained
+/// call in a many-to-many relationship method body.
+///
+/// Returns `None` when no `->as(...)` call is present, its argument is not a
+/// string literal, or the literal is empty.
+pub(crate) fn extract_pivot_accessor(body_text: &str) -> Option<crate::atom::Atom> {
+    let needle = "->as(";
+    let call_pos = body_text.find(needle)?;
+    let after_paren = &body_text[call_pos + needle.len()..];
+    let end = after_paren.find(')')?;
+    string_literal_argument(after_paren[..end].trim())
+        .filter(|accessor| !accessor.is_empty())
+        .map(atom)
+}
+
+/// Extract the custom pivot class from a `->using(X::class)` chained call
+/// in a many-to-many relationship method body.
+///
+/// Given the full method body text, returns the short class name from the
+/// first `->using(...)` call, e.g. `"RecipeIngredient"` for
+/// `$this->belongsToMany(...)->using(RecipeIngredient::class)`.
+///
+/// Returns `None` when no `->using(` call is present or its argument is not
+/// a `::class` literal (variable/computed arguments are skipped by design,
+/// mirroring the relationship-target scanner).
+pub(crate) fn extract_pivot_using(body_text: &str) -> Option<String> {
+    let needle = "->using(";
+    let call_pos = body_text.find(needle)?;
+    let after_paren = &body_text[call_pos + needle.len()..];
+    extract_class_argument(after_paren)
+}
+
+/// Extract the extra pivot columns from `->withPivot('a', 'b', …)` chained
+/// calls in a many-to-many relationship method body.
+///
+/// Collects the string-literal arguments across every `->withPivot(` call
+/// (Laravel allows chaining multiple), preserving order and skipping
+/// non-literal arguments.  Returns an empty vec when none are present.
+pub(crate) fn extract_with_pivot_columns(body_text: &str) -> Vec<String> {
+    let needle = "->withPivot(";
+    let mut columns = Vec::new();
+    let mut rest = body_text;
+    while let Some(call_pos) = rest.find(needle) {
+        let after_paren = &rest[call_pos + needle.len()..];
+        if let Some(end) = after_paren.find(')') {
+            for segment in after_paren[..end].split(',') {
+                if let Some(col) = string_literal_argument(segment.trim())
+                    && !col.is_empty()
+                {
+                    columns.push(col.to_string());
+                }
+            }
+            rest = &after_paren[end..];
+        } else {
+            break;
+        }
+    }
+    columns
+}
+
+/// Extract a single-quoted or double-quoted string literal from an argument
+/// fragment, e.g. `'expires_at'` → `expires_at`.  Returns `None` for
+/// non-literal fragments (variables, constants, array spreads).
+fn string_literal_argument(fragment: &str) -> Option<&str> {
+    let bytes = fragment.as_bytes();
+    let quote = *bytes.first()?;
+    if quote != b'\'' && quote != b'"' {
+        return None;
+    }
+    let inner = &fragment[1..];
+    let close = inner.find(quote as char)?;
+    Some(&inner[..close])
+}
+
+/// Walk a dot-separated relation chain starting from `model` and return
+/// the fully-qualified name of the final related model.
+///
+/// For example, given model `ArticleCategoryTranslation` and chain
+/// `"category.articles"`:
+///
+/// 1. Look up `category()` on `ArticleCategoryTranslation` → returns
+///    `BelongsTo<ArticleCategory>` → extract `ArticleCategory`.
+/// 2. Look up `articles()` on `ArticleCategory` → returns
+///    `HasMany<Article>` → extract `Article`.
+/// 3. Return `"App\\Models\\Article"` (the FQN).
+///
+/// Returns `None` if any segment cannot be resolved (missing method,
+/// no relationship return type, class not found).
+pub(crate) fn resolve_relation_chain(
+    model: &ClassInfo,
+    chain: &str,
+    class_loader: &ResolvedClassLoader<'_>,
+    cache: Option<&super::super::ResolvedClassCache>,
+) -> Option<String> {
+    walk_relation_chain(model, chain, class_loader, cache, |ty, declaring| {
+        let related = chain_related_model_type(ty, declaring, class_loader)?;
+        let name = first_model_name(&related)?;
+        resolve_related_fqn(name, declaring, class_loader).map(|cls| cls.fqn().to_string())
+    })?
+    .into_iter()
+    .next()
+}
+
+/// Walk the same chain [`resolve_relation_chain`] does, but return the
+/// relation the last segment declares rather than the model it points at.
+///
+/// `posts.comments` on `User` answers with `BelongsTo<Comment, Post>` —
+/// the relationship instance, with `$this`/`static` in its generics bound
+/// to the model that declared the method, so the related and declaring
+/// models both survive into the caller's type.  A relation class the
+/// project subclasses is returned as written, since that is what the
+/// method hands back at runtime.
+pub(crate) fn resolve_relation_type(
+    model: &ClassInfo,
+    chain: &str,
+    class_loader: &ResolvedClassLoader<'_>,
+    cache: Option<&super::super::ResolvedClassCache>,
+) -> Option<PhpType> {
+    let relations = walk_relation_chain(model, chain, class_loader, cache, |ty, declaring| {
+        Some(ty.resolve_self_refs_bounded(&declaring.fqn(), declaring.parent_class.as_deref()))
+    })?;
+    Some(PhpType::union(relations).simplified())
+}
+
+/// The terminal relationship and related model of a dotted relation path.
+pub(crate) struct ResolvedRelation {
+    /// All final related models, retaining instantiated generic members.
+    pub models: Vec<Arc<ClassInfo>>,
+    /// The relationship with self references bound to its declaring model.
+    pub relation_type: PhpType,
+}
+
+/// Walk the same chain [`resolve_relation_chain`] does, retaining both the
+/// related models and the terminal relation.  Eager constraints receive this
+/// relationship, constructed on the model at the preceding segment, as well
+/// as its builder for the existence query.
+pub(crate) fn resolve_relation_chain_details(
+    model: &ClassInfo,
+    chain: &str,
+    class_loader: &ResolvedClassLoader<'_>,
+    cache: Option<&super::super::ResolvedClassCache>,
+) -> Option<ResolvedRelation> {
+    let found = walk_relation_chain(model, chain, class_loader, cache, |ty, declaring| {
+        // Eager loading builds the relation on a fresh instance of the
+        // declaring model, so `$this`/`static` name it exactly.
+        let relation_type = ty.replace_self_bound(&declaring.fqn(), None);
+        let related = related_model_type(&relation_type, &|name: Fqn<'_>| {
+            resolve_related_fqn(&name, declaring, class_loader)
+        })?;
+        let mut models = Vec::new();
+        collect_related_classes(&related, declaring, class_loader, cache, &mut models)
+            .then_some((models, relation_type))
+    })?;
+    let mut models = Vec::new();
+    let mut relations = Vec::with_capacity(found.len());
+    for (related, relation) in found {
+        for model in related {
+            if !models.iter().any(|existing| Arc::ptr_eq(existing, &model)) {
+                models.push(model);
+            }
+        }
+        relations.push(relation);
+    }
+    Some(ResolvedRelation {
+        models,
+        relation_type: PhpType::union(relations).simplified(),
+    })
+}
+
+/// Follow a dot-separated relation path from `model`, handing each
+/// relationship the last segment returns, with the class that declared
+/// it, to `finalise`.
+///
+/// Every segment has to name a relationship method for the walk to
+/// continue, and every segment but the last has to yield a related model
+/// to continue from.  A segment whose relationship names several related
+/// models (a union, or a generic model instantiated more than one way)
+/// continues from all of them, and a union return type contributes each
+/// of its relationships, so the walk can end on several.  What the caller
+/// wants out of each (the model it points at, or the relation itself) is
+/// what `finalise` decides; the walk answers `None` when none of them
+/// gives anything.
+fn walk_relation_chain<T>(
+    model: &ClassInfo,
+    chain: &str,
+    class_loader: &ResolvedClassLoader<'_>,
+    cache: Option<&super::super::ResolvedClassCache>,
+    mut finalise: impl FnMut(&PhpType, &ClassInfo) -> Option<T>,
+) -> Option<Vec<T>> {
+    // An instantiated receiver (`GenericStock<Team>`) already carries its
+    // substituted members, so it is read as given rather than resolved again.
+    let mut current = vec![crate::inheritance::ClassRef::Borrowed(model)];
+    let mut segments = chain.split('.').peekable();
+    loop {
+        let segment = segments.next()?.trim();
+        if segment.is_empty() {
+            return None;
+        }
+        let last = segments.peek().is_none();
+        let mut results = Vec::new();
+        let mut next = Vec::new();
+        for class in &current {
+            // A related model instantiated with generic arguments already
+            // carries its substituted members; only a class that lacks the
+            // method is resolved again.
+            let method = class.get_method_arc(segment).or_else(|| {
+                resolve_class_with_inheritance(class, class_loader, cache).get_method_arc(segment)
+            });
+            // Body-inferred relationship types are already stored in
+            // `return_type` by the parser, so no fallback is needed.
+            let Some(return_type) = method.as_ref().and_then(|m| m.return_type.as_ref()) else {
+                continue;
+            };
+            for_each_relation(return_type, class, class_loader, &mut |relation| {
+                if last {
+                    results.extend(finalise(relation, class));
+                } else if let Some(related) =
+                    chain_related_model_type(relation, class, class_loader)
+                {
+                    collect_related_classes(&related, class, class_loader, cache, &mut next);
+                }
+            });
+        }
+        if last {
+            return (!results.is_empty()).then_some(results);
+        }
+        if next.is_empty() {
+            return None;
+        }
+        current = next
+            .into_iter()
+            .map(crate::inheritance::ClassRef::Owned)
+            .collect();
+    }
+}
+
+/// Call `visit` with each relationship a return type names: the type
+/// itself, or each alternative of a union.  Anything else (a scalar, a
+/// model, `null`) is not a relation and is skipped.
+fn for_each_relation(
+    return_type: &PhpType,
+    declaring_class: &ClassInfo,
+    class_loader: &ResolvedClassLoader<'_>,
+    visit: &mut dyn FnMut(&PhpType),
+) {
+    if let TypeKind::Union(parts) = return_type.kind() {
+        for part in parts {
+            for_each_relation(part, declaring_class, class_loader, visit);
+        }
+        return;
+    }
+    if classify_relationship_typed(return_type).is_some()
+        || returns_relation_subclass(return_type, declaring_class, class_loader)
+    {
+        visit(return_type);
+    }
+}
+
+/// The related model a relationship returned by a chain segment points at,
+/// with `$this` / `static` bound to the class that declared it.
+fn chain_related_model_type(
+    relation: &PhpType,
+    declaring_class: &ClassInfo,
+    class_loader: &ResolvedClassLoader<'_>,
+) -> Option<PhpType> {
+    let relation = relation.replace_self_bound(&declaring_class.fqn(), None);
+    related_model_type(&relation, &|name: Fqn<'_>| {
+        resolve_related_fqn(&name, declaring_class, class_loader)
+    })
+}
+
+/// The class name of the first model a related-model type names.
+fn first_model_name(related: &PhpType) -> Option<&str> {
+    match related.kind() {
+        TypeKind::Union(parts) => parts.iter().find_map(first_model_name),
+        _ => related.base_name(),
+    }
+}
+
+/// Project a relationship's related-model binding through custom ancestry.
+///
+/// A framework relation names its related model first; a project subclass
+/// may reorder or fix its arguments (`BakerRelation<TParent, TRelated>
+/// extends HasOne<TRelated, TParent>`), so its binding is read from the
+/// ancestor it extends.  Partial framework stubs may stop at a concrete
+/// relation instead of declaring its `Relation` ancestry, in which case the
+/// nearest framework relation it extends, and failing that the type's own
+/// first argument, supply the binding.
+pub(crate) fn related_model_type(
+    relation: &PhpType,
+    class_loader: &ResolvedClassLoader<'_>,
+) -> Option<PhpType> {
+    if classify_relationship_typed(relation).is_some() {
+        return extract_related_type_typed(relation).cloned();
+    }
+    if let Some(related) = crate::inheritance::extract_generic_arg_from_ancestor(
+        relation,
+        super::ELOQUENT_RELATION_FQN,
+        0,
+        class_loader,
+    ) {
+        return Some(related);
+    }
+    let class = class_loader(Fqn::new(relation.base_name()?))?;
+    let (ancestor, _) = crate::inheritance::ancestors(&class, class_loader)
+        .find(|(name, _)| classify_relationship_typed(&PhpType::named(*name)).is_some())?;
+    crate::inheritance::extract_generic_arg_from_ancestor(relation, &ancestor, 0, class_loader)
+        .or_else(|| extract_related_type_typed(relation).cloned())
+}
+
+/// Load each model a related-model type names into `models`, instantiating
+/// a generic model with its arguments so its substituted members survive.
+/// Returns whether any of them loaded.
+fn collect_related_classes(
+    related: &PhpType,
+    declaring: &ClassInfo,
+    class_loader: &ResolvedClassLoader<'_>,
+    cache: Option<&super::super::ResolvedClassCache>,
+    models: &mut Vec<Arc<ClassInfo>>,
+) -> bool {
+    if let TypeKind::Union(parts) = related.kind() {
+        let mut found = false;
+        for part in parts {
+            found |= collect_related_classes(part, declaring, class_loader, cache, models);
+        }
+        return found;
+    }
+    let Some(model) = related
+        .base_name()
+        .and_then(|name| resolve_related_fqn(name, declaring, class_loader))
+    else {
+        return false;
+    };
+    let model = if let TypeKind::Generic(g) = related.kind() {
+        let strings = g.args.iter().map(ToString::to_string).collect::<Vec<_>>();
+        crate::virtual_members::resolve_class_fully_with_generics(
+            &model,
+            class_loader,
+            cache,
+            &strings,
+            &g.args,
+        )
+    } else {
+        resolve_class_with_inheritance(&model, class_loader, cache)
+    };
+    if !models.iter().any(|existing| Arc::ptr_eq(existing, &model)) {
+        models.push(model);
+    }
+    true
+}
+
+/// Whether a return type names a project class that extends one of
+/// Eloquent's relations.
+///
+/// [`classify_relationship_typed`] only knows the framework's own names, so
+/// a project that subclasses `BelongsTo` to add its own constraints would
+/// otherwise break every path that runs through it.  Loading the class is
+/// only reached once classification has already failed, so the standard
+/// relations never pay for it.
+fn returns_relation_subclass(
+    return_type: &PhpType,
+    declaring_class: &ClassInfo,
+    class_loader: &ResolvedClassLoader<'_>,
+) -> bool {
+    let Some(name) = return_type.base_name() else {
+        return false;
+    };
+    let Some(relation) = resolve_related_fqn(name, declaring_class, class_loader) else {
+        return false;
+    };
+    crate::inheritance::ancestors(&relation, class_loader).any(|(name, _)| {
+        name == super::ELOQUENT_RELATION_FQN
+            || classify_relationship_typed(&PhpType::named(name)).is_some()
+    })
+}
+
+/// Resolve a class fully (with inheritance and virtual members) so that
+/// relationship methods from traits and parent classes are visible.
+fn resolve_class_with_inheritance(
+    class: &ClassInfo,
+    class_loader: &ResolvedClassLoader<'_>,
+    cache: Option<&super::super::ResolvedClassCache>,
+) -> Arc<ClassInfo> {
+    crate::virtual_members::resolve_class_fully_maybe_cached(class, class_loader, cache)
+}
+
+/// Resolve a short or FQN related type to a loadable FQN.
+///
+/// Tries the following strategies:
+/// 1. Direct load (works for FQNs).
+/// 2. Prepend the declaring class's namespace (works for short names
+///    in the same namespace, e.g. `Article` → `App\Models\Article`).
+pub(crate) fn resolve_related_fqn(
+    related_type: &str,
+    declaring_class: &ClassInfo,
+    class_loader: &ResolvedClassLoader<'_>,
+) -> Option<Arc<ClassInfo>> {
+    let cleaned = Fqn::new(related_type);
+
+    // Try direct load first (handles FQNs).
+    if let Some(cls) = class_loader(cleaned) {
+        return Some(cls);
+    }
+
+    // Try prepending the declaring class's namespace.
+    if let Some(ref ns) = declaring_class.file_namespace {
+        let fqn = format!("{}\\{}", ns, cleaned);
+        if let Some(cls) = class_loader(Fqn::new(&fqn)) {
+            return Some(cls);
+        }
+    }
+
+    None
+}
+
+// ─── Tests ──────────────────────────────────────────────────────────────────
+
+#[cfg(test)]
+#[path = "relationships_tests.rs"]
+mod tests;

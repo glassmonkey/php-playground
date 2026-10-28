@@ -1,0 +1,23 @@
+// test: @phpstan-assert-if-true narrows type inside if branch
+// feature: completion
+// Adapted from phpactor narrowing patterns with @phpstan-assert-if-true
+// expect: getName(
+---
+<?php
+
+class User {
+    public function getName(): string {}
+}
+
+class Validator {
+    /**
+     * @phpstan-assert-if-true User $value
+     */
+    public static function isUser(mixed $value): bool {}
+}
+
+function test(mixed $input): void {
+    if (Validator::isUser($input)) {
+        $input-><>
+    }
+}

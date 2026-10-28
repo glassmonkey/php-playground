@@ -1,0 +1,36 @@
+# PHPantom: a PHP language server
+
+<p align="center">
+  <img src="assets/spookaphant.svg" alt="PHPantom" width="200" />
+</p>
+
+## Welcome to PHPantom's documentation!
+
+A fast, lightweight PHP language server written in Rust. Ready in
+seconds, keeps memory use modest even on large codebases, and
+stays responsive throughout. Indexing happens in the background, so you're never left waiting on it.
+
+You may want to jump to:
+
+- Documentation for the [latest released version](https://phpantom-dev.github.io/phpantom_lsp/latest/).
+- Documentation for the [unreleased version](https://phpantom-dev.github.io/phpantom_lsp/prerelease/) (corresponds to the `main` branch).
+
+## Key Features
+
+- **Deep type intelligence.** Generics, conditional return types, closure parameter inference, array shapes, PHPStan types.
+- **Laravel support.** Eloquent relationships, scopes, accessors, casts, Builder chains, macros, Blade templates -- no ide-helper or database access required.
+- **Symfony support.** The names Symfony takes as strings complete and navigate across PHP, YAML, XML, and Twig -- without booting the application.
+- **Fast.** Ready in 2 seconds on a 30K-file Laravel codebase, cold or warm. No disk cache.
+- **PHPStan, PHPCS, PHPMD, and Mago integration.** Run external tools on save and surface their diagnostics in the editor.
+- **CLI tools.** Batch diagnostics (`analyze`) and automated fixes (`fix`) for CI and bulk cleanup.
+- **Refactoring.** Rename, extract method/function/variable/constant/interface, implement interface methods, promote constructor parameters, modernize syntax.
+
+## Useful Links
+
+- [Editor Setup](editor-setup.md) and [Manual Installation](installation.md)
+- [Configuration Reference](configuration.md)
+- [CLI Reference](cli.md)
+- [Running in the browser (WebAssembly)](wasm.md)
+- [Development Roadmap](todo.md)
+- [Changelog](CHANGELOG.md)
+- [Benchmarks](benchmarks.md)

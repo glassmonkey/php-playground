@@ -1,0 +1,24 @@
+// test: int<min, max> range type in docblock is parsed without errors
+// feature: completion
+// Adapted from phpactor type/int-range.test
+// The int range type should be parsed; the variable still resolves as int for completion purposes
+// expect: fooMethod(
+---
+<?php
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+class Bar {
+    /** @return int<0, 100> */
+    public function getScore(): int { return 50; }
+}
+
+/** @param Foo|int<0, max> $x */
+function test($x): void {
+    if (is_int($x)) {
+        return;
+    }
+    $x-><>
+}

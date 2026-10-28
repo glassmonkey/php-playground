@@ -1,0 +1,23 @@
+// test: instanceof on LHS of && narrows type on RHS within the condition
+// feature: completion
+// expect: fullUrlIs(
+// expect: is(
+---
+<?php
+
+class SymfonyRequest {
+    public function getUri(): string { return ''; }
+}
+
+class LaravelRequest extends SymfonyRequest {
+    public function fullUrlIs(string $pattern): bool { return true; }
+    public function is(string $pattern): bool { return true; }
+}
+
+function decrypt(SymfonyRequest $request): SymfonyRequest {
+    $except = '/foo';
+    if ($request instanceof LaravelRequest && ($request-><>fullUrlIs($except) || $request->is($except))) {
+        return $request;
+    }
+    return $request;
+}

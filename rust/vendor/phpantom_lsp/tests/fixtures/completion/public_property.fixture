@@ -1,0 +1,14 @@
+// test: public property appears in completion
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest 'Public property'
+// expect: foo
+---
+<?php
+
+class Foobar
+{
+    public $foo;
+}
+
+$foobar = new Foobar();
+$foobar-><>

@@ -1,0 +1,19 @@
+// test: an instanceof check against a subclass drops the scalar and array alternatives
+// feature: hover
+// expect: $kept = Instant
+// expect_absent: array
+// expect_absent: int
+---
+<?php
+
+interface Moment {}
+class Instant implements Moment {}
+class Interval {}
+
+/** @param Moment|Interval|array|int|null $delay */
+function delay($delay): void {
+    if ($delay instanceof Instant) {
+        $kept = $delay;
+        echo $ke<>pt;
+    }
+}

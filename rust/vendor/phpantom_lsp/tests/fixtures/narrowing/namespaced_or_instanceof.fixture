@@ -1,0 +1,23 @@
+// test: or-chain instanceof with namespace-qualified names
+// feature: completion
+// Adapted from phpactor if-statement/namespace.test
+// expect: fooMethod(
+// expect: barMethod(
+---
+<?php
+
+namespace App\Test;
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+class Bar {
+    public function barMethod(): void {}
+}
+
+function test(Foo|Bar|string $x): void {
+    if ($x instanceof Foo || $x instanceof Bar) {
+        $x-><>
+    }
+}

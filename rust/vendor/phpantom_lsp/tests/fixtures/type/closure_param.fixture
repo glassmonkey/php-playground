@@ -1,0 +1,17 @@
+// test: Closure docblock type with signature is parsed
+// feature: completion
+// Adapted from phpactor type/closure.test
+// After resolving a Closure(string): Bar param, calling it returns Bar
+// expect: barMethod(
+---
+<?php
+
+class Bar {
+    public function barMethod(): void {}
+}
+
+/** @param \Closure(string): Bar $fn */
+function test(\Closure $fn): void {
+    $result = $fn('hello');
+    $result-><>
+}

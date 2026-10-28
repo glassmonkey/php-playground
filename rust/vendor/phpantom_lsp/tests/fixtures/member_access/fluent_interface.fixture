@@ -1,0 +1,29 @@
+// test: fluent interface method chaining with self return type
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest chaining patterns
+// expect: setName(
+// expect: setAge(
+// expect: build(
+---
+<?php
+
+class Builder
+{
+    public function setName(string $name): self
+    {
+        return $this;
+    }
+
+    public function setAge(int $age): self
+    {
+        return $this;
+    }
+
+    public function build(): string
+    {
+        return '';
+    }
+}
+
+$b = new Builder();
+$b->setName('Alice')->setAge(30)-><>

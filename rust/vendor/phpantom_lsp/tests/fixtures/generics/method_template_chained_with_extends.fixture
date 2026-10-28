@@ -1,0 +1,37 @@
+// test: method-level @template return combined with class-level @extends resolves both
+// feature: completion
+// Adapted from phpactor generics patterns combining method and class templates
+// expect: itemMethod(
+---
+<?php
+
+class Item {
+    public function itemMethod(): void {}
+}
+
+/**
+ * @template TItem
+ */
+class Repository
+{
+    /**
+     * @return TItem
+     */
+    public function find(int $id) {}
+
+    /**
+     * @template T
+     * @param T $entity
+     * @return T
+     */
+    public function save($entity) {}
+}
+
+/**
+ * @extends Repository<Item>
+ */
+class ItemRepository extends Repository {}
+
+$repo = new ItemRepository();
+$result = $repo->find(1);
+$result-><>

@@ -1,0 +1,18 @@
+// test: negated instanceof with throw narrows nullable type
+// feature: completion
+// Adapted from phpactor if-statement/nullable.test
+// expect: fooMethod(
+---
+<?php
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+function test(?Foo $foobar): void {
+    if (!$foobar instanceof Foo) {
+        throw new \RuntimeException('not a Foo');
+    }
+
+    $foobar-><>
+}

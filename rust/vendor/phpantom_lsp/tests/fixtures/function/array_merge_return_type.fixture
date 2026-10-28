@@ -1,0 +1,19 @@
+// test: array_merge return type resolves for completion
+// feature: completion
+// Adapted from phpactor function/array_merge.test
+// expect: count(
+---
+<?php
+
+class ArrayResult {
+    public function count(): int {}
+}
+
+/** @return ArrayResult[] */
+function getItems(): array { return []; }
+
+/** @return ArrayResult[] */
+function getMore(): array { return []; }
+
+$merged = array_merge(getItems(), getMore());
+$merged[0]-><>

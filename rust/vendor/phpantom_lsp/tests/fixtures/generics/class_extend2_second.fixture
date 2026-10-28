@@ -1,0 +1,38 @@
+// test: chained extends with two template params resolves second method
+// feature: completion
+// Adapted from phpactor generics/class_extend2.test (second assertion)
+// expect: booMethod(
+---
+<?php
+
+/**
+ * @template T
+ */
+class First {
+    /** @return T */
+    public function bar() {}
+}
+
+/**
+ * @template T
+ * @template Y
+ * @extends First<T>
+ */
+class Second extends First {
+    /** @return Y */
+    public function boo() {}
+}
+
+class Baz {
+    public function barMethod(): void {}
+}
+
+class Boo {
+    public function booMethod(): void {}
+}
+
+/** @extends Second<Baz, Boo> */
+class Foo extends Second {}
+
+$foo = new Foo();
+$foo->boo()-><>

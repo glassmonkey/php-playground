@@ -1,0 +1,28 @@
+// test: assert instanceof after member access resolves correctly (not stale from cache)
+// feature: completion
+// expect: id
+// expect: shouldReceive(
+---
+<?php
+
+interface MockInterface {
+    public function shouldReceive(string $name): self;
+}
+
+class MolliePayment {
+    public string $id = '';
+    public function canBeRefunded(): bool { return true; }
+}
+
+class TestCase {
+    protected function mock(string $class): MockInterface {}
+}
+
+class Test extends TestCase {
+    public function test(): void {
+        $x = $this->mock(MolliePayment::class);
+        $x->shouldReceive('canBeRefunded');
+        assert($x instanceof MolliePayment);
+        $x-><>
+    }
+}

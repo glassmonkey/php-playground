@@ -1,0 +1,19 @@
+// test: $this context inside class method resolves own members
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest patterns
+// expect: doWork(
+// expect: name
+---
+<?php
+
+class Service
+{
+    public string $name;
+
+    public function doWork(): void {}
+
+    public function run(): void
+    {
+        $this-><>
+    }
+}

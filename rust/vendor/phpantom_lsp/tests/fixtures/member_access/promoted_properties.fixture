@@ -1,0 +1,25 @@
+// test: constructor promoted properties accessible via instance access
+// feature: completion
+// Adapted from phpactor reflection/promoted_property_with_params.test
+// expect: name
+// expect: age
+// expect: greet(
+---
+<?php
+
+class Person
+{
+    public function __construct(
+        public string $name,
+        public int $age,
+        private string $secret = 'hidden'
+    ) {}
+
+    public function greet(): string
+    {
+        return 'Hello ' . $this->name;
+    }
+}
+
+$p = new Person('Alice', 30);
+$p-><>

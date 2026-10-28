@@ -1,0 +1,23 @@
+// test: dynamic property access with variable name returns no completion
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest 'member is variable name'
+// expect_absent: barbar
+---
+<?php
+
+class BarBar
+{
+    public $barbar;
+}
+
+class Foobar
+{
+    /**
+     * @var BarBar
+     */
+    public $foobar;
+}
+
+$barbar = 'foobar';
+$foobar = new Foobar();
+$foobar->$bar<>

@@ -1,0 +1,15 @@
+// test: typed class constant accessible via static access
+// feature: completion
+// Adapted from phpactor member-access/class-constant-typed.test
+// expect: FOOBAR
+// expect: BARFOO
+---
+<?php
+
+class Example
+{
+    const FOOBAR = 'bar';
+    const BARFOO = 123;
+}
+
+Example::<>
