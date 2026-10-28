@@ -32,6 +32,109 @@ const expectOutput = async (
 		.toBe(want);
 };
 test.describe('versioned tutorial routes', () => {
+	test('opens the tutorial from the Playground header on desktop and mobile', async ({
+		page,
+	}) => {
+		for (const viewport of [
+			{ width: 1440, height: 1000 },
+			{ width: 390, height: 844 },
+		]) {
+			await page.setViewportSize(viewport);
+			await page.goto(PAGE);
+			const entry = page.getByRole('link', {
+				name: 'Tutorial →',
+				exact: true,
+			});
+			await expect(entry).toBeVisible();
+			await expect(entry).toBeInViewport();
+			await expect(entry).toHaveAttribute('href', '/tutorial/');
+			await entry.click();
+			await expect(page).toHaveURL(
+				`${PAGE}/tutorial/${latestTutorialVersion}/`
+			);
+			await expect(
+				page.getByRole('heading', { name: 'Your learning path' })
+			).toBeVisible();
+			await page
+				.getByRole('link', { name: 'PHP Playground', exact: true })
+				.click();
+			await expect(page).toHaveURL(new RegExp(`^${PAGE}/(?:\\?.*)?$`));
+			await expect(
+				page.getByRole('heading', {
+					name: 'PHP Playground',
+					exact: true,
+				})
+			).toBeVisible();
+			await expect(entry).toBeInViewport();
+		}
+	});
+
+	test('maintains one production canonical and restores root metadata across SPA navigation', async ({
+		page,
+	}) => {
+		await page.goto(
+			`${PAGE}/tutorial/latest/variables?campaign=test#example`
+		);
+		const canonical = page.locator('head link[rel="canonical"]');
+		await expect(canonical).toHaveCount(1);
+		await expect(canonical).toHaveAttribute(
+			'href',
+			'https://php-play.dev/tutorial/8.5/variables/'
+		);
+		await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
+			'content',
+			'https://php-play.dev/tutorial/8.5/variables/'
+		);
+		await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+			'content',
+			/Assign and reassign variable values/
+		);
+		await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
+			'content',
+			await page.title()
+		);
+		await page.getByLabel('Learn with').selectOption('7.4');
+		await expect(canonical).toHaveCount(1);
+		await expect(canonical).toHaveAttribute(
+			'href',
+			'https://php-play.dev/tutorial/7.4/variables/'
+		);
+		await page
+			.getByRole('navigation', { name: 'Course contents' })
+			.locator('a[href$="/arrays/"]')
+			.click();
+		await expect(canonical).toHaveAttribute(
+			'href',
+			'https://php-play.dev/tutorial/7.4/arrays/'
+		);
+		await page
+			.getByRole('link', { name: 'PHP Playground', exact: true })
+			.click();
+		await expect(canonical).toHaveCount(1);
+		await expect(canonical).toHaveAttribute(
+			'href',
+			'https://php-play.dev/'
+		);
+		await expect(page).toHaveTitle('PHP Playground');
+		await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
+			'content',
+			'https://php-play.dev/'
+		);
+		await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+			'content',
+			'Run PHP code online in a fast, browser-based WebAssembly playground.'
+		);
+		await page.goto(`${PAGE}/tutorial/8.5/not-a-lesson/`);
+		await expect(
+			page.getByRole('heading', { name: 'Lesson not found' })
+		).toBeVisible();
+		await expect(canonical).toHaveCount(0);
+		await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+			'content',
+			'noindex'
+		);
+	});
+
 	test('redirects the tutorial entry and latest alias to the configured latest version', async ({
 		page,
 	}) => {

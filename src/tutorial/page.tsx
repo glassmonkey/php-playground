@@ -1,13 +1,7 @@
 import * as React from 'react';
 import { Button, Select, useColorMode } from '@chakra-ui/react';
 import { previewThemeFor } from '../preview-theme';
-import {
-	Link,
-	Navigate,
-	useNavigate,
-	useParams,
-	useLocation,
-} from 'react-router-dom';
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { compressToEncodedURIComponent } from 'lz-string';
 import { lessonsByVersion } from './content';
 import {
@@ -23,6 +17,7 @@ import './tutorial.css';
 import { LessonSections } from './lesson-sections';
 import { validateLessons } from './validate-content';
 import { chapters, groupLessons } from './chapters';
+import { getHomeMetadata, getTutorialMetadata } from './seo';
 
 function TutorialSurface({ children }: { children: React.ReactNode }) {
 	const { colorMode } = useColorMode();
@@ -42,25 +37,79 @@ function TutorialSurface({ children }: { children: React.ReactNode }) {
 	);
 }
 
-function usePageMetadata(title: string) {
-	const { pathname } = useLocation();
-	React.useEffect(() => {
-		const previousTitle = document.title;
-		document.title = `${title} | PHP Tutorial`;
-		const canonical = document.createElement('link');
+function applyPageMetadata(
+	metadata: ReturnType<typeof getTutorialMetadata> | null
+) {
+	const selected = metadata ?? {
+		title: 'Tutorial not found | PHP Playground',
+		description: 'This tutorial page is unavailable.',
+	};
+	document.title = selected.title;
+	const meta = (
+		attribute: 'name' | 'property',
+		key: string,
+		content: string
+	) => {
+		const nodes = Array.from(
+			document.head.querySelectorAll<HTMLMetaElement>(
+				`meta[${attribute}="${key}"]`
+			)
+		);
+		const node = nodes.shift() ?? document.createElement('meta');
+		nodes.forEach((duplicate) => duplicate.remove());
+		node.setAttribute(attribute, key);
+		node.content = content;
+		document.head.appendChild(node);
+	};
+	meta('name', 'description', selected.description);
+	meta('property', 'og:title', selected.title);
+	meta('property', 'og:description', selected.description);
+	const canonicalNodes = Array.from(
+		document.head.querySelectorAll<HTMLLinkElement>('link[rel="canonical"]')
+	);
+	const canonical = canonicalNodes.shift() ?? document.createElement('link');
+	canonicalNodes.forEach((duplicate) => duplicate.remove());
+	if (metadata) {
 		canonical.rel = 'canonical';
-		canonical.href =
-			window.location.origin + pathname.replace(/\/+$/, '') + '/';
+		canonical.href = metadata.canonicalUrl;
 		document.head.appendChild(canonical);
-		return () => {
-			document.title = previousTitle;
-			canonical.remove();
-		};
-	}, [title, pathname]);
+		meta('property', 'og:url', metadata.canonicalUrl);
+		document.head
+			.querySelectorAll('meta[name="robots"]')
+			.forEach((node) => node.remove());
+	} else {
+		canonical.remove();
+		document.head
+			.querySelectorAll('meta[property="og:url"]')
+			.forEach((node) => node.remove());
+		meta('name', 'robots', 'noindex');
+	}
+}
+
+function usePageMetadata(
+	metadata: ReturnType<typeof getTutorialMetadata> | null
+) {
+	const title = metadata?.title;
+	const description = metadata?.description;
+	const canonicalUrl = metadata?.canonicalUrl;
+	React.useEffect(() => {
+		applyPageMetadata(metadata);
+		return () => applyPageMetadata(getHomeMetadata());
+	}, [title, description, canonicalUrl]);
 }
 
 export default function TutorialPage() {
 	const { version, slug, '*': unmatched } = useParams();
+	const validVersion = version && isTutorialVersion(version) ? version : null;
+	const requestedLesson = validVersion
+		? lessonsByVersion[validVersion].find((item) => item.slug === slug)
+		: undefined;
+	usePageMetadata(
+		validVersion && !unmatched && (!slug || requestedLesson)
+			? getTutorialMetadata(validVersion, requestedLesson)
+			: null
+	);
+
 	if (unmatched)
 		return (
 			<TutorialSurface>
@@ -120,11 +169,7 @@ function ValidVersionPage({
 	const groups = groupLessons(lessonsByVersion[version]);
 	const lessons = groups.flatMap((chapter) => chapter.lessons);
 	const lesson = lessons.find((item) => item.slug === slug);
-	usePageMetadata(
-		lesson
-			? `${lesson.title} · PHP ${version}`
-			: `PHP ${version} Beginner tutorial`
-	);
+
 	function switchVersion(next: string) {
 		if (!isTutorialVersion(next)) return;
 		const destination =

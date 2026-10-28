@@ -29,3 +29,5 @@ description: Create, revise, or evaluate lessons and exercises in this repositor
 版追加・更新では、各 Lesson の可用性、Example/Experiment code、exercise checker syntax、PHP behavior、expected output をその版の runtime で別々に確認します。Runtime registry の追加だけで curriculum の lesson/version coverage や latest を自動で拡張しません。固定 version URL を保ち、`latestTutorialVersion` は対象カリキュラム全体を検証したうえで依頼された場合だけ変更します。現行 latest 8.5 は12 runtime のうち curriculum が意図して選んだ版です。詳細は `doc/tutorial/README.md` を参照します。
 
 完了時は、変更した版・slug、参照した一次資料、Playground で実行したサンプルとケース、意図的な誤答による評価確認、未確認事項を報告します。検証不能な結果を推測で埋めません。
+
+記事・版の追加時は `lessonsByVersion` を正本にします。通常の `npm run build` が `src/tutorial/seo-build.ts` から固定版の HTML、canonical、sitemap.xml を生成するため、サイトマップを手作業で追記しません。生成物で対象記事の URL と canonical が一致し、未対応版や latest エイリアスが sitemap に含まれないことを確認します。`/tutorial/` と `/tutorial/latest/` は設定された固定版へ転送し、canonical は常に本番ドメインの固定版 URL にします。

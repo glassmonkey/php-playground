@@ -14,7 +14,6 @@ function PlaygroundPage() {
 		<>
 			<Box style={{ margin: '16px' }}>
 				<Header />
-				<a href="/tutorial/">Learn PHP →</a>
 			</Box>
 			<App />
 			<Box style={{ margin: '16px' }}>
