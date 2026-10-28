@@ -1,0 +1,19 @@
+# Send only the local Cargo workspace, maintained runtime sources, and entrypoint.
+**
+!Cargo.toml
+!Cargo.lock
+!rust-toolchain.toml
+!rust/
+!rust/**
+!scripts/
+!scripts/lsp/
+!scripts/lsp/phpantom/
+!scripts/lsp/phpantom/build-in-container.sh
+
+# Do not include any machine-local compile or dependency caches.
+**/target
+**/target/**
+**/node_modules
+**/node_modules/**
+rust/vendor/phpantom_lsp/stubs
+rust/vendor/phpantom_lsp/stubs/**

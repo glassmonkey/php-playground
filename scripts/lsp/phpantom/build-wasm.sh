@@ -8,13 +8,12 @@ if [[ "$build_mode" != artifact && "$build_mode" != native-test ]]; then
 	printf 'Usage: %s [artifact|native-test]\n' "$0" >&2
 	exit 2
 fi
+
 repo_root="$(cd "$(dirname "$0")/../../.." && pwd)"
 script_dir="$repo_root/scripts/lsp/phpantom"
 docker_bin="${DOCKER:-docker}"
 output_root="${PHPANTOM_DOCKER_OUTPUT_DIR:-$repo_root/build/phpantom-docker-candidates}"
-patch_file="$script_dir/patches/0001-php-version-initialize.patch"
-patch_sha256="$(shasum -a 256 "$patch_file" | awk '{print $1}')"
-image_tag="phpantom-runtime-builder:$version-rust1.99.0-${patch_sha256:0:12}"
+image_tag="phpantom-runtime-builder:$version-rust1.99.0-workspace"
 attempt_id="$(date -u +%Y%m%dT%H%M%SZ)"
 
 command -v "$docker_bin" >/dev/null 2>&1 || {
@@ -22,22 +21,28 @@ command -v "$docker_bin" >/dev/null 2>&1 || {
 	exit 1
 }
 
+for required_file in Cargo.toml Cargo.lock rust-toolchain.toml rust/phpantom-runtime-wrapper/Cargo.toml rust/vendor/phpantom_lsp/Cargo.toml rust/vendor/phpantom_lsp/stubs.lock; do
+	if [[ ! -f "$repo_root/$required_file" ]]; then
+		printf 'Required in-repository Cargo source is missing: %s\n' "$required_file" >&2
+		exit 1
+	fi
+done
+
 mkdir -p "$output_root"
 attempt_dir="$(mktemp -d "$output_root/$attempt_id.XXXXXX")"
 mkdir "$attempt_dir/output"
 printf 'PHPantom Docker build attempt: %s\n' "$attempt_dir"
 
 if "$docker_bin" build --pull \
-	--build-arg "PATCH_SHA256=$patch_sha256" \
 	--tag "$image_tag" \
 	--file "$script_dir/Dockerfile" \
-	"$script_dir" >"$attempt_dir/docker-build.log" 2>&1; then
+	"$repo_root" >"$attempt_dir/docker-build.log" 2>&1; then
 	docker_build_status=0
 else
 	docker_build_status=$?
 	printf '%s\n' "$docker_build_status" >"$attempt_dir/docker-build.exit"
-	tail -n 80 "$attempt_dir/docker-build.log" >&2
-	printf 'Docker image build failed; logs and any output are retained at %s\n' "$attempt_dir" >&2
+	tail -n 100 "$attempt_dir/docker-build.log" >&2
+	printf 'Docker image build failed; logs and output are retained at %s\n' "$attempt_dir" >&2
 	exit 1
 fi
 printf '%s\n' "$docker_build_status" >"$attempt_dir/docker-build.exit"
@@ -58,14 +63,19 @@ if "$docker_bin" run --rm \
 else
 	docker_run_status=$?
 	printf '%s\n' "$docker_run_status" >"$attempt_dir/docker-run.exit"
-	tail -n 100 "$attempt_dir/docker-run.log" >&2
-	printf 'Container build failed; logs and any output are retained at %s\n' "$attempt_dir" >&2
+	tail -n 120 "$attempt_dir/docker-run.log" >&2
+	printf 'Container build failed; logs and output are retained at %s\n' "$attempt_dir" >&2
 	exit 1
 fi
 printf '%s\n' "$docker_run_status" >"$attempt_dir/docker-run.exit"
 
 if [[ "$build_mode" == native-test ]]; then
+	if [[ ! -s "$attempt_dir/output/native-test.json" ]]; then
+		printf 'Native test succeeded without writing its source summary; retained at %s\n' "$attempt_dir" >&2
+		exit 1
+	fi
 	printf 'PHPantom Docker native regression test succeeded.\n'
+	printf 'Native test summary: %s/output/native-test.json\n' "$attempt_dir"
 	printf 'Docker logs: %s/docker-build.log %s/docker-run.log\n' "$attempt_dir" "$attempt_dir"
 	exit 0
 fi
@@ -74,14 +84,14 @@ artifact="$attempt_dir/output/phpantom_lsp.wasm"
 provenance="$attempt_dir/output/provenance.json"
 artifact_sha_file="$attempt_dir/output/phpantom_lsp.wasm.sha256"
 if [[ ! -s "$artifact" || ! -s "$provenance" || ! -s "$artifact_sha_file" ]]; then
-	printf 'Docker build did not export both the WASM and provenance; retained at %s\n' "$attempt_dir" >&2
+	printf 'Docker build did not export WASM, provenance, and checksum; retained at %s\n' "$attempt_dir" >&2
 	exit 1
 fi
 
 wasm_sha256="$(shasum -a 256 "$artifact" | awk '{print $1}')"
 recorded_sha256="$(cat "$artifact_sha_file")"
 if [[ "$wasm_sha256" != "$recorded_sha256" ]]; then
-	printf 'Exported WASM checksum differs from provenance: %s != %s\n' \
+	printf 'Exported WASM checksum differs from container record: %s != %s\n' \
 		"$wasm_sha256" "$recorded_sha256" >&2
 	exit 1
 fi
