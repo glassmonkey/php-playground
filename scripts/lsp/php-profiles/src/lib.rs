@@ -391,6 +391,7 @@ fn collect_parameter_availability_edits<'a>(
     #[derive(Clone)]
     struct ParamState {
         available: bool,
+        has_availability: bool,
         attribute_spans: Vec<(usize, usize)>,
     }
     let mut states = Vec::with_capacity(parameters.parameters.nodes.len());
@@ -460,6 +461,7 @@ fn collect_parameter_availability_edits<'a>(
         });
         states.push(ParamState {
             available,
+            has_availability: availability.is_some(),
             attribute_spans: spans,
         });
     }
@@ -474,18 +476,38 @@ fn collect_parameter_availability_edits<'a>(
             .push(index);
     }
     for (name, indexes) in &by_name {
-        let visible = indexes
+        if indexes.len() < 2 {
+            continue;
+        }
+        let versioned: Vec<_> = indexes
+            .iter()
+            .filter(|index| states[**index].has_availability)
+            .copied()
+            .collect();
+        let visible_versioned: Vec<_> = versioned
             .iter()
             .filter(|index| states[**index].available)
-            .count();
-        if indexes.len() > 1 && visible > 1 {
+            .copied()
+            .collect();
+        if visible_versioned.len() > 1 {
             diagnostics.push(format!(
-                "{declaration_name} {}: multiple same-name parameter variants apply at PHP {}.{}",
+                "{declaration_name} {}: overlapping versioned same-name parameter variants apply at PHP {}.{}",
                 String::from_utf8_lossy(name),
                 target.major,
                 target.minor
             ));
             return;
+        }
+        // In pinned stubs, an unannotated same-name variant is used as the
+        // fallback when none of its explicitly versioned alternatives match.
+        // Prefer the single matching bounded variant when present; preserve
+        // every conflicting explicitly bounded alternative as a diagnostic.
+        if !versioned.is_empty() && visible_versioned.len() == 1 {
+            for index in indexes {
+                if !states[*index].has_availability {
+                    states[*index].available = false;
+                }
+            }
         }
     }
     let removed: Vec<usize> = states

@@ -177,3 +177,41 @@ fn repeated_source_phpdoc_edits_are_coalesced_without_hiding_conflicts() {
         );
     }
 }
+
+#[test]
+fn source_versioned_same_name_parameter_variants_select_the_matching_signature() {
+    for (target, expected) in [
+        ("7.4", vec!["$category", "$rest"]),
+        ("8.0", vec!["$category", "$locales", "$rest"]),
+    ] {
+        let transformed = transform_file_returns(
+            &pinned("standard/standard_1.php"),
+            PhpVersion::parse(target).unwrap(),
+        )
+        .unwrap();
+        assert!(
+            !transformed
+                .diagnostics
+                .iter()
+                .any(|message| message.contains("function setlocale")),
+            "versioned same-name parameter alternatives should resolve from source metadata: {:?}",
+            transformed.diagnostics
+        );
+        let text = String::from_utf8(transformed.bytes).unwrap();
+        let start = text.find("function setlocale(").unwrap();
+        let end = start + text[start..].find("): string|false").unwrap();
+        let signature = &text[start..end];
+        let names = ["$category", "$locales", "$rest"]
+            .into_iter()
+            .filter(|name| signature.contains(name))
+            .collect::<Vec<_>>();
+        assert_eq!(names, expected);
+        if target == "7.4" {
+            assert!(!signature.contains("$locales"));
+            assert_eq!(signature.matches("$rest").count(), 1);
+        } else {
+            assert!(signature.contains("$locales"));
+            assert_eq!(signature.matches("$rest").count(), 1);
+        }
+    }
+}
