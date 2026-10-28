@@ -156,3 +156,24 @@ fn availability_filter_keeps_parameter_and_doc_at_inclusive_introduction_boundar
     );
     fs::remove_file(output_path).unwrap();
 }
+
+#[test]
+fn repeated_source_phpdoc_edits_are_coalesced_without_hiding_conflicts() {
+    for (path, target) in [
+        ("intl/IntlChar.php", "5.6"),
+        ("sqlite3/sqlite3.php", "5.6"),
+        ("sqlite3/sqlite3.php", "7.0"),
+        ("mysqli/mysqli.php", "7.2"),
+    ] {
+        let transformed =
+            transform_file_returns(&pinned(path), PhpVersion::parse(target).unwrap()).unwrap();
+        assert!(
+            !transformed
+                .diagnostics
+                .iter()
+                .any(|message| message.contains("overlapping edits")),
+            "identical source-derived PHPDoc edits should coalesce in {path} for PHP {target}: {:?}",
+            transformed.diagnostics
+        );
+    }
+}
