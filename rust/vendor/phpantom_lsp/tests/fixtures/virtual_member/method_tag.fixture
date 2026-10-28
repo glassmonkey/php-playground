@@ -1,0 +1,15 @@
+// test: virtual method from @method tag appears in completion
+// feature: completion
+// Adapted from phpactor virtual_member/method.test
+// expect: doSomething(
+---
+<?php
+
+/**
+ * @method void doSomething(string $name)
+ */
+class Foo {
+}
+
+$foo = new Foo();
+$foo-><>

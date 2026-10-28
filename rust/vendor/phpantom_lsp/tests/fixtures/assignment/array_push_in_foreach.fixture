@@ -1,0 +1,19 @@
+// test: array push inside foreach tracks iterated element type
+// feature: completion
+// Adapted from phpactor assignment/array_add_in_foreach.test
+// expect: getName(
+---
+<?php
+
+class User {
+    public function getName(): string { return ''; }
+}
+
+/** @param User[] $users */
+function test(array $users): void {
+    $filtered = [];
+    foreach ($users as $user) {
+        $filtered[] = $user;
+    }
+    $filtered[0]-><>
+}

@@ -1,0 +1,15 @@
+// test: assert with instanceof narrows variable type
+// feature: completion
+// Adapted from phpactor function/assert.test
+// expect: fooMethod(
+---
+<?php
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+function test($foo): void {
+    assert($foo instanceof Foo);
+    $foo-><>
+}

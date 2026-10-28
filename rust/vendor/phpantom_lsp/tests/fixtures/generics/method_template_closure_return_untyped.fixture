@@ -1,0 +1,39 @@
+// test: method-level @template with untyped closure does not resolve return type
+// feature: completion
+// expect_absent: add(
+// expect_absent: total(
+---
+<?php
+
+class Accumulator {
+    public function add(int $n): static { return $this; }
+    public function total(): int { return 0; }
+}
+
+/**
+ * @template TValue
+ */
+class Reducible
+{
+    /**
+     * @template TReduceInitial
+     * @template TReduceReturnType
+     *
+     * @param callable(TReduceInitial|TReduceReturnType, TValue): TReduceReturnType $callback
+     * @param TReduceInitial $initial
+     * @return TReduceReturnType
+     */
+    public function reduce(callable $callback, mixed $initial): mixed
+    {
+        return $initial;
+    }
+}
+
+/** @var Reducible<int> $items */
+$items = new Reducible();
+
+$result = $items->reduce(
+    fn($carry, $item) => $carry,
+    new Accumulator()
+);
+$result-><>

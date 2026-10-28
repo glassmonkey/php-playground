@@ -1,0 +1,20 @@
+// test: assert with OR instanceof narrows to union of both types
+// feature: completion
+// Adapted from phpactor general/narrowing.test (t5)
+// expect: barMethod(
+// expect: bazMethod(
+---
+<?php
+
+class Bar {
+    public function barMethod(): void {}
+}
+
+class Baz {
+    public function bazMethod(): void {}
+}
+
+function test($f): void {
+    assert($f instanceof Bar || $f instanceof Baz);
+    $f-><>
+}

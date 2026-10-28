@@ -1,0 +1,22 @@
+// test: conditional array key addition produces union of shapes
+// feature: completion
+// Adapted from phpactor assignment/array_2.test
+// expect: getName(
+---
+<?php
+
+class Config {
+    public function getName(): string { return ''; }
+}
+
+function test(?object $node): void {
+    $options = [
+        'name' => 'value',
+    ];
+
+    if ($node !== null) {
+        $options['config'] = new Config();
+    }
+
+    $options['config']-><>
+}

@@ -1,0 +1,23 @@
+// test: completion on collection return type resolves generic collection
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest 'Completion on collection'
+// expect: heyho(
+---
+<?php
+
+class Collection
+{
+    public function heyho() {}
+}
+
+class Foobar
+{
+    /**
+     * @return Collection<Foobar>
+     */
+    public function collection() {}
+}
+
+$foobar = new Foobar();
+$collection = $foobar->collection();
+$collection-><>

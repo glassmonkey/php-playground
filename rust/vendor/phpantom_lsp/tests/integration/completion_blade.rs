@@ -1,0 +1,757 @@
+//! Completion of the parts of a Blade template that are not PHP: the
+//! directive name after an `@`, and the component name and attribute names
+//! of a `<x-…>` / `<livewire:…>` tag.
+
+use crate::common::{
+    BLADE_COMPONENT_COMPOSER, ILLUMINATE_COMPONENT_STUB, LIVEWIRE_COMPONENT_STUB,
+    complete_at_opened_with_trigger, completion_response, create_psr4_workspace,
+    create_test_backend, labels, open_document, workspace_uri,
+};
+use tower_lsp_server::gen_lsp_types::*;
+
+#[tokio::test]
+async fn at_sign_in_html_position_offers_all_known_directives() {
+    let backend = create_test_backend();
+    let uri = Uri::parse("file:///page.blade.php").unwrap();
+    open_document(&backend, &uri, "blade", "<div>@</div>").await;
+
+    let items = complete_at_opened_with_trigger(&backend, &uri, 0, 6, "@").await;
+    let labels: Vec<&str> = items.iter().map(|i| i.label.as_str()).collect();
+
+    assert!(
+        labels.contains(&"@if") && labels.contains(&"@foreach") && labels.contains(&"@endif"),
+        "expected the full known-directive list, got: {:?}",
+        labels
+    );
+}
+
+#[tokio::test]
+async fn the_if_completion_inserts_the_documented_snippet() {
+    let backend = create_test_backend();
+    let uri = Uri::parse("file:///page.blade.php").unwrap();
+    open_document(&backend, &uri, "blade", "<div>@</div>").await;
+
+    let items = complete_at_opened_with_trigger(&backend, &uri, 0, 6, "@").await;
+    let if_item = items
+        .iter()
+        .find(|i| i.label == "@if")
+        .expect("expected an @if completion item");
+
+    assert_eq!(
+        if_item.insert_text.as_deref(),
+        Some("if ($1)\n\t$0\n@endif")
+    );
+    assert_eq!(if_item.insert_text_format, Some(InsertTextFormat::Snippet));
+}
+
+#[tokio::test]
+async fn a_partial_directive_name_filters_the_list() {
+    let backend = create_test_backend();
+    let uri = Uri::parse("file:///page.blade.php").unwrap();
+    open_document(&backend, &uri, "blade", "<div>@for</div>").await;
+
+    // Cursor right after "@for".
+    let items = complete_at_opened_with_trigger(&backend, &uri, 0, 9, "@").await;
+    let labels: Vec<&str> = items.iter().map(|i| i.label.as_str()).collect();
+
+    assert!(labels.contains(&"@for"), "got: {:?}", labels);
+    assert!(labels.contains(&"@foreach"), "got: {:?}", labels);
+    assert!(labels.contains(&"@forelse"), "got: {:?}", labels);
+    assert!(
+        !labels.contains(&"@if"),
+        "'@if' does not start with 'for', got: {:?}",
+        labels
+    );
+}
+
+#[tokio::test]
+async fn an_unknown_directive_name_still_short_circuits_with_an_empty_list() {
+    let backend = create_test_backend();
+    let uri = Uri::parse("file:///page.blade.php").unwrap();
+    // `zzz` matches no directive, but the position is still an HTML/
+    // directive-name position, so the strategy must not fall through to
+    // (e.g.) class-name completion.
+    open_document(&backend, &uri, "blade", "<div>@zzz</div>").await;
+
+    let items = complete_at_opened_with_trigger(&backend, &uri, 0, 9, "@").await;
+    assert!(
+        items.is_empty(),
+        "expected an empty (short-circuited) list, got: {:?}",
+        items.iter().map(|i| &i.label).collect::<Vec<_>>()
+    );
+}
+
+#[tokio::test]
+async fn no_directive_completion_inside_echo_braces() {
+    let backend = create_test_backend();
+    let uri = Uri::parse("file:///page.blade.php").unwrap();
+    open_document(&backend, &uri, "blade", "{{ @ }}").await;
+
+    // Cursor right after "@" inside `{{ ... }}`.
+    let items = complete_at_opened_with_trigger(&backend, &uri, 0, 4, "@").await;
+    assert!(
+        items.is_empty(),
+        "directive completion must not fire inside {{{{ }}}}, got: {:?}",
+        items.iter().map(|i| &i.label).collect::<Vec<_>>()
+    );
+}
+
+#[tokio::test]
+async fn no_directive_completion_inside_a_php_block() {
+    let backend = create_test_backend();
+    let uri = Uri::parse("file:///page.blade.php").unwrap();
+    open_document(&backend, &uri, "blade", "@php $x = 1; @\n@endphp").await;
+
+    // Cursor right after the trailing "@" on the first line, still inside
+    // the `@php ... @endphp` block.
+    let items = complete_at_opened_with_trigger(&backend, &uri, 0, 14, "@").await;
+    assert!(
+        items.is_empty(),
+        "directive completion must not fire inside a @php block, got: {:?}",
+        items.iter().map(|i| &i.label).collect::<Vec<_>>()
+    );
+}
+
+#[tokio::test]
+async fn directive_completion_still_fires_inside_an_open_block() {
+    let backend = create_test_backend();
+    let uri = Uri::parse("file:///page.blade.php").unwrap();
+    // The body between `@if` and `@endif` is ordinary template markup, so
+    // a nested directive must still complete.
+    open_document(&backend, &uri, "blade", "@if ($x)\n    @\n@endif").await;
+
+    let items = complete_at_opened_with_trigger(&backend, &uri, 1, 5, "@").await;
+    let labels: Vec<&str> = items.iter().map(|i| i.label.as_str()).collect();
+    assert!(
+        labels.contains(&"@foreach"),
+        "expected nested directive completion inside @if/@endif, got: {:?}",
+        labels
+    );
+}
+
+// ── Component tag and attribute completion ──────────────────────────────
+
+/// A project with one component of every shape the index answers for: a
+/// class-based one, a nested class-based one, an anonymous template, and a
+/// Livewire class.
+fn component_workspace(template: &str) -> (phpantom_lsp::Backend, tempfile::TempDir, Uri) {
+    let (backend, dir) = create_psr4_workspace(
+        BLADE_COMPONENT_COMPOSER,
+        &[
+            (
+                "stubs/Illuminate/View/Component.php",
+                ILLUMINATE_COMPONENT_STUB,
+            ),
+            ("stubs/Livewire/Component.php", LIVEWIRE_COMPONENT_STUB),
+            (
+                "app/View/Components/Alert.php",
+                "<?php\nnamespace App\\View\\Components;\n\
+                 use Illuminate\\View\\Component;\n\
+                 class Alert extends Component {\n\
+                     public function __construct(\n\
+                         public string $type,\n\
+                         public ?string $dismissLabel = null,\n\
+                     ) {}\n\
+                     public function render() {}\n\
+                 }\n",
+            ),
+            (
+                "app/View/Components/Forms/Input.php",
+                "<?php\nnamespace App\\View\\Components\\Forms;\n\
+                 use Illuminate\\View\\Component;\n\
+                 class Input extends Component {\n\
+                     public function render() {}\n\
+                 }\n",
+            ),
+            (
+                "app/Livewire/Counter.php",
+                "<?php\nnamespace App\\Livewire;\n\
+                 use Livewire\\Component;\n\
+                 class Counter extends Component {\n\
+                     public int $total = 0;\n\
+                     public function mount(int $start): void {}\n\
+                     public function render() {}\n\
+                 }\n",
+            ),
+            (
+                "resources/views/components/banner.blade.php",
+                "@props(['headline', 'subHeadline' => 'none'])\n<div>{{ $headline }}</div>\n",
+            ),
+            (
+                "resources/views/components/hero.blade.php",
+                "@aware(['theme'])\n\
+                 @php($caption = strtoupper($title))\n\
+                 <h1 class=\"{{ $theme }}\">{{ $title }} {{ $subTitle }} {{ $caption }}</h1>\n\
+                 @foreach ($rows as $row)\n\
+                 <p>{{ $loop->index }}: {{ $row }}</p>\n\
+                 @endforeach\n\
+                 <div>{{ $slot }}</div>\n",
+            ),
+            (
+                "resources/views/components/notice.blade.php",
+                "@props(['level' => 'info'])\n<p class=\"{{ $level }}\">{{ $message }}</p>\n",
+            ),
+            ("resources/views/page.blade.php", template),
+        ],
+    );
+    let uri = workspace_uri(&backend, "resources/views/page.blade.php");
+    (backend, dir, uri)
+}
+
+/// Complete at `line`/`character` without claiming any trigger character:
+/// a component tag is typed one ordinary letter at a time.
+async fn complete_typed(
+    backend: &phpantom_lsp::Backend,
+    uri: &Uri,
+    line: u32,
+    character: u32,
+) -> Vec<CompletionItem> {
+    match completion_response(
+        backend,
+        uri,
+        line,
+        character,
+        Some(CompletionContext {
+            trigger_kind: CompletionTriggerKind::Invoked,
+            trigger_character: None,
+        }),
+    )
+    .await
+    {
+        Some(CompletionResponse::CompletionItemList(items)) => items,
+        Some(CompletionResponse::CompletionList(list)) => list.items,
+        None => Vec::new(),
+    }
+}
+
+/// Put each class in the index class-name completion searches, the way a
+/// scan of the project would.
+fn index_models(backend: &phpantom_lsp::Backend, fqns: &[&str]) {
+    let mut index = backend.fqn_uri_index().write();
+    for fqn in fqns {
+        index.insert(
+            fqn.to_string(),
+            format!("file:///app/{}.php", fqn.replace('\\', "/")),
+        );
+    }
+}
+
+/// Apply completion edits to the template they were planned against.
+fn apply(template: &str, edits: &[TextEdit]) -> String {
+    let offset = |position: Position| {
+        template
+            .split_inclusive('\n')
+            .take(position.line as usize)
+            .map(str::len)
+            .sum::<usize>()
+            + position.character as usize
+    };
+    let mut result = template.to_string();
+    let mut edits = edits.to_vec();
+    // Last first, so an earlier edit's offsets stay valid.
+    edits
+        .sort_by_key(|edit| std::cmp::Reverse((edit.range.start.line, edit.range.start.character)));
+    for edit in &edits {
+        result.replace_range(
+            offset(edit.range.start)..offset(edit.range.end),
+            &edit.new_text,
+        );
+    }
+    result
+}
+
+#[tokio::test]
+async fn an_x_opening_offers_every_component_the_project_ships() {
+    let template = "<x-";
+    let (backend, _dir, uri) = component_workspace(template);
+    open_document(&backend, &uri, "blade", template).await;
+
+    let items = complete_typed(&backend, &uri, 0, 3).await;
+    let labels = labels(&items);
+    assert!(
+        labels.contains(&"alert") && labels.contains(&"forms.input"),
+        "expected the class-based components, got: {labels:?}"
+    );
+    assert!(
+        labels.contains(&"banner"),
+        "expected the anonymous component template, got: {labels:?}"
+    );
+    assert!(
+        !labels.contains(&"counter"),
+        "a Livewire class is not an <x-…> component, got: {labels:?}"
+    );
+}
+
+#[tokio::test]
+async fn a_class_backed_component_is_offered_as_the_class_it_names() {
+    let template = "<x-";
+    let (backend, _dir, uri) = component_workspace(template);
+    open_document(&backend, &uri, "blade", template).await;
+
+    let items = complete_typed(&backend, &uri, 0, 3).await;
+    let alert = items.iter().find(|i| i.label == "alert").expect("no alert");
+    assert_eq!(alert.kind, Some(CompletionItemKind::Class));
+    assert_eq!(
+        alert.detail.as_deref(),
+        Some("\\App\\View\\Components\\Alert")
+    );
+
+    let banner = items
+        .iter()
+        .find(|i| i.label == "banner")
+        .expect("no banner");
+    assert_eq!(banner.kind, Some(CompletionItemKind::Module));
+}
+
+#[tokio::test]
+async fn a_partly_typed_component_name_filters_the_list() {
+    let template = "<x-for";
+    let (backend, _dir, uri) = component_workspace(template);
+    open_document(&backend, &uri, "blade", template).await;
+
+    let items = complete_typed(&backend, &uri, 0, 6).await;
+    assert_eq!(labels(&items), vec!["forms.input"]);
+    // The edit replaces what is typed rather than appending to it, since
+    // an editor would not treat `for` as part of the same word as the
+    // dotted name that replaces it.
+    let edit = match items[0].text_edit.as_ref().expect("no text edit") {
+        CompletionItemTextEdit::TextEdit(edit) => edit,
+        other => panic!("expected a plain edit, got {other:?}"),
+    };
+    assert_eq!(edit.new_text, "forms.input");
+    assert_eq!(edit.range.start.character, 3);
+    assert_eq!(edit.range.end.character, 6);
+}
+
+#[tokio::test]
+async fn a_livewire_opening_offers_the_livewire_index() {
+    let template = "<livewire:";
+    let (backend, _dir, uri) = component_workspace(template);
+    open_document(&backend, &uri, "blade", template).await;
+
+    let items = complete_typed(&backend, &uri, 0, 10).await;
+    let labels = labels(&items);
+    assert_eq!(
+        labels,
+        vec!["counter"],
+        "only Livewire classes answer a <livewire:…> tag"
+    );
+}
+
+#[tokio::test]
+async fn a_constructor_parameter_is_offered_as_an_attribute() {
+    let template = "<x-alert ";
+    let (backend, _dir, uri) = component_workspace(template);
+    open_document(&backend, &uri, "blade", template).await;
+
+    let items = complete_typed(&backend, &uri, 0, 9).await;
+    let labels = labels(&items);
+    assert!(
+        labels.contains(&"type") && labels.contains(&":type"),
+        "expected both the literal and the bound form, got: {labels:?}"
+    );
+    // A camelCase parameter is written as the kebab-case attribute that
+    // fills it.
+    assert!(
+        labels.contains(&"dismiss-label"),
+        "expected the kebab-case spelling, got: {labels:?}"
+    );
+    let bound = items.iter().find(|i| i.label == ":type").expect("no :type");
+    let edit = match bound.text_edit.as_ref().expect("no text edit") {
+        CompletionItemTextEdit::TextEdit(edit) => edit,
+        other => panic!("expected a plain edit, got {other:?}"),
+    };
+    assert_eq!(edit.new_text, ":type=\"$1\"");
+}
+
+#[tokio::test]
+async fn a_required_attribute_is_offered_before_an_optional_one() {
+    let template = "<x-alert ";
+    let (backend, _dir, uri) = component_workspace(template);
+    open_document(&backend, &uri, "blade", template).await;
+
+    let items = complete_typed(&backend, &uri, 0, 9).await;
+    let sort_of = |label: &str| {
+        items
+            .iter()
+            .find(|i| i.label == label)
+            .and_then(|i| i.sort_text.clone())
+            .unwrap_or_else(|| panic!("no {label}"))
+    };
+    assert!(
+        sort_of("type") < sort_of("dismiss-label"),
+        "a tag missing a required attribute is short an argument, so it comes first"
+    );
+}
+
+#[tokio::test]
+async fn a_colon_narrows_the_attributes_to_the_bound_form() {
+    let template = "<x-alert :";
+    let (backend, _dir, uri) = component_workspace(template);
+    open_document(&backend, &uri, "blade", template).await;
+
+    let items = complete_typed(&backend, &uri, 0, 10).await;
+    let labels = labels(&items);
+    assert!(
+        labels.iter().all(|label| label.starts_with(':')),
+        "got: {labels:?}"
+    );
+    assert!(labels.contains(&":type"), "got: {labels:?}");
+}
+
+#[tokio::test]
+async fn an_anonymous_components_props_are_its_attributes() {
+    let template = "<x-banner ";
+    let (backend, _dir, uri) = component_workspace(template);
+    open_document(&backend, &uri, "blade", template).await;
+
+    let items = complete_typed(&backend, &uri, 0, 10).await;
+    let labels = labels(&items);
+    assert!(
+        labels.contains(&"headline") && labels.contains(&"sub-headline"),
+        "expected the template's @props entries, got: {labels:?}"
+    );
+}
+
+#[tokio::test]
+async fn an_anonymous_component_without_props_offers_the_names_it_reads() {
+    let template = "<x-hero ";
+    let (backend, _dir, uri) = component_workspace(template);
+    open_document(&backend, &uri, "blade", template).await;
+
+    let items = complete_typed(&backend, &uri, 0, 8).await;
+    let labels = labels(&items);
+    assert!(
+        labels.contains(&"title") && labels.contains(&"rows"),
+        "expected the template's undeclared reads, got: {labels:?}"
+    );
+    // A read of a camelCase variable is written as the kebab-case
+    // attribute Blade camel-cases back into it.
+    assert!(
+        labels.contains(&"sub-title"),
+        "expected the kebab-case spelling of $subTitle, got: {labels:?}"
+    );
+}
+
+#[tokio::test]
+async fn a_name_the_component_template_supplies_itself_is_not_an_attribute() {
+    let template = "<x-hero ";
+    let (backend, _dir, uri) = component_workspace(template);
+    open_document(&backend, &uri, "blade", template).await;
+
+    let items = complete_typed(&backend, &uri, 0, 8).await;
+    let labels = labels(&items);
+    for name in ["caption", "theme", "row", "loop", "slot"] {
+        assert!(
+            !labels.contains(&name),
+            "{name} is not the tag's to pass, got: {labels:?}"
+        );
+    }
+}
+
+#[tokio::test]
+async fn a_declared_prop_keeps_its_default_beside_the_names_it_leaves_out() {
+    let template = "<x-notice ";
+    let (backend, _dir, uri) = component_workspace(template);
+    open_document(&backend, &uri, "blade", template).await;
+
+    let items = complete_typed(&backend, &uri, 0, 10).await;
+    let level = items
+        .iter()
+        .find(|item| item.label == "level")
+        .unwrap_or_else(|| panic!("expected the declared prop, got: {:?}", labels(&items)));
+    assert_eq!(level.detail.as_deref(), Some("= 'info'"));
+    assert!(
+        labels(&items).contains(&"message"),
+        "expected the name @props leaves out, got: {:?}",
+        labels(&items)
+    );
+}
+
+#[tokio::test]
+async fn a_livewire_tag_offers_its_mount_parameters_and_public_properties() {
+    let template = "<livewire:counter ";
+    let (backend, _dir, uri) = component_workspace(template);
+    open_document(&backend, &uri, "blade", template).await;
+
+    let items = complete_typed(&backend, &uri, 0, 18).await;
+    let labels = labels(&items);
+    assert!(
+        labels.contains(&"start") && labels.contains(&"total"),
+        "expected mount()'s parameters and the public properties, got: {labels:?}"
+    );
+}
+
+#[tokio::test]
+async fn attribute_completion_does_not_fire_inside_an_attribute_value() {
+    let template = "<x-alert type=\"da\" />";
+    let (backend, _dir, uri) = component_workspace(template);
+    open_document(&backend, &uri, "blade", template).await;
+
+    // Cursor between `da` and the closing quote.
+    let items = complete_typed(&backend, &uri, 0, 17).await;
+    assert!(
+        !labels(&items).contains(&"type"),
+        "the value is PHP or text, not an attribute name, got: {:?}",
+        labels(&items)
+    );
+}
+
+// ── Virtual-PHP completion edits translated back to Blade coordinates ───
+
+#[tokio::test]
+async fn an_include_view_name_edit_lands_on_the_directive_not_the_prologue() {
+    let composer = r#"{"autoload": {"psr-4": {"App\\": "app/"}}}"#;
+    let (backend, _dir) = create_psr4_workspace(
+        composer,
+        &[
+            (
+                "resources/views/partials/header.blade.php",
+                "<div>header</div>",
+            ),
+            ("resources/views/page.blade.php", "@include('"),
+        ],
+    );
+    let uri = workspace_uri(&backend, "resources/views/page.blade.php");
+    let template = "@include('";
+    open_document(&backend, &uri, "blade", template).await;
+
+    // `@include('` is lowered into the virtual PHP's prologue-shifted body,
+    // so an untranslated edit would land several lines below line 0.
+    let items = complete_typed(&backend, &uri, 0, 10).await;
+    let item = items
+        .iter()
+        .find(|i| i.label == "partials.header")
+        .unwrap_or_else(|| panic!("expected the partial view name, got: {:?}", labels(&items)));
+    let edit = match item.text_edit.as_ref().expect("no text edit") {
+        CompletionItemTextEdit::TextEdit(edit) => edit,
+        other => panic!("expected a plain edit, got {other:?}"),
+    };
+    assert_eq!(
+        edit.range.start.line, 0,
+        "the edit must land on the template's own line, not the virtual PHP prologue"
+    );
+}
+
+#[tokio::test]
+async fn a_closed_tag_leaves_completion_to_the_rest_of_the_pipeline() {
+    let template = "<x-alert type=\"danger\" />\n@\n";
+    let (backend, _dir, uri) = component_workspace(template);
+    open_document(&backend, &uri, "blade", template).await;
+
+    // The `@` on the second line is outside the tag, so directive
+    // completion must still own it.
+    let items = complete_typed(&backend, &uri, 1, 1).await;
+    assert!(
+        labels(&items).contains(&"@if"),
+        "expected directive completion, got: {:?}",
+        labels(&items)
+    );
+}
+
+/// A template imports with the `@use` directive, so a class-name
+/// completion that needs an import carries one written in that syntax and
+/// placed on a line of the template — an edit against the virtual PHP's
+/// prologue has no template position and takes the whole candidate with it
+/// when it is dropped.
+#[tokio::test]
+async fn a_namespaced_class_completion_imports_with_a_use_directive() {
+    let backend = create_test_backend();
+    index_models(&backend, &["App\\Models\\Widget"]);
+    let uri = Uri::parse("file:///page.blade.php").unwrap();
+    let template = "<div>{{ new Widg }}</div>\n";
+    open_document(&backend, &uri, "blade", template).await;
+
+    let items = complete_typed(&backend, &uri, 0, 16).await;
+    let item = items
+        .iter()
+        .find(|i| i.detail.as_deref() == Some("App\\Models\\Widget"))
+        .unwrap_or_else(|| panic!("expected the namespaced class, got: {:?}", labels(&items)));
+
+    let edits = item
+        .additional_text_edits
+        .as_ref()
+        .expect("expected an import edit");
+    assert_eq!(edits.len(), 1, "{edits:?}");
+    assert_eq!(edits[0].new_text, "@use(\'App\\Models\\Widget\')\n");
+    let at_top = Position {
+        line: 0,
+        character: 0,
+    };
+    assert_eq!(
+        edits[0].range,
+        Range {
+            start: at_top,
+            end: at_top
+        },
+        "the import belongs at the top of the template"
+    );
+
+    // The directive it writes is one the preprocessor honours: reopening
+    // the template with the edit applied imports the class for real.
+    let imported = apply(template, edits);
+    assert_eq!(
+        imported,
+        "@use('App\\Models\\Widget')\n<div>{{ new Widg }}</div>\n"
+    );
+    open_document(&backend, &uri, "blade", &imported).await;
+    let virtual_php = backend
+        .blade_virtual_php(uri.as_str())
+        .expect("blade virtual content");
+    assert!(
+        virtual_php.contains("use App\\Models\\Widget;"),
+        "the directive must lower to a real import: {virtual_php}"
+    );
+}
+
+/// The directives a template already has are the block a new import joins,
+/// read from the template's own text: the preprocessor hoists them into the
+/// virtual PHP's prologue, which no template line stands behind.
+#[tokio::test]
+async fn a_new_import_sorts_among_the_templates_existing_use_directives() {
+    let backend = create_test_backend();
+    index_models(
+        &backend,
+        &[
+            "App\\Models\\Account",
+            "App\\Models\\Widget",
+            "App\\Models\\Zone",
+        ],
+    );
+    let uri = Uri::parse("file:///page.blade.php").unwrap();
+    let template = "@use(\'App\\Models\\Account\')\n@use(\'App\\Models\\Zone\')\n{{ new Widg }}\n";
+    open_document(&backend, &uri, "blade", template).await;
+
+    let items = complete_typed(&backend, &uri, 2, 11).await;
+    let item = items
+        .iter()
+        .find(|i| i.detail.as_deref() == Some("App\\Models\\Widget"))
+        .unwrap_or_else(|| panic!("expected the namespaced class, got: {:?}", labels(&items)));
+
+    let edits = item
+        .additional_text_edits
+        .as_ref()
+        .expect("expected an import edit");
+    // Written at the end of the directive it sorts behind rather than at
+    // the start of the one it precedes: a directive lowers to nothing, so
+    // the start of its line is not addressable in the virtual PHP.
+    assert_eq!(edits[0].new_text, "\n@use(\'App\\Models\\Widget\')");
+    assert_eq!(
+        edits[0].range.start,
+        Position {
+            line: 0,
+            character: "@use('App\\Models\\Account')".chars().count() as u32,
+        },
+        "`Widget` sorts between `Account` and `Zone`"
+    );
+    assert_eq!(
+        apply(template, edits),
+        "@use('App\\Models\\Account')\n@use('App\\Models\\Widget')\n@use('App\\Models\\Zone')\n{{ new Widg }}\n"
+    );
+}
+
+/// A template that opens with a directive has no addressable start: the
+/// directive lowers to nothing, so the virtual PHP's first template column
+/// is the one after it. An import that sorts before every existing one
+/// follows that first line rather than landing in the middle of it.
+#[tokio::test]
+async fn an_import_that_precedes_them_all_follows_a_leading_directive() {
+    let backend = create_test_backend();
+    index_models(&backend, &["App\\Models\\Account", "App\\Models\\Zone"]);
+    let uri = Uri::parse("file:///page.blade.php").unwrap();
+    let template = "@use('App\\Models\\Zone')\n{{ new Acco }}\n";
+    open_document(&backend, &uri, "blade", template).await;
+
+    let items = complete_typed(&backend, &uri, 1, 11).await;
+    let item = items
+        .iter()
+        .find(|i| i.detail.as_deref() == Some("App\\Models\\Account"))
+        .unwrap_or_else(|| panic!("expected the namespaced class, got: {:?}", labels(&items)));
+
+    let edits = item
+        .additional_text_edits
+        .as_ref()
+        .expect("expected an import edit");
+    assert_eq!(
+        apply(template, edits),
+        "@use('App\\Models\\Zone')\n@use('App\\Models\\Account')\n{{ new Acco }}\n"
+    );
+}
+
+/// The import edit a class completion in `template` carries, applied to
+/// the template.
+async fn complete_with_import(
+    backend: &phpantom_lsp::Backend,
+    uri: &Uri,
+    template: &str,
+    line: u32,
+    character: u32,
+    fqn: &str,
+) -> String {
+    open_document(backend, uri, "blade", template).await;
+    let items = complete_typed(backend, uri, line, character).await;
+    let item = items
+        .iter()
+        .find(|i| i.detail.as_deref() == Some(fqn))
+        .unwrap_or_else(|| panic!("expected {fqn}, got: {:?}", labels(&items)));
+    let edits = item
+        .additional_text_edits
+        .as_ref()
+        .expect("expected an import edit");
+    apply(template, edits)
+}
+
+/// Blade compiles `@use` to a PHP `use` statement where it stands, and PHP
+/// rejects one inside a block, so a template whose first line opens one
+/// takes its first import above that line rather than inside the block.
+#[tokio::test]
+async fn a_first_import_goes_above_the_block_the_first_line_opens() {
+    let backend = create_test_backend();
+    index_models(&backend, &["App\\Models\\Widget"]);
+    let uri = Uri::parse("file:///page.blade.php").unwrap();
+    let template = "@if ($user)\n    {{ new Widg }}\n@endif\n";
+
+    let imported =
+        complete_with_import(&backend, &uri, template, 1, 15, "App\\Models\\Widget").await;
+    assert_eq!(
+        imported,
+        "@use('App\\Models\\Widget')\n@if ($user)\n    {{ new Widg }}\n@endif\n"
+    );
+}
+
+/// A component tag the project resolves opens a block too, and keeps the
+/// start of the template addressable all the same.
+#[tokio::test]
+async fn a_first_import_goes_above_a_component_tag_the_template_opens_with() {
+    let template = "<x-alert type=\"danger\">\n    {{ new Widg }}\n</x-alert>\n";
+    let (backend, _dir, uri) = component_workspace(template);
+    index_models(&backend, &["App\\Models\\Widget"]);
+
+    let imported =
+        complete_with_import(&backend, &uri, template, 1, 15, "App\\Models\\Widget").await;
+    let virtual_php = backend
+        .blade_virtual_php(uri.as_str())
+        .expect("blade virtual content");
+    assert!(
+        virtual_php.contains("$component = new \\App\\View\\Components\\Alert("),
+        "the tag must resolve to its class: {virtual_php}"
+    );
+    assert_eq!(imported, format!("@use('App\\Models\\Widget')\n{template}"));
+}
+
+/// A template that opens with a block of PHP takes the import as a PHP
+/// `use` statement inside that block.
+#[tokio::test]
+async fn a_template_opening_with_a_php_block_takes_the_import_inside_it() {
+    let backend = create_test_backend();
+    index_models(&backend, &["App\\Models\\Widget"]);
+    let uri = Uri::parse("file:///page.blade.php").unwrap();
+    let template = "@php\n    $widget = new Widg\n@endphp\n";
+
+    let imported =
+        complete_with_import(&backend, &uri, template, 1, 22, "App\\Models\\Widget").await;
+    assert_eq!(
+        imported,
+        "@php\nuse App\\Models\\Widget;\n    $widget = new Widg\n@endphp\n"
+    );
+}

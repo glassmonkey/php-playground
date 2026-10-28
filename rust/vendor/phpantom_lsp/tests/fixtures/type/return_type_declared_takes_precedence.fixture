@@ -1,0 +1,25 @@
+// test: declared return type takes precedence over body inference
+// feature: completion
+// When a method has an explicit return type, body inference must not override it.
+// expect: declaredMethod(
+---
+<?php
+
+class DeclaredReturnType {
+    public function create(): DeclaredResult {
+        return new DeclaredResult();
+    }
+}
+
+class DeclaredResult {
+    public function declaredMethod(): void {}
+}
+
+class BodyResult {
+    public function bodyMethod(): void {}
+}
+
+function testDeclaredTakesPrecedence(DeclaredReturnType $obj): void {
+    $result = $obj->create();
+    $result-><>
+}

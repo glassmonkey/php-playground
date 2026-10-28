@@ -1,0 +1,16 @@
+// test: !== null check strips null from union type
+// feature: completion
+// Adapted from phpactor if-statement/remove_null_type1.test
+// expect: fooMethod(
+---
+<?php
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+function test(?Foo $foo): void {
+    if ($foo !== null) {
+        $foo-><>
+    }
+}

@@ -1,0 +1,23 @@
+// test: union narrowing with negated instanceof and return narrows to remaining type
+// feature: completion
+// Adapted from phpactor combination/union_narrow.test
+// expect: barMethod(
+// expect: fooMethod(
+---
+<?php
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+class Bar extends Foo {
+    public function barMethod(): void {}
+}
+
+function test(Foo|Bar $foo): void {
+    if (!$foo instanceof Bar) {
+        return;
+    }
+
+    $foo-><>
+}

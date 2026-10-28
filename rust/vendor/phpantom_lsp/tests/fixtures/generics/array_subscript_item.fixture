@@ -1,0 +1,13 @@
+// test: array subscript on typed array resolves to item type
+// feature: completion
+// Adapted from phpactor generics/array_access1.test
+// expect: fooMethod(
+---
+<?php
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+/** @var Foo[] $foo */
+$foo[0]-><>

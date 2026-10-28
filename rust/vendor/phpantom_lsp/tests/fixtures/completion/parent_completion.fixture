@@ -1,0 +1,20 @@
+// test: parent:: completion shows parent class methods
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest 'parent::'
+// expect: baz(
+---
+<?php
+
+abstract class Bar {
+    public function baz(): string {}
+}
+
+class Foobar extends Bar
+{
+    const FOOBAR = 'foobar';
+    const BARFOO = 'barfoo';
+
+    public function bar(): string {
+        parent::<>
+    }
+}

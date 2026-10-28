@@ -1,0 +1,17 @@
+// test: is_null() narrows type so else branch retains object members
+// feature: completion
+// Adapted from phpactor function/is_null.test and if-statement narrowing patterns
+// expect: doWork(
+---
+<?php
+
+class Worker {
+    public function doWork(): void {}
+}
+
+function test(?Worker $w): void {
+    if (is_null($w)) {
+        return;
+    }
+    $w-><>
+}

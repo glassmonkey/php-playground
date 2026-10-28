@@ -1,0 +1,9 @@
+// test: array shape subscript key completion
+// feature: completion
+// Adapted from phpactor WorseSubscriptCompletorTest 'subscript with type'
+// expect: foo
+---
+<?php
+
+/** @var array{foo:string} $foo */
+$foo[<>

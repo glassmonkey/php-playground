@@ -1,0 +1,549 @@
+//! `ScopeMap` and the variable-access data types the forward-pass
+//! collector produces, plus the query API used by the code-action and
+//! diagnostic consumers.
+//!
+//! These types have no dependency on the AST walker; they are the
+//! *output* of a collection pass (see [`super::collector`] and
+//! [`super::build`]).
+
+// ─── By-reference parameter resolution ──────────────────────────────────────
+
+/// Describes a call expression so the by-ref resolver can look up
+/// the callee's parameter list.
+pub(crate) enum ByRefCallKind<'a> {
+    /// A standalone function call (e.g. `myFunc($var)`).
+    Function(&'a str),
+    /// A static method call (e.g. `Cls::method($var)`).
+    StaticMethod(&'a str, &'a str),
+    /// A constructor call (e.g. `new Cls($var)`).
+    Constructor(&'a str),
+    /// An instance method call whose receiver class is known
+    /// (e.g. `$this->method($var)`, `new A()->method($var)`).
+    /// The first string is the class name, the second the method name.
+    InstanceMethod(&'a str, &'a str),
+}
+
+/// Callback that resolves by-reference parameter positions for a call.
+///
+/// Given a [`ByRefCallKind`] describing the call and the name of the
+/// class enclosing the call site (`None` outside any class), returns a
+/// list of 0-based argument positions that are by-reference.  The
+/// enclosing class name lets the resolver turn `self`/`static`/`parent`
+/// in a [`ByRefCallKind::StaticMethod`] or [`ByRefCallKind::Constructor`]
+/// into a real class before looking up the callee.  Returns `None` if
+/// the function/method cannot be resolved.
+pub(crate) type ByRefResolver<'a> =
+    &'a dyn Fn(&ByRefCallKind<'_>, Option<&str>) -> Option<Vec<usize>>;
+
+// ─── Core types ─────────────────────────────────────────────────────────────
+
+/// Whether a variable access is a read or a write.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum AccessKind {
+    /// The variable is being read (e.g. `foo($x)`, `return $x`).
+    Read,
+    /// The variable is being written (e.g. `$x = …`, parameter decl,
+    /// foreach binding, catch binding).
+    Write,
+    /// The variable is being both read and written (e.g. `$x .= …`,
+    /// `$x++`, `$x--`, `$x += …`).
+    ReadWrite,
+}
+
+/// A variable bound by reference (`&$var`).
+///
+/// A write to a reference-bound variable also mutates whatever the
+/// binding aliases: the caller's argument for a `&$param`, the array
+/// element a `foreach (… as &$v)` is walking, the variable on the right
+/// of a `$a = &$b`, or the enclosing scope's variable for a closure
+/// `use (&$x)`.  Moving such a write into a new function scope severs
+/// the alias, so Extract Function has to refuse those ranges.
+#[derive(Debug, Clone)]
+pub(crate) struct ReferenceBinding {
+    /// Variable name **with** `$` prefix.
+    pub name: String,
+    /// Byte offset from which the binding is live.  Parameters use the
+    /// parameter's own offset, which precedes the frame body.
+    pub offset: u32,
+    /// `start` of the frame that owns the binding, so a `&$x` inside a
+    /// nested closure does not mark an unrelated `$x` outside it.
+    /// `catch` blocks are transparent, matching [`ScopeMap::accesses_in_frame`].
+    pub frame_start: u32,
+}
+
+/// The syntactic position a [`VarAccess`] occupies.
+///
+/// Refactorings that rewrite a variable into another expression (such as
+/// `$this->x`) need this: only an [`AccessRole::Expression`] occurrence
+/// accepts an arbitrary variable-like expression in its place.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum AccessRole {
+    /// An ordinary expression position (`$x = 1`, `foo($x)`, `[$x] = …`).
+    Expression,
+    /// A function, method, closure, or arrow-function parameter.
+    Parameter,
+    /// The variable bound by `catch (E $x)`.
+    CatchBinding,
+    /// A `static $x;` declaration.
+    StaticDeclaration,
+    /// A `global $x;` declaration.
+    GlobalDeclaration,
+    /// The enclosing scope's side of a closure `use ($x)` capture,
+    /// recorded at the variable inside the `use` list.
+    ClosureUse,
+    /// The closure body's side of a `use ($x)` capture, recorded at the
+    /// body's opening brace where no `$x` is actually spelled.
+    ClosureCapture,
+}
+
+/// A single variable access (read or write) at a specific byte offset.
+#[derive(Debug, Clone)]
+pub(crate) struct VarAccess {
+    /// Variable name **with** `$` prefix (e.g. `$x`, `$this`).
+    pub name: String,
+    /// Byte offset of the `$` character in the source.
+    pub offset: u32,
+    /// Whether this is a read, write, or read-write access.
+    pub kind: AccessKind,
+    /// Where in the syntax the access sits.
+    pub role: AccessRole,
+}
+
+/// One variable in a closure's `use (…)` list.
+#[derive(Debug, Clone)]
+pub(crate) struct ClosureUseItem {
+    /// Variable name **with** `$` prefix.
+    pub name: String,
+    /// Byte offset where the item starts, including a leading `&`.
+    pub start: u32,
+    /// Byte offset just past the variable name.
+    pub end: u32,
+}
+
+/// A closure's `use (…)` clause.
+#[derive(Debug, Clone)]
+pub(crate) struct ClosureUseList {
+    /// `start` of the closure body's [`Frame`].
+    pub frame_start: u32,
+    /// Byte offset of the `use` keyword.
+    pub clause_start: u32,
+    /// Byte offset just past the closing `)`.
+    pub clause_end: u32,
+    /// The captured variables, in source order.
+    pub items: Vec<ClosureUseItem>,
+}
+
+/// A construct that reads or writes local variables by a name that is not
+/// spelled as a `$var` expression: `compact('x')`, `extract()`,
+/// `get_defined_vars()`, or a variable variable (`$$name`, `${expr}`).
+#[derive(Debug, Clone)]
+pub(crate) struct DynamicScopeAccess {
+    /// Byte offset of the construct.
+    pub offset: u32,
+    /// The variable named (with `$` prefix) when it is known statically,
+    /// as for each string literal passed to `compact()`.  `None` when the
+    /// construct can reach any variable in the scope.
+    pub name: Option<String>,
+}
+
+/// A scope frame representing a function, closure, or arrow function body.
+///
+/// Each frame records its own variable accesses.  Frames form a tree
+/// (closures nested inside functions, etc.), but for the initial
+/// implementation we store them in a flat vec and use byte-range
+/// containment to determine nesting.
+#[derive(Debug, Clone)]
+pub(crate) struct Frame {
+    /// Byte offset of the frame's opening boundary.
+    ///
+    /// For functions/methods: the opening `{` of the body.
+    /// For closures: the opening `{` of the body.
+    /// For arrow functions: the `=>` token offset.
+    /// For catch blocks: the opening `{` of the catch body.
+    /// For top-level code: `0`.
+    pub start: u32,
+    /// Byte offset of the frame's closing boundary.
+    ///
+    /// For functions/methods/closures/catch: the closing `}`.
+    /// For arrow functions: the end of the body expression.
+    /// For top-level code: `u32::MAX`.
+    pub end: u32,
+    /// What kind of scope boundary this frame represents.
+    pub kind: FrameKind,
+    /// Parameter names (with `$` prefix) declared on this frame.
+    ///
+    /// Populated for functions, methods, closures, and arrow functions.
+    /// Used by the undefined-variable diagnostic to identify which
+    /// variables are defined as parameters (their write offsets are
+    /// before the frame's `start` and cannot be distinguished from
+    /// outer-scope writes by offset alone).
+    pub parameters: Vec<String>,
+    /// Whether the frame is a `static` closure or arrow function, which
+    /// has no `$this`.
+    pub is_static: bool,
+}
+
+impl Frame {
+    /// The frames among `frames` nested strictly inside this one whose span
+    /// holds `offset`.
+    pub(crate) fn nested_frames_at<'a>(
+        &'a self,
+        frames: &'a [Frame],
+        offset: u32,
+    ) -> impl Iterator<Item = &'a Frame> {
+        frames.iter().filter(move |f| {
+            f.start > self.start && f.end < self.end && offset >= f.start && offset <= f.end
+        })
+    }
+}
+
+/// The kind of scope boundary a [`Frame`] represents.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum FrameKind {
+    /// Top-level code (outside any function/class).
+    TopLevel,
+    /// Named function: `function foo() { … }`
+    Function,
+    /// Class method (regular, static, abstract with body, etc.).
+    Method,
+    /// Closure: `function($x) use($y) { … }`
+    Closure,
+    /// Arrow function: `fn($x) => expr`
+    ArrowFunction,
+    /// Catch block: `catch (E $e) { … }`
+    Catch,
+}
+
+/// The result of a scope collection pass.
+///
+/// Contains all variable accesses organised by frame, plus a query API
+/// for extracting parameter / return-value / local sets for a given
+/// byte range.
+#[derive(Debug, Clone, Default)]
+pub(crate) struct ScopeMap {
+    /// All variable accesses across all frames, in source order.
+    pub accesses: Vec<VarAccess>,
+    /// All scope frames, sorted by `start` offset.
+    pub frames: Vec<Frame>,
+    /// Whether `$this`, `self::`, `static::`, or `parent::` appears
+    /// anywhere in the collected region.  Set during collection.
+    pub has_this_or_self: bool,
+    /// Every `&$var` binding encountered, in source order.
+    ///
+    /// Used by Extract Function to detect when by-reference semantics
+    /// would make extraction unsafe.
+    pub reference_bindings: Vec<ReferenceBinding>,
+    /// Every closure `use (…)` clause, in source order.
+    pub closure_use_lists: Vec<ClosureUseList>,
+    /// Every by-name access to local variables, in source order.
+    pub dynamic_scope_accesses: Vec<DynamicScopeAccess>,
+}
+
+/// Variables classified by their role relative to a byte range.
+///
+/// Returned by [`ScopeMap::classify_range`].
+#[derive(Debug, Clone, Default)]
+pub(crate) struct RangeClassification {
+    /// Variables **read** inside `[start, end)` whose most recent
+    /// write is **before** `start`.  These would become parameters
+    /// of an extracted function.
+    pub parameters: Vec<String>,
+    /// Variables **written** inside `[start, end)` that are **read
+    /// after** `end` in the enclosing scope.  These would become
+    /// return values of an extracted function.
+    pub return_values: Vec<String>,
+    /// Variables whose entire lifetime (first write to last read) is
+    /// contained within `[start, end)`.  These stay inside the
+    /// extracted function.
+    pub locals: Vec<String>,
+    /// Whether `$this`, `self::`, `static::`, or `parent::` appears
+    /// in the range.
+    pub uses_this: bool,
+    /// Variables bound by reference (`&$var`) that are written inside
+    /// the range.  Writing one of these mutates the aliased value, which
+    /// an extracted function receiving a copy could no longer do.
+    pub reference_writes: Vec<String>,
+}
+
+// ─── ScopeMap query API ─────────────────────────────────────────────────────
+
+impl ScopeMap {
+    /// Find the innermost frame that fully contains the given offset.
+    pub(crate) fn enclosing_frame(&self, offset: u32) -> Option<&Frame> {
+        // Iterate in reverse so we find the innermost (most recently
+        // opened) frame first.  Frames are sorted by start offset.
+        self.frames
+            .iter()
+            .rev()
+            .find(|f| offset >= f.start && offset <= f.end)
+    }
+
+    /// Find the innermost frame that fully contains the given range.
+    pub(crate) fn enclosing_frame_for_range(&self, start: u32, end: u32) -> Option<&Frame> {
+        self.frames
+            .iter()
+            .rev()
+            .find(|f| start >= f.start && end <= f.end)
+    }
+
+    /// The `start` of the frame that owns `frame`'s reference bindings.
+    ///
+    /// A `catch` block is not a variable scope in PHP, so a `&$var`
+    /// recorded inside one belongs to the enclosing function, method, or
+    /// closure frame.
+    fn binding_scope_start(&self, frame: &Frame) -> u32 {
+        if frame.kind != FrameKind::Catch {
+            return frame.start;
+        }
+        self.frames
+            .iter()
+            .rev()
+            .find(|f| f.kind != FrameKind::Catch && frame.start >= f.start && frame.end <= f.end)
+            .map_or(frame.start, |f| f.start)
+    }
+
+    /// Return all accesses of variable `name` within the given frame,
+    /// excluding accesses that fall inside a nested frame (closure or
+    /// arrow function).
+    pub(crate) fn accesses_in_frame<'a>(&'a self, name: &str, frame: &Frame) -> Vec<&'a VarAccess> {
+        self.accesses
+            .iter()
+            .filter(|a| a.name == name && self.frame_owns(frame, a.offset))
+            .collect()
+    }
+
+    /// Whether `offset` lies in `frame` itself rather than in a closure or
+    /// arrow function nested inside it.  `catch` blocks are transparent.
+    pub(crate) fn frame_owns(&self, frame: &Frame, offset: u32) -> bool {
+        offset >= frame.start
+            && offset <= frame.end
+            && !self.frames.iter().any(|f| {
+                // A nested frame can end exactly where its parent does
+                // (`fn() => function () {…}`), so only the start tells
+                // the two apart.
+                f.start > frame.start
+                    && f.end <= frame.end
+                    && offset >= f.start
+                    && offset <= f.end
+                    && f.kind != FrameKind::Catch
+            })
+    }
+
+    /// The closures and arrow functions nested directly in `frame`, with
+    /// no other closure or arrow function in between.
+    pub(crate) fn child_frames<'a>(&'a self, frame: &'a Frame) -> impl Iterator<Item = &'a Frame> {
+        self.frames.iter().filter(move |c| {
+            c.kind != FrameKind::Catch
+                && c.start > frame.start
+                && c.end <= frame.end
+                && !self.frames.iter().any(|f| {
+                    f.kind != FrameKind::Catch
+                        && f.start > frame.start
+                        && f.start < c.start
+                        && c.end <= f.end
+                })
+        })
+    }
+
+    /// Classify variables relative to a byte range `[start, end)`.
+    ///
+    /// This is the primary query for Extract Function: it determines
+    /// which variables become parameters, return values, or locals.
+    pub(crate) fn classify_range(&self, start: u32, end: u32) -> RangeClassification {
+        let frame = match self.enclosing_frame_for_range(start, end) {
+            Some(f) => f,
+            None => return RangeClassification::default(),
+        };
+
+        // Collect all unique variable names accessed within the range
+        // (excluding nested frames and pseudo-variables).
+        let mut var_names: Vec<String> = Vec::new();
+        for access in &self.accesses {
+            if access.offset >= start
+                && access.offset < end
+                && !var_names.contains(&access.name)
+                && access.name != "$this"
+                && access.name != "self"
+                && access.name != "static"
+                && access.name != "parent"
+            {
+                // Skip if inside a nested frame.
+                let in_nested = frame
+                    .nested_frames_at(&self.frames, access.offset)
+                    .any(|f| f.kind != FrameKind::Catch);
+                if !in_nested {
+                    var_names.push(access.name.clone());
+                }
+            }
+        }
+
+        // Check for $this / self / static / parent usage in range.
+        let mut result = RangeClassification {
+            uses_this: self.accesses.iter().any(|a| {
+                a.offset >= start
+                    && a.offset < end
+                    && (a.name == "$this"
+                        || a.name == "self"
+                        || a.name == "static"
+                        || a.name == "parent")
+            }),
+            ..Default::default()
+        };
+
+        let binding_scope = self.binding_scope_start(frame);
+
+        for var_name in &var_names {
+            let frame_accesses = self.accesses_in_frame(var_name, frame);
+
+            // A write through a live `&$var` binding also mutates what
+            // the binding aliases, which a copy in a new function scope
+            // could not do.  Bindings created after the write (`$x = 1;
+            // $r = &$x;`) leave the write itself safe to move.
+            if let Some(bound_from) = self
+                .reference_bindings
+                .iter()
+                .filter(|b| b.frame_start == binding_scope && b.name == *var_name)
+                .map(|b| b.offset)
+                .min()
+                && frame_accesses.iter().any(|a| {
+                    a.offset >= start.max(bound_from)
+                        && a.offset < end
+                        && matches!(a.kind, AccessKind::Write | AccessKind::ReadWrite)
+                })
+            {
+                result.reference_writes.push(var_name.clone());
+            }
+
+            let has_write_before = frame_accesses.iter().any(|a| {
+                a.offset < start && matches!(a.kind, AccessKind::Write | AccessKind::ReadWrite)
+            });
+
+            let has_read_inside = frame_accesses.iter().any(|a| {
+                a.offset >= start
+                    && a.offset < end
+                    && matches!(a.kind, AccessKind::Read | AccessKind::ReadWrite)
+            });
+
+            let has_write_inside = frame_accesses.iter().any(|a| {
+                a.offset >= start
+                    && a.offset < end
+                    && matches!(a.kind, AccessKind::Write | AccessKind::ReadWrite)
+            });
+
+            let has_read_after = frame_accesses.iter().any(|a| {
+                a.offset >= end && matches!(a.kind, AccessKind::Read | AccessKind::ReadWrite)
+            });
+
+            let first_write = frame_accesses
+                .iter()
+                .filter(|a| matches!(a.kind, AccessKind::Write | AccessKind::ReadWrite))
+                .min_by_key(|a| a.offset);
+
+            let last_read = frame_accesses
+                .iter()
+                .filter(|a| matches!(a.kind, AccessKind::Read | AccessKind::ReadWrite))
+                .max_by_key(|a| a.offset);
+
+            // Variable whose entire lifetime is within [start, end).
+            let entirely_inside = first_write.is_some_and(|w| w.offset >= start && w.offset < end)
+                && last_read.is_none_or(|r| r.offset < end)
+                && !has_write_before
+                && !has_read_after;
+
+            if entirely_inside {
+                result.locals.push(var_name.clone());
+            } else if has_read_inside && has_write_before && !has_write_inside {
+                // Read-only inside the range, written before → parameter.
+                result.parameters.push(var_name.clone());
+            } else if has_read_inside && has_write_before && has_write_inside {
+                // Both read and written inside, also written before →
+                // parameter (the initial value matters).
+                result.parameters.push(var_name.clone());
+                if has_read_after {
+                    result.return_values.push(var_name.clone());
+                }
+            } else if has_write_inside && has_read_after {
+                // Written inside, read after → return value.  It is ALSO a
+                // parameter whenever the extracted code reads the variable's
+                // *incoming* value.  That happens when it was written before
+                // the range, or when a read inside the range occurs before
+                // the first pure write inside it (a read that consumes the
+                // value passed in).  A `+=`-style read-write also reads the
+                // incoming value, so a read-write that precedes any pure
+                // write counts too.
+                let first_pure_write_inside = frame_accesses
+                    .iter()
+                    .filter(|a| {
+                        a.offset >= start && a.offset < end && matches!(a.kind, AccessKind::Write)
+                    })
+                    .map(|a| a.offset)
+                    .min();
+                let reads_incoming_value = frame_accesses.iter().any(|a| {
+                    a.offset >= start
+                        && a.offset < end
+                        && matches!(a.kind, AccessKind::Read | AccessKind::ReadWrite)
+                        && first_pure_write_inside.is_none_or(|w| a.offset < w)
+                });
+                let needs_param = has_write_before || reads_incoming_value;
+                if needs_param && !result.parameters.contains(var_name) {
+                    result.parameters.push(var_name.clone());
+                }
+                if !result.return_values.contains(var_name) {
+                    result.return_values.push(var_name.clone());
+                }
+            } else if has_read_inside && !has_write_before && !has_write_inside {
+                // Read inside but never written — could be a global or
+                // an undefined variable.  Treat as parameter.
+                result.parameters.push(var_name.clone());
+            } else if has_write_inside && !has_read_inside && !has_read_after {
+                // Written inside but never read anywhere — local (dead write).
+                result.locals.push(var_name.clone());
+            }
+        }
+
+        // Sort for deterministic output.
+        result.parameters.sort();
+        result.return_values.sort();
+        result.locals.sort();
+        result.reference_writes.sort();
+
+        result
+    }
+
+    /// Return all unique variable names accessed within the enclosing
+    /// frame of the given offset.
+    pub(crate) fn variables_in_scope(&self, offset: u32) -> Vec<String> {
+        let frame = match self.enclosing_frame(offset) {
+            Some(f) => f,
+            None => return Vec::new(),
+        };
+
+        let mut names: Vec<String> = Vec::new();
+        for access in &self.accesses {
+            if access.offset >= frame.start
+                && access.offset <= frame.end
+                && !names.contains(&access.name)
+                && access.name != "$this"
+            {
+                names.push(access.name.clone());
+            }
+        }
+        names.sort();
+        names
+    }
+
+    /// Return all offsets where variable `name` is accessed within the
+    /// enclosing frame of the given offset.  Useful for document
+    /// highlights / find-references within a scope.
+    pub(crate) fn all_occurrences(&self, name: &str, offset: u32) -> Vec<(u32, AccessKind)> {
+        let frame = match self.enclosing_frame(offset) {
+            Some(f) => f,
+            None => return Vec::new(),
+        };
+
+        self.accesses_in_frame(name, frame)
+            .into_iter()
+            .map(|a| (a.offset, a.kind))
+            .collect()
+    }
+}

@@ -1,0 +1,58 @@
+use super::*;
+use crate::type_engine::resolver::FileCtx;
+use crate::type_engine::variable::resolution::VarQuery;
+
+// ─── Scope map building ─────────────────────────────────────────────────────
+
+/// Build a `ScopeMap` for the enclosing function/method at `offset`.
+pub(crate) fn build_scope_map(content: &str, offset: u32) -> ScopeMap {
+    crate::parser::with_parsed_program(content, "extract_function", |program, content| {
+        crate::scope_collector::build_scope_map_for_offset(
+            program.statements.as_slice(),
+            offset,
+            content.len() as u32,
+        )
+    })
+}
+
+// ─── Type resolution ────────────────────────────────────────────────────────
+
+/// Resolve the type of a variable at a given offset using the hover
+/// pipeline.
+pub(crate) fn resolve_var_type(
+    backend: &Backend,
+    var_name: &str,
+    content: &str,
+    cursor_offset: u32,
+    uri: &str,
+) -> Option<PhpType> {
+    let ctx = backend.file_context_at(uri, cursor_offset);
+    let class_loader = backend.class_loader(&ctx);
+    let resolved_class_loader = backend.resolved_class_loader(&ctx);
+    let function_loader = backend.function_loader(&ctx);
+    let constant_loader = backend.constant_loader(&ctx);
+    let config_resolver = |key: &str| backend.resolve_config_type(key);
+    let trans_resolver = |key: &str| backend.resolve_trans_type(key);
+    let loaders = Loaders {
+        function_loader: Some(
+            &function_loader as &dyn Fn(&str, u32) -> Option<crate::types::FunctionInfo>,
+        ),
+        constant_loader: Some(&constant_loader),
+        config_resolver: Some(&config_resolver),
+        trans_resolver: Some(&trans_resolver),
+    };
+
+    let current_class = find_class_at_offset(&ctx.classes, cursor_offset);
+
+    crate::type_engine::variable::resolution::resolve_variable_php_type(VarQuery {
+        loaders,
+        ..VarQuery::new(
+            var_name,
+            FileCtx::new(content, &ctx.classes, &resolved_class_loader, &class_loader)
+                .with_imports(Some(&ctx.use_map))
+                .with_backend(Some(backend)),
+            current_class,
+            cursor_offset,
+        )
+    })
+}

@@ -1,0 +1,22 @@
+// test: generic extends resolves template parameter
+// feature: completion
+// Adapted from phpactor generics/class_extend1.test
+// expect: baz()
+---
+<?php
+
+/** @template T */
+class Bar {
+    /** @return T */
+    public function bar() {}
+}
+
+class Baz {
+    public function baz(): void {}
+}
+
+/** @extends Bar<Baz> */
+class Foo extends Bar {}
+
+$foo = new Foo();
+$foo->bar()-><>

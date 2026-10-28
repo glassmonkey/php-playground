@@ -1,0 +1,20 @@
+// test: enum with custom method appears in completion
+// feature: completion
+// Adapted from phpactor enum/custom_member.test
+// expect: isA(
+---
+<?php
+
+enum MyEnum: string
+{
+    case A = 'a';
+    case B = 'b';
+    case C = 'c';
+
+    public function isA(MyEnum $case): bool
+    {
+        return $case === self::A;
+    }
+}
+
+MyEnum::A-><>

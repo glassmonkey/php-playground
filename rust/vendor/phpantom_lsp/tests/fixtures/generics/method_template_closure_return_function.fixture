@@ -1,0 +1,41 @@
+// test: method-level @template binds from function closure return type annotation
+// feature: completion
+// expect: format(
+---
+<?php
+
+class Money {
+    public function format(): string { return ''; }
+}
+
+class LineItem {
+    public Money $cost;
+}
+
+/**
+ * @template TValue
+ */
+class ItemCollection {
+    /**
+     * @template TReduceInitial
+     * @template TReduceReturnType
+     *
+     * @param callable(TReduceInitial|TReduceReturnType, TValue): TReduceReturnType $callback
+     * @param TReduceInitial $initial
+     * @return TReduceReturnType
+     */
+    public function reduce(callable $callback, $initial) {
+        return $initial;
+    }
+}
+
+/** @var ItemCollection<LineItem> $items */
+$items = new ItemCollection();
+
+$sum = $items->reduce(
+    function(Money $carry, LineItem $item): Money {
+        return $carry;
+    },
+    new Money()
+);
+$sum-><>

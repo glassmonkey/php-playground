@@ -1,0 +1,21 @@
+// test: callable docblock type with signature is parsed
+// feature: completion
+// Adapted from phpactor type/callable.test
+// After resolving a callable(Foo): Bar param, calling it returns Bar
+// expect: barMethod(
+---
+<?php
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+class Bar {
+    public function barMethod(): void {}
+}
+
+/** @param callable(Foo): Bar $fn */
+function test(callable $fn, Foo $foo): void {
+    $result = $fn($foo);
+    $result-><>
+}

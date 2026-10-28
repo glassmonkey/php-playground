@@ -1,0 +1,33 @@
+// test: method-level @template with multiple template parameters resolves both
+// feature: completion
+// Adapted from phpactor generics patterns with multiple method-level templates
+// expect: keyMethod(
+---
+<?php
+
+class KeyResult {
+    public function keyMethod(): void {}
+}
+
+class ValueResult {
+    public function valueMethod(): void {}
+}
+
+class Container
+{
+    /**
+     * @template K
+     * @template V
+     * @param K $key
+     * @param V $value
+     * @return K
+     */
+    public function store($key, $value)
+    {
+        return $key;
+    }
+}
+
+$c = new Container();
+$res = $c->store(new KeyResult(), new ValueResult());
+$res-><>

@@ -1,0 +1,14 @@
+// test: static property appears in :: completion
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest 'Static property'
+// expect: $foo
+---
+<?php
+
+class Foobar
+{
+    public static $foo;
+}
+
+$foobar = new Foobar();
+$foobar::<>

@@ -1,0 +1,17 @@
+// test: static return type on parent resolves to child class
+// feature: completion
+// Adapted from phpactor type/static_context.test
+// expect: childMethod(
+---
+<?php
+
+class Bar {
+    public function baz(): static { return $this; }
+}
+
+class Boo extends Bar {
+    public function childMethod(): void {}
+}
+
+$b = new Boo();
+$b->baz()-><>

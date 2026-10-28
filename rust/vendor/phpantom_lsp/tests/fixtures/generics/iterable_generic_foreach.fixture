@@ -1,0 +1,13 @@
+// test: iterable<T> generic resolves item type in foreach
+// feature: completion
+// Adapted from phpactor generics/iterable.test
+// expect: fooMethod(
+---
+<?php
+class Foo {
+    public function fooMethod(): void {}
+}
+/** @var iterable<Foo> $foo */
+foreach ($foo as $bar) {
+    $bar-><>
+}

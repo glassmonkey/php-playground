@@ -1,0 +1,18 @@
+// test: array_reduce return type inferred from initial value argument
+// feature: completion
+// Adapted from phpactor function/array_reduce.test
+// expect: getName(
+---
+<?php
+
+class User {
+    public function getName(): string { return ''; }
+}
+
+/** @param int[] $numbers */
+function test(array $numbers): void {
+    $result = array_reduce($numbers, function(User $carry, int $item): User {
+        return $carry;
+    }, new User());
+    $result-><>
+}

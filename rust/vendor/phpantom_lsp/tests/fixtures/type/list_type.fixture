@@ -1,0 +1,15 @@
+// test: list<T> docblock type resolves items to T
+// feature: completion
+// Adapted from phpactor type/list.test
+// expect: fooMethod(
+---
+<?php
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+/** @param list<Foo> $items */
+function test(array $items): void {
+    $items[0]-><>
+}

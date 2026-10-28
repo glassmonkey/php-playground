@@ -1,0 +1,25 @@
+// test: mutually recursive methods without return types do not cause infinite recursion
+// feature: completion
+// When method A calls method B and method B calls method A, both lacking
+// return types, body inference must not loop forever. The re-entry guard
+// returns None for the second method, so the first resolves to mixed and
+// no completions are offered.
+// expect_absent: recursiveA(
+// expect_absent: recursiveB(
+---
+<?php
+
+class MutualRecursion {
+    public function a() {
+        return $this->b();
+    }
+
+    public function b() {
+        return $this->a();
+    }
+}
+
+function testMutualRecursion(MutualRecursion $obj): void {
+    $result = $obj->a();
+    $result-><>
+}

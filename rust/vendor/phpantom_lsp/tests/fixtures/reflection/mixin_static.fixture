@@ -1,0 +1,28 @@
+// test: mixin with static return type resolves to the consuming class
+// feature: completion
+// Adapted from phpactor reflection/mixin_static.test
+// expect: sendMessage(
+---
+<?php
+
+class A
+{
+    /**
+     * @return static
+     */
+    public function doA()
+    {
+        return new static();
+    }
+}
+
+/**
+ * @mixin A
+ * @method void sendMessage(string $text)
+ */
+class B
+{
+}
+
+$b = new B();
+$b->doA()-><>

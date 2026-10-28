@@ -1,0 +1,17 @@
+// test: a strict in_array narrows a mixed-or-null needle to the haystack's values
+// feature: hover
+// The needle has to equal one of the listed strings, so neither the
+// unknown half nor the null fallback survives.
+// expect: $kept = 'path'|'query'
+// expect_absent: null
+---
+<?php
+
+/** @param array<string, mixed> $parameter */
+function location(array $parameter): void {
+    $in = $parameter['in'] ?? null;
+    if (in_array($in, ['path', 'query'], true)) {
+        $kept = $in;
+        echo $ke<>pt;
+    }
+}

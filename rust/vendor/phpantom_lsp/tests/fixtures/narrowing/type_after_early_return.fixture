@@ -1,0 +1,26 @@
+// test: type narrows after early return strips matched branch
+// feature: completion
+// Adapted from phpactor if-statement/type_after_return.test
+// expect: barOnly(
+---
+<?php
+
+class Foo {
+    public function fooOnly(): void {}
+}
+
+class Bar {
+    public function barOnly(): void {}
+}
+
+function make(): Foo|Bar {}
+
+function test(): void {
+    $foobar = make();
+
+    if ($foobar instanceof Foo) {
+        return;
+    }
+
+    $foobar-><>
+}

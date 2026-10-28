@@ -1,0 +1,21 @@
+// test: narrowing with double negated instanceof shows members from both types
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest 'parenthesized type'
+
+// expect: foo(
+---
+<?php
+
+interface Zero {}
+interface OneIn extends Zero {}
+interface TwoIn extends Zero {}
+class One implements OneIn { public function foo() {} }
+class Two implements TwoIn { public function foo() {} }
+
+function test(Zero $zero) {
+    if (!$zero instanceof One && !$zero instanceof Two) {
+        return;
+    }
+
+    $zero-><>
+}

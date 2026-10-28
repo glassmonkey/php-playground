@@ -1,0 +1,30 @@
+// test: body inference ignores return statements inside nested closures
+// feature: completion
+// Returns inside closures/anonymous functions belong to the closure's
+// scope, not the enclosing method. Body inference must skip them.
+// expect: outerMethod(
+// expect_absent: innerOnly(
+---
+<?php
+
+class ClosureExcludeFactory {
+    public function create() {
+        $fn = function () {
+            return new ClosureInnerResult();
+        };
+        return new ClosureOuterResult();
+    }
+}
+
+class ClosureOuterResult {
+    public function outerMethod(): void {}
+}
+
+class ClosureInnerResult {
+    public function innerOnly(): void {}
+}
+
+function testClosureExcluded(ClosureExcludeFactory $f): void {
+    $result = $f->create();
+    $result-><>
+}

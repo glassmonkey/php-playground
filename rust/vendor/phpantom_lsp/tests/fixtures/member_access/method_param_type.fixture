@@ -1,0 +1,18 @@
+// test: method parameter typed with class shows class members
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest parameter type patterns
+// expect: getName(
+// expect: getAge(
+---
+<?php
+
+class Person
+{
+    public function getName(): string {}
+    public function getAge(): int {}
+}
+
+function greet(Person $person): void
+{
+    $person-><>
+}

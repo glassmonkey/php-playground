@@ -1,0 +1,38 @@
+// test: @implements resolves template parameter types on method params
+// feature: completion
+// Adapted from phpactor generics/parameter.test
+// expect: booMethod(
+---
+<?php
+
+/**
+ * @template TEntity of object
+ * @template TTransfer of object
+ */
+interface PluginInterface
+{
+    /**
+     * @param TEntity $entity
+     * @param TTransfer $transfer
+     */
+    public function map(object $entity, object $transfer): void;
+}
+
+class Boo {
+    public function booMethod(): void {}
+}
+
+class Bar {
+    public function barMethod(): void {}
+}
+
+/**
+ * @implements PluginInterface<Boo, Bar>
+ */
+class Foo implements PluginInterface
+{
+    public function map(object $entity, object $transfer): void
+    {
+        $entity-><>
+    }
+}

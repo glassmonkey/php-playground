@@ -1,0 +1,25 @@
+// test: abstract class methods resolve on child class instance
+// feature: completion
+// Adapted from phpactor combination/narrow_abstract.test
+// expect: doWork(
+// expect: getName(
+---
+<?php
+
+abstract class AbstractEntity
+{
+    abstract public function getName(): string;
+}
+
+class User extends AbstractEntity
+{
+    public function getName(): string
+    {
+        return 'Alice';
+    }
+
+    public function doWork(): void {}
+}
+
+$user = new User();
+$user-><>

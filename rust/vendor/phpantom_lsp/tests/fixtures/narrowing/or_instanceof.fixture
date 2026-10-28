@@ -1,0 +1,25 @@
+// test: or instanceof narrows to union of both types
+// feature: completion
+// Adapted from phpactor if-statement/union_or.test
+// expect: fooMethod(
+// expect: barMethod(
+---
+<?php
+
+class Foobar {
+    public function fooMethod(): void {}
+}
+
+class Barfoo {
+    public function barMethod(): void {}
+}
+
+class Other {
+    public function otherMethod(): void {}
+}
+
+function test(Foobar|Barfoo|Other $foobar): void {
+    if ($foobar instanceof Foobar || $foobar instanceof Barfoo) {
+        $foobar-><>
+    }
+}

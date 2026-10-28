@@ -1,0 +1,34 @@
+// test: conditional return type on container interface resolves from class-string
+// feature: completion
+// Adapted from phpactor type/conditional-type-container.test
+// expect: doSomething(
+---
+<?php
+
+class Foobar {
+    public function doSomething(): void {}
+}
+
+interface ContainerInterface
+{
+    /**
+     * @return mixed
+     */
+    public function get(string $id);
+}
+
+interface Container extends ContainerInterface
+{
+    /**
+     * @template T of object
+     * @param class-string<T>|string $id
+     * @return ($id is class-string<T> ? T : mixed)
+     */
+    public function get($id);
+}
+
+function foo(Container $container): void
+{
+    $result = $container->get(Foobar::class);
+    $result-><>
+}

@@ -1,0 +1,18 @@
+// test: type narrows after break in foreach loop
+// feature: completion
+// Adapted from phpactor if-statement/type_after_break.test
+// expect: fooMethod(
+---
+<?php
+
+class Foobar {
+    public function fooMethod(): void {}
+}
+
+foreach ([1, 2] as $hello) {
+    if (!$foobar instanceof Foobar) {
+        break;
+    }
+
+    $foobar-><>
+}

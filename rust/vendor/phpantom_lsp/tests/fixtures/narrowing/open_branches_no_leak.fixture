@@ -1,0 +1,33 @@
+// test: non-terminating branches do not leak narrowed type into subsequent code
+// feature: completion
+// Adapted from phpactor if-statement/multiple_statements_open_branches.test
+// After non-terminating if branches, the original type is preserved
+// expect: fooMethod(
+// expect: barMethod(
+// expect: bazMethod(
+---
+<?php
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+class Bar {
+    public function barMethod(): void {}
+}
+
+class Baz {
+    public function bazMethod(): void {}
+}
+
+function test(Foo|Bar|Baz $x): void {
+    if ($x instanceof Bar) {
+        // no return, break, throw, etc.
+    }
+
+    if ($x instanceof Baz) {
+        // no return, break, throw, etc.
+    }
+
+    $x-><>
+}

@@ -1,0 +1,15 @@
+// test: assert instanceof on untyped parameter narrows to discovered type
+// feature: completion
+// Adapted from phpactor general/narrowing.test (t4)
+// expect: barMethod(
+---
+<?php
+
+class Bar {
+    public function barMethod(): void {}
+}
+
+function test($f): void {
+    assert($f instanceof Bar);
+    $f-><>
+}

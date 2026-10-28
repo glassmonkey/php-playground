@@ -1,0 +1,21 @@
+// test: union type shows members from all branches
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest 'union'
+// expect: fun(
+// expect: not(
+---
+<?php
+
+namespace Foo;
+
+class Foobar {
+    public function fun(): string {}
+}
+class Barfoo {
+    public function not(): string {}
+}
+
+function create(): Foobar|Barfoo {}
+
+$f = create();
+$f-><>;

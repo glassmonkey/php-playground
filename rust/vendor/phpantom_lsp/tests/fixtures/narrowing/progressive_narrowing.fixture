@@ -1,0 +1,32 @@
+// test: multiple if blocks with early return progressively narrow union type
+// feature: completion
+// Adapted from phpactor general/narrowing.test and if-statement/multiple_statements.test
+// expect: birdMethod(
+// expect_absent: dogMethod(
+// expect_absent: catMethod(
+---
+<?php
+
+class Dog {
+    public function dogMethod(): void {}
+}
+
+class Cat {
+    public function catMethod(): void {}
+}
+
+class Bird {
+    public function birdMethod(): void {}
+}
+
+function test(Dog|Cat|Bird $animal): void {
+    if ($animal instanceof Dog) {
+        return;
+    }
+
+    if ($animal instanceof Cat) {
+        return;
+    }
+
+    $animal-><>
+}

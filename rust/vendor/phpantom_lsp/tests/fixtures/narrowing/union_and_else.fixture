@@ -1,0 +1,29 @@
+// test: union && instanceof with else narrows types after early return
+// feature: completion
+// Adapted from phpactor if-statement/union_and_else.test
+// After instanceof A && instanceof B with early return, remaining branches still have members
+// expect: fooMethod(
+// expect: barMethod(
+// expect: bazMethod(
+---
+<?php
+
+class Foobar {
+    public function fooMethod(): void {}
+}
+
+class Barfoo {
+    public function barMethod(): void {}
+}
+
+class Bazboo {
+    public function bazMethod(): void {}
+}
+
+function test(Foobar|Barfoo|Bazboo $foobar): void {
+    if ($foobar instanceof Foobar && $foobar instanceof Barfoo) {
+        return;
+    }
+
+    $foobar-><>
+}

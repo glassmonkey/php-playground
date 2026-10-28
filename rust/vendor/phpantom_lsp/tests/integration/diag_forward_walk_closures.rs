@@ -1,0 +1,1686 @@
+use crate::common::message_text;
+use crate::common::{
+    create_psr4_workspace, create_test_backend, create_test_backend_with_full_stubs,
+    slow_diagnostic_messages, type_at_marker, unknown_member_diagnostics_with_scope_cache,
+};
+use tower_lsp_server::gen_lsp_types::*;
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Closure with unresolvable param type still resolves $this
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn closure_with_unresolvable_param_still_resolves_this() {
+    let backend = create_test_backend();
+
+    // Register the Collection class so `$this->getName()` resolves.
+    let collection_uri = "file:///Collection.php";
+    let collection_text = r#"<?php
+class Collection {
+    /** @return string */
+    public function getName(): string { return ''; }
+}
+"#;
+    backend.update_ast(collection_uri, collection_text);
+
+    let service_uri = "file:///Service.php";
+    let service_text = r#"<?php
+class Service {
+    /** @return string */
+    public function getLabel(): string { return ''; }
+
+    public function run(): void {
+        // The callable param type `collection-of<T>` is a PHPStan
+        // pseudo-type that is unresolvable.  Previously this caused
+        // the entire closure body to be skipped by the forward
+        // walker, so $this would fall through to the backward
+        // scanner.  Now the forward walker walks the body, seeding
+        // $this from the outer scope.
+        $this->getLabel();
+    }
+}
+"#;
+    let diags = unknown_member_diagnostics_with_scope_cache(&backend, service_uri, service_text);
+    // `$this->getLabel()` should NOT be flagged as unknown.
+    assert!(
+        diags.is_empty(),
+        "Expected no unknown_member diagnostics for $this->getLabel(), got: {diags:?}"
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Closure with unresolvable param still resolves use-captured variables
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn closure_with_unresolvable_param_still_resolves_use_vars() {
+    let backend = create_test_backend();
+
+    let product_uri = "file:///Product.php";
+    let product_text = r#"<?php
+class Product {
+    /** @return string */
+    public function getTitle(): string { return ''; }
+}
+"#;
+    backend.update_ast(product_uri, product_text);
+
+    let uri = "file:///test_unresolvable_use.php";
+    let text = r#"<?php
+class Handler {
+    public function handle(): void {
+        $product = new Product();
+        $fn = function($unknown) use ($product) {
+            $product->getTitle();
+        };
+    }
+}
+"#;
+    let diags = unknown_member_diagnostics_with_scope_cache(&backend, uri, text);
+    assert!(
+        diags.is_empty(),
+        "Expected no unknown_member diagnostics for use-captured $product->getTitle(), got: {diags:?}"
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Closure with mix of resolvable and unresolvable params resolves good ones
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn closure_with_mixed_resolvable_and_unresolvable_params() {
+    let backend = create_test_backend();
+
+    let builder_uri = "file:///Builder.php";
+    let builder_text = r#"<?php
+class Builder {
+    /** @return static */
+    public function where(string $col, mixed $val): static { return $this; }
+}
+"#;
+    backend.update_ast(builder_uri, builder_text);
+
+    let uri = "file:///test_mixed_params.php";
+    let text = r#"<?php
+class MyService {
+    public function run(): void {
+        $fn = function(Builder $query) {
+            $query->where('id', 1);
+        };
+    }
+}
+"#;
+    let diags = unknown_member_diagnostics_with_scope_cache(&backend, uri, text);
+    // `$query->where(...)` should resolve fine because Builder is a
+    // resolvable param — even if other params in the same closure were
+    // unresolvable, the good ones should still be seeded.
+    assert!(
+        diags.is_empty(),
+        "Expected no unknown_member diagnostics for $query->where(), got: {diags:?}"
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Multi-@var docblock inside closure overrides parameter types
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn multi_var_docblock_inside_closure_overrides_params() {
+    let backend = create_test_backend();
+
+    let app_uri = "file:///App.php";
+    let app_text = r#"<?php
+class App {
+    /** @return object */
+    public function make(string $class): object { return new \stdClass; }
+}
+"#;
+    backend.update_ast(app_uri, app_text);
+
+    let client_uri = "file:///Client.php";
+    let client_text = r#"<?php
+class Client {
+    /** @return string */
+    public function search(): string { return ''; }
+}
+"#;
+    backend.update_ast(client_uri, client_text);
+
+    let uri = "file:///test_multi_var.php";
+    let text = r#"<?php
+class Service {
+    public function register(): void {
+        $fn = function ($app, $params) {
+            /**
+             * @var App                      $app
+             * @var array{indexName: string} $params
+             */
+
+            /** @var Client $client */
+            $client = $app->make(Client::class);
+            $client->search();
+        };
+    }
+}
+"#;
+    let diags = unknown_member_diagnostics_with_scope_cache(&backend, uri, text);
+    // Both `$app->make(...)` and `$client->search()` should resolve
+    // thanks to the multi-@var block overriding $app and the single
+    // @var block overriding $client.
+    assert!(
+        diags.is_empty(),
+        "Expected no unknown_member diagnostics, got: {diags:?}"
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Standalone @var block preceding another @var block before an expression
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn preceding_standalone_var_block_applied_to_scope() {
+    let backend = create_test_backend();
+
+    let repo_uri = "file:///Repository.php";
+    let repo_text = r#"<?php
+class Repository {
+    /** @return string */
+    public function find(): string { return ''; }
+}
+"#;
+    backend.update_ast(repo_uri, repo_text);
+
+    let mapper_uri = "file:///Mapper.php";
+    let mapper_text = r#"<?php
+class Mapper {
+    /** @return string */
+    public function map(mixed $data): string { return ''; }
+}
+"#;
+    backend.update_ast(mapper_uri, mapper_text);
+
+    let uri = "file:///test_preceding_var.php";
+    let text = r#"<?php
+class Handler {
+    public function handle(): void {
+        /** @var Repository $repo */
+
+        /** @var Mapper $mapper */
+        $result = $mapper->map($repo->find());
+    }
+}
+"#;
+    let diags = unknown_member_diagnostics_with_scope_cache(&backend, uri, text);
+    // `$mapper->map(...)` resolves from the immediate @var block, and
+    // `$repo->find()` resolves from the preceding standalone @var block.
+    assert!(
+        diags.is_empty(),
+        "Expected no unknown_member diagnostics, got: {diags:?}"
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// No-var @var override must not leak into the RHS of the same assignment
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn no_var_override_does_not_leak_into_rhs() {
+    let backend = create_test_backend();
+
+    let data_uri = "file:///TokenData.php";
+    let data_text = r#"<?php
+class TokenData {
+    /** @return array<string, mixed> */
+    public function toArray(): array { return []; }
+}
+"#;
+    backend.update_ast(data_uri, data_text);
+
+    let order_uri = "file:///Orders.php";
+    let order_text = r#"<?php
+class Orders {
+    /** @return mixed */
+    public function generateToken(array $data): mixed { return null; }
+}
+"#;
+    backend.update_ast(order_uri, order_text);
+
+    let uri = "file:///test_no_var_rhs.php";
+    let text = r#"<?php
+class Service {
+    public function run(): void {
+        $data = new TokenData();
+        $orders = new Orders();
+
+        /** @var array<string, mixed> */
+        $data = $orders->generateToken($data->toArray());
+    }
+}
+"#;
+    let diags = unknown_member_diagnostics_with_scope_cache(&backend, uri, text);
+    // `$data->toArray()` on the RHS must still see $data as TokenData,
+    // not as the overridden `array<string, mixed>`.
+    assert!(
+        diags.is_empty(),
+        "Expected no unknown_member diagnostics for $data->toArray() in RHS, got: {diags:?}"
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Pass-by-ref variable seeded by forward walker (parse_str pattern)
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn pass_by_ref_parse_str_seeds_variable_in_scope() {
+    let backend = create_test_backend();
+
+    let uri = "file:///test_parse_str.php";
+    let text = r#"<?php
+class Endpoint {
+    public string $queryString = '';
+
+    /** @return array<mixed> */
+    public function getParameters(): array
+    {
+        $parameters = [];
+        if ($this->queryString) {
+            parse_str($this->queryString, $query);
+            foreach ($query as $key => $parameter) {
+                if (!is_string($key)) continue;
+                $parameters[$key] = $parameter;
+            }
+        }
+        return $parameters;
+    }
+}
+"#;
+    // The forward walker should seed $query via pass-by-ref from
+    // parse_str, so no fallthrough occurs for $query in the foreach.
+    let diags = unknown_member_diagnostics_with_scope_cache(&backend, uri, text);
+    assert!(
+        diags.is_empty(),
+        "Expected no unknown_member diagnostics, got: {diags:?}"
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Pass-by-ref out types reach the variable whatever shape the call has
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn pass_by_ref_class_type_reaches_the_variable_through_any_receiver() {
+    let backend = create_test_backend();
+    let uri = "file:///test_by_ref_receivers.php";
+    let text = r#"<?php
+class Foo {}
+class Filler {
+    public function fill(?Foo &$out): void { $out = new Foo(); }
+    public static function fillStatic(?Foo &$out): void { $out = new Foo(); }
+    public function viaThis(): void {
+        $out = null;
+        $this->fill($out);
+        /*THIS*/$out;
+    }
+}
+class Holder {
+    public Filler $filler;
+    public function run(Filler $filler, ?Filler $maybe): void {
+        $viaVariable = null;
+        $filler->fill($viaVariable);
+        /*VARIABLE*/$viaVariable;
+        $viaNullsafe = null;
+        $maybe?->fill($viaNullsafe);
+        /*NULLSAFE*/$viaNullsafe;
+        $viaProperty = null;
+        $this->filler->fill($viaProperty);
+        /*PROPERTY*/$viaProperty;
+        $viaStatic = null;
+        Filler::fillStatic($viaStatic);
+        /*STATIC*/$viaStatic;
+    }
+}
+"#;
+    backend.update_ast(uri, text);
+    let through_this = type_at_marker(&backend, uri, text, "THIS");
+    assert_ne!(through_this, "null", "the call writes `$out`");
+    for marker in ["VARIABLE", "NULLSAFE", "PROPERTY", "STATIC"] {
+        assert_eq!(
+            type_at_marker(&backend, uri, text, marker),
+            through_this,
+            "the call through {marker} writes the variable like one through `$this`"
+        );
+    }
+}
+
+#[test]
+fn pass_by_ref_reaches_the_variable_through_a_constructor() {
+    let backend = create_test_backend();
+    let uri = "file:///test_by_ref_constructor.php";
+    let text = r#"<?php
+class Parser {
+    public function __construct(string $source, ?array &$errors) { $errors = []; }
+    public function parseInto(string $source, ?array &$errors): void { $errors = []; }
+}
+class StrictParser extends Parser {}
+function run(Parser $parser): void {
+    $fromMethod = null;
+    $parser->parseInto('x', $fromMethod);
+    /*METHOD*/$fromMethod;
+    $fromConstructor = null;
+    new Parser('x', $fromConstructor);
+    /*CONSTRUCTOR*/$fromConstructor;
+    $fromInherited = null;
+    new StrictParser('x', $fromInherited);
+    /*INHERITED*/$fromInherited;
+}
+"#;
+    backend.update_ast(uri, text);
+    let through_method = type_at_marker(&backend, uri, text, "METHOD");
+    assert_ne!(through_method, "null", "the call writes `$errors`");
+    for marker in ["CONSTRUCTOR", "INHERITED"] {
+        assert_eq!(
+            type_at_marker(&backend, uri, text, marker),
+            through_method,
+            "a constructor writes through {marker} like a method does"
+        );
+    }
+}
+
+#[test]
+fn pass_by_ref_reaches_the_variable_through_a_class_named_by_a_value() {
+    let backend = create_test_backend();
+    let uri = "file:///test_by_ref_class_values.php";
+    let text = r#"<?php
+class Foo {}
+class Filler {
+    public static function fillStatic(?Foo &$out): void { $out = new Foo(); }
+    public function __construct(?Foo &$made = null) { $made = new Foo(); }
+}
+function run(Filler $filler): void {
+    $named = null;
+    Filler::fillStatic($named);
+    /*NAMED*/$named;
+    $class = Filler::class;
+    $viaClassString = null;
+    $class::fillStatic($viaClassString);
+    /*CLASS_STRING*/$viaClassString;
+    $viaObject = null;
+    $filler::fillStatic($viaObject);
+    /*OBJECT*/$viaObject;
+    $namedNew = null;
+    new Filler($namedNew);
+    /*NAMED_NEW*/$namedNew;
+    $made = null;
+    new $class($made);
+    /*NEW*/$made;
+}
+"#;
+    backend.update_ast(uri, text);
+    for (named, through_value) in [
+        ("NAMED", ["CLASS_STRING", "OBJECT"].as_slice()),
+        ("NAMED_NEW", ["NEW"].as_slice()),
+    ] {
+        let through_name = type_at_marker(&backend, uri, text, named);
+        assert_ne!(
+            through_name, "null",
+            "the call at {named} writes the variable"
+        );
+        for marker in through_value {
+            assert_eq!(
+                type_at_marker(&backend, uri, text, marker),
+                through_name,
+                "the call at {marker} writes the variable like the one at {named}"
+            );
+        }
+    }
+}
+
+/// Unpacking an array into a variadic by-reference parameter writes through
+/// its elements, so the array holds the parameter's class afterwards rather
+/// than becoming one.
+#[test]
+fn pass_by_ref_class_variadic_writes_through_unpacked_elements() {
+    let backend = create_test_backend();
+    let uri = "file:///test_by_ref_class_variadic.php";
+    let text = r#"<?php
+class Foo {}
+function fillAll(Foo &...$items): void {}
+function run(): void {
+    $one = null;
+    fillAll($one);
+    /*ONE*/$one;
+    $many = [null];
+    fillAll(...$many);
+    /*MANY*/$many;
+}
+"#;
+    backend.update_ast(uri, text);
+    assert_eq!(type_at_marker(&backend, uri, text, "ONE"), "Foo");
+    assert_eq!(
+        type_at_marker(&backend, uri, text, "MANY"),
+        "array<int, Foo>"
+    );
+}
+
+/// A closure the callee binds to another object (`@param-closure-this`,
+/// `Closure::call()`) holds that object as `$this`, so a call on `$this`
+/// inside it writes through that object's by-reference parameters.
+#[test]
+fn pass_by_ref_through_a_rebound_this_reaches_the_variable() {
+    let backend = create_test_backend();
+    let php = r#"<?php
+class Foo {
+    public function fooOnly(): void {}
+}
+class Filler {
+    public function fill(?Foo &$out): void { $out = new Foo(); }
+}
+class Runner {
+    /** @param-closure-this Filler $callback */
+    public static function with(\Closure $callback): void {}
+}
+class Outer {
+    public function run(): void {
+        Runner::with(function () {
+            $tagged = null;
+            $this->fill($tagged);
+            $tagged->fooOnly();
+        });
+        (function () {
+            $called = null;
+            $this->fill($called);
+            $called->fooOnly();
+        })->call(new Filler());
+    }
+}
+"#;
+    let messages = slow_diagnostic_messages(
+        &backend,
+        "file:///by_ref_rebound_this.php",
+        php,
+        "scalar_member_access",
+    );
+    assert!(
+        messages.is_empty(),
+        "`$this->fill()` writes `Foo` into the variable, got: {messages:?}"
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Pass-by-ref preg_match in if-condition seeds $matches
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn pass_by_ref_preg_match_in_if_condition_seeds_matches() {
+    let backend = create_test_backend();
+
+    let uri = "file:///test_preg_match.php";
+    let text = r#"<?php
+class Parser {
+    public function parse(string $msg): ?int
+    {
+        if (preg_match('/order line (?<LineId>\d+)/i', $msg, $matches) === 1) {
+            return (int)$matches['LineId'];
+        }
+        return null;
+    }
+}
+"#;
+    // preg_match writes $matches through a reference parameter, and the
+    // condition's call writes it before the body reads it.
+    let diags = unknown_member_diagnostics_with_scope_cache(&backend, uri, text);
+    assert!(
+        diags.is_empty(),
+        "Expected no unknown_member diagnostics, got: {diags:?}"
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Assert narrowing on $this inside a top-level closure propagates to
+// assignment RHS resolution (Pest test pattern).
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn assert_instanceof_this_in_top_level_closure_propagates_to_assignment_rhs() {
+    let backend = create_test_backend();
+
+    let collection_uri = "file:///Collection.php";
+    let collection_text = r#"<?php
+class Collection {
+    /** @return mixed */
+    public function firstOrFail() {
+        return null;
+    }
+}
+"#;
+    backend.update_ast(collection_uri, collection_text);
+
+    let test_case_uri = "file:///TestCase.php";
+    let test_case_text = r#"<?php
+class TestCase {
+    public function createProductCollection(int $count): Collection {
+        return new Collection();
+    }
+}
+"#;
+    backend.update_ast(test_case_uri, test_case_text);
+
+    {
+        let mut cfg = backend.config();
+        cfg.diagnostics.unresolved_member_access = Some(true);
+        backend.set_config(cfg);
+    }
+
+    // Top-level Pest-style closure: `$this` is unbound and only narrowed
+    // via `assert($this instanceof TestCase)`.
+    let uri = "file:///PestTest.php";
+    let text = r#"<?php
+function it(string $name, callable $closure): void {}
+
+it('does a thing', function (): void {
+    assert($this instanceof TestCase);
+    $products = $this->createProductCollection(5);
+    $first = $products->firstOrFail();
+});
+"#;
+    backend.update_ast(uri, text);
+
+    let mut diags = Vec::new();
+    backend.collect_slow_diagnostics(uri, text, &mut diags);
+
+    // Filter to unknown_member and unresolved_member_access diagnostics
+    let relevant_diags: Vec<_> = diags
+        .into_iter()
+        .filter(|d| {
+            d.code.as_ref().is_some_and(|c| {
+                matches!(
+                    c,
+                    tower_lsp_server::gen_lsp_types::Code::String(s)
+                        if s == "unresolved_member_access" || s == "unknown_member"
+                )
+            })
+        })
+        .collect();
+
+    // The `assert($this instanceof TestCase)` narrows `$this` to `TestCase`,
+    // so `$this->createProductCollection(5)` returns `Collection`, and
+    // `$products->firstOrFail()` resolves.  No member should be unknown or
+    // unresolved.
+    assert!(
+        relevant_diags.is_empty(),
+        "Expected no unknown/unresolved member diagnostics after assert($this instanceof TestCase) in top-level closure, got: {:?}",
+        relevant_diags
+            .iter()
+            .map(|d| &d.message)
+            .collect::<Vec<_>>()
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Self-referencing reassignment: RHS use resolves against pre-assignment scope
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// When a variable is reassigned and the RHS references the same variable
+/// after an arrow function / closure literal, the reference must resolve
+/// against the pre-assignment type, not the reassigned result type.
+///
+/// Regression test: `$variables` starts as `array`, gets reassigned to
+/// `implode()`'s `string` result.  The `$variables` passed to
+/// `array_map()` sits *after* the arrow function in source, and used to
+/// pick up the post-assignment `string` type from the scope snapshot the
+/// closure walk recorded after the arrow body, producing a false
+/// "expects array, got string" diagnostic.
+#[test]
+fn self_referencing_reassignment_uses_pre_assignment_scope() {
+    let backend = create_test_backend_with_full_stubs();
+    let uri = "file:///self_ref_reassign.php";
+    let text = r#"<?php
+function render(array $variables): string {
+    $variables = implode(', ', array_map(fn (string $v): string => "\${$v}", $variables));
+    return $variables;
+}
+"#;
+    backend.update_ast(uri, text);
+
+    let mut diags = Vec::new();
+    backend.collect_slow_diagnostics(uri, text, &mut diags);
+
+    let type_errors: Vec<_> = diags
+        .iter()
+        .filter(|d| {
+            d.code
+                .as_ref()
+                .is_some_and(|c| matches!(c, Code::String(s) if s == "type_mismatch_argument"))
+        })
+        .map(|d| d.message.clone())
+        .collect();
+
+    assert!(
+        type_errors.is_empty(),
+        "Expected no argument type mismatch: the $variables passed to array_map() \
+         should resolve to its pre-assignment `array` type, got: {type_errors:?}"
+    );
+}
+
+/// A closure that captures its own variable by reference sees the closure
+/// itself inside its body, not `null`.
+///
+/// PHP creates the closure object and only then stores it into `$callback`,
+/// so by the time the body ever runs the by-reference capture is bound to
+/// the closure. Unlike `self_referencing_reassignment_uses_pre_assignment_scope`
+/// above (a plain, by-value reference to the same variable, which must see
+/// the *old* value), a by-reference self-capture must see the *new* one.
+#[test]
+fn self_referencing_by_ref_capture_sees_the_closure_not_null() {
+    let backend = create_test_backend_with_full_stubs();
+    let uri = "file:///self_ref_by_ref.php";
+    let text = r#"<?php
+function invoke(callable $cb): void {}
+
+function register(): void {
+    $callback = function () use (&$callback): void {
+        invoke($callback);
+    };
+}
+"#;
+    backend.update_ast(uri, text);
+
+    let mut diags = Vec::new();
+    backend.collect_slow_diagnostics(uri, text, &mut diags);
+
+    let type_errors: Vec<_> = diags
+        .iter()
+        .filter(|d| {
+            d.code
+                .as_ref()
+                .is_some_and(|c| matches!(c, Code::String(s) if s == "type_mismatch_argument"))
+        })
+        .map(|d| d.message.clone())
+        .collect();
+
+    assert!(
+        type_errors.is_empty(),
+        "Expected no argument type mismatch: the by-reference self-capture of \
+         $callback should resolve to the closure, not null, got: {type_errors:?}"
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Closure param with a declared union type must not collapse to one arm
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// When the subject is a union of differently-parameterized collections,
+/// the closure parameter's own declared union type must be preserved
+/// rather than collapsing to the first collection's element type.
+#[test]
+fn closure_param_declared_union_wins_over_inferred_element() {
+    let backend = create_test_backend();
+
+    let collection_uri = "file:///Collection.php";
+    let collection_text = r#"<?php
+/**
+ * @template TKey
+ * @template TValue
+ */
+class Collection {
+    /**
+     * @param callable(TValue): bool $callback
+     * @return static
+     */
+    public function filter(callable $callback): static { return $this; }
+}
+"#;
+    backend.update_ast(collection_uri, collection_text);
+
+    let support_uri = "file:///Support.php";
+    let support_text = r#"<?php
+class CanApply {}
+class ViewModel { public int $viewId = 0; }
+"#;
+    backend.update_ast(support_uri, support_text);
+
+    let service_uri = "file:///Service.php";
+    let service_text = r#"<?php
+class Service {
+    /** @param Collection<int, CanApply>|Collection<int, ViewModel>|Collection<int, \stdClass> $items */
+    public function probe(Collection $items): void
+    {
+        $items->filter(function (CanApply|ViewModel|\stdClass $item): bool {
+            return $item->viewId === 1;
+        });
+    }
+}
+"#;
+    let diags = unknown_member_diagnostics_with_scope_cache(&backend, service_uri, service_text);
+    assert!(
+        diags.is_empty(),
+        "Expected no unknown_member diagnostics: the declared union param type \
+         (CanApply|ViewModel|stdClass) must be preserved, got: {diags:?}"
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Nested return-type inference must not pollute the diagnostic scope cache
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Regression test: while building the diagnostic scope cache for one file,
+/// resolving an assignment whose right-hand side calls a method with an
+/// inferred (body-derived) return type re-enters the forward walker to look
+/// up a variable in the callee's body. That nested walk uses a fresh scope
+/// and, before the fix, recorded its own scope snapshots into the still
+/// active diagnostic scope cache. Because the cache is keyed only by byte
+/// offset, the callee's snapshots (from a different file) could land at an
+/// offset inside the caller's call chain, dropping the local query-builder
+/// variable and producing a false "type could not be resolved" diagnostic
+/// on one branch of a method but not an adjacent, identical one.
+///
+/// Here `Factory::query()` has no declared return type, so its type is
+/// inferred from `return $b;`. Resolving `$query = $this->factory->query()`
+/// in `Runner::ids()` triggers that inference. The single-line
+/// `whereBetween('id', [...])->pluck('id')` branch used to be flagged while
+/// the multi-line `whereBetween('created', [...])` branch resolved cleanly.
+#[test]
+fn nested_return_type_inference_does_not_clobber_outer_scope() {
+    // `Factory::query()` has no declared return type, so its type is
+    // inferred from `return $b;`.  It is declared in the *same* file as
+    // `Builder` (after it) so that the inference walk of `query()`'s body
+    // records snapshots at byte offsets that collide with `Runner::ids()`'s
+    // call chain in the other file — reproducing the cross-file offset
+    // collision that made this a "1 error, not reproduced in isolation"
+    // bug in the wild.
+    let builder_src = r#"<?php
+namespace App;
+
+class Builder {
+    public function whereBetween(string $c, array $r): Builder { return $this; }
+    public function pluck(string $k): array { return []; }
+    public function select(string $c): Builder { return $this; }
+}
+
+class Factory {
+    public function query() {
+        $b = new Builder();
+        return $b;
+    }
+}
+"#;
+    let runner_src = r#"<?php
+namespace App;
+
+class Runner {
+    private Factory $factory;
+
+    public function ids(bool $x, bool $y): array {
+        $query = $this->factory->query();
+        if ($x) {
+            return $query->select('id')->pluck('id');
+        }
+        if ($x && $y) {
+            return $query->whereBetween('id', [$this->n('a'), $this->n('b')])->pluck('id');
+        }
+        if ($x && $y) {
+            return $query->whereBetween('created', [
+                $this->n('c'),
+                $this->n('d'),
+            ])->pluck('id');
+        }
+        return [];
+    }
+
+    private function n(string $s): int { return 1; }
+}
+"#;
+
+    let (backend, dir) = create_psr4_workspace(
+        r#"{ "autoload": { "psr-4": { "App\\": "app/" } } }"#,
+        &[
+            ("app/Builder.php", builder_src),
+            ("app/Runner.php", runner_src),
+        ],
+    );
+
+    {
+        let mut cfg = backend.config();
+        cfg.diagnostics.unresolved_member_access = Some(true);
+        backend.set_config(cfg);
+    }
+
+    // Register both files under their real on-disk URIs so that the
+    // body-return-type inferrer can read `Factory`'s source via
+    // `get_file_content` (which falls back to reading the file path).
+    let builder_uri = format!("file://{}/app/Builder.php", dir.path().display());
+    let runner_uri = format!("file://{}/app/Runner.php", dir.path().display());
+    backend.update_ast(&builder_uri, builder_src);
+    backend.update_ast(&runner_uri, runner_src);
+
+    let runner_text = runner_src;
+    let mut diags = Vec::new();
+    backend.collect_slow_diagnostics(&runner_uri, runner_text, &mut diags);
+
+    let unresolved: Vec<_> = diags
+        .iter()
+        .filter(|d| {
+            d.code.as_ref().is_some_and(|c| {
+                matches!(
+                    c,
+                    Code::String(s)
+                        if s == "unresolved_member_access" || s == "unknown_member"
+                )
+            })
+        })
+        .map(|d| d.message.clone())
+        .collect();
+
+    assert!(
+        unresolved.is_empty(),
+        "Expected no unresolved/unknown member diagnostics on the query-builder \
+         chain: nested return-type inference must not clobber `$query` in the \
+         diagnostic scope cache, got: {unresolved:?}"
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// A wide declared closure param narrows to the call site's element type
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// A callback passed to `array_map()` may declare its parameter as plain
+/// `array` while the call site knows the element shape.  The bare `array`
+/// hint carries no element information, so the inferred shape must win:
+/// otherwise `$case[0]` has no type and the opt-in
+/// `unresolved-member-access` diagnostic fires on `$case[0]->name`.
+#[test]
+fn wide_array_closure_param_narrows_to_call_site_element_type() {
+    let backend = create_test_backend_with_full_stubs();
+
+    {
+        let mut cfg = backend.config();
+        cfg.diagnostics.unresolved_member_access = Some(true);
+        backend.set_config(cfg);
+    }
+
+    let uri = "file:///wide_array_param.php";
+    let text = r#"<?php
+class DiscountType {
+    public string $name = '';
+}
+
+class Cases {
+    /** @return array<array{DiscountType, string}> */
+    private static function cases(): array { return []; }
+
+    /** @return list<string> */
+    public function run(): array {
+        return array_map(
+            static fn (array $case): string => $case[0]->name,
+            self::cases()
+        );
+    }
+}
+"#;
+    backend.update_ast(uri, text);
+
+    let mut diags = Vec::new();
+    backend.collect_slow_diagnostics(uri, text, &mut diags);
+
+    let unresolved: Vec<_> = diags
+        .iter()
+        .filter(|d| {
+            d.code.as_ref().is_some_and(|c| {
+                matches!(
+                    c,
+                    Code::String(s)
+                        if s == "unresolved_member_access" || s == "unknown_member"
+                )
+            })
+        })
+        .map(|d| d.message.clone())
+        .collect();
+
+    assert!(
+        unresolved.is_empty(),
+        "Expected no unresolved/unknown member diagnostics: the declared `array` \
+         parameter must narrow to `array{{DiscountType, string}}` from the \
+         array_map() call site, got: {unresolved:?}"
+    );
+}
+
+/// The same narrowing must survive when the array argument is itself an
+/// inline call to a generic array function.  `iterator_to_array()` keeps
+/// the iterator's element type, and the callback's bare `array` hint must
+/// narrow to it just as it does for a plain variable or a direct call.
+#[test]
+fn wide_array_closure_param_narrows_through_inline_array_function_call() {
+    let backend = create_test_backend_with_full_stubs();
+
+    {
+        let mut cfg = backend.config();
+        cfg.diagnostics.unresolved_member_access = Some(true);
+        backend.set_config(cfg);
+    }
+
+    let uri = "file:///wide_array_param_inline_call.php";
+    let text = r#"<?php
+class DiscountType {
+    public string $name = '';
+}
+
+class Cases {
+    /** @return iterable<array{DiscountType, string}> */
+    private static function cases(): iterable { return []; }
+
+    /** @return list<string> */
+    public function run(): array {
+        return array_map(
+            static fn (array $case): string => $case[0]->name,
+            iterator_to_array(self::cases())
+        );
+    }
+}
+"#;
+    backend.update_ast(uri, text);
+
+    let mut diags = Vec::new();
+    backend.collect_slow_diagnostics(uri, text, &mut diags);
+
+    let unresolved: Vec<_> = diags
+        .iter()
+        .filter(|d| {
+            d.code.as_ref().is_some_and(|c| {
+                matches!(
+                    c,
+                    Code::String(s)
+                        if s == "unresolved_member_access" || s == "unknown_member"
+                )
+            })
+        })
+        .map(|d| d.message.clone())
+        .collect();
+
+    assert!(
+        unresolved.is_empty(),
+        "Expected no unresolved/unknown member diagnostics: the declared `array` \
+         parameter must narrow to `array{{DiscountType, string}}` produced by the \
+         inline iterator_to_array() argument, got: {unresolved:?}"
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// A block comment between two annotated assignments
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Reassigning a variable under a fresh `@var` is how a script narrows it
+/// a second time, so the annotation written closest to the code wins. An
+/// ordinary `/* … */` comment in between must not send the search for it
+/// back to the annotation the reassignment replaced.
+#[test]
+fn a_block_comment_does_not_revive_a_superseded_var_docblock() {
+    let backend = create_test_backend();
+
+    let uri = "file:///superseded_var.php";
+    let text = r#"<?php
+class Reader { public function read(): string { return ''; } }
+class Writer { public function write(): string { return ''; } }
+
+function handle(): void {
+    /** @var Reader $stream */
+    $stream = null;
+    $stream->read();
+
+    /* swap it out */
+    /** @var Writer $stream */
+    $stream = null;
+    $stream->write();
+}
+"#;
+    let diags = unknown_member_diagnostics_with_scope_cache(&backend, uri, text);
+    assert!(
+        diags.is_empty(),
+        "the nearest @var is the one that applies, got: {diags:?}"
+    );
+
+    let stale = text.replace("$stream->write();", "$stream->read();");
+    let diags = unknown_member_diagnostics_with_scope_cache(&backend, uri, &stale);
+    assert!(
+        diags
+            .iter()
+            .any(|d| message_text(&d.message).contains("Writer")),
+        "the superseded type must not still answer for the variable, got: {diags:?}"
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// By-reference `use` captures reached through a wrapper object
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// A `use (&$x)` closure handed to a constructor still writes back to `$x`:
+/// the object invokes it later, so the captured type is unioned into the
+/// outer variable and the `!== null` guard can narrow it.
+#[test]
+fn by_ref_capture_inside_new_argument_writes_back() {
+    let backend = create_test_backend();
+    let uri = "file:///ByRefNew.php";
+    let text = r#"<?php
+class Node {
+    public function getStatementResult(): string { return ''; }
+}
+class GatheringNodeCallback {
+    /** @param callable(Node): void $inner */
+    public function __construct(private $inner) {}
+    public function invoke(Node $node): void { ($this->inner)($node); }
+}
+class Resolver {
+    public function processStmtNode(GatheringNodeCallback $cb): void {}
+}
+class Handler {
+    public function run(Resolver $resolver): void {
+        $constructorResult = null;
+        $resolver->processStmtNode(new GatheringNodeCallback(
+            static function (Node $node) use (&$constructorResult): void {
+                $constructorResult = $node;
+            },
+        ));
+        if ($constructorResult !== null) {
+            $constructorResult->getStatementResult();
+        }
+    }
+}
+"#;
+    backend.update_ast(uri, text);
+    let mut diags = Vec::new();
+    backend.collect_slow_diagnostics(uri, text, &mut diags);
+    assert!(
+        diags.is_empty(),
+        "got: {:?}",
+        diags.iter().map(|d| &d.message).collect::<Vec<_>>()
+    );
+}
+
+/// Same for a closure stored in an array literal — the array may be handed
+/// to anything, so the capture has to be seen.
+#[test]
+fn by_ref_capture_inside_array_literal_writes_back() {
+    let backend = create_test_backend();
+    let uri = "file:///ByRefArray.php";
+    let text = r#"<?php
+class Node {
+    public function getStatementResult(): string { return ''; }
+}
+class Handler {
+    /** @param array<callable> $callbacks */
+    public function register(array $callbacks): void {}
+
+    public function run(): void {
+        $result = null;
+        $this->register([
+            static function (Node $node) use (&$result): void {
+                $result = $node;
+            },
+        ]);
+        if ($result !== null) {
+            $result->getStatementResult();
+        }
+    }
+}
+"#;
+    backend.update_ast(uri, text);
+    let mut diags = Vec::new();
+    backend.collect_slow_diagnostics(uri, text, &mut diags);
+    assert!(
+        diags.is_empty(),
+        "got: {:?}",
+        diags.iter().map(|d| &d.message).collect::<Vec<_>>()
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Closure parameter typed by a method-level @template bound at the call site
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// `@param callable(TNode): void` hands the closure whatever `TNode` was
+/// bound to at the call site, so a member of that type is not unknown.
+#[test]
+fn closure_param_from_method_template_resolves_members() {
+    let backend = create_test_backend();
+    let uri = "file:///TemplateClosureParam.php";
+    let text = r#"<?php
+class PropertyNode {
+    public function isReadOnly(): bool { return true; }
+}
+class Fixer {
+    /**
+     * @template TNode
+     * @param TNode $node
+     * @param callable(TNode): void $cb
+     */
+    public function fixNode($node, callable $cb): void {}
+
+    public function run(PropertyNode $property): void
+    {
+        $this->fixNode($property, function ($node) {
+            $node->isReadOnly();
+        });
+    }
+}
+"#;
+    let diags = unknown_member_diagnostics_with_scope_cache(&backend, uri, text);
+    assert!(
+        diags.is_empty(),
+        "got: {:?}",
+        diags.iter().map(|d| &d.message).collect::<Vec<_>>()
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// By-reference captures written on a path that returns out of the closure
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// The gather-into-an-array idiom: a callback narrows its parameter with
+/// `instanceof`, pushes it onto a `use (&$…)` array and returns.  The
+/// branch merge drops a returning branch, but the caller still sees what
+/// the capture was given, so the enclosing `foreach` knows its element
+/// type.
+#[test]
+fn by_ref_capture_pushed_on_a_returning_path_types_the_foreach() {
+    let backend = create_test_backend();
+    let uri = "file:///GatherExecutionEnds.php";
+    let text = r#"<?php
+class Node {}
+class StatementResult
+{
+    public function isAlwaysTerminating(): bool { return true; }
+}
+class ExecutionEndNode extends Node
+{
+    public function getStatementResult(): StatementResult { return new StatementResult(); }
+}
+class ReturnNode extends Node {}
+
+class NodeScopeResolver
+{
+    public function processStmtNodes(array $stmts, callable $cb): void {}
+
+    public function run(array $stmts): void
+    {
+        $gatheredReturnStatements = [];
+        $executionEnds = [];
+        $this->processStmtNodes($stmts, static function (Node $node) use (&$gatheredReturnStatements, &$executionEnds): void {
+            if ($node instanceof ExecutionEndNode) {
+                $executionEnds[] = $node;
+                return;
+            }
+            if (!$node instanceof ReturnNode) {
+                return;
+            }
+            $gatheredReturnStatements[] = $node;
+        });
+
+        foreach ($executionEnds as $executionEnd) {
+            $executionEnd->getStatementResult()->isAlwaysTerminating();
+        }
+    }
+}
+"#;
+    let diags = unknown_member_diagnostics_with_scope_cache(&backend, uri, text);
+    assert!(
+        diags.is_empty(),
+        "got: {:?}",
+        diags.iter().map(|d| &d.message).collect::<Vec<_>>()
+    );
+}
+
+/// A nested closure's `return` carries its own locals out of *itself*.
+/// Attributing it to the closure outside would hand the outer capture a
+/// type it never holds, so the probe below has to see `Alpha` alone.
+#[test]
+fn nested_closure_return_does_not_widen_the_outer_by_ref_capture() {
+    let backend = create_test_backend();
+    let uri = "file:///NestedClosureReturn.php";
+    let text = r#"<?php
+class Alpha {}
+class Beta {}
+
+class Runner
+{
+    public function run(callable $cb): void {}
+
+    public function go(): void
+    {
+        $node = new Alpha();
+        $this->run(function () use (&$node): void {
+            $inner = function (): void {
+                // A fresh local of *this* closure, not the capture one
+                // scope out.
+                $node = new Beta();
+                return;
+            };
+            $inner();
+        });
+        $node->probe();
+    }
+}
+"#;
+    let diags = unknown_member_diagnostics_with_scope_cache(&backend, uri, text);
+    let messages: Vec<&str> = diags.iter().map(|d| message_text(&d.message)).collect();
+    assert_eq!(messages.len(), 1, "got: {messages:?}");
+    assert!(
+        !messages[0].contains("Beta"),
+        "`$node` must stay Alpha, got: {messages:?}"
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// A closure's `@param` comes only from the docblock attached to it
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn closure_param_docblock_does_not_leak_past_attached_docblock() {
+    let backend = create_test_backend();
+    let uri = "file:///script.php";
+    let text = r#"<?php
+class Pen { public function write(): void {} }
+/** @param Pen $item */
+$a = function ($item) { $item->missing(); };
+/** @var Closure */
+$b = function ($item) { $item->open(); };
+"#;
+    let diags = unknown_member_diagnostics_with_scope_cache(&backend, uri, text);
+    let messages: Vec<_> = diags.iter().map(|d| message_text(&d.message)).collect();
+    assert_eq!(
+        messages.len(),
+        1,
+        "only `$a`'s own `@param` should apply, got: {messages:?}"
+    );
+    assert!(
+        messages[0].contains("missing"),
+        "expected `missing` on Pen to be flagged, got: {messages:?}"
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Narrowing by a ternary, `&&` or `match` reaches a closure written there
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// The `type_mismatch_argument` messages for `body`, placed in a method
+/// whose `$c` is a `?Conversation` and whose `take()` wants a
+/// `Conversation`.
+fn conversation_mismatches(body: &str) -> Vec<String> {
+    let backend = create_test_backend_with_full_stubs();
+    let php = format!(
+        r#"<?php
+class Conversation {{}}
+
+class Repro
+{{
+    public function run(?Conversation $c = null): void
+    {{
+        {body}
+    }}
+
+    private function take(Conversation $c): void {{}}
+}}
+"#
+    );
+    slow_diagnostic_messages(
+        &backend,
+        "file:///closure_narrowing.php",
+        &php,
+        "type_mismatch_argument",
+    )
+}
+
+/// Every `(label, body)` whose diagnostics fail `ok`, with what it got.
+fn failing_cases(cases: &[(&str, &str)], ok: impl Fn(&[String]) -> bool) -> Vec<String> {
+    cases
+        .iter()
+        .filter_map(|(label, body)| {
+            let messages = conversation_mismatches(body);
+            (!ok(&messages)).then(|| format!("{label}: {messages:?}"))
+        })
+        .collect()
+}
+
+/// A closure created where an expression has proved `$c` non-null
+/// captures that non-null value, exactly as one created inside the
+/// matching `if` block does.
+#[test]
+fn expression_narrowing_reaches_closures_created_in_the_narrowed_branch() {
+    let cases = [
+        (
+            "ternary truthy",
+            "$run = $c ? fn () => $this->take($c) : null;",
+        ),
+        (
+            "ternary !== null",
+            "$run = $c !== null ? fn () => $this->take($c) : null;",
+        ),
+        (
+            "ternary === null, else branch",
+            "$run = $c === null ? null : fn () => $this->take($c);",
+        ),
+        (
+            "ternary isset",
+            "$run = isset($c) ? fn () => $this->take($c) : null;",
+        ),
+        (
+            "ternary static fn",
+            "$run = $c ? static fn () => $this->take($c) : null;",
+        ),
+        (
+            "ternary closure use",
+            "$run = $c ? function () use ($c) { $this->take($c); } : null;",
+        ),
+        (
+            "ternary fn as a call argument",
+            "$result = $c ? array_map(fn ($x) => $this->take($c), [1]) : null;",
+        ),
+        ("&& right operand", "$run = $c && fn () => $this->take($c);"),
+        (
+            "|| right operand",
+            "$run = $c === null || fn () => $this->take($c);",
+        ),
+        (
+            "short ternary else branch",
+            "$run = !$c ?: fn () => $this->take($c);",
+        ),
+        (
+            "match (true) arm",
+            "$run = match (true) { $c !== null => fn () => $this->take($c), default => null };",
+        ),
+        (
+            "ternary in an array element",
+            "$run = [$c ? fn () => $this->take($c) : null];",
+        ),
+        (
+            "nested ternary",
+            "$run = rand() ? ($c ? fn () => $this->take($c) : null) : null;",
+        ),
+        (
+            "closure nested in an arrow fn",
+            "$run = $c ? fn () => function () use ($c) { $this->take($c); } : null;",
+        ),
+    ];
+    let failing = failing_cases(&cases, <[String]>::is_empty);
+    assert!(
+        failing.is_empty(),
+        "expected no mismatch, got: {failing:#?}"
+    );
+}
+
+/// The forms that already narrowed before the expression forms did must
+/// keep doing so.
+#[test]
+fn statement_narrowing_and_direct_uses_still_reach_the_argument() {
+    let cases = [
+        ("if block", "if ($c) { $run = fn () => $this->take($c); }"),
+        (
+            "early return",
+            "if ($c === null) { return; } $run = fn () => $this->take($c);",
+        ),
+        ("ternary direct call", "$c ? $this->take($c) : null;"),
+    ];
+    let failing = failing_cases(&cases, <[String]>::is_empty);
+    assert!(
+        failing.is_empty(),
+        "expected no mismatch, got: {failing:#?}"
+    );
+}
+
+/// A closure the narrowing does not cover still sees a nullable `$c`.
+#[test]
+fn closures_outside_the_narrowed_branch_still_see_null() {
+    let cases = [
+        (
+            "ternary else branch",
+            "$run = $c ? null : fn () => $this->take($c);",
+        ),
+        (
+            "ternary then branch of === null",
+            "$run = $c === null ? fn () => $this->take($c) : null;",
+        ),
+        (
+            "condition about another variable",
+            "$d = rand(); $run = $d ? fn () => $this->take($c) : null;",
+        ),
+        (
+            "closure in the condition",
+            "$run = (fn () => $this->take($c))() ? 1 : 2;",
+        ),
+        (
+            "|| right operand of a truthy test",
+            "$run = $c || fn () => $this->take($c);",
+        ),
+        (
+            "match (true) default arm",
+            "$run = match (true) { $c !== null => null, default => fn () => $this->take($c) };",
+        ),
+        (
+            "after the ternary",
+            "$run = $c ? 1 : 2; $later = fn () => $this->take($c);",
+        ),
+    ];
+    let failing = failing_cases(&cases, |messages| messages.len() == 1);
+    assert!(
+        failing.is_empty(),
+        "expected exactly one mismatch, got: {failing:#?}"
+    );
+}
+
+/// The narrowing a closure is walked under ends with the branch it is
+/// written in, even when the closure is the last thing in that branch.
+#[test]
+fn code_after_a_narrowed_branch_ending_in_a_closure_sees_null() {
+    let cases = [
+        ("&& right operand", "f($c && fn () => 1, $this->take($c));"),
+        (
+            "|| right operand",
+            "f($c === null || fn () => 1, $this->take($c));",
+        ),
+        (
+            "ternary else branch",
+            "f($c === null ? null : fn () => 1, $this->take($c));",
+        ),
+        (
+            "parenthesized ternary else branch",
+            "f($c === null ? null : (fn () => 1), $this->take($c));",
+        ),
+        (
+            "closure in a ternary else branch",
+            "f($c === null ? null : function () { return 1; }, $this->take($c));",
+        ),
+        (
+            "match (true) arm",
+            "f(match (true) { $c !== null => fn () => 1, default => null }, $this->take($c));",
+        ),
+    ];
+    let failing = failing_cases(&cases, |messages| messages.len() == 1);
+    assert!(
+        failing.is_empty(),
+        "expected exactly one mismatch, got: {failing:#?}"
+    );
+}
+
+/// An anonymous class written in a ternary branch still has its method
+/// bodies walked, as it does anywhere else in an expression.
+#[test]
+fn anonymous_class_in_a_ternary_branch_is_walked() {
+    let backend = create_test_backend();
+    let uri = "file:///anon_in_ternary.php";
+    let text = r#"<?php
+class Conversation { public function hi(): void {} }
+
+class Repro
+{
+    public function run(bool $flag): object
+    {
+        return $flag ? new class {
+            public function m(): void {
+                $x = new Conversation();
+                $x->nope();
+            }
+        } : new \stdClass();
+    }
+}
+"#;
+    let diags = unknown_member_diagnostics_with_scope_cache(&backend, uri, text);
+    assert_eq!(
+        diags.len(),
+        1,
+        "`nope` is unknown on Conversation, got: {diags:?}"
+    );
+}
+
+/// A by-reference capture reads the variable when the closure runs, not
+/// when it is created, so a reassignment after the closure reaches it.
+/// The ternary branch treats it the way an `if` block does.
+#[test]
+fn by_reference_capture_in_a_narrowed_branch_matches_the_if_block() {
+    let in_if =
+        conversation_mismatches("if ($c) { $run = function () use (&$c) { $this->take($c); }; }");
+    let in_ternary =
+        conversation_mismatches("$run = $c ? function () use (&$c) { $this->take($c); } : null;");
+    assert_eq!(in_ternary, in_if);
+}
+
+/// A by-reference capture reads the variable when the closure runs, so
+/// what the enclosing function writes to it after creating the closure
+/// reaches the body.
+#[test]
+fn by_reference_capture_sees_writes_after_the_closure_is_created() {
+    let cases = [
+        (
+            "if block",
+            "if ($c !== null) { $f = function () use (&$c) { $this->take($c); }; $c = null; $f(); }",
+        ),
+        (
+            "ternary branch",
+            "$run = $c ? function () use (&$c) { $this->take($c); } : null; $c = null;",
+        ),
+        (
+            "outside the narrowed block",
+            "if ($c !== null) { $f = function () use (&$c) { $this->take($c); }; } $c = null;",
+        ),
+        (
+            "earlier in an enclosing loop",
+            "foreach ([1, 2] as $i) { $c = null; if (rand()) { $c = new Conversation(); $f = function () use (&$c) { $this->take($c); }; } }",
+        ),
+        (
+            "closure handed to an object",
+            "if ($c !== null) { $w = new \\ArrayObject([function () use (&$c) { $this->take($c); }]); $c = null; }",
+        ),
+    ];
+    let failing = failing_cases(&cases, |messages| messages.len() == 1);
+    assert!(
+        failing.is_empty(),
+        "expected exactly one mismatch, got: {failing:#?}"
+    );
+}
+
+/// The narrowing still holds inside a by-reference capture when nothing
+/// that can run after the closure is created writes a different value.
+#[test]
+fn by_reference_capture_keeps_narrowing_without_a_later_null_write() {
+    let cases = [
+        (
+            "no later write",
+            "if ($c !== null) { $f = function () use (&$c) { $this->take($c); }; $f(); }",
+        ),
+        (
+            "write before the closure",
+            "if ($c === null) { $c = new Conversation(); } $f = function () use (&$c) { $this->take($c); };",
+        ),
+        (
+            "later write of the same type",
+            "if ($c !== null) { $f = function () use (&$c) { $this->take($c); }; $c = new Conversation(); }",
+        ),
+        (
+            "invoked before the call returns",
+            "if ($c !== null) { array_map(function ($x) use (&$c) { $this->take($c); }, [1]); $c = null; }",
+        ),
+        (
+            "invoked where it is written",
+            "if ($c !== null) { (function () use (&$c) { $this->take($c); })(); $c = null; }",
+        ),
+        (
+            "captured by value",
+            "if ($c !== null) { $f = function () use ($c) { $this->take($c); }; $c = null; }",
+        ),
+        (
+            "write in another closure's own scope",
+            "if ($c !== null) { $f = function () use (&$c) { $this->take($c); }; $g = function () { $c = null; }; }",
+        ),
+    ];
+    let failing = failing_cases(&cases, <[String]>::is_empty);
+    assert!(
+        failing.is_empty(),
+        "expected no mismatch, got: {failing:#?}"
+    );
+}
+
+/// A `match ($x::class)` arm proves the subject's class to a closure
+/// written in it, as it does to a direct use there.
+#[test]
+fn class_match_arm_narrowing_reaches_a_closure_in_the_arm() {
+    let backend = create_test_backend_with_full_stubs();
+    let php = r#"<?php
+interface Shape {}
+class Circle implements Shape {}
+class Square implements Shape {}
+
+class Painter
+{
+    public function run(Shape $s): void
+    {
+        $paint = match ($s::class) {
+            Circle::class => fn () => $this->circle($s),
+            default => fn () => $this->circle($s),
+        };
+    }
+
+    private function circle(Circle $c): void {}
+}
+"#;
+    let messages = slow_diagnostic_messages(
+        &backend,
+        "file:///class_match.php",
+        php,
+        "type_mismatch_argument",
+    );
+    assert_eq!(
+        messages.len(),
+        1,
+        "only the default arm's closure passes a Shape, got: {messages:?}"
+    );
+}
+
+/// A closure's `@param` stands in for the native hint only where it may,
+/// by the rule a function's parameters follow: one that names a class for
+/// an `int` parameter leaves the parameter an `int`.
+#[test]
+fn closure_param_docblock_does_not_replace_an_incompatible_hint() {
+    let backend = create_test_backend_with_full_stubs();
+    let php = r#"<?php
+class Foo {}
+
+function takesFoo(Foo $f): void {}
+
+function run(): void {
+    $closure = /** @param Foo $x */ function (int $x) {
+        takesFoo($x);
+    };
+    $arrow = /** @param Foo $y */ fn (int $y) => takesFoo($y);
+}
+"#;
+    let messages = slow_diagnostic_messages(
+        &backend,
+        "file:///closure_param_hint.php",
+        php,
+        "type_mismatch_argument",
+    );
+    assert_eq!(
+        messages.len(),
+        2,
+        "both parameters are ints, so both calls pass the wrong type, got: {messages:?}"
+    );
+}

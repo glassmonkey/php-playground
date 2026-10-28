@@ -1,0 +1,17 @@
+// test: nullable return type still provides members
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest 'nullable'
+// expect: not(
+---
+<?php
+
+namespace Foo;
+
+class Barfoo {
+    public function not(): string {}
+}
+
+function create(): ?Barfoo {}
+
+$f = create();
+$f-><>;

@@ -1,0 +1,30 @@
+// test: narrowing union with inheritance ancestors shows all members of narrowed type
+// feature: completion
+// Adapted from phpactor combination/union_narrow_mulitple_ancestors.test
+// After narrowing to GenericClassType, both inherited and own methods appear
+// expect: fooMethod(
+// expect: barMethod(
+---
+<?php
+
+interface IterableType {}
+
+interface Type {
+    public function fooMethod(): void;
+}
+
+class ClassType implements Type {
+    public function fooMethod(): void {}
+}
+
+class ReflectedClassType extends ClassType {}
+
+class GenericClassType extends ReflectedClassType implements IterableType {
+    public function barMethod(): void {}
+}
+
+function test(Type $foo): void {
+    if ($foo instanceof GenericClassType) {
+        $foo-><>
+    }
+}

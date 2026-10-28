@@ -1,0 +1,15 @@
+// test: signature help on constructor call with 2nd parameter active
+// feature: signature_help
+// Adapted from phpactor WorseSignatureHelperTest 'class with construct 2nd pos'
+// expect_sig_label: (string $foo, int $bar): mixed
+// expect_sig_active: 1
+// expect_sig_param: string $foo
+// expect_sig_param: int $bar
+---
+<?php
+
+class Foo {
+    public function __construct(string $foo, int $bar) {}
+}
+
+new Foo("asd", <>);

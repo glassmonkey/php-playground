@@ -1,0 +1,10 @@
+// test: Readonly properties Doctrine assigns
+// feature: diagnostics
+// Ported from PHPStan's Doctrine extension, MissingReadOnlyPropertyAssignRuleTest::testRule.
+// PHPantom has no check this rule corresponds to yet, so no code is compared.
+// project: phpstan_doctrine
+// file: rules/Properties/data/missing-readonly-property-assign.php
+// expect_diagnostic: 17: Class MissingReadOnlyPropertyAssign\EntityWithAGeneratedId has an uninitialized readonly property $unassigned. Assign it in the constructor. // SKIP: a property nothing initialises, or one assigned twice, is not reported
+// expect_diagnostic: 25: Readonly property MissingReadOnlyPropertyAssign\EntityWithAGeneratedId::$doubleAssigned is already assigned. // SKIP: a property nothing initialises, or one assigned twice, is not reported
+// expect_diagnostic: 46: Class MissingReadOnlyPropertyAssign\ReadOnlyEntityWithConstructor has an uninitialized readonly property $id. Assign it in the constructor. // SKIP: a property nothing initialises, or one assigned twice, is not reported
+---

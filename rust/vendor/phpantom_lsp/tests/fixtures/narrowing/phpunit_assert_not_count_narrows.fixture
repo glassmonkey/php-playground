@@ -1,0 +1,25 @@
+// test: PHPUnit's assertNotCount rules out the size it names
+// feature: hover
+// expect: array{int, int}
+// expect_absent: array{int}
+---
+=== src/Assert.php ===
+<?php
+namespace PHPUnit\Framework;
+
+abstract class Assert {
+    public static function assertNotCount(int $expectedCount, \Countable|iterable $haystack, string $message = ''): void {}
+}
+
+abstract class TestCase extends Assert {}
+=== src/FooTest.php ===
+<?php
+use PHPUnit\Framework\TestCase;
+
+final class FooTest extends TestCase {
+    /** @param array{int, int}|array{int} $ids */
+    public function testIds(array $ids): void {
+        self::assertNotCount(1, $ids);
+        echo $i<>ds;
+    }
+}
