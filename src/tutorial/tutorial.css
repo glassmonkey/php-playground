@@ -1,57 +1,30 @@
 .tutorial {
-	--tutorial-accent: #5557a5;
-	--tutorial-ink: #272b40;
-	--tutorial-muted: #697086;
-	--tutorial-border: #dfe2eb;
-	--tutorial-surface: #f5f6fa;
-	--tutorial-paper: #fff;
-	--tutorial-code: #fafbfe;
-	--tutorial-radius: 8px;
-	--tutorial-gap: 24px;
+	--tutorial-accent: var(--chakra-colors-green-600);
+	--tutorial-ink: var(--chakra-colors-chakra-body-text);
+	--tutorial-muted: var(--chakra-colors-gray-600);
+	--tutorial-border: var(--chakra-colors-chakra-border-color);
+	--tutorial-surface: var(--chakra-colors-gray-50);
+	--tutorial-paper: var(--chakra-colors-chakra-body-bg);
+	--tutorial-radius: var(--chakra-radii-md);
+	--tutorial-gap: var(--chakra-space-6);
 	color: var(--tutorial-ink);
 	background: var(--tutorial-paper);
 	min-height: 100vh;
 	padding: 0 32px 32px;
-	font:
-		15px/1.7 system-ui,
-		sans-serif;
+	font-family: var(--chakra-fonts-body);
+	font-size: var(--chakra-fontSizes-md);
+	line-height: var(--chakra-lineHeights-base);
 }
 .chakra-ui-dark .tutorial {
-	--tutorial-accent: #b7b9f2;
-	--tutorial-ink: #e4e7f2;
-	--tutorial-muted: #a7aec2;
-	--tutorial-border: #363d53;
-	--tutorial-surface: #232a3d;
-	--tutorial-paper: #1a202c;
-	--tutorial-code: #202638;
+	--tutorial-accent: var(--chakra-colors-green-200);
+	--tutorial-muted: var(--chakra-colors-gray-400);
+	--tutorial-surface: var(--chakra-colors-gray-700);
 }
-.tutorial a {
+.tutorial :where(a:not(.chakra-button)) {
 	color: var(--tutorial-accent);
 	text-underline-offset: 4px;
 }
-.tutorial button,
-.tutorial select {
-	font: inherit;
-}
-.tutorial button,
-.tutorial select,
-.tutorial textarea {
-	border: 1px solid var(--tutorial-border);
-	border-radius: var(--tutorial-radius);
-}
-.tutorial button {
-	padding: 7px 12px;
-	background: var(--tutorial-paper);
-	color: var(--tutorial-ink);
-	cursor: pointer;
-	font-size: 13px;
-	font-weight: 600;
-}
-.tutorial button:disabled {
-	opacity: 0.5;
-	cursor: default;
-}
-.tutorial :focus-visible {
+.tutorial :focus-visible:not(.chakra-button):not(.chakra-select) {
 	outline: 3px solid var(--tutorial-accent);
 	outline-offset: 3px;
 }
@@ -70,7 +43,7 @@
 .tutorial-site-brand {
 	color: var(--tutorial-ink) !important;
 	font-size: 16px;
-	font-weight: 750;
+	font-weight: var(--chakra-fontWeights-bold);
 	text-decoration: none;
 }
 .tutorial-site-brand:hover {
@@ -125,14 +98,14 @@
 	color: var(--tutorial-muted);
 	white-space: nowrap;
 }
-.tutorial select {
-	padding: 5px 8px;
-	background: var(--tutorial-paper);
-	color: var(--tutorial-ink);
-}
 .tutorial-intro {
 	max-width: 720px;
 	padding: 36px 0 28px;
+}
+.tutorial h1,
+.tutorial h2,
+.tutorial-site-brand {
+	font-family: var(--chakra-fonts-heading);
 }
 .tutorial h1 {
 	font-size: 30px;
@@ -154,17 +127,6 @@
 	font-size: 11px;
 	font-weight: 650;
 	letter-spacing: 0.08em;
-}
-.tutorial .tutorial-button {
-	display: inline-block;
-	background: var(--tutorial-accent);
-	color: var(--tutorial-paper);
-	border: 0;
-	text-decoration: none;
-	border-radius: var(--tutorial-radius);
-	padding: 8px 14px;
-	font-size: 13px;
-	font-weight: 650;
 }
 .tutorial-lessons {
 	list-style: none;
@@ -335,6 +297,7 @@
 	color: var(--tutorial-muted);
 }
 .tutorial textarea {
+	border: 1px solid var(--tutorial-border);
 	display: block;
 	width: 100%;
 	min-height: 290px;
@@ -342,8 +305,8 @@
 	border-radius: 0;
 	border-left: 0;
 	border-right: 0;
-	background: var(--tutorial-code);
-	color: var(--tutorial-ink);
+	background: var(--tutorial-code-background);
+	color: var(--tutorial-code-foreground);
 	padding: 16px;
 	font:
 		14px/1.8 ui-monospace,
@@ -368,7 +331,8 @@
 	font-size: 11px;
 }
 .tutorial-result {
-	background: var(--tutorial-paper);
+	background: var(--tutorial-code-background);
+	color: var(--tutorial-code-foreground);
 	padding: 14px 16px;
 	min-height: 150px;
 	border-top: 1px solid var(--tutorial-border);
@@ -378,11 +342,7 @@
 	color: var(--tutorial-muted);
 }
 .tutorial-result [role='alert'] {
-	color: #c95164;
-}
-.tutorial-result > button {
-	font-size: 11px;
-	padding: 5px 9px;
+	color: var(--chakra-colors-red-500);
 }
 .tutorial-result .tutorial-note {
 	font-size: 11px;
@@ -445,6 +405,11 @@
 		justify-content: flex-end;
 		margin-left: auto;
 	}
+	.tutorial h1,
+	.tutorial h2,
+	.tutorial-site-brand {
+		font-family: var(--chakra-fonts-heading);
+	}
 	.tutorial h1 {
 		font-size: 25px;
 	}
@@ -485,6 +450,7 @@
 		padding: 28px 0;
 	}
 	.tutorial textarea {
+		border: 1px solid var(--tutorial-border);
 		min-height: 240px;
 	}
 	.tutorial-pagination {
@@ -510,12 +476,6 @@
 	font-size: 13px;
 	color: var(--tutorial-muted);
 	margin: 8px 0 0;
-}
-.tutorial-example button[aria-pressed='true'],
-.tutorial-experiments button[aria-pressed='true'] {
-	border-color: var(--tutorial-accent);
-	color: var(--tutorial-accent);
-	background: var(--tutorial-surface);
 }
 .tutorial-chapter {
 	margin-top: 28px;

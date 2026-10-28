@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Button } from '@chakra-ui/react';
 import type { Lesson, LessonBlock, Program } from './types';
 import type { TutorialVersion } from './config';
 import { useTutorialRunner } from './use-tutorial-runner';
@@ -32,15 +33,29 @@ function ReferenceOutput({
 				<pre>{runner.output || '(No output)'}</pre>
 			)}
 			{runner.running ? (
-				<button onClick={runner.stop}>Stop reference run</button>
+				<Button
+					size="sm"
+					whiteSpace="normal"
+					height="auto"
+					minHeight="8"
+					py="2"
+					onClick={runner.stop}
+				>
+					Stop reference run
+				</Button>
 			) : runner.error ? (
-				<button
+				<Button
+					size="sm"
+					whiteSpace="normal"
+					height="auto"
+					minHeight="8"
+					py="2"
 					onClick={() =>
 						runner.run(program.code, program.input ?? null)
 					}
 				>
 					Retry
-				</button>
+				</Button>
 			) : null}
 		</div>
 	);
@@ -111,12 +126,20 @@ function Block({
 		case 'example':
 			return (
 				<div className="tutorial-example">
-					<button
+					<Button
+						size="sm"
+						whiteSpace="normal"
+						height="auto"
+						minHeight="8"
+						py="2"
+						variant={
+							activeExperimentId === null ? 'solid' : 'outline'
+						}
 						aria-pressed={activeExperimentId === null}
 						onClick={() => onSelectExperiment(null)}
 					>
 						Example
-					</button>
+					</Button>
 					<pre>
 						<code>
 							{lesson.programs[lesson.sampleProgramId].code}
@@ -157,7 +180,17 @@ function Block({
 							className="tutorial-experiment"
 							key={experiment.id}
 						>
-							<button
+							<Button
+								size="sm"
+								whiteSpace="normal"
+								height="auto"
+								minHeight="8"
+								py="2"
+								variant={
+									activeExperimentId === experiment.id
+										? 'solid'
+										: 'outline'
+								}
 								aria-pressed={
 									activeExperimentId === experiment.id
 								}
@@ -166,7 +199,7 @@ function Block({
 								}
 							>
 								Try {experiment.title}
-							</button>
+							</Button>
 							<p>{experiment.description}</p>
 						</div>
 					))}

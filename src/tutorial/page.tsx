@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { Button, Select, useColorMode } from '@chakra-ui/react';
+import { previewThemeFor } from '../preview-theme';
 import {
 	Link,
 	Navigate,
@@ -22,6 +24,24 @@ import { LessonSections } from './lesson-sections';
 import { validateLessons } from './validate-content';
 import { chapters, groupLessons } from './chapters';
 
+function TutorialSurface({ children }: { children: React.ReactNode }) {
+	const { colorMode } = useColorMode();
+	const preview = previewThemeFor(colorMode);
+	return (
+		<main
+			className="tutorial"
+			style={
+				{
+					'--tutorial-code-background': preview.background,
+					'--tutorial-code-foreground': preview.foreground,
+				} as React.CSSProperties
+			}
+		>
+			{children}
+		</main>
+	);
+}
+
 function usePageMetadata(title: string) {
 	const { pathname } = useLocation();
 	React.useEffect(() => {
@@ -43,10 +63,10 @@ export default function TutorialPage() {
 	const { version, slug, '*': unmatched } = useParams();
 	if (unmatched)
 		return (
-			<main className="tutorial">
+			<TutorialSurface>
 				<h1>Lesson not found</h1>
 				<Link to="/tutorial/">Browse the tutorial</Link>
-			</main>
+			</TutorialSurface>
 		);
 	if (!version || version === 'latest') {
 		const destination =
@@ -65,10 +85,10 @@ export default function TutorialPage() {
 	}
 	if (!isTutorialVersion(version))
 		return (
-			<main className="tutorial">
+			<TutorialSurface>
 				<h1>No lessons for this version yet</h1>
 				<Link to="/tutorial/">Browse the tutorial</Link>
-			</main>
+			</TutorialSurface>
 		);
 	return <VersionPage version={version} slug={slug} />;
 }
@@ -77,14 +97,14 @@ function VersionPage(props: { version: TutorialVersion; slug?: string }) {
 	const errors = validateLessons(lessonsByVersion[props.version]);
 	if (errors.length)
 		return (
-			<main className="tutorial">
+			<TutorialSurface>
 				<h1>Invalid tutorial content</h1>
 				<ul role="alert">
 					{errors.map((error, index) => (
 						<li key={index}>{error}</li>
 					))}
 				</ul>
-			</main>
+			</TutorialSurface>
 		);
 	return <ValidVersionPage {...props} />;
 }
@@ -114,7 +134,7 @@ function ValidVersionPage({
 		navigate(`/tutorial/${next}/${destination}`);
 	}
 	return (
-		<main className="tutorial">
+		<TutorialSurface>
 			<header className="tutorial-header">
 				<div className="tutorial-top">
 					<Link className="tutorial-site-brand" to="/">
@@ -123,7 +143,9 @@ function ValidVersionPage({
 					<div className="tutorial-header-controls">
 						<label className="tutorial-version-control">
 							Learn with{' '}
-							<select
+							<Select
+								size="sm"
+								width="auto"
 								value={version}
 								onChange={(event) =>
 									switchVersion(event.target.value)
@@ -134,7 +156,7 @@ function ValidVersionPage({
 										PHP {item}
 									</option>
 								))}
-							</select>
+							</Select>
 						</label>
 						<ThemeToggle />
 					</div>
@@ -197,12 +219,14 @@ function ValidVersionPage({
 							what happens, right beside the explanation. No
 							installation needed.
 						</p>
-						<Link
-							className="tutorial-button"
+						<Button
+							as={Link}
+							size="sm"
+							colorScheme="green"
 							to={`/tutorial/${version}/${lessons[0].slug}/`}
 						>
 							Start learning →
-						</Link>
+						</Button>
 					</header>
 					<section aria-labelledby="lesson-list">
 						<h2 id="lesson-list">Your learning path</h2>
@@ -247,7 +271,7 @@ function ValidVersionPage({
 					</section>
 				</>
 			)}
-		</main>
+		</TutorialSurface>
 	);
 }
 
@@ -444,24 +468,28 @@ function LessonPage({
 						)}
 
 						<div className="tutorial-actions">
-							<button
-								className="tutorial-button"
+							<Button
+								size="sm"
+								colorScheme="green"
 								onClick={() => runner.run(code, runInput)}
-								disabled={runner.running}
+								isDisabled={runner.running}
 							>
 								{runner.running ? 'Running…' : 'Run'}
-							</button>
+							</Button>
 							{runner.running && (
-								<button onClick={runner.stop}>Stop</button>
+								<Button size="sm" onClick={runner.stop}>
+									Stop
+								</Button>
 							)}
-							<button
+							<Button
+								size="sm"
 								onClick={() => {
 									runner.reset();
 									setCode(program.code);
 								}}
 							>
 								Reset
-							</button>
+							</Button>
 							<a
 								href={playgroundURL}
 								target="_blank"
