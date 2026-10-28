@@ -1,0 +1,24 @@
+// test: method-level @template resolves return type from argument
+// feature: completion
+// Adapted from phpactor generics/method_generic.test
+// expect: strMethod(
+---
+<?php
+class StringResult {
+    public function strMethod(): void {}
+}
+class Foo
+{
+    /**
+     * @template T
+     * @param T $foo
+     * @return T
+     */
+    public function bar($foo)
+    {
+        return $foo;
+    }
+}
+$f = new Foo();
+$res = $f->bar(new StringResult());
+$res-><>

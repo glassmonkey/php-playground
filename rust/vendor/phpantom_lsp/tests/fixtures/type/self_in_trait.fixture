@@ -1,0 +1,18 @@
+// test: self return type in trait resolves to the class using the trait
+// feature: completion
+// Adapted from phpactor type/self_context_trait.test
+// expect: foo(
+---
+<?php
+
+trait SingletonTrait {
+    public static function getInstance(): self {}
+}
+
+class A {
+    use SingletonTrait;
+
+    public function foo(): void {}
+}
+
+A::getInstance()-><>

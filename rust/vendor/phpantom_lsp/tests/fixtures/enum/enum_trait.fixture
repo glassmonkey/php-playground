@@ -1,0 +1,23 @@
+// test: enum using trait gets trait methods in completion
+// feature: completion
+// Adapted from phpactor enum/enum_trait.test
+// expect: foo(
+---
+<?php
+
+trait EnumTrait {
+    public function foo(): string
+    {
+        return 'bar';
+    }
+}
+
+enum ScheduleType: int
+{
+    use EnumTrait;
+
+    case Daily = 1;
+    case Weekly = 2;
+}
+
+ScheduleType::Daily-><>

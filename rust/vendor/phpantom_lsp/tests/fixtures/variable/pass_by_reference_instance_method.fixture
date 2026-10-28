@@ -1,0 +1,23 @@
+// test: instance method by-ref parameter sets type on variable after $this->method() call
+// feature: completion
+// After calling $this->bar($baz) where $baz is typed as Qux &, $baz should resolve to Qux
+// expect: doWork(
+---
+<?php
+
+class Qux {
+    public function doWork(): void {}
+}
+
+class Foo {
+    public function bar(Qux &$baz): void
+    {
+        $baz = new Qux();
+    }
+
+    public function test(): void
+    {
+        $this->bar($baz);
+        $baz-><>
+    }
+}

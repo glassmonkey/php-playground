@@ -1,0 +1,32 @@
+// test: return type inferred from method body with returns inside if branches
+// feature: completion
+// Returns inside control structures (if/else/for/while) belong to the
+// enclosing method scope and must be captured by body inference.
+// expect: penMethod(
+// expect: pencilMethod(
+---
+<?php
+
+class BranchFactory {
+    public function create(bool $flag) {
+        if ($flag) {
+            return new BranchPen();
+        }
+        return new BranchPencil();
+    }
+}
+
+class BranchPen {
+    public function penMethod(): void {}
+    public function pencilMethod(): void {}
+}
+
+class BranchPencil {
+    public function pencilMethod(): void {}
+    public function penMethod(): void {}
+}
+
+function testBranchReturn(BranchFactory $f): void {
+    $result = $f->create(true);
+    $result-><>
+}

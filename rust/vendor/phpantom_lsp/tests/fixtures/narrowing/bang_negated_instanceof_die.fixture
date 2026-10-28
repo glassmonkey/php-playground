@@ -1,0 +1,22 @@
+// test: negated instanceof with die narrows type after guard
+// feature: completion
+// Adapted from phpactor if-statement/bang.test
+// expect: fooMethod(
+---
+<?php
+
+class Foobar {
+    public function fooMethod(): void {}
+}
+
+class Other {
+    public function otherMethod(): void {}
+}
+
+function test(Foobar|Other $foobar): void {
+    if (!$foobar instanceof Foobar) {
+        die('not a Foobar');
+    }
+
+    $foobar-><>
+}

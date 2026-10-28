@@ -1,0 +1,16 @@
+// test: static method shown on instance -> access
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest 'shows static member on instance method'
+// PHP allows calling static methods through an instance, so completion should show them.
+// expect: hello(
+// expect: goodbye(
+---
+<?php
+
+class BarBar {
+    public function hello(): void {}
+    public static function goodbye(): void {}
+}
+
+$bar = new BarBar();
+$bar-><>

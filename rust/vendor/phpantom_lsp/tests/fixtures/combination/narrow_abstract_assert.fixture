@@ -1,0 +1,17 @@
+// test: assert instanceof narrows abstract type to concrete subclass
+// feature: completion
+// Adapted from phpactor combination/narrow_abstract.test
+// expect: fooMethod(
+---
+<?php
+
+abstract class AbstractFoo {}
+
+class Foobar extends AbstractFoo {
+    public function fooMethod(): void {}
+}
+
+function test(AbstractFoo $foo): void {
+    assert($foo instanceof Foobar);
+    $foo-><>
+}

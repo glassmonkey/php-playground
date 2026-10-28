@@ -1,0 +1,40 @@
+use super::*;
+
+// ─── Anonymous class ─────────────────────────────────────────────────────────
+// `new class(...) extends Foo implements Bar { ... }`
+
+pub(super) fn extract_anonymous_class_expr<'a>(
+    anon: &'a AnonymousClass<'a>,
+    ctx: &mut ExtractionCtx<'a>,
+    scope_start: u32,
+) {
+    if let Some(ref args) = anon.argument_list {
+        extract_from_partial_arguments(&args.arguments, ctx, scope_start);
+    }
+
+    if let Some(ref extends) = anon.extends {
+        for ident in extends.types.iter() {
+            ctx.spans
+                .push(identifier_class_ref(ident, ClassRefContext::Other));
+        }
+    }
+
+    if let Some(ref implements) = anon.implements {
+        for ident in implements.types.iter() {
+            ctx.spans
+                .push(identifier_class_ref(ident, ClassRefContext::Other));
+        }
+    }
+
+    extract_from_attribute_lists(&anon.attribute_lists, ctx, scope_start);
+
+    if let Some((doc_text, doc_offset)) =
+        get_docblock_text_with_offset(ctx.trivias, ctx.content, anon)
+    {
+        let _found = extract_docblock_symbols(doc_text, doc_offset, &mut ctx.spans);
+    }
+
+    for member in anon.members.iter() {
+        extract_from_class_member(member, ctx);
+    }
+}

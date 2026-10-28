@@ -1,0 +1,26 @@
+// test: type narrows after die guard clause
+// feature: completion
+// Adapted from phpactor if-statement/die.test
+// expect: barMethod(
+---
+<?php
+
+class Foobar {
+    public function fooMethod(): void {}
+}
+
+class Barfoo {
+    public function barMethod(): void {}
+}
+
+function make(): Foobar|Barfoo {}
+
+function test(): void {
+    $x = make();
+
+    if ($x instanceof Foobar) {
+        die();
+    }
+
+    $x-><>
+}

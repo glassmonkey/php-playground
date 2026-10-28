@@ -1,0 +1,19 @@
+// test: instanceof on unrelated concrete classes replaces rather than intersecting
+// feature: completion
+// expect: bark(
+// expect_absent: canBeRefunded(
+---
+<?php
+
+class MolliePayment {
+    public function canBeRefunded(): bool { return true; }
+}
+
+class Dog {
+    public function bark(): void {}
+}
+
+function test(MolliePayment $payment): void {
+    assert($payment instanceof Dog);
+    $payment-><>
+}

@@ -1,0 +1,26 @@
+// test: bitwise operators resolve to the value they compute
+// feature: hover
+// Adapted from phpactor binary-expression/bitwise.test
+// Phpactor reports `int`; a bitwise operation over known integers folds to
+// its value here, which is what lets a mask kept in a variable be
+// bit-tested at the call it is passed to.
+// expect_hover: $and => 0
+// expect_hover: $or => 5
+// expect_hover: $xor => 5
+// expect_hover: $shl => 4
+// expect_hover: $shr => 0
+---
+<?php
+
+function test(): void {
+    $and = 0 & 5;
+    $or = 0 | 5;
+    $xor = 0 ^ 5;
+    $shl = 1 << 2;
+    $shr = 1 >> 2;
+    $<>and;
+    $or;
+    $xor;
+    $shl;
+    $shr;
+}

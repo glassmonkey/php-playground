@@ -1,0 +1,17 @@
+// test: array subscript on typed array resolves method return type in chain
+// feature: completion
+// Adapted from phpactor generics/array_access_resolve_method_type1.test
+// expect: barMethod(
+---
+<?php
+
+class Bar {
+    public function barMethod(): void {}
+}
+
+class Foo {
+    public function bar(): Bar {}
+}
+
+/** @var Foo[] $foo */
+$foo[0]->bar()-><>

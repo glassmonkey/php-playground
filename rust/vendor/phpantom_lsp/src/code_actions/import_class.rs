@@ -1,0 +1,358 @@
+//! Import class code action.
+//!
+//! When the cursor is on an unresolved class name (an unqualified class
+//! reference or static access subject that cannot be resolved via
+//! use-map, namespace, or local classes), offer code actions to add a
+//! `use` statement for each matching class found in the class index and
+//! stubs.
+//!
+//! The bulk "Import all missing classes" action lives in
+//! [`super::import_all_classes`].
+
+use std::collections::{HashMap, HashSet};
+
+use tower_lsp_server::gen_lsp_types::*;
+
+use crate::Backend;
+use crate::completion::use_edit::{build_use_edit, use_import_conflicts};
+use crate::diagnostics::unknown_classes::UNKNOWN_CLASS_CODE;
+
+use crate::class_lookup::is_class_keyword;
+use crate::symbol_map::{ClassRefContext, MappedSource, SymbolKind, SymbolSpan};
+use crate::types::ClassLikeKind;
+use crate::util::short_name;
+
+use super::span_overlaps_request;
+
+/// The class name `span` writes when it is an unqualified one that may
+/// need an import, with the context it is written in.
+///
+/// That is a class reference that is not fully qualified, or the subject
+/// of a static member access (`Foo::bar()`, which the symbol map records
+/// as one member access rather than a class reference) that is not a
+/// variable, a qualified name, or a class keyword.
+pub(super) fn unqualified_class_name<'a>(
+    span: &'a SymbolSpan,
+    source: MappedSource<'a>,
+) -> Option<(&'a str, ClassRefContext)> {
+    match &span.kind {
+        SymbolKind::ClassReference {
+            name,
+            is_fqn: false,
+            context,
+        } if !name.contains('\\') => Some((name.as_str(), *context)),
+        SymbolKind::MemberAccess {
+            subject_text,
+            is_static: true,
+            ..
+        } => {
+            let subject = subject_text.as_str(source);
+            (!subject.starts_with('$') && !subject.contains('\\') && !is_class_keyword(subject))
+                .then_some((subject, ClassRefContext::Other))
+        }
+        _ => None,
+    }
+}
+
+impl Backend {
+    /// Push one "Import `Fqn`" code action per candidate that does not
+    /// conflict with an existing import.
+    ///
+    /// `diagnostics` are attached to every action so an editor can offer
+    /// each as a quick-fix for the diagnostic that flagged the name;
+    /// `is_preferred` is set when `candidates` holds only the one.
+    #[allow(clippy::too_many_arguments)]
+    fn push_import_actions(
+        &self,
+        out: &mut Vec<CodeActionResponse>,
+        doc_uri: &Uri,
+        candidates: &[String],
+        file_use_map: &HashMap<String, String>,
+        use_block: &crate::completion::use_edit::UseBlockInfo,
+        file_namespace: &Option<String>,
+        diagnostics: Option<&[Diagnostic]>,
+    ) {
+        for fqn in candidates {
+            // Skip candidates that would conflict with an existing import
+            // (e.g. a different class with the same short name is already
+            // imported).
+            if use_import_conflicts(fqn, file_use_map) {
+                continue;
+            }
+
+            let edits = match build_use_edit(fqn, use_block, file_namespace) {
+                Some(e) => e,
+                // No edit needed (global class, no namespace) — skip.
+                None => continue,
+            };
+
+            out.push(CodeActionResponse::CodeAction(CodeAction {
+                title: format!("Import `{}`", fqn),
+                kind: Some(CodeActionKind::QuickFix),
+                diagnostics: diagnostics
+                    .filter(|d| !d.is_empty())
+                    .map(<[Diagnostic]>::to_vec),
+                edit: Some(crate::code_actions::single_file_edit(
+                    doc_uri.clone(),
+                    edits,
+                )),
+                command: None,
+                is_preferred: (candidates.len() == 1).then_some(true),
+                disabled: None,
+                data: None,
+                tags: None,
+            }));
+        }
+    }
+
+    /// Whether `ref_name`, a short (non-FQN) class name written in a file
+    /// whose context is given by `file_use_map`/`local_classes`/
+    /// `file_namespace`, resolves without an import.
+    ///
+    /// A name that is already imported, declared in the same file, reachable
+    /// through the file's own namespace, or (for a namespace-less file)
+    /// resolvable in the global scope needs no `use` statement; every other
+    /// name is an import candidate.
+    pub(super) fn class_name_needs_import(
+        &self,
+        ref_name: &str,
+        file_use_map: &HashMap<String, String>,
+        local_classes: &HashSet<String>,
+        file_namespace: &Option<String>,
+    ) -> bool {
+        if file_use_map.contains_key(ref_name) {
+            return false;
+        }
+        if local_classes.contains(ref_name) {
+            return false;
+        }
+        if let Some(ns) = file_namespace {
+            let ns_qualified = format!("{}\\{}", ns, ref_name);
+            if self.find_or_load_class(&ns_qualified).is_some() {
+                return false;
+            }
+        }
+        if file_namespace.is_none() && self.find_or_load_class(ref_name).is_some() {
+            return false;
+        }
+        true
+    }
+
+    /// Collect "Import class" code actions for the cursor position.
+    ///
+    /// For the first unresolved class name under the request range,
+    /// search the class index and stubs for classes whose short name
+    /// matches, and offer a code action per candidate.
+    pub(crate) fn collect_import_class_actions(
+        &self,
+        uri: &str,
+        content: &str,
+        params: &CodeActionParams,
+        out: &mut Vec<CodeActionResponse>,
+    ) {
+        // Convert LSP range to byte offsets for comparison with symbol spans.
+        let request_start =
+            crate::text_position::position_to_byte_offset(content, params.range.start);
+        let request_end = crate::text_position::position_to_byte_offset(content, params.range.end);
+
+        // ── Gather the context of the block the cursor is in ────────────
+        let block = self.import_block_at(uri, request_start);
+        let file_use_map = &block.use_map;
+        let file_namespace = &block.namespace;
+
+        let Some(symbol_map) = self.symbol_map_for(uri) else {
+            return;
+        };
+        let Some(source) = symbol_map.source(content) else {
+            return;
+        };
+
+        let local_classes = self.local_class_names(uri, file_namespace.as_deref());
+
+        // ── Find unqualified class names overlapping the request range ──
+        let affinity_table =
+            crate::completion::class_completion::build_affinity_table(file_use_map, file_namespace);
+        for span in &symbol_map.spans {
+            if !span_overlaps_request(span, request_start, request_end) {
+                continue;
+            }
+            let Some((ref_name, ref_context)) = unqualified_class_name(span, source) else {
+                continue;
+            };
+
+            // Skip names that resolve without an import.
+            if !self.class_name_needs_import(ref_name, file_use_map, &local_classes, file_namespace)
+            {
+                continue;
+            }
+
+            // ── Name is unresolved — find import candidates ─────────────
+            let mut candidates = self.find_import_candidates(ref_name, &affinity_table);
+            self.filter_candidates_by_context(&mut candidates, ref_context);
+
+            if candidates.is_empty() {
+                continue;
+            }
+
+            let use_block = self.use_block_for(uri, content, block.range);
+            let doc_uri: Uri = match uri.parse() {
+                Ok(u) => u,
+                Err(_) => continue,
+            };
+
+            // Find any unknown_class diagnostics from the request context
+            // that overlap this span so we can attach them to the code
+            // action.  This lets editors show the import action as a
+            // quick-fix for the diagnostic.
+            let matching_diagnostics: Vec<Diagnostic> = params
+                .context
+                .diagnostics
+                .iter()
+                .filter(|d| {
+                    matches!(
+                        &d.code,
+                        Some(Code::String(code)) if code == UNKNOWN_CLASS_CODE
+                    )
+                })
+                .cloned()
+                .collect();
+
+            self.push_import_actions(
+                out,
+                &doc_uri,
+                &candidates,
+                file_use_map,
+                &use_block,
+                file_namespace,
+                Some(&matching_diagnostics),
+            );
+
+            // Only process the first unresolved reference at the cursor.
+            // Multiple overlapping references at the exact same position
+            // are unlikely, and processing one keeps the action list tidy.
+            break;
+        }
+    }
+
+    /// Search all known class sources for classes whose short name matches
+    /// `name` (case-insensitive).
+    ///
+    /// Returns a deduplicated, sorted list of fully-qualified class names.
+    pub(super) fn find_import_candidates(
+        &self,
+        name: &str,
+        affinity_table: &HashMap<String, u32>,
+    ) -> Vec<String> {
+        let mut candidates = Vec::new();
+        let name_lower = name.to_lowercase();
+
+        // ── 1. fqn_uri_index ──────────────────────────────────────────────
+        {
+            let idx = self.symbols.fqn_uri_index.read();
+            for fqn in idx.keys() {
+                if short_name(fqn).to_lowercase() == name_lower {
+                    candidates.push(fqn.to_owned());
+                }
+            }
+        }
+
+        // ── 2. uri_classes_index (already-parsed files) ───────────────────────────
+        {
+            let amap = self.symbols.uri_classes_index.read();
+            for classes in amap.values() {
+                for cls in classes {
+                    if cls.name.to_lowercase() == name_lower {
+                        let fqn = match &cls.file_namespace {
+                            Some(ns) if !ns.is_empty() => format!("{}\\{}", ns, cls.name),
+                            _ => cls.name.to_string(),
+                        };
+                        if !candidates
+                            .iter()
+                            .any(|c: &String| c.eq_ignore_ascii_case(&fqn))
+                        {
+                            candidates.push(fqn);
+                        }
+                    }
+                }
+            }
+        }
+
+        // ── 3. Stubs (built-in PHP classes) ─────────────────────────────
+        // Stubs are global-namespace classes, so the FQN is the short name.
+        // Only add if the file has a namespace (otherwise no import needed).
+        let stub_idx = self.stub_index.read();
+        for stub_name in stub_idx.keys() {
+            if short_name(stub_name).to_lowercase() == name_lower
+                && !candidates
+                    .iter()
+                    .any(|c: &String| c.eq_ignore_ascii_case(stub_name))
+            {
+                candidates.push(stub_name.to_string());
+            }
+        }
+
+        candidates.sort();
+        candidates.dedup();
+
+        // Sort by affinity score descending, with alphabetical tiebreak.
+        candidates.sort_by(|a, b| {
+            let score_a = crate::completion::class_completion::affinity_score(a, affinity_table);
+            let score_b = crate::completion::class_completion::affinity_score(b, affinity_table);
+            score_b.cmp(&score_a).then_with(|| a.cmp(b))
+        });
+
+        candidates
+    }
+
+    /// Filter import candidates by the syntactic context of the class
+    /// reference.
+    ///
+    /// For example, after `implements` only interfaces are valid, after
+    /// `use` inside a class body only traits are valid, etc.  When the
+    /// context narrows the kind, candidates whose `ClassLikeKind` does
+    /// not match are removed.  If filtering would remove *all*
+    /// candidates (e.g. none of them are loaded yet), the list is left
+    /// unchanged so the user still gets suggestions.
+    pub(super) fn filter_candidates_by_context(
+        &self,
+        candidates: &mut Vec<String>,
+        context: ClassRefContext,
+    ) {
+        let required_kind = match context {
+            ClassRefContext::Implements => Some(ClassLikeKind::Interface),
+            ClassRefContext::TraitUse => Some(ClassLikeKind::Trait),
+            ClassRefContext::ExtendsClass => Some(ClassLikeKind::Class),
+            ClassRefContext::ExtendsInterface => Some(ClassLikeKind::Interface),
+            // Other contexts don't restrict to a single kind.
+            _ => None,
+        };
+
+        let required_kind = match required_kind {
+            Some(k) => k,
+            None => return,
+        };
+
+        // Only filter if at least one candidate can be resolved to a
+        // ClassInfo so we can check its kind.  If none are resolvable
+        // (e.g. not yet indexed), keep the full list.
+        let filtered: Vec<String> = candidates
+            .iter()
+            .filter(|fqn| {
+                match self.find_or_load_class(fqn) {
+                    Some(ci) => ci.kind == required_kind,
+                    // Can't determine kind — keep the candidate.
+                    None => true,
+                }
+            })
+            .cloned()
+            .collect();
+
+        if !filtered.is_empty() {
+            *candidates = filtered;
+        }
+    }
+}
+
+#[cfg(test)]
+#[path = "import_class_tests.rs"]
+mod tests;

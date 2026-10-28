@@ -1,0 +1,25 @@
+// test: instanceof narrowing works inside a class method
+// feature: completion
+// Adapted from phpactor if-statement/multiple_statements_with_class.test
+// expect: barMethod(
+// expect_absent: fooMethod(
+---
+<?php
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+class Bar {
+    public function barMethod(): void {}
+}
+
+class TestClass {
+    function test(Foo|Bar $foo): void {
+        if (!$foo instanceof Bar) {
+            return;
+        }
+
+        $foo-><>
+    }
+}

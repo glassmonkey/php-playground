@@ -1,0 +1,20 @@
+// test: instanceof narrows type to class members
+// feature: completion
+// Adapted from phpactor if-statement/instanceof.test
+// expect: fooMethod(
+---
+<?php
+
+class Foobar {
+    public function fooMethod(): void {}
+}
+
+class Other {
+    public function otherMethod(): void {}
+}
+
+function test(Foobar|Other $foobar): void {
+    if ($foobar instanceof Foobar) {
+        $foobar-><>
+    }
+}

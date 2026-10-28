@@ -1,0 +1,23 @@
+// test: protected members visible from child class via $this
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest visibility patterns
+// expect: parentHelper(
+// expect: childMethod(
+// expect_absent: privateSecret(
+---
+<?php
+
+class ParentClass
+{
+    private function privateSecret(): void {}
+    protected function parentHelper(): void {}
+    public function publicMethod(): void {}
+}
+
+class ChildClass extends ParentClass
+{
+    public function childMethod(): void
+    {
+        $this-><>
+    }
+}

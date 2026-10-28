@@ -1,0 +1,21 @@
+// test: catch clause with union type provides members from both exception types
+// feature: completion
+// Adapted from phpactor catch-clause/union.test
+// expect: fooMethod(
+// expect: barMethod(
+---
+<?php
+
+class FooException extends \Exception {
+    public function fooMethod(): void {}
+}
+
+class BarException extends \Exception {
+    public function barMethod(): void {}
+}
+
+try {
+    throw new FooException();
+} catch (FooException | BarException $exception) {
+    $exception-><>
+}

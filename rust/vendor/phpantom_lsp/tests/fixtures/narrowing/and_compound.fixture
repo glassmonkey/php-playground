@@ -1,0 +1,20 @@
+// test: compound && narrows type within branch
+// feature: completion
+// Adapted from phpactor if-statement/and.test
+// expect: fooMethod(
+---
+<?php
+
+class Foobar {
+    public function fooMethod(): void {}
+}
+
+class Other {
+    public function otherMethod(): void {}
+}
+
+function test(Foobar|Other $foo): void {
+    if ($foo instanceof Foobar && true) {
+        $foo-><>
+    }
+}

@@ -1,0 +1,21 @@
+// test: iterating a typed class constant of enum cases yields the cases
+// feature: hover
+// expect: Country
+// expect_absent: mixed
+---
+<?php
+
+enum Country: string {
+    case DK = 'dk';
+    case SE = 'se';
+}
+
+final class C {
+    private const array CASES = [Country::DK, Country::SE];
+
+    public function a(): void {
+        foreach (self::CASES as $m) {
+            $<>m;
+        }
+    }
+}

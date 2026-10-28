@@ -1,0 +1,14 @@
+// test: completion on assignment still resolves the variable type
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest 'Completion on assignment'
+// expect: method1(
+---
+<?php
+
+class Foobar
+{
+    public function method1() {}
+}
+
+$foobar = new Foobar();
+$foobar = $foobar->meth<>

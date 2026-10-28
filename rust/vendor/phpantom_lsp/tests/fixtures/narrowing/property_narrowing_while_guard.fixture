@@ -1,0 +1,34 @@
+// test: property access narrows after negated instanceof guard with return in while loop
+// feature: completion
+// When $item->node is checked with instanceof inside a while loop and
+// the negated branch returns, $item->node should be narrowed to the
+// checked type on subsequent access.
+// expect: getText(
+---
+<?php
+
+class TextNode {
+    public function getText(): string { return ''; }
+}
+
+class ImageNode {
+    public function getSrc(): string { return ''; }
+}
+
+class Item {
+    public TextNode|ImageNode $node;
+}
+
+class Processor
+{
+    public function process(Item $item): void
+    {
+        while (true) {
+            if (! $item->node instanceof TextNode) {
+                return;
+            }
+
+            $item->node-><>
+        }
+    }
+}

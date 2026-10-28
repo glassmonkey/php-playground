@@ -1,0 +1,19 @@
+// test: static factory method returning self allows method chaining
+// feature: completion
+// Adapted from phpactor call-expression/invoke-gh-1686.test
+// expect: handle(
+---
+<?php
+
+class HandlerStack
+{
+    public static function create(): self
+    {
+        return new self();
+    }
+
+    public function handle(): string {}
+}
+
+$stack = HandlerStack::create();
+$stack-><>

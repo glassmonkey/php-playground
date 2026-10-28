@@ -1,0 +1,149 @@
+//! Integration tests for the "Extract interface" code action.
+
+use std::sync::Arc;
+
+use crate::common::{create_test_backend, find_action_titled, get_code_actions_at};
+use tower_lsp_server::gen_lsp_types::*;
+
+#[test]
+fn offered_on_class_with_public_methods() {
+    let content = r#"<?php
+namespace App\Models;
+
+class User
+{
+    public function getName(): string
+    {
+        return 'test';
+    }
+
+    public function setName(string $name): void
+    {
+    }
+}
+"#;
+
+    let uri = "file:///tmp/User.php";
+    let backend = create_test_backend();
+
+    // Cursor on the class body.
+    backend.update_ast(uri, content);
+    let actions = get_code_actions_at(&backend, uri, content, 5, 4);
+    let action = find_action_titled(&actions, "Extract interface");
+    assert!(action.is_some(), "Should offer Extract interface");
+}
+
+#[test]
+fn not_offered_on_interface() {
+    let content = r#"<?php
+interface UserInterface
+{
+    public function getName(): string;
+}
+"#;
+
+    let uri = "file:///tmp/UserInterface.php";
+    let backend = create_test_backend();
+
+    backend.update_ast(uri, content);
+    let actions = get_code_actions_at(&backend, uri, content, 3, 4);
+    let action = find_action_titled(&actions, "Extract interface");
+    assert!(action.is_none(), "Should not offer on interfaces");
+}
+
+#[test]
+fn not_offered_without_public_methods() {
+    let content = r#"<?php
+class User
+{
+    private function secret(): void {}
+}
+"#;
+
+    let uri = "file:///tmp/User.php";
+    let backend = create_test_backend();
+
+    backend.update_ast(uri, content);
+    let actions = get_code_actions_at(&backend, uri, content, 3, 4);
+    let action = find_action_titled(&actions, "Extract interface");
+    assert!(action.is_none(), "Should not offer without public methods");
+}
+
+#[test]
+fn resolve_creates_interface_file() {
+    let content = r#"<?php
+namespace App\Models;
+
+class User
+{
+    public function getName(): string
+    {
+        return 'test';
+    }
+
+    public static function create(string $name): self
+    {
+        return new self();
+    }
+}
+"#;
+
+    let uri = "file:///tmp/User.php";
+    let backend = create_test_backend();
+
+    backend.update_ast(uri, content);
+    let actions = get_code_actions_at(&backend, uri, content, 5, 4);
+    let action = find_action_titled(&actions, "Extract interface").expect("should have action");
+
+    // Resolve the deferred action.
+    backend
+        .open_files()
+        .write()
+        .insert(uri.to_string(), Arc::new(content.to_string()));
+    let (resolved, _) = backend.resolve_code_action(action.clone());
+    let edit = resolved.edit.expect("should produce edit");
+
+    let ops = edit.document_changes.expect("should have document_changes");
+    // Should have CreateFile + two TextDocumentEdits.
+    assert_eq!(ops.len(), 3);
+
+    // First op: CreateFile.
+    match &ops[0] {
+        DocumentChange::CreateFile(cf) => {
+            assert!(
+                cf.uri.as_str().ends_with("UserInterface.php"),
+                "new file should be UserInterface.php, got: {}",
+                cf.uri
+            );
+        }
+        _ => panic!("First op should be CreateFile"),
+    }
+
+    // Second op: TextDocumentEdit writing interface content.
+    match &ops[1] {
+        DocumentChange::TextDocumentEdit(tde) => {
+            let text = &tde.edits[0];
+            let new_text = match text {
+                Edit::TextEdit(te) => &te.new_text,
+                _ => panic!("expected TextEdit"),
+            };
+            assert!(new_text.contains("interface UserInterface"));
+            assert!(new_text.contains("namespace App\\Models;"));
+            assert!(new_text.contains("public function getName(): string;"));
+            assert!(new_text.contains("public static function create(string $name): self;"));
+        }
+        _ => panic!("Second op should be TextDocumentEdit"),
+    }
+
+    // Third op: TextDocumentEdit adding implements clause.
+    match &ops[2] {
+        DocumentChange::TextDocumentEdit(tde) => {
+            let text = match &tde.edits[0] {
+                Edit::TextEdit(te) => &te.new_text,
+                _ => panic!("expected TextEdit"),
+            };
+            assert!(text.contains("implements UserInterface"));
+        }
+        _ => panic!("Third op should be TextDocumentEdit"),
+    }
+}

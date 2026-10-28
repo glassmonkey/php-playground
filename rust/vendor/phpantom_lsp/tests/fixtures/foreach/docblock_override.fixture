@@ -1,0 +1,22 @@
+// test: @var docblock overrides collection item type in foreach
+// feature: completion
+// Adapted from phpactor foreach/with_docblock.test
+// expect: hello(
+---
+<?php
+
+class Foobar
+{
+    public function hello(): void {}
+}
+
+// A literal `[]` would never run the loop body; the collection is only
+// known to be an array.
+function collection(): array { return []; }
+
+$collection = collection();
+
+/** @var Foobar $foobar */
+foreach ($collection as $foobar) {
+    $foobar-><>
+}

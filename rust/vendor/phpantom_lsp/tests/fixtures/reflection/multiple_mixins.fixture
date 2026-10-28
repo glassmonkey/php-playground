@@ -1,0 +1,41 @@
+// test: multiple @mixin tags contribute members from all mixed-in classes
+// feature: completion
+// Adapted from phpactor reflection/multiple_mixins.test
+// expect: doA(
+// expect: doC(
+// expect: doB(
+---
+<?php
+
+class A
+{
+    public function doA(): string
+    {
+        return 'hello';
+    }
+}
+
+class C {
+    public function doC(): int
+    {
+        return 123;
+    }
+}
+
+/**
+ * @mixin A
+ * @mixin C
+ */
+class B
+{
+    public function doB(): void
+    {
+    }
+
+    public function __call($name, $arguments)
+    {
+    }
+}
+
+$b = new B();
+$b-><>

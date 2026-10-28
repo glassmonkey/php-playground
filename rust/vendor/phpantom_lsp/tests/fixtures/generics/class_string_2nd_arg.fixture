@@ -1,0 +1,28 @@
+// test: class-string as second parameter resolves template type
+// feature: completion
+// Adapted from phpactor generics/method_generic_class-string-2nd-arg.test
+// expect: bMethod(
+---
+<?php
+
+class B {
+    public function bMethod(): void {}
+}
+
+class Foo
+{
+    /**
+     * @template T
+     * @param string $foo
+     * @param class-string<T> $class
+     * @return T
+     */
+    public function bar(string $foo, string $class)
+    {
+        return $foo;
+    }
+}
+
+$f = new Foo();
+$res = $f->bar('Hello', B::class);
+$res-><>

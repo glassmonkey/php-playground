@@ -1,0 +1,19 @@
+// test: assert instanceof on typed parameter narrows to concrete class
+// feature: completion
+// Adapted from phpactor general/narrowing.test (t7)
+// expect: barMethod(
+---
+<?php
+
+class Bar {
+    public function barMethod(): void {}
+}
+
+class Baz {
+    public function bazMethod(): void {}
+}
+
+function test(Bar|Baz $f): void {
+    assert($f instanceof Bar);
+    $f-><>
+}

@@ -1,0 +1,32 @@
+// test: sequential instanceof guards with returns narrow type at each point
+// feature: completion
+// Adapted from phpactor if-statement/multiple_statements.test
+// expect: fooMethod(
+// expect_absent: barMethod(
+// expect_absent: bazMethod(
+---
+<?php
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+class Bar {
+    public function barMethod(): void {}
+}
+
+class Baz {
+    public function bazMethod(): void {}
+}
+
+function test(Foo|Bar|Baz $x): void {
+    if ($x instanceof Bar) {
+        return;
+    }
+
+    if ($x instanceof Baz) {
+        return;
+    }
+
+    $x-><>
+}

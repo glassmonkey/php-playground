@@ -1,0 +1,13 @@
+[workspace]
+members = [
+    "rust/phpantom-runtime-wrapper",
+    "rust/vendor/phpantom_lsp",
+]
+default-members = ["rust/phpantom-runtime-wrapper"]
+resolver = "3"
+
+[profile.wasm-release]
+inherits = "release"
+opt-level = "s"
+lto = "thin"
+strip = true

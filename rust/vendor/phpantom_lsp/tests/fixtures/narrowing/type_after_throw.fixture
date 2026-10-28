@@ -1,0 +1,26 @@
+// test: type narrows after throw strips matched branch
+// feature: completion
+// Adapted from phpactor if-statement/type_after_exception.test
+// expect: barMethod(
+---
+<?php
+
+class Foobar {
+    public function fooMethod(): void {}
+}
+
+class Barfoo {
+    public function barMethod(): void {}
+}
+
+function make(): Foobar|Barfoo {}
+
+function test(): void {
+    $x = make();
+
+    if ($x instanceof Foobar) {
+        throw new \Exception('stop');
+    }
+
+    $x-><>
+}

@@ -1,0 +1,27 @@
+// test: PHPUnit's assertNotSame narrows the way the !== it stands for does
+// feature: hover
+// assertNotSame() carries no @phpstan-assert, so it is read as the
+// comparison it proves.
+// expect: $kept = string
+// expect_absent: null
+---
+=== src/Assert.php ===
+<?php
+namespace PHPUnit\Framework;
+
+abstract class Assert {
+    public static function assertNotSame(mixed $expected, mixed $actual, string $message = ''): void {}
+}
+
+abstract class TestCase extends Assert {}
+=== src/FooTest.php ===
+<?php
+use PHPUnit\Framework\TestCase;
+
+final class FooTest extends TestCase {
+    public function testName(?string $name): void {
+        self::assertNotSame(null, $name);
+        $kept = $name;
+        echo $ke<>pt;
+    }
+}

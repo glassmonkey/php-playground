@@ -1,0 +1,25 @@
+// test: elseif with die() eliminates type from subsequent code
+// feature: completion
+// Adapted from phpactor if-statement/elseifdie.test
+// expect: fooMethod(
+// reject: barMethod(
+---
+<?php
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+class Bar {
+    public function barMethod(): void {}
+}
+
+function test(Foo|Bar|string $x): void {
+    if (is_string($x)) {
+        return;
+    } elseif ($x instanceof Bar) {
+        die();
+    }
+
+    $x-><>
+}

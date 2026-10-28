@@ -1,0 +1,16 @@
+// test: @method static virtual method appears in :: completion
+// feature: completion
+// Adapted from phpactor reflection/virtial_static_method.test
+// expect: sendMessage(
+---
+<?php
+class Promise {
+    public function then(): void {}
+}
+/**
+ * @method static Promise sendMessage(string $text)
+ */
+class Mailer
+{
+}
+Mailer::<>

@@ -1,0 +1,9 @@
+// test: nested array shape subscript key completion
+// feature: completion
+// Adapted from phpactor WorseSubscriptCompletorTest 'nested subscript with type'
+// expect: one
+---
+<?php
+
+/** @var array{foo:array{one:int}} $foo */
+$foo['foo'][<>

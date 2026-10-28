@@ -1,0 +1,16 @@
+// test: enum case members like name property are accessible
+// feature: completion
+// Adapted from phpactor enum/enum_case.test
+// Accessing Foo::FOO-> should show the name property from UnitEnum
+
+// expect: name
+---
+<?php
+
+enum Foo {
+    case FOO;
+    case BAR;
+}
+
+$case = Foo::FOO;
+$case-><>

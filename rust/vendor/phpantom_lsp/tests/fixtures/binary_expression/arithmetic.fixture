@@ -1,0 +1,28 @@
+// test: arithmetic operators resolve based on operand types
+// feature: hover
+// Adapted from phpactor binary-expression/arithmetic.test
+// Two literal operands fold to the exact value PHP computes, same as
+// PHPStan's own constant-arithmetic folding.
+// expect_hover: $add => 2
+// expect_hover: $sub => 1
+// expect_hover: $mul => 4
+// expect_hover: $div => 2
+// expect_hover: $mod => 0
+// expect_hover: $pow => 8
+---
+<?php
+
+function test(): void {
+    $add = 1 + 1;
+    $sub = 2 - 1;
+    $mul = 2 * 2;
+    $div = 4 / 2;
+    $mod = 4 % 2;
+    $pow = 2 ** 3;
+    $<>add;
+    $sub;
+    $mul;
+    $div;
+    $mod;
+    $pow;
+}

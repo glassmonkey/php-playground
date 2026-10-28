@@ -1,0 +1,22 @@
+// test: foreach over Generator return type resolves value type from method
+// feature: completion
+// Adapted from phpactor generics/generator_1.test (method return variant)
+// expect: process(
+---
+<?php
+
+class Task {
+    public function process(): void {}
+}
+
+class TaskFactory {
+    /** @return \Generator<int, Task> */
+    public function getTasks(): \Generator {
+        yield new Task();
+    }
+}
+
+$factory = new TaskFactory();
+foreach ($factory->getTasks() as $task) {
+    $task-><>
+}

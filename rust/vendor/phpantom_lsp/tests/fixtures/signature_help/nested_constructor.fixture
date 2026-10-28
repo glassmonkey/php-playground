@@ -1,0 +1,14 @@
+// test: signature help for constructor nested inside function call
+// feature: signature_help
+// Adapted from phpactor WorseSignatureHelperTest 'constructor signature with no parameters inside another function'
+// expect_sig_label: (): mixed
+---
+<?php
+
+function hello() {}
+
+class Hi {
+    public function __construct() {}
+}
+
+hello(new Hi(<>));

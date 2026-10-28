@@ -1,0 +1,36 @@
+// test: property narrowing with instanceof in if block
+// feature: completion
+// Adapted from phpactor combination/property.test
+// expect: getLinkedCustomer(
+---
+<?php
+
+interface Timeline
+{
+    public function getItems(): array;
+}
+
+class Trip implements Timeline
+{
+    public function getItems(): array
+    {
+        return [];
+    }
+
+    public function getLinkedCustomer(): string
+    {
+        return 'James Bond';
+    }
+}
+
+class Test
+{
+    private Timeline $timeline;
+
+    public function doSomething(): void
+    {
+        if ($this->timeline instanceof Trip) {
+            $this->timeline-><>
+        }
+    }
+}

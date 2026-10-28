@@ -1,0 +1,20 @@
+// test: constant visibility from inside class shows private and protected constants
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest 'Constant visibility from inside'
+// expect: BARFOO
+// expect: BARFOX
+// expect: FOOBAR
+---
+<?php
+
+class Foobar
+{
+    const FOOBAR = 'foobar';
+    private const BARFOO = 'barfoo';
+    protected const BARFOX = 'barfox';
+
+    public function fog(): void
+    {
+        $foobar = self::<>
+    }
+}

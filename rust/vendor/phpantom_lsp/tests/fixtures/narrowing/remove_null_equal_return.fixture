@@ -1,0 +1,18 @@
+// test: null === check with early return narrows type
+// feature: completion
+// Adapted from phpactor if-statement/remove_null_type2.test
+// expect: fooMethod(
+---
+<?php
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+function test(?Foo $foo = null): void {
+    if (null === $foo) {
+        return;
+    }
+
+    $foo-><>
+}

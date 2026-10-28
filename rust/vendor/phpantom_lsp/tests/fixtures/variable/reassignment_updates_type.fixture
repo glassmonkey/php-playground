@@ -1,0 +1,21 @@
+// test: variable reassignment updates type for subsequent completion
+// feature: completion
+// Adapted from phpactor assignment/replacement.test
+// expect: doBar(
+// expect_absent: doFoo(
+---
+<?php
+
+class Bar {
+    public function doBar(): void {}
+}
+
+class Foo {
+    public function doFoo(): void {}
+
+    public function withFoo(): Bar {}
+}
+
+$foo = new Foo();
+$foo = $foo->withFoo();
+$foo-><>

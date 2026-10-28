@@ -1,0 +1,26 @@
+// test: assert instanceof intersects interface showing members from both types
+// feature: completion
+// Adapted from phpactor combination/intersect_interface.test
+// After assert($foo instanceof Foobar) then assert($foo instanceof Baz),
+// PHPantom shows members from both Foobar and Baz (union semantics)
+// expect: fooMethod(
+// expect: bazMethod(
+---
+<?php
+
+abstract class AbstractFoo {}
+
+interface Baz {
+    public function bazMethod(): void;
+}
+
+class Foobar extends AbstractFoo implements Baz {
+    public function fooMethod(): void {}
+    public function bazMethod(): void {}
+}
+
+function foo(AbstractFoo $foo): void {
+    assert($foo instanceof Foobar);
+    assert($foo instanceof Baz);
+    $foo-><>
+}

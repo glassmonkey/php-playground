@@ -1,0 +1,1188 @@
+//! Subtype and equivalence checks.
+
+use std::collections::{HashMap, HashSet};
+
+use super::*;
+
+/// How long a supertype union has to be before checking a union against it
+/// builds a set of its members rather than scanning them.
+const UNION_SET_FROM_LEN: usize = 8;
+
+impl PhpType {
+    pub fn equivalent(&self, other: &PhpType) -> bool {
+        if self == other {
+            return true;
+        }
+        // Structural twins are one interned node, so two different unsealed
+        // shapes differ, and one differs from the generic array it widens
+        // to even though `kind()` cannot tell the two apart.
+        if self.as_unsealed_shape().is_some() || other.as_unsealed_shape().is_some() {
+            return false;
+        }
+        // An exact class name is narrower than the `class-string<T>` it
+        // reads as.
+        if self.as_class_name_literal().is_some() != other.as_class_name_literal().is_some() {
+            return false;
+        }
+        // One enum case is not another, nor the enum itself.
+        if self.as_enum_case().is_some() || other.as_enum_case().is_some() {
+            return match (self.as_enum_case(), other.as_enum_case()) {
+                (Some((a_enum, a_case)), Some((b_enum, b_case))) => {
+                    a_case == b_case && Self::short_name_of(a_enum) == Self::short_name_of(b_enum)
+                }
+                _ => false,
+            };
+        }
+        match (self.kind(), other.kind()) {
+            (TypeKind::Named(a), TypeKind::Named(b)) => {
+                Self::short_name_of(a) == Self::short_name_of(b)
+            }
+            (TypeKind::Nullable(a), TypeKind::Nullable(b)) => a.equivalent(b),
+            // `?X` is equivalent to `X|null` — normalise Nullable to a
+            // two-element Union before comparing so that both notations
+            // are treated as identical.
+            (TypeKind::Nullable(inner), TypeKind::Union(members))
+            | (TypeKind::Union(members), TypeKind::Nullable(inner)) => {
+                let as_union = PhpType::union(vec![inner.clone(), PhpType::null()]);
+                as_union.equivalent(&PhpType::union(members.to_vec()))
+            }
+            (TypeKind::Union(a), TypeKind::Union(b))
+            | (TypeKind::Intersection(a), TypeKind::Intersection(b)) => {
+                if a.len() != b.len() {
+                    return false;
+                }
+                // Sort both sides by their shortened display form so
+                // that `Foo|null` matches `null|Foo`.
+                let mut sa: Vec<String> = a.iter().map(|t| t.shorten().to_string()).collect();
+                let mut sb: Vec<String> = b.iter().map(|t| t.shorten().to_string()).collect();
+                sa.sort_unstable();
+                sb.sort_unstable();
+                sa == sb
+            }
+            (TypeKind::Generic(a), TypeKind::Generic(b)) => {
+                Self::short_name_of(&a.name) == Self::short_name_of(&b.name)
+                    && a.args.len() == b.args.len()
+                    && a.args
+                        .iter()
+                        .zip(b.args.iter())
+                        .all(|(x, y)| x.equivalent(y))
+            }
+            (TypeKind::Array(a), TypeKind::Array(b)) => a.equivalent(b),
+            _ => false,
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Subtype checking (structural, without class hierarchy)
+    // -----------------------------------------------------------------------
+
+    /// Check whether `self` is a structural subtype of `supertype`.
+    ///
+    /// This performs subtype checks that can be decided from type
+    /// structure alone, **without** consulting a class hierarchy.
+    /// It handles:
+    ///
+    /// - Reflexivity: `T <: T`
+    /// - `never` is a subtype of everything
+    /// - Everything is a subtype of `mixed`
+    /// - `null <: ?T` and `T <: ?T`
+    /// - `?T` is sugar for `T|null`, normalised before comparison
+    /// - `true <: bool`, `false <: bool`
+    /// - `int <: float` (PHP's widening)
+    /// - Scalar refinement subtypes: `positive-int <: int`,
+    ///   `non-empty-string <: string`, `list <: array`, etc.
+    /// - `T[] <: array`
+    /// - `array{…} <: array`
+    /// - Union: `A|B <: C` iff `A <: C` and `B <: C`
+    /// - Union supertype: `A <: B|C` iff `A <: B` or `A <: C`
+    /// - Intersection: `A&B <: C` iff `A <: C` or `B <: C`
+    /// - Intersection supertype: `A <: B&C` iff `A <: B` and `A <: C`
+    /// - Generic covariance for read-only containers:
+    ///   `array<Tk, Tv> <: array<Tk2, Tv2>` when `Tk <: Tk2` and `Tv <: Tv2`
+    /// - `Callable` covariance on return, contravariance on params
+    /// - `class-string<T> <: class-string` and `class-string <: string`
+    ///
+    /// For nominal class relationships (`Cat <: Animal`) the caller must
+    /// check the class hierarchy separately. This method returns `false`
+    /// for unrelated named types.
+    pub fn is_subtype_of(&self, supertype: &PhpType) -> bool {
+        self.subtype_by_normalising(supertype)
+            .or_else(|| self.subtype_of_composite(supertype))
+            .or_else(|| self.subtype_of_scalar(supertype))
+            .or_else(|| self.subtype_of_array(supertype))
+            .or_else(|| self.subtype_of_symbol_name(supertype))
+            .or_else(|| self.subtype_of_callable(supertype))
+            .unwrap_or(false)
+    }
+
+    /// The trivial answers, and the spellings that are rewritten into
+    /// another before comparing: `?T` is `T|null`, `array-key` is
+    /// `int|string`.
+    fn subtype_by_normalising(&self, supertype: &PhpType) -> Option<bool> {
+        // Reflexivity.
+        if self == supertype {
+            return Some(true);
+        }
+
+        // A template seen from inside its declaration is still the template
+        // its name spells, whatever its bound says.
+        if let Some((name, _)) = self.as_template_param()
+            && matches!(supertype.raw_kind(), TypeKind::Named(n) if *n == name)
+        {
+            return Some(true);
+        }
+
+        // `never` / `no-return` is bottom — subtype of everything.
+        if self.is_never() || supertype.is_mixed() {
+            return Some(true);
+        }
+
+        // Treat `?T` as `T|null` for uniform handling.
+        if let TypeKind::Nullable(inner) = self.kind() {
+            let as_union = PhpType::union(vec![inner.clone(), PhpType::null()]);
+            return Some(as_union.is_subtype_of(supertype));
+        }
+        if let TypeKind::Nullable(inner) = supertype.kind() {
+            let as_union = PhpType::union(vec![inner.clone(), PhpType::null()]);
+            return Some(self.is_subtype_of(&as_union));
+        }
+
+        // `array-key` is exactly `int|string`. Expanding it here lets a
+        // subject typed `array-key` satisfy an `int|string` supertype
+        // (the union-supertype check below only tries each member in
+        // isolation, and `array-key` is a subtype of neither `int` nor
+        // `string` alone). Reflexive `array-key <: array-key` is already
+        // handled above, so this only fires against structural supertypes.
+        if self.is_array_key() {
+            let as_union = PhpType::union(vec![PhpType::int(), PhpType::string()]);
+            return Some(as_union.is_subtype_of(supertype));
+        }
+
+        // An enum case reads as its enum through `kind()`, which would let
+        // the enum, or any other of its cases, pass for it. Only the case
+        // itself does; a union or an intersection still goes member by
+        // member below.
+        if let Some((sup_enum, sup_case)) = supertype.as_enum_case()
+            && !matches!(self.kind(), TypeKind::Union(_) | TypeKind::Intersection(_))
+        {
+            return Some(self.as_enum_case().is_some_and(|(sub_enum, sub_case)| {
+                sub_case == sup_case && is_named_subtype(sub_enum, sup_enum)
+            }));
+        }
+        None
+    }
+
+    /// Unions and intersections, on either side.
+    fn subtype_of_composite(&self, supertype: &PhpType) -> Option<bool> {
+        // ── Union subtype: every member must be a subtype ───────────
+        if let TypeKind::Union(members) = self.kind() {
+            // A member the supertype lists too is one of its members, and
+            // interning lets that be found by identity. Against a long
+            // union that saves comparing it structurally with every member
+            // in turn, which made two unions that grow together (an array
+            // filled under one `if` after another) cost the square of
+            // their length to compare.
+            if let TypeKind::Union(wider) = supertype.kind()
+                && wider.len() >= UNION_SET_FROM_LEN
+            {
+                let listed: HashSet<&PhpType> = wider.iter().collect();
+                return Some(
+                    members
+                        .iter()
+                        .all(|m| listed.contains(m) || m.is_subtype_of(supertype)),
+                );
+            }
+            return Some(members.iter().all(|m| m.is_subtype_of(supertype)));
+        }
+
+        // ── Union supertype: at least one member must accept self ────
+        if let TypeKind::Union(members) = supertype.kind() {
+            return Some(members.iter().any(|m| self.is_subtype_of(m)));
+        }
+
+        // ── Intersection subtype: at least one member suffices ──────
+        if let TypeKind::Intersection(members) = self.kind() {
+            return Some(members.iter().any(|m| m.is_subtype_of(supertype)));
+        }
+
+        // ── Intersection supertype: all members required ────────────
+        if let TypeKind::Intersection(members) = supertype.kind() {
+            return Some(members.iter().all(|m| self.is_subtype_of(m)));
+        }
+        None
+    }
+
+    /// Named scalars and classes, `static`/`$this`, literals and integer
+    /// ranges.
+    fn subtype_of_scalar(&self, supertype: &PhpType) -> Option<bool> {
+        // ── Named ↔ Named scalar subtyping ──────────────────────────
+        if let (TypeKind::Named(sub), TypeKind::Named(sup)) = (self.kind(), supertype.kind()) {
+            return Some(is_named_subtype(sub, sup));
+        }
+
+        // ── StaticType / ThisType <: bound class ────────────────────
+        // StaticType(A) <: A and ThisType(A) <: A always hold.
+        // ThisType(A) <: StaticType(A) also holds ($this is more specific).
+        if let TypeKind::StaticType(sub) | TypeKind::ThisType(sub) = self.kind()
+            && let TypeKind::Named(sup) | TypeKind::StaticType(sup) = supertype.kind()
+        {
+            return Some(is_named_subtype(sub, sup));
+        }
+
+        // ── Literal subtyping ───────────────────────────────────────
+        if let TypeKind::Literal(lit) = self.kind() {
+            return Some(literal_is_subtype_of(lit, supertype));
+        }
+
+        // ── IntRange <: int / refined-int / IntRange ────────────────
+        if let TypeKind::IntRange(sub_min, sub_max) = self.kind() {
+            match supertype.kind() {
+                TypeKind::Named(sup) => {
+                    let sup_l = sup.to_ascii_lowercase();
+                    // `float` and `number` are on this list for the same
+                    // reason a bare `int` is a subtype of them: PHP widens
+                    // an integer to a float on the way in, in strict mode
+                    // too.  A range is still an integer, so bounding it
+                    // takes nothing away from that.
+                    if matches!(
+                        sup_l.as_str(),
+                        "int"
+                            | "integer"
+                            | "float"
+                            | "double"
+                            | "real"
+                            | "numeric"
+                            | "number"
+                            | "scalar"
+                            | "array-key"
+                    ) {
+                        return Some(true);
+                    }
+                    // IntRange <: refined-int (e.g. int<0,max> <: non-negative-int)
+                    if let Some((sup_min, sup_max)) = refined_int_to_range(&sup_l) {
+                        return Some(int_range_is_subrange(sub_min, sub_max, sup_min, sup_max));
+                    }
+                    // IntRange <: non-zero-int — the range must not contain 0.
+                    // Either entirely positive (min >= 1) or entirely negative (max <= -1).
+                    if sup_l == "non-zero-int" {
+                        let lo = parse_range_bound(sub_min);
+                        let hi = parse_range_bound(sub_max);
+                        return Some(lo >= 1 || hi <= -1);
+                    }
+                    return Some(false);
+                }
+                // IntRange <: IntRange (e.g. int<1,100> <: int<0,max>)
+                TypeKind::IntRange(sup_min, sup_max) => {
+                    return Some(int_range_is_subrange(sub_min, sub_max, sup_min, sup_max));
+                }
+                _ => {}
+            }
+        }
+
+        // ── refined-int <: IntRange ─────────────────────────────────
+        // e.g. non-negative-int <: int<0,max>, positive-int <: int<0,max>
+        if let TypeKind::Named(sub) = self.kind()
+            && let TypeKind::IntRange(sup_min, sup_max) = supertype.kind()
+            && let Some((sub_min, sub_max)) = refined_int_to_range(&sub.to_ascii_lowercase())
+        {
+            return Some(int_range_is_subrange(sub_min, sub_max, sup_min, sup_max));
+        }
+        None
+    }
+
+    /// Arrays in every spelling (`T[]`, shapes, generic arrays) and object
+    /// shapes.
+    fn subtype_of_array(&self, supertype: &PhpType) -> Option<bool> {
+        // ── Array <: unsealed shape ─────────────────────────────────
+        // Ahead of the array rules below, which would read the shape as the
+        // generic array it widens to and lose the entries it requires.
+        if let Some(fits) = array_is_unsealed_subshape(self, supertype, &|a, b| a.is_subtype_of(b))
+        {
+            return Some(fits);
+        }
+
+        // ── Array slice: T[] <: array ───────────────────────────────
+        if let TypeKind::Array(inner_sub) = self.kind() {
+            match supertype.kind() {
+                TypeKind::Named(sup) => {
+                    return Some(matches!(
+                        sup.to_ascii_lowercase().as_str(),
+                        "array" | "iterable"
+                    ));
+                }
+                TypeKind::Array(inner_sup) => {
+                    return Some(inner_sub.is_subtype_of(inner_sup));
+                }
+                TypeKind::Generic(g) if is_array_like_name(&g.name) => {
+                    // T[] <: array<int, T2> when T <: T2
+                    if let Some(val) = g.args.last() {
+                        return Some(inner_sub.is_subtype_of(val));
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        // ── Shape <: shape ──────────────────────────────────────────
+        // Either side may be unsealed, which `kind()` reads as the generic
+        // array it widens to. The rules below would then compare that array
+        // and never see the entries the shape lists, so two shapes are
+        // settled here, entry by entry.
+        if let (Some(sub), Some(wider)) = (self.shape_parts(), supertype.shape_parts()) {
+            return Some(shape_is_subshape(&sub, &wider, &|a, b| a.is_subtype_of(b)));
+        }
+
+        if let TypeKind::ArrayShape(entries) = self.kind()
+            && let Some(fits) = self.shape_is_subtype_of_array(entries, supertype)
+        {
+            return Some(fits);
+        }
+
+        // ── ObjectShape <: object ───────────────────────────────────
+        if matches!(self.kind(), TypeKind::ObjectShape(_))
+            && let TypeKind::Named(sup) = supertype.kind()
+        {
+            return Some(sup.eq_ignore_ascii_case("object"));
+        }
+
+        // ── Generic covariance (array-like containers) ──────────────
+        if let (TypeKind::Generic(sub), TypeKind::Generic(sup)) = (self.kind(), supertype.kind()) {
+            let base_sub = sub.name.to_ascii_lowercase();
+            let base_sup = sup.name.to_ascii_lowercase();
+
+            // A `list` or `non-empty-*` supertype promises something about
+            // the array that a plain one does not: sequential keys, or at
+            // least one entry.
+            let keeps_promises = (!is_list_name(&sup.name) || is_list_name(&sub.name))
+                && (!is_non_empty_array_name(&sup.name) || is_non_empty_array_name(&sub.name));
+
+            // Same base or compatible bases (list <: array, etc.)
+            let bases_compatible = base_sub == base_sup
+                || (is_array_like_name(&sub.name)
+                    && is_array_like_name(&sup.name)
+                    && keeps_promises);
+
+            if bases_compatible && sub.args.len() == sup.args.len() {
+                return Some(
+                    sub.args
+                        .iter()
+                        .zip(sup.args.iter())
+                        .all(|(s, t)| s.is_subtype_of(t)),
+                );
+            }
+
+            // Array-like containers spell the same type at different
+            // arities: `list<V>` is `array<int, V>`, `array<V>` is
+            // `array<array-key, V>`. Compare the implied key/value pair so
+            // that a `list<T>` still satisfies a declared `array<int, T>`.
+            if is_array_like_name(&sub.name)
+                && is_array_like_name(&sup.name)
+                && let Some((sub_key, sub_val)) = array_like_key_value(sub)
+                && let Some((sup_key, sup_val)) = array_like_key_value(sup)
+            {
+                return Some(
+                    keeps_promises
+                        && sub_key.is_subtype_of(&sup_key)
+                        && sub_val.is_subtype_of(sup_val),
+                );
+            }
+        }
+
+        if let TypeKind::Generic(g) = self.kind()
+            && is_array_like_name(&g.name)
+        {
+            match supertype.kind() {
+                // Generic array-like <: bare `array` / `iterable`
+                TypeKind::Named(sup) => {
+                    return Some(matches!(
+                        sup.to_ascii_lowercase().as_str(),
+                        "array" | "iterable"
+                    ));
+                }
+                // Generic array-like <: `T[]`, which promises nothing about
+                // its keys: `non-empty-array<int, Foo> <: Foo[]` when the
+                // values fit.
+                TypeKind::Array(inner_sup) => {
+                    if let Some(val) = g.args.last() {
+                        return Some(val.is_subtype_of(inner_sup));
+                    }
+                }
+                _ => {}
+            }
+        }
+        None
+    }
+
+    /// `ArrayShape <: array / iterable / array<K, V> / T[]`, for a sealed
+    /// shape with `entries`; `None` against any other supertype.
+    fn shape_is_subtype_of_array(
+        &self,
+        entries: &[ShapeEntry],
+        supertype: &PhpType,
+    ) -> Option<bool> {
+        // A shape satisfies a `non-empty-…` supertype only when it
+        // names a key that is always there. `array{}` never does, and
+        // neither does a shape whose every entry is optional.
+        let is_non_empty = entries.iter().any(|entry| !entry.optional);
+        // `list{…}` says so outright; a shape tracked from a literal or
+        // from appends says so by holding `0, 1, 2, …` in order.
+        let is_list = self.is_list_shape() || shape_keys_are_sequential(entries);
+
+        match supertype.kind() {
+            TypeKind::Named(sup) => Some(match sup.to_ascii_lowercase().as_str() {
+                "array" | "iterable" => true,
+                "non-empty-array" => is_non_empty,
+                "list" => is_list,
+                "non-empty-list" => is_list && is_non_empty,
+                _ => false,
+            }),
+            // ArrayShape <: array<K, V>  (or other generic array-like)
+            // Every shape key must be a subtype of K, every value a subtype of V.
+            TypeKind::Generic(g) if is_array_like_name(&g.name) => {
+                if is_non_empty_array_name(&g.name) && !is_non_empty {
+                    return Some(false);
+                }
+                if is_list_name(&g.name) && !is_list {
+                    return Some(false);
+                }
+                match g.args.as_slice() {
+                    // array<V> — only check values.
+                    [val_type] => {
+                        Some(entries.iter().all(|e| e.value_type.is_subtype_of(val_type)))
+                    }
+                    // array<K, V> — check both keys and values.
+                    [key_type, val_type] => Some(entries.iter().all(|e| {
+                        // Determine the key's type: named string keys are
+                        // literal-string, positional keys are int.
+                        let entry_key_type = match &e.key {
+                            Some(k) if super::is_canonical_int_key(k) => PhpType::int(),
+                            Some(_) => PhpType::string(),
+                            None => PhpType::int(),
+                        };
+                        entry_key_type.is_subtype_of(key_type)
+                            && e.value_type.is_subtype_of(val_type)
+                    })),
+                    _ => None,
+                }
+            }
+            // ArrayShape <: T[] — check all values against T.
+            TypeKind::Array(inner) => {
+                Some(entries.iter().all(|e| e.value_type.is_subtype_of(inner)))
+            }
+            _ => None,
+        }
+    }
+
+    /// `class-string` and `interface-string`.
+    ///
+    /// Both name a PHP symbol, so every string refinement the named
+    /// lattice already records for the spelling holds of them too: they
+    /// are non-empty, never `"0"`, and usable as an array key.  Reaching
+    /// that table through the kind's own name is what keeps the two ways
+    /// of spelling the type — a dedicated `ClassString` node and a bare
+    /// `Named("class-string")` — answering alike, rather than the
+    /// dedicated node knowing only `string`.
+    fn subtype_of_symbol_name(&self, supertype: &PhpType) -> Option<bool> {
+        match (self.kind(), supertype.kind()) {
+            (TypeKind::ClassString(_), TypeKind::Named(sup)) => {
+                Some(is_named_subtype("class-string", sup))
+            }
+            (TypeKind::ClassString(Some(sub_inner)), TypeKind::ClassString(Some(sup_inner))) => {
+                Some(sub_inner.is_subtype_of(sup_inner))
+            }
+            (TypeKind::ClassString(Some(_)), TypeKind::ClassString(None)) => Some(true),
+            (TypeKind::InterfaceString(_), TypeKind::Named(sup)) => {
+                Some(is_named_subtype("interface-string", sup))
+            }
+            // A bare `enum-string` names a class-like just the same.
+            (TypeKind::Named(sub), TypeKind::ClassString(None))
+                if is_named_subtype(sub, "class-string") =>
+            {
+                Some(true)
+            }
+            _ => None,
+        }
+    }
+
+    /// Callable specifications against each other and against the bare
+    /// `callable`/`Closure`/`object` names.
+    fn subtype_of_callable(&self, supertype: &PhpType) -> Option<bool> {
+        match (self.kind(), supertype.kind()) {
+            (TypeKind::Callable(sub), TypeKind::Callable(sup)) => {
+                // Return type is covariant.
+                let ret_ok = match (&sub.return_type, &sup.return_type) {
+                    (Some(rs), Some(rp)) => rs.is_subtype_of(rp),
+                    (_, None) => true,        // supertype has no return constraint
+                    (None, Some(_)) => false, // sub has no return but super requires one
+                };
+                // Parameters are contravariant (supertype params must be
+                // subtypes of subtype params).
+                let params_ok = sub.params.len() >= sup.params.len()
+                    && sup
+                        .params
+                        .iter()
+                        .zip(sub.params.iter())
+                        .all(|(p_sup, p_sub)| p_sup.type_hint.is_subtype_of(&p_sub.type_hint));
+                Some(ret_ok && params_ok)
+            }
+            // Callable/Closure specification <: callable | Closure | object
+            // A callable specification like `Closure(int): void` is always
+            // a Closure instance, which is both callable and an object.
+            (TypeKind::Callable(_), TypeKind::Named(sup)) => Some(matches!(
+                sup.to_ascii_lowercase().as_str(),
+                "callable" | "closure" | "object"
+            )),
+            // Bare `Closure` or `callable` <: callable specification.
+            // A bare `Closure` might have any signature — we cannot prove
+            // it violates the specification, so treat it as compatible.
+            (TypeKind::Named(sub), TypeKind::Callable(_))
+                if matches!(sub.to_ascii_lowercase().as_str(), "callable" | "closure") =>
+            {
+                Some(true)
+            }
+            _ => None,
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Array-like arity normalisation
+// ---------------------------------------------------------------------------
+
+/// Whether every array the shape `sub` describes is one `wider` describes.
+///
+/// Every entry `sub` lists has to be one `wider` lists, no more optional and
+/// with a value it allows, or else fall under the tail of an unsealed
+/// `wider`. Every entry `wider` requires has to be listed by `sub`; one it
+/// merely allows may still turn up in the tail of an unsealed `sub`, holding
+/// what that tail holds. And the tail of `sub` has to fit the tail of
+/// `wider`, which a sealed shape does not have.
+///
+/// `is_subtype` compares the key and value types of two entries, so that the
+/// structural check and the one that follows the class hierarchy into the
+/// entries answer by the same rules.
+pub(crate) fn shape_is_subshape(
+    sub: &ShapeParts<'_>,
+    wider: &ShapeParts<'_>,
+    is_subtype: &dyn Fn(&PhpType, &PhpType) -> bool,
+) -> bool {
+    // `list{…}` says so outright; a shape tracked from a literal or from
+    // appends says so by holding `0, 1, 2, …` in order, which a tail that
+    // may add keys of its own no longer promises.
+    let sub_is_list = sub.is_list || (sub.tail.is_none() && shape_keys_are_sequential(sub.entries));
+    if wider.is_list && !sub_is_list {
+        return false;
+    }
+    if wider.tail.is_none() && normalize::keys_rule_out_nesting(sub.entries, wider.entries) {
+        return false;
+    }
+    let (Some(keys), Some(wider_keys)) = (
+        runtime_shape_keys(sub.entries),
+        runtime_shape_keys(wider.entries),
+    ) else {
+        return false;
+    };
+
+    let wider_index = KeyPositions::new(&wider_keys);
+    let listed_fit = sub
+        .entries
+        .iter()
+        .zip(&keys)
+        .enumerate()
+        .all(|(at, (entry, key))| match wider_index.find(key, at) {
+            Some(index) => {
+                (!entry.optional || wider.entries[index].optional)
+                    && is_subtype(&entry.value_type, &wider.entries[index].value_type)
+            }
+            None => wider.tail.is_some_and(|(tail_key, tail_value)| {
+                is_subtype(&shape_key_type(key), tail_key)
+                    && is_subtype(&entry.value_type, tail_value)
+            }),
+        });
+    if !listed_fit {
+        return false;
+    }
+
+    let sub_index = KeyPositions::new(&keys);
+    let wider_fit = wider
+        .entries
+        .iter()
+        .zip(&wider_keys)
+        .enumerate()
+        .all(|(at, (entry, key))| {
+            sub_index.find(key, at).is_some()
+                || (entry.optional
+                    && sub.tail.is_none_or(|(tail_key, tail_value)| {
+                        !is_subtype(&shape_key_type(key), tail_key)
+                            || is_subtype(tail_value, &entry.value_type)
+                    }))
+        });
+    if !wider_fit {
+        return false;
+    }
+
+    sub.tail.is_none_or(|(tail_key, tail_value)| {
+        wider.tail.is_some_and(|(wider_key, wider_value)| {
+            is_subtype(tail_key, wider_key) && is_subtype(tail_value, wider_value)
+        })
+    })
+}
+
+/// Where each of a shape's keys sits, for comparing it against another
+/// shape key by key.
+///
+/// Two shapes compared are usually listed in the same order, one perhaps
+/// with a few more keys, so the key at the same position is tried first.
+/// Past that, a shape long enough for a scan per key to add up gets a map
+/// the first time the guess misses.
+struct KeyPositions<'a> {
+    keys: &'a [String],
+    by_key: std::cell::OnceCell<HashMap<&'a str, usize>>,
+}
+
+impl<'a> KeyPositions<'a> {
+    const MAP_FROM_LEN: usize = 16;
+
+    fn new(keys: &'a [String]) -> Self {
+        KeyPositions {
+            keys,
+            by_key: std::cell::OnceCell::new(),
+        }
+    }
+
+    /// The position of `key`, which is most likely `hint`.
+    fn find(&self, key: &str, hint: usize) -> Option<usize> {
+        if self.keys.get(hint).is_some_and(|k| k == key) {
+            return Some(hint);
+        }
+        if self.keys.len() < Self::MAP_FROM_LEN {
+            return self.keys.iter().position(|k| k == key);
+        }
+        self.by_key
+            .get_or_init(|| {
+                self.keys
+                    .iter()
+                    .enumerate()
+                    .map(|(at, key)| (key.as_str(), at))
+                    .collect()
+            })
+            .get(key)
+            .copied()
+    }
+}
+
+/// Whether every array `array` describes is one the unsealed shape `wider`
+/// describes, when `array` is an array that is not itself a shape.
+///
+/// Such an array is an unsealed shape with no entries of its own:
+/// `array<K, V>` is `array{...<K, V>}` and `list<V>` is `list{...<V>}`. So
+/// an entry `wider` requires is missing from it, and one `wider` merely
+/// allows has to fit its tail. Read by `kind()` instead, `wider` is the
+/// `non-empty-array<array-key, mixed>` it widens to, which any such array
+/// fits whatever entries `wider` lists.
+///
+/// `None` when `wider` is not an unsealed shape or `array` is not an array
+/// of that kind, leaving the pair to the other rules.
+pub(crate) fn array_is_unsealed_subshape(
+    array: &PhpType,
+    wider: &PhpType,
+    is_subtype: &dyn Fn(&PhpType, &PhpType) -> bool,
+) -> Option<bool> {
+    let wider = wider.shape_parts().filter(|parts| parts.tail.is_some())?;
+    if array.shape_parts().is_some() {
+        return None;
+    }
+    let array_key = || PhpType::union(vec![PhpType::int(), PhpType::string()]);
+    let (key, value, is_list) = match array.kind() {
+        TypeKind::Generic(g)
+            if is_array_like_name(&g.name) && !g.name.eq_ignore_ascii_case("iterable") =>
+        {
+            let (key, value) = array_like_key_value(g)?;
+            (key, value.clone(), is_list_name(&g.name))
+        }
+        TypeKind::Array(value) => (array_key(), value.clone(), false),
+        TypeKind::Named(name) => match name.to_ascii_lowercase().as_str() {
+            "array" | "non-empty-array" => (array_key(), PhpType::mixed(), false),
+            "list" | "non-empty-list" => (PhpType::int(), PhpType::mixed(), true),
+            _ => return None,
+        },
+        _ => return None,
+    };
+    let sub = ShapeParts {
+        entries: &[],
+        tail: Some((&key, &value)),
+        is_list,
+    };
+    Some(shape_is_subshape(&sub, &wider, is_subtype))
+}
+
+/// The `(key, value)` pair an array-like generic implies, whichever arity
+/// it was written at.
+///
+/// `list<V>` and `non-empty-list<V>` key on `int`, `array<V>` on
+/// `array-key`, and a one-argument `iterable<V>` on `mixed` (a
+/// `Traversable` may yield any key type). Returns `None` for arities that
+/// carry no key/value meaning.
+pub(crate) fn array_like_key_value(generic: &GenericType) -> Option<(PhpType, &PhpType)> {
+    match generic.args.as_slice() {
+        [value] => {
+            let name = generic.name.to_ascii_lowercase();
+            let key = match name.as_str() {
+                "list" | "non-empty-list" => PhpType::int(),
+                "iterable" => PhpType::mixed(),
+                // `array-key`, spelled as the union the checks above
+                // normalise it to anyway.
+                _ => PhpType::union(vec![PhpType::int(), PhpType::string()]),
+            };
+            Some((key, value))
+        }
+        [key, value] => Some((key.clone(), value)),
+        _ => None,
+    }
+}
+
+/// Whether a shape's entries occupy the keys `0, 1, 2, …` a `list`
+/// promises.
+///
+/// Positional entries take the next index, an explicit key must spell that
+/// same index out, and a string key rules the shape out entirely. Optional
+/// entries are only allowed at the end: an absent one in the middle would
+/// leave a hole in the sequence.
+fn shape_keys_are_sequential(entries: &[ShapeEntry]) -> bool {
+    let mut seen_optional = false;
+    for (position, entry) in (0_i64..).zip(entries) {
+        if seen_optional && !entry.optional {
+            return false;
+        }
+        seen_optional |= entry.optional;
+        match entry.key.as_deref() {
+            None => {}
+            Some(key) if super::canonical_int_key(key) == Some(position) => {}
+            Some(_) => return false,
+        }
+    }
+    true
+}
+
+// ---------------------------------------------------------------------------
+// Self-reference helper (private)
+// ---------------------------------------------------------------------------
+
+/// Whether a bare name string is a self-referencing keyword
+/// (`self`, `static`, or `$this`), case-insensitive.
+///
+/// This is the string-only version of [`PhpType::is_self_ref`],
+/// used for the base name of `Generic` nodes where we have a
+/// `&str` rather than a `&PhpType`.
+pub(crate) fn is_self_ref_name(name: &str) -> bool {
+    name.eq_ignore_ascii_case("self")
+        || name.eq_ignore_ascii_case("static")
+        || name.eq_ignore_ascii_case("$this")
+}
+
+// ---------------------------------------------------------------------------
+// Subtype helpers (private)
+// ---------------------------------------------------------------------------
+
+/// Check structural subtyping between two named types (scalars, keywords).
+///
+/// This handles PHP's built-in type lattice without class hierarchy lookup:
+/// - `never <: T` for all `T`
+/// - `T <: mixed` for all `T`
+/// - `true <: bool`, `false <: bool`
+/// - `int <: float` (widening)
+/// - `int <: numeric`, `float <: numeric`
+/// - `int <: scalar`, `float <: scalar`, `string <: scalar`, `bool <: scalar`
+/// - `int <: array-key`, `string <: array-key`
+/// - Refinement subtypes: `positive-int <: int`, `non-empty-string <: string`, etc.
+/// - `list <: array`, `non-empty-list <: array`, `non-empty-array <: array`,
+///   `associative-array <: array`
+/// - `callable <: object` is NOT true (callables can be strings/arrays)
+pub(crate) fn is_named_subtype(sub: &str, sup: &str) -> bool {
+    let sub_raw = sub.strip_prefix('\\').unwrap_or(sub);
+    let sup_raw = sup.strip_prefix('\\').unwrap_or(sup);
+    let sub_l = sub_raw.to_ascii_lowercase();
+    let sup_l = sup_raw.to_ascii_lowercase();
+
+    // `number`, `real`, `integer`, `boolean`, `double`, and `resource` are
+    // pseudo-types/aliases only in their exact lowercase spelling (see
+    // `is_lowercase_only_pseudo_type`). A differently-cased bare `Number`
+    // (e.g. `BcMath\Number`) or `Integer` is a real class, so it must not
+    // reach case-insensitive equality or alias normalisation below; nominal
+    // class relationships are resolved by the caller's hierarchy check.
+    let sub_is_pseudo_class = is_lowercase_only_pseudo_type(&sub_l) && sub_raw != sub_l;
+    let sup_is_pseudo_class = is_lowercase_only_pseudo_type(&sup_l) && sup_raw != sup_l;
+
+    if sub_l == sup_l {
+        // Two spellings of `Real` are the same class; `Real` and `real` are not
+        // the same thing.
+        return sub_is_pseudo_class == sup_is_pseudo_class;
+    }
+
+    if sub_is_pseudo_class || sup_is_pseudo_class {
+        return false;
+    }
+
+    // Alias normalisation.
+    let sub_n = normalize_alias(&sub_l);
+    let sup_n = normalize_alias(&sup_l);
+
+    if sub_n == sup_n {
+        return true;
+    }
+
+    // `never` is bottom.
+    if sub_n == "never" {
+        return true;
+    }
+
+    // `mixed` is top.
+    if sup_n == "mixed" {
+        return true;
+    }
+
+    // `void` is only a subtype of `mixed` (handled above) and itself.
+    if sub_n == "void" || sup_n == "void" {
+        return false;
+    }
+
+    match sup_n {
+        // ── bool supertypes ─────────────────────────────────────
+        "bool" => matches!(sub_n, "true" | "false"),
+
+        // ── int supertypes ──────────────────────────────────────
+        "int" => matches!(sub_n, int_refinement!()),
+        // ── refined-int cross-subtyping ─────────────────────────
+        // e.g. positive-int <: non-negative-int (1..max ⊆ 0..max)
+        "positive-int" | "negative-int" | "non-positive-int" | "non-negative-int"
+            if refined_int_to_range(sub_n).is_some() && refined_int_to_range(sup_n).is_some() =>
+        {
+            let (sub_min, sub_max) = refined_int_to_range(sub_n).unwrap();
+            let (sup_min, sup_max) = refined_int_to_range(sup_n).unwrap();
+            int_range_is_subrange(sub_min, sub_max, sup_min, sup_max)
+        }
+
+        // ── non-zero-int supertype ──────────────────────────────
+        // positive-int and negative-int are subtypes of non-zero-int.
+        // non-negative-int and non-positive-int are NOT (they include 0).
+        "non-zero-int" => matches!(sub_n, "positive-int" | "negative-int"),
+
+        // ── float supertypes ────────────────────────────────────
+        "float" => matches!(sub_n, "int" | int_refinement!()),
+
+        // ── string supertypes ───────────────────────────────────
+        "string" => matches!(sub_n, string_refinement!() | "view-string"),
+
+        // An interface and an enum are class-likes, so the string that
+        // names one is a `class-string`.  A trait is not — `trait-string`
+        // is its own thing, and PHPStan keeps the two apart.
+        "class-string" => matches!(sub_n, "interface-string" | "enum-string"),
+
+        // `non-falsy-string` and its Psalm synonym `truthy-string` exclude
+        // both `""` and `"0"`, so they are strictly narrower than
+        // `non-empty-string`, which excludes only `""`.
+        "non-empty-string" => matches!(
+            sub_n,
+            "non-empty-literal-string"
+                | "non-empty-lowercase-string"
+                | "non-empty-uppercase-string"
+                | "callable-string"
+                | "class-string"
+                | "interface-string"
+                | "trait-string"
+                | "enum-string"
+                | "truthy-string"
+                | "non-falsy-string"
+        ),
+
+        // The `non-empty-*` refinements are absent here on purpose: each
+        // one still admits `"0"`, which is falsy, so none of them is a
+        // subtype of the strict arm. What remains are the string kinds
+        // that name a PHP symbol, and a symbol name can never be `"0"`.
+        "truthy-string" | "non-falsy-string" => matches!(
+            sub_n,
+            "callable-string"
+                | "class-string"
+                | "interface-string"
+                | "trait-string"
+                | "enum-string"
+                | "truthy-string"
+                | "non-falsy-string"
+        ),
+
+        "literal-string" => matches!(sub_n, "non-empty-literal-string"),
+
+        "lowercase-string" => matches!(sub_n, "non-empty-lowercase-string"),
+
+        "uppercase-string" => matches!(sub_n, "non-empty-uppercase-string"),
+
+        // ── numeric supertypes ──────────────────────────────────
+        "numeric" => matches!(
+            sub_n,
+            "int" | "float" | int_refinement!() | "numeric-string"
+        ),
+        "number" => matches!(sub_n, "int" | "float" | int_refinement!()),
+
+        // ── scalar supertype ────────────────────────────────────
+        "scalar" => matches!(
+            sub_n,
+            "int"
+                | "float"
+                | "string"
+                | "bool"
+                | "true"
+                | "false"
+                | int_refinement!()
+                | string_refinement!()
+                | "numeric"
+                | "number"
+        ),
+
+        // ── array-key supertype ─────────────────────────────────
+        "array-key" => matches!(
+            sub_n,
+            "int" | "string" | int_refinement!() | string_refinement!()
+        ),
+
+        // ── array supertypes ────────────────────────────────────
+        "array" => matches!(
+            sub_n,
+            "list" | "non-empty-list" | "non-empty-array" | "associative-array"
+        ),
+
+        "non-empty-array" => matches!(sub_n, "non-empty-list"),
+
+        // ── iterable supertype ──────────────────────────────────
+        "iterable" => matches!(
+            sub_n,
+            "array" | "list" | "non-empty-array" | "non-empty-list" | "associative-array"
+        ),
+
+        // ── object supertype ────────────────────────────────────
+        // Every class/interface/enum instance is an object.
+        // We use a positive-space check: only names that *look like*
+        // class/interface/enum names are accepted.  Unknown pseudo-types
+        // fail closed (not a subtype of object) rather than open.
+        "object" => matches!(sub_n, "callable-object") || is_class_like_name(sub),
+
+        // ── callable supertype ──────────────────────────────────
+        "callable" => matches!(
+            sub_n,
+            "callable-string" | "callable-array" | "callable-object" | "closure"
+        ),
+
+        // ── resource ────────────────────────────────────────────
+        "resource" => matches!(sub_n, "closed-resource" | "open-resource"),
+
+        _ => false,
+    }
+}
+
+/// Normalise common PHP type aliases to a canonical form.
+pub(crate) fn normalize_alias(name: &str) -> &str {
+    match name {
+        "integer" => "int",
+        "double" | "real" => "float",
+        "boolean" => "bool",
+        "no-return" | "noreturn" | "never-return" | "never-returns" => "never",
+        "non-empty-mixed" => "mixed",
+        other => other,
+    }
+}
+
+/// Check whether a literal type is a subtype of a given supertype.
+pub(crate) fn literal_is_subtype_of(lit: &LiteralValue, supertype: &PhpType) -> bool {
+    match supertype.kind() {
+        TypeKind::Literal(other_lit) => literals_equal(lit, other_lit),
+        TypeKind::IntRange(min, max) => lit
+            .parse_i64()
+            .is_some_and(|value| int_literal_is_within_range(value, min, max)),
+        // A differently-cased bare `Number` (e.g. `BcMath\Number`) or `Real`
+        // is a real class, not the lowercase pseudo-type; a scalar literal is
+        // never a subtype of it. `with_keyword_lowercase` keeps such a
+        // spelling as-is, so it matches none of the names checked.
+        TypeKind::Named(sup) => {
+            with_keyword_lowercase(sup, |sup_l| literal_is_subtype_of_named(lit, sup_l))
+        }
+        _ => false,
+    }
+}
+
+/// Whether `lit` is a subtype of the keyword-lowercased named type `sup_l`.
+fn literal_is_subtype_of_named(lit: &LiteralValue, sup_l: &str) -> bool {
+    // Integer literal → int (and its supertypes).
+    if matches!(lit, LiteralValue::Int(_)) {
+        if matches!(
+            sup_l,
+            "int" | "integer" | "float" | "double" | "numeric" | "number" | "scalar" | "array-key"
+        ) {
+            return true;
+        }
+        // Named refined-int types: check the literal's value
+        // against the refinement's constraint directly, rather
+        // than falling through to a name comparison that can
+        // never match a literal.
+        if let Some((min, max)) = refined_int_to_range(sup_l) {
+            return lit
+                .parse_i64()
+                .is_some_and(|value| int_literal_is_within_range(value, min, max));
+        }
+        if sup_l == "non-zero-int" {
+            return lit.parse_i64().is_some_and(|value| value != 0);
+        }
+        return false;
+    }
+    // Float literal → float (and its supertypes).
+    if matches!(lit, LiteralValue::Float(_)) {
+        return matches!(
+            sup_l,
+            "float" | "double" | "real" | "numeric" | "number" | "scalar"
+        );
+    }
+    // String literal → string (and its supertypes).
+    if let Some(content) = lit.string_content() {
+        if matches!(sup_l, "string" | "literal-string" | "scalar" | "array-key") {
+            return true;
+        }
+
+        // Whether a literal names a Blade template is settled by
+        // the project's templates, not by the literal's own shape,
+        // and nothing reachable from here knows them. The
+        // diagnostic that does check it against the view index
+        // reports a name no template answers for; structurally,
+        // any literal string is a candidate.
+        if sup_l == "view-string" {
+            return true;
+        }
+
+        // Non-empty string subtypes: any literal with content.
+        if !content.is_empty() && matches!(sup_l, "non-empty-string" | "non-empty-literal-string") {
+            return true;
+        }
+
+        // Truthy/non-falsy string: non-empty and not "0".
+        if !content.is_empty()
+            && content != "0"
+            && matches!(sup_l, "truthy-string" | "non-falsy-string")
+        {
+            return true;
+        }
+
+        // A numeric string is also part of the broader `numeric`
+        // value domain. It is not part of `number`, which represents
+        // only int|float runtime values.
+        if matches!(sup_l, "numeric-string" | "numeric") && lit.is_numeric_string() {
+            return true;
+        }
+
+        // Lowercase/uppercase string refinements are exactly what
+        // `strtolower`/`strtoupper` would leave unchanged; a content
+        // with no cased characters at all (digits, punctuation, "")
+        // satisfies both.
+        if matches!(sup_l, "lowercase-string" | "non-empty-lowercase-string")
+            && !content.bytes().any(|b| b.is_ascii_uppercase())
+            && (sup_l != "non-empty-lowercase-string" || !content.is_empty())
+        {
+            return true;
+        }
+        if matches!(sup_l, "uppercase-string" | "non-empty-uppercase-string")
+            && !content.bytes().any(|b| b.is_ascii_lowercase())
+            && (sup_l != "non-empty-uppercase-string" || !content.is_empty())
+        {
+            return true;
+        }
+
+        // `callable-string` enforcement needs the function/method
+        // symbol table, which this layer cannot see; stay silent
+        // rather than reject every function-name literal.
+        if sup_l == "callable-string" {
+            return true;
+        }
+
+        return false;
+    }
+    false
+}
+
+pub(crate) fn literals_equal(left: &LiteralValue, right: &LiteralValue) -> bool {
+    if left == right {
+        return true;
+    }
+
+    match (left, right) {
+        (LiteralValue::Int(left_raw), LiteralValue::Int(right_raw)) => {
+            match (left.parse_i64(), right.parse_i64()) {
+                (Some(left), Some(right)) => left == right,
+                _ => left_raw == right_raw,
+            }
+        }
+        (LiteralValue::Float(left_raw), LiteralValue::Float(right_raw)) => {
+            match (left.parse_f64(), right.parse_f64()) {
+                (Some(left), Some(right)) => left == right,
+                _ => left_raw == right_raw,
+            }
+        }
+        (LiteralValue::String(left_raw), LiteralValue::String(right_raw)) => {
+            match (left.string_content(), right.string_content()) {
+                (Some(left), Some(right)) => left == right,
+                _ => left_raw == right_raw,
+            }
+        }
+        _ => left == right,
+    }
+}
+
+/// Convert a refined-int type name to its equivalent `(min, max)` range
+/// bounds.  Returns `None` for non-refined types.
+///
+/// - `positive-int`     → `("1", "max")`
+/// - `negative-int`     → `("min", "-1")`
+/// - `non-negative-int` → `("0", "max")`
+/// - `non-positive-int` → `("min", "0")`
+pub(crate) fn refined_int_to_range(name: &str) -> Option<(&'static str, &'static str)> {
+    match name {
+        "positive-int" => Some(("1", "max")),
+        "negative-int" => Some(("min", "-1")),
+        "non-negative-int" => Some(("0", "max")),
+        "non-positive-int" => Some(("min", "0")),
+        _ => None,
+    }
+}
+
+/// Parse a range bound string into an `i64`, treating `"min"` as
+/// `i64::MIN` and `"max"` as `i64::MAX`.
+pub(crate) fn parse_range_bound(s: &str) -> i64 {
+    match s.trim().to_ascii_lowercase().as_str() {
+        "min" => i64::MIN,
+        "max" => i64::MAX,
+        v => v.parse::<i64>().unwrap_or(0),
+    }
+}
+
+/// Check whether range `(sub_min, sub_max)` is fully contained within
+/// `(sup_min, sup_max)`.  Both bounds are inclusive.
+pub(crate) fn int_range_is_subrange(
+    sub_min: &str,
+    sub_max: &str,
+    sup_min: &str,
+    sup_max: &str,
+) -> bool {
+    let sub_lo = parse_range_bound(sub_min);
+    let sub_hi = parse_range_bound(sub_max);
+    let sup_lo = parse_range_bound(sup_min);
+    let sup_hi = parse_range_bound(sup_max);
+    sup_lo <= sub_lo && sub_hi <= sup_hi
+}
+
+pub(crate) fn int_literal_is_within_range(value: i64, min: &str, max: &str) -> bool {
+    let min_ok = match min.trim().to_ascii_lowercase().as_str() {
+        "min" => true,
+        min => min.parse::<i64>().is_ok_and(|bound| value >= bound),
+    };
+    let max_ok = match max.trim().to_ascii_lowercase().as_str() {
+        "max" => true,
+        max => max.parse::<i64>().is_ok_and(|bound| value <= bound),
+    };
+
+    min_ok && max_ok
+}

@@ -1,0 +1,32 @@
+// test: recursive mixin resolves without infinite loop
+// feature: completion
+// Adapted from phpactor reflection/mixin_recursive.test
+// A mixes in B, B mixes in A. Completion on B should show A's methods
+// without infinite recursion, and static return type resolves to the caller.
+// expect: doA(
+---
+<?php
+
+/**
+ * @mixin B
+ */
+class A
+{
+    /**
+     * @return static
+     */
+    public function doA()
+    {
+        return new static();
+    }
+}
+
+/**
+ * @mixin A
+ */
+class B
+{
+}
+
+$b = new B();
+$b-><>

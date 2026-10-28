@@ -1,0 +1,20 @@
+// test: elseif chain with is_string/is_int narrows type in each branch
+// feature: completion
+// Adapted from phpactor if-statement/elseif.test
+// expect: fooMethod(
+---
+<?php
+
+class Foobar {
+    public function fooMethod(): void {}
+}
+
+function test(Foobar|string|int $foo): void {
+    if (is_string($foo)) {
+        // string branch
+    } elseif (is_int($foo)) {
+        // int branch
+    } else {
+        $foo-><>
+    }
+}

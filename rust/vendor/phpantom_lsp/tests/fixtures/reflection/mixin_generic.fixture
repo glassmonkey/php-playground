@@ -1,0 +1,24 @@
+// test: @mixin with generic parameter resolves template type
+// feature: completion
+// Adapted from phpactor reflection/mixin_generic.test
+// expect: toBeTrue(
+---
+<?php
+
+/**
+ * @template TValue
+ */
+class A
+{
+    public function toBeTrue(): bool {}
+}
+
+/**
+ * @mixin A<string>
+ */
+class B
+{
+}
+
+$b = new B();
+$b-><>

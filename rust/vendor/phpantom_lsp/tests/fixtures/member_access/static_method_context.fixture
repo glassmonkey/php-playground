@@ -1,0 +1,24 @@
+// test: static:: context inside class method resolves own static members
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest patterns
+// expect: create(
+// expect: MAX_RETRIES
+---
+<?php
+
+class Factory
+{
+    const MAX_RETRIES = 3;
+
+    public static function create(): self
+    {
+        return new self();
+    }
+
+    public function instanceOnly(): void {}
+
+    public static function build(): void
+    {
+        static::<>
+    }
+}

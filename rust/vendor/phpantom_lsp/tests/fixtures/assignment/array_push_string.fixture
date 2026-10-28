@@ -1,0 +1,16 @@
+// test: array push with typed param tracks element type
+// feature: completion
+// Adapted from phpactor assignment/array_add_string.test
+// expect: getName(
+---
+<?php
+
+class User {
+    public function getName(): string { return ''; }
+}
+
+function test(User $user): void {
+    $items = [];
+    $items[] = $user;
+    $items[0]-><>
+}

@@ -1,0 +1,23 @@
+// test: double instanceof in && condition shows members from both types (union semantics)
+// feature: completion
+// Adapted from phpactor if-statement/union_and.test
+// PHPantom uses union semantics: after instanceof A && instanceof B, we show members from both
+
+// expect: fooMethod(
+// expect: barMethod(
+---
+<?php
+
+class Foobar {
+    public function fooMethod(): void {}
+}
+
+class Barfoo {
+    public function barMethod(): void {}
+}
+
+function test($foobar): void {
+    if ($foobar instanceof Foobar && $foobar instanceof Barfoo) {
+        $foobar-><>
+    }
+}

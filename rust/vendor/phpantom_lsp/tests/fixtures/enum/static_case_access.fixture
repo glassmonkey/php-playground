@@ -1,0 +1,18 @@
+// test: static::CaseName-> inside backed enum resolves to the enum type
+// feature: completion
+// When accessing static::CaseName-> inside an enum method, PHPantom should
+// resolve static::CaseName to the enum type and offer its members.
+
+// expect: name
+// expect: value
+---
+<?php
+
+enum Currency: string {
+    case USD = 'usd';
+    case EUR = 'eur';
+
+    public function symbol(): string {
+        return static::USD-><>
+    }
+}

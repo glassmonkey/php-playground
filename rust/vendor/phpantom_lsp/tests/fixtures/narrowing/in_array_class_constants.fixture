@@ -1,0 +1,23 @@
+// test: in_array() with class constants as haystack narrows type
+// feature: completion
+// Adapted from phpactor function/in_array.test (class-constant variant)
+// expect: fooMethod(
+---
+<?php
+
+class Status {
+    const ACTIVE = 'active';
+    const INACTIVE = 'inactive';
+}
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+/** @param Foo|string $val */
+function test($val): void {
+    if (in_array($val, [Status::ACTIVE, Status::INACTIVE], true)) {
+        return;
+    }
+    $val-><>
+}

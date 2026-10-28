@@ -1,0 +1,10 @@
+// test: a ternary whose arms are a class and the same class or null keeps the null
+// feature: hover
+// expect: $kept = ?DateTimeImmutable
+---
+<?php
+
+function pick(?DateTimeImmutable $t): void {
+    $kept = rand() ? new DateTimeImmutable() : $t;
+    echo $ke<>pt;
+}

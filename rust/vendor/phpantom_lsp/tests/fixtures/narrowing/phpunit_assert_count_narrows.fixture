@@ -1,0 +1,26 @@
+// test: PHPUnit's assertCount narrows the way the count() check it stands for does
+// feature: hover
+// assertCount() carries no @phpstan-assert, so it is read as the
+// check it proves.
+// expect: array{int, int}
+---
+=== src/Assert.php ===
+<?php
+namespace PHPUnit\Framework;
+
+abstract class Assert {
+    public static function assertCount(int $expectedCount, \Countable|iterable $haystack, string $message = ''): void {}
+}
+
+abstract class TestCase extends Assert {}
+=== src/FooTest.php ===
+<?php
+use PHPUnit\Framework\TestCase;
+
+final class FooTest extends TestCase {
+    /** @param list<int> $ids */
+    public function testIds(array $ids): void {
+        self::assertCount(2, $ids);
+        echo $i<>ds;
+    }
+}
