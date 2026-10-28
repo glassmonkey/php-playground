@@ -1,19 +1,17 @@
-import { Heading, Text, Flex, Center, Button } from '@chakra-ui/react';
+import { Heading, Text, Flex, Center, Link } from '@chakra-ui/react';
 import * as React from 'react';
-import { Link } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 
 export default function Header() {
 	return (
 		<Flex gap="8px" direction="column">
-			<Flex justify="space-between" align="center" gap={4} wrap="wrap">
-				<Heading as="h1">PHP Playground</Heading>
-				<Button as={Link} to="/tutorial/" colorScheme="green">
-					Tutorial →
-				</Button>
-			</Flex>
+			<Heading as="h1">PHP Playground</Heading>
 			<Text as="p">
-				PHP Playground let you to execute basic PHP code in real time
-				using WebAssembly technology.
+				Run PHP code in your browser using WebAssembly. New to PHP?{' '}
+				<Link as={RouterLink} to="/tutorial/" textDecoration="underline">
+					Learn the basics with interactive examples
+				</Link>
+				.
 			</Text>
 			<Flex gap="24px" direction="row">
 				<Center>

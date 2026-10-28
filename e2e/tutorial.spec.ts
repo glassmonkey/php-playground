@@ -32,7 +32,7 @@ const expectOutput = async (
 		.toBe(want);
 };
 test.describe('versioned tutorial routes', () => {
-	test('opens the tutorial from the Playground header on desktop and mobile', async ({
+	test('opens the tutorial from the Playground description on desktop and mobile', async ({
 		page,
 	}) => {
 		for (const viewport of [
@@ -42,7 +42,7 @@ test.describe('versioned tutorial routes', () => {
 			await page.setViewportSize(viewport);
 			await page.goto(PAGE);
 			const entry = page.getByRole('link', {
-				name: 'Tutorial →',
+				name: 'Learn the basics with interactive examples',
 				exact: true,
 			});
 			await expect(entry).toBeVisible();
