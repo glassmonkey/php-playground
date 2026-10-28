@@ -34,54 +34,43 @@ This configures builtin availability and selected parameter metadata; it does
 not make PHPantom's user-code parser grammar or syntax diagnostics version
 aware. Full inventories for every installed PHP extension are outside scope.
 
-## WASM provenance and asset
+## WASM source, asset, and provenance
 
-- PHPantom: `0.11.1`, upstream commit `49b9a7513ed19cbbfb79d5d08a3f3693ffb2b668`
-- PHPantom source archive SHA-256: `f5861b581a5503c7bf033df82390d08fbc9a971fa769afa90a310d0c623eb59d`
-- phpstorm-stubs commit `2049ca3cfa1feabf52db074108fe776a5713cf02`
-- phpstorm-stubs archive SHA-256: `3ef62542d2f77ad30c7dab7dfa726e57e86dd5e3403780294119cf4f5ca6dcb7`
-- Runtime patch: `scripts/lsp/phpantom/patches/0001-php-version-initialize.patch`
-- Runtime patch SHA-256: `ea43adab881c9214e9f693d0f11ed3cec93314f23d331210fc86de8c22fe04fc`
-- Rust toolchain: `1.99.0`, target `wasm32-wasip1`; Cargo uses `--locked`
-- Docker build image: `rust:1.99.0-bookworm@sha256:114c7a4425406451c2866b6aafe69fe29b1b298832db1277d411ac73c82d04d6`
-- WASI shim: `@bjorn3/browser_wasi_shim` `0.4.2`, root lockfile pinned
-- Asset: `assets/lsp/phpantom/phpantom_lsp.wasm` (18,530,827 bytes)
-- Asset SHA-256: `2ba179568c31958b731d3eb70f69b788187fcb605094b39d289c4d4caa3ba3da`
-- Build provenance: `assets/lsp/phpantom/phpantom_lsp.provenance.json`
-- Worker version and cache URL pin the runtime marker `.3` and the asset hash.
+PHPantom is maintained in this repository as the Cargo source tree
+`rust/vendor/phpantom_lsp`, with a small public wrapper at
+`rust/phpantom-runtime-wrapper`. The vendored source is based on upstream
+`49b9a7513ed19cbbfb79d5d08a3f3693ffb2b668`; it contains local runtime changes
+documented in `rust/vendor/README.md`. The source snapshot reference
+`506d253c5ee27bfc3c51fb2541d3e8d819bb4622` identifies the reviewed input, not
+an external build dependency. PHPantom's `stubs.lock` pins phpstorm-stubs at
+`2049ca3cfa1feabf52db074108fe776a5713cf02` with archive SHA-256
+`3ef62542d2f77ad30c7dab7dfa726e57e86dd5e3403780294119cf4f5ca6dcb7`.
 
-`make build-phpantom-runtime` is the single host entry point. It builds and runs
-the pinned Docker builder, which downloads both pinned archives, verifies their
-SHA-256 values, applies the checked-in patch, and builds with locked Rust
-dependencies. The host does not need Rust. The candidate and `provenance.json`
-are exported beneath `build/phpantom-docker-candidates/`; a failed build does
-not replace the checked-in asset. The committed WASM lets clean checkout,
-`npm ci`, and Vite/Pages builds run without Docker or Rust. Its checksum is
-also part of the Worker URL query to avoid reusing a stale cached asset after
-an update.
+The root Cargo workspace pins Rust `1.99.0`, target `wasm32-wasip1`, and
+locked dependencies. `make build-phpantom-runtime` builds the local workspace
+through the pinned Docker image
+`rust:1.99.0-bookworm@sha256:114c7a4425406451c2866b6aafe69fe29b1b298832db1277d411ac73c82d04d6`.
+The Dockerfile-specific ignore file sends only the Cargo manifests, toolchain,
+Rust sources, and container entry point. It excludes `target`, `node_modules`,
+assets, and build output. The Cargo source uses its checked-in `stubs.lock` to
+download and verify the fixed stubs archive. The build does not fetch PHPantom
+source from another repository or apply a source patch.
 
-To rebuild the candidate and run the focused native parameter reconstruction
-regression separately:
+`make test-phpantom-runtime-native` runs the wrapper's public `public_lsp`
+integration suite in the same Docker build environment. The artifact target
+builds the same wrapper for WASI. Both use `--locked`. The candidate, source
+fingerprint, Cargo and stubs lock hashes, toolchain, Docker identity, and WASM
+hash are written under `build/phpantom-docker-candidates/`. A failed build or
+smoke test leaves the checked-in asset unchanged.
 
-```sh
-make build-phpantom-runtime
-make test-phpantom-runtime-native
-```
-
-The default artifact build does not compile the native test harness. The
-explicit native test target uses the same pinned source, stubs, patch, Docker
-image, and Cargo lockfile without producing an artifact.
-
-The committed provenance records the builder image ID and platform, Docker
-server version, Rust/Cargo versions, pinned commits and archive hashes,
-Cargo.lock hash, patch hash, target, and exported artifact hash. The successful
-candidate run fetched both upstream archives, verified their SHA-256 values,
-used fresh extractions, applied only the checked-in patch, and built with Cargo
-`--locked`. No pre-existing dirty source patch was mixed into the artifact.
-The Docker native regression rerun from this build was intentionally stopped
-during test-binary compilation and is unverified; the accepted
-`a34b6782b2a5c9865cd5780826fdb192b1a1c020` source/patch native regression
-passed before this Docker replan.
+The committed asset is
+`assets/lsp/phpantom/phpantom_lsp.wasm` (18,700,209 bytes,
+SHA-256 `605854cd7d868c2432223c73d18002b2e39e86ea2c26e00655181a2345db6c4e`).
+Its Worker URL includes that hash to avoid reusing stale cached bytes. The
+asset and `assets/lsp/phpantom/phpantom_lsp.provenance.json` were updated
+together from the local workspace candidate after native tests, WASI build,
+and all-version smoke passed. A clean application checkout can run `npm ci`
+and the Vite/Pages build without Docker or Rust.
 
 ## WASI regression harness
 
@@ -105,11 +94,13 @@ stale document versions; and JSON-RPC errors/notifications.
 
 | Check | Result | Evidence and limits |
 | --- | --- | --- |
-| Focused native parameter reconstruction regression | Previously passed; Docker rerun incomplete | The accepted `a34b678` source/patch passed PHP 8.0 absent / 8.3 present for function and method, preserving virtual `@param` and surviving native `non-empty-string` enrichment. The Docker rerun was stopped during native test-binary compilation; its result is unverified. |
-| Existing pinned-core availability regression | Passed | 12 `stubs::tests` passed, including exact `@since` and extension-release controls. |
-| Full WASI smoke | Passed on Docker candidate | `PHPANTOM_WASM_PATH=<candidate> node scripts/lsp/phpantom/smoke-test.mjs`; all 12 supported versions, cold/warm regression, PHP 8.0/8.3 parameter availability, `intdiv`/`array_key_first`, AssertionError, and PHP 8.4/8.5 cases passed. |
-| `npm ci --ignore-scripts --offline` | Passed | Clean install from root lockfile; 751 packages installed, no vulnerabilities. |
-| `npm run build` | Passed | Vite production build used the final hash-pinned asset; existing large-chunk warning remains. |
-| Docker WASM build | Passed | Actual `make build-phpantom-runtime`; Docker image `rust:1.99.0-bookworm@sha256:114c7a4425406451c2866b6aafe69fe29b1b298832db1277d411ac73c82d04d6`, Linux/arm64 builder. Both upstream archives were downloaded and checksum-verified; Cargo `--locked`. |
-| Asset and patch SHA-256 | Recorded above | The smoke and Vite build use the final asset hash. |
-| Browser Worker and integrated UI | Not verified in this lane | Requires integrated UI verification. |
+| Docker native public LSP suite | Passed, 3/3 | `make test-phpantom-runtime-native`; suite time 1.54s, command time 398s. Log and summary are under `build/phpantom-docker-candidates/20261028T060431Z.Z2JgwI/`. |
+| Docker WASI build | Passed | `make build-phpantom-runtime`; Rust 1.99.0, target `wasm32-wasip1`, Linux/arm64 Docker builder. Local source fingerprint `2033ded4f19ae88f16f2c27537f47bd79905eefb68fec95f60a9acba24108f36`; Cargo.lock SHA-256 `88b54771ff92cb6d8ce2c0ffef65ffff45f9686f3a75b97f709d56d74b910154`. Log and provenance are under `build/phpantom-docker-candidates/20261028T061139Z.h5SpDn/`. |
+| WASI initialization | Passed, 12/12 | `node rust/phpantom-runtime-wrapper/tests/wasm_versions.mjs <candidate>` initialized each supported PHP version in a fresh session. |
+| App reactor smoke | Passed | `PHPANTOM_WASM_PATH=<candidate> node scripts/lsp/phpantom/smoke-test.mjs`; ABI exports, completion, resolve, hover, signature help, errors and notifications passed. |
+| Candidate / committed asset identity | Passed | 18,700,209 bytes; SHA-256 `605854cd7d868c2432223c73d18002b2e39e86ea2c26e00655181a2345db6c4e`. The same candidate hash is in the Worker URL and provenance. |
+| Clean app install | Passed | `npm ci`; 751 packages installed from the root lockfile. |
+| Lint and types | Passed | `npm run lint:js` and `npm run build:types`. |
+| Client URL tests | Passed, 2/2 | `npm exec vitest run src/lsp/__test__/client.spec.ts`. |
+| Vite production build | Passed | `npm run build`; existing large-chunk warning remains. |
+| Browser Worker and integrated UI | Not verified in this lane | Requires integrated UI verification after runtime review and the #434 sync gate. |
