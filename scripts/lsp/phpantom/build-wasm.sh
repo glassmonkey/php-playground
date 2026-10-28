@@ -14,6 +14,10 @@ script_dir="$repo_root/scripts/lsp/phpantom"
 docker_bin="${DOCKER:-docker}"
 output_root="${PHPANTOM_DOCKER_OUTPUT_DIR:-$repo_root/build/phpantom-docker-candidates}"
 image_tag="phpantom-runtime-builder:$version-rust1.99.0-workspace"
+docker_target='artifact'
+if [[ "$build_mode" == native-test ]]; then
+	docker_target='native-test'
+fi
 attempt_id="$(date -u +%Y%m%dT%H%M%SZ)"
 
 command -v "$docker_bin" >/dev/null 2>&1 || {
@@ -35,6 +39,7 @@ printf 'PHPantom Docker build attempt: %s\n' "$attempt_dir"
 
 if "$docker_bin" build --pull \
 	--tag "$image_tag" \
+	--target "$docker_target" \
 	--file "$script_dir/Dockerfile" \
 	"$repo_root" >"$attempt_dir/docker-build.log" 2>&1; then
 	docker_build_status=0
