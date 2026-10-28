@@ -205,18 +205,30 @@ else: raise SystemExit("unexpected fake Docker argv: " + repr(a))
             benchmark.validate_sampling_mode("link-input-change", 1)
         benchmark.validate_sampling_mode("link-input-change", 1, "variant-01")
 
-    def test_web_build_features_are_explicit_and_match_makefile(self):
-        makefile = (MODULE_PATH.parent.parent / "Makefile").read_text(encoding="utf-8")
-        for key, value in benchmark.WEB_FEATURE_BUILD_ARGS.items():
-            if key == "EMSCRIPTEN_ENVIRONMENT":
-                self.assertIn("PLATFORM := web", makefile)
-            else:
-                self.assertIn(f"{key} := {value}", makefile)
-                self.assertIn(f"--build-arg {key}=$({key})", makefile)
+    def test_benchmark_web_feature_signature_is_explicit(self):
         args = [f"{key}={value}" for key, value in benchmark.WEB_FEATURE_BUILD_ARGS.items()]
         self.assertEqual(benchmark.validate_web_feature_args(args), dict(sorted(benchmark.WEB_FEATURE_BUILD_ARGS.items())))
         with self.assertRaisesRegex(ValueError, "explicit --build-arg WITH_LIBZIP=no"):
             benchmark.validate_web_feature_args([item for item in args if not item.startswith("WITH_LIBZIP=")])
+
+    def test_default_web_makefile_passes_only_consumed_features(self):
+        repo_root = MODULE_PATH.parent.parent
+        makefile = (repo_root / "Makefile").read_text(encoding="utf-8")
+        dockerfile = (repo_root / "src/wasm/Dockerfile").read_text(encoding="utf-8")
+        expected = {
+            "WITH_VRZNO": "yes", "WITH_LIBXML": "yes", "WITH_LIBPNG": "yes",
+            "WITH_LIBZIP": "yes", "WITH_MBSTRING": "yes", "WITH_CLI_SAPI": "no",
+            "WITH_OPENSSL": "yes", "WITH_SQLITE": "yes", "WITH_MYSQL": "no",
+            "WITH_WS_NETWORKING_PROXY": "no",
+        }
+        for key, value in expected.items():
+            self.assertIn(f"{key} := {value}", makefile)
+            self.assertIn(f"--build-arg {key}=$({key})", makefile)
+        for key in ("WITH_CURL", "WITH_NODEFS"):
+            self.assertNotIn(f"{key} :=", makefile)
+            self.assertNotIn(f"--build-arg {key}=", makefile)
+            self.assertNotIn(key, dockerfile)
+        self.assertIn("PLATFORM := web", makefile)
 
     def test_php_version_schedule_primes_each_measured_transition(self):
         args = SimpleNamespace(
