@@ -1,0 +1,18 @@
+// test: is_float() narrows to float, negation preserves other types
+// feature: completion
+// Adapted from phpactor function/is_float.test
+// expect: fooMethod(
+---
+<?php
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+function test(Foo|float $foo): void {
+    if (is_float($foo)) {
+        return;
+    }
+
+    $foo-><>
+}

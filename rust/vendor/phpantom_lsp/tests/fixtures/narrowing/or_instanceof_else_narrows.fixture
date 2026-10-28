@@ -1,0 +1,26 @@
+// test: else after || instanceof strips both matched types
+// feature: completion
+// Adapted from phpactor if-statement/union_or_else.test
+// expect: bazMethod(
+---
+<?php
+
+class Foobar {
+    public function fooMethod(): void {}
+}
+
+class Barfoo {
+    public function barMethod(): void {}
+}
+
+class Bazboo {
+    public function bazMethod(): void {}
+}
+
+function test(Foobar|Barfoo|Bazboo $x): void {
+    if ($x instanceof Foobar || $x instanceof Barfoo) {
+        return;
+    }
+
+    $x-><>
+}

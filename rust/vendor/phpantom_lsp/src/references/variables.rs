@@ -1,0 +1,334 @@
+//! Variable and `$this` reference finders.
+//!
+//! Variables are file-local and scope-local; `$this` is scoped to the
+//! enclosing class body.  Both walk the current file's [`SymbolMap`]
+//! rather than the cross-file snapshot used by the other finders.
+
+use super::*;
+
+use std::collections::HashMap;
+
+use tower_lsp_server::gen_lsp_types::{Location, Range};
+
+use crate::symbol_map::{SelfStaticParentKind, SymbolKind, VarDefKind};
+use crate::text_position::LineIndex;
+
+impl Backend {
+    /// Find all references to a variable within its enclosing scope.
+    ///
+    /// Variables are file-local and scope-local — a `$user` in method A
+    /// must not match `$user` in method B.
+    pub(super) fn find_variable_references(
+        &self,
+        uri: &str,
+        content: &str,
+        var_name: &str,
+        cursor_offset: u32,
+        include_declaration: bool,
+    ) -> Vec<Location> {
+        let mut locations = Vec::new();
+
+        // Hold the map, not the index guard, for the walk below.
+        let Some(symbol_map) = self.symbol_map_for(uri) else {
+            return locations;
+        };
+
+        // Determine the effective scope for this variable.
+        //
+        // `find_variable_scope` handles the tricky cases where the
+        // cursor is on a parameter (physically before the `{`) or on
+        // a docblock `@param $var` mention, returning the body scope
+        // those tokens logically belong to.
+        //
+        // We then walk upward from the initial scope to the nearest
+        // declaring scope for the variable (stopping at Parameter,
+        // Assignment, Foreach, etc. but skipping ClosureCapture so
+        // that uses inside explicit-capturing closures still see their
+        // outer declaration). This makes rename and find-references
+        // work correctly when invoked from deep inside nested arrows
+        // or closures.
+        let mut scope_start = symbol_map.find_variable_scope(var_name, cursor_offset);
+        {
+            let mut decl = scope_start;
+            let mut cur = scope_start;
+            while cur != 0 {
+                let has_def = symbol_map.var_defs.iter().any(|d| {
+                    d.name == var_name
+                        && d.scope_start == cur
+                        && !matches!(
+                            d.kind,
+                            VarDefKind::ClosureCapture
+                                | VarDefKind::Unset
+                                | VarDefKind::CompoundAssignment
+                                | VarDefKind::DocblockVar
+                                | VarDefKind::Property
+                        )
+                });
+                if has_def {
+                    decl = cur;
+                    break;
+                }
+                let parent = symbol_map.find_enclosing_scope(cur.saturating_sub(1));
+                if parent == cur {
+                    break;
+                }
+                cur = parent;
+            }
+            scope_start = decl;
+        }
+        let Some(parsed_uri) = crate::util::parse_url(uri) else {
+            tracing::warn!("find-references: could not parse URI {uri:?}");
+            return locations;
+        };
+
+        // Build the set of reachable scopes: the primary (declaring)
+        // scope plus every nested closure/arrow-function scope that
+        // can see the variable (via explicit `use` or implicit arrow
+        // capture) without being shadowed.
+        let mut reachable_scopes = Self::collect_capture_scopes(&symbol_map, var_name, scope_start);
+        // `global $var` binds a function's `$var` to the file's top-level
+        // `$var`, so the program scope and every scope that declares the
+        // global are one variable.
+        let global_decl_scopes = symbol_map
+            .var_defs
+            .iter()
+            .filter(|d| d.name == var_name && d.kind == VarDefKind::GlobalDecl)
+            .map(|d| d.scope_start);
+        if scope_start == 0 || global_decl_scopes.clone().any(|s| s == scope_start) {
+            for scope in std::iter::once(0).chain(global_decl_scopes) {
+                if !reachable_scopes.contains(&scope) {
+                    reachable_scopes.extend(Self::collect_capture_scopes(
+                        &symbol_map,
+                        var_name,
+                        scope,
+                    ));
+                }
+            }
+        }
+        let lines = LineIndex::new(content);
+        // The start offset of every location pushed so far, so the
+        // declaration pass below skips a token the span pass already found.
+        let mut seen_offsets: HashSet<u32> = HashSet::new();
+
+        for span in &symbol_map.spans {
+            let name = match &span.kind {
+                SymbolKind::Variable { name } | SymbolKind::CompactVariable { name } => name,
+                _ => continue,
+            };
+            if name != var_name {
+                continue;
+            }
+            // Check that this variable is in a reachable scope.
+            let span_scope = symbol_map.find_variable_scope(name, span.start);
+            if !reachable_scopes.contains(&span_scope) {
+                continue;
+            }
+            // Optionally skip declaration sites.
+            if !include_declaration && symbol_map.var_def_kind_at(name, span.start).is_some() {
+                continue;
+            }
+            seen_offsets.insert(span.start);
+            let start = lines.position(span.start as usize);
+            let end = lines.position(span.end as usize);
+            locations.push(Location {
+                uri: parsed_uri.clone(),
+                range: Range { start, end },
+            });
+        }
+
+        // Also include var_def sites if include_declaration is set,
+        // since some definition tokens (parameters, foreach bindings)
+        // may not have a corresponding Variable span in the spans vec
+        // with the exact same offset.
+        if include_declaration {
+            for def in &symbol_map.var_defs {
+                if def.name == var_name
+                    && reachable_scopes.contains(&def.scope_start)
+                    && seen_offsets.insert(def.offset)
+                {
+                    let start = lines.position(def.offset as usize);
+                    // The token is `$` + name.
+                    let end_offset = def.offset as usize + 1 + def.name.len();
+                    let end = lines.position(end_offset);
+                    locations.push(Location {
+                        uri: parsed_uri.clone(),
+                        range: Range { start, end },
+                    });
+                }
+            }
+        }
+
+        sort_locations_for_references(&mut locations);
+
+        locations
+    }
+
+    /// Collect all scopes reachable from `root_scope` for `var_name`
+    /// through closure `use` captures and implicit arrow-function captures.
+    ///
+    /// Returns a set containing `root_scope` plus every nested
+    /// closure/arrow scope that captures the variable without shadowing
+    /// it with a new parameter of the same name.
+    fn collect_capture_scopes(
+        symbol_map: &SymbolMap,
+        var_name: &str,
+        root_scope: u32,
+    ) -> HashSet<u32> {
+        let mut reachable = HashSet::new();
+        reachable.insert(root_scope);
+        let scope_ends: HashMap<u32, u32> = symbol_map.scopes.iter().cloned().collect();
+        fn has_usage(
+            symbol_map: &SymbolMap,
+            var_name: &str,
+            scope_start: u32,
+            scope_ends: &HashMap<u32, u32>,
+        ) -> bool {
+            symbol_map.spans.iter().any(|s| {
+                if let SymbolKind::Variable { name } | SymbolKind::CompactVariable { name } =
+                    &s.kind
+                {
+                    name == var_name
+                        && scope_ends
+                            .get(&scope_start)
+                            .is_some_and(|&e| s.start >= scope_start && s.start <= e)
+                } else {
+                    false
+                }
+            })
+        }
+
+        // Note: the caller (find_variable_references) has already
+        // normalized the incoming root_scope to the actual declaring
+        // scope by walking ancestors.  This lets us start from the
+        // correct root whether the request originated on a declaration
+        // or deep inside nested arrows/closures.
+        //
+        // A scope added in one round may itself hold closures or arrows
+        // that capture the variable, so the two rules below run until no
+        // round adds a scope.
+        let mut prev_len = 0;
+        while reachable.len() != prev_len {
+            prev_len = reachable.len();
+            let current = reachable.clone();
+
+            // Explicit closure captures: `function () use ($var) { … }`
+            // These have VarDefKind::ClosureCapture with scope_start
+            // pointing to the closure body.  The `use ($var)` token sits
+            // physically in the outer scope, so the capture reaches the
+            // body once that outer scope is reachable.
+            for def in &symbol_map.var_defs {
+                if def.name != var_name || def.kind != VarDefKind::ClosureCapture {
+                    continue;
+                }
+                if reachable.contains(&def.scope_start) {
+                    continue;
+                }
+                let outer_scope = symbol_map.find_enclosing_scope(def.offset);
+                if reachable.contains(&outer_scope) {
+                    reachable.insert(def.scope_start);
+                }
+            }
+
+            // Implicit arrow-function captures: `fn () => $var`
+            // Arrow functions have a scope entry but no ClosureCapture def.
+            // A variable is implicitly captured if:
+            //   1. The arrow scope is directly nested in a reachable scope.
+            //   2. There is no parameter with the same name in the arrow scope.
+            // Every other nested scope (a closure, or a function declared
+            // inside the scope) sees an outer variable only through `use`,
+            // which the rule above already handled.
+            for &(scope_start, _scope_end) in &symbol_map.scopes {
+                if reachable.contains(&scope_start) || !symbol_map.is_arrow_fn_scope(scope_start) {
+                    continue;
+                }
+                let parent = symbol_map.find_enclosing_scope(scope_start.saturating_sub(1));
+                if !current.contains(&parent) {
+                    continue;
+                }
+                // Skip if there's a parameter with the same name (shadowed).
+                let has_shadowing_param = symbol_map.var_defs.iter().any(|d| {
+                    d.name == var_name
+                        && d.scope_start == scope_start
+                        && d.kind == VarDefKind::Parameter
+                });
+                if has_shadowing_param {
+                    continue;
+                }
+                // Only include the scope if the variable appears in it, to
+                // avoid false positives with unrelated nested functions.
+                // has_usage uses lexical containment (usage offset lies
+                // inside the scope's byte range) rather than checking
+                // whether find_variable_scope reports exactly this scope,
+                // which is what handles chains of nested arrows
+                // (`fn()=>fn()=> $var`) where the usage's innermost scope
+                // is deeper than the intermediate arrow.
+                if has_usage(symbol_map, var_name, scope_start, &scope_ends) {
+                    reachable.insert(scope_start);
+                }
+            }
+        }
+
+        reachable
+    }
+
+    /// Find all references to `$this` within the enclosing class body.
+    ///
+    /// `$this` is scoped to the enclosing class — it must not match
+    /// `$this` in a different class or top-level function.  Unlike
+    /// regular variables, `$this` is **not** scoped to the enclosing
+    /// method: `$this` in method A and `$this` in method B inside the
+    /// same class both refer to the same object, so they should all
+    /// appear in the results.  `$this` has no declaration site, so the
+    /// request's `includeDeclaration` does not apply.
+    pub(super) fn find_this_references(
+        &self,
+        uri: &str,
+        content: &str,
+        cursor_offset: u32,
+    ) -> Vec<Location> {
+        let mut locations = Vec::new();
+
+        // Hold the map, not the index guard, for the walk below.
+        let Some(symbol_map) = self.symbol_map_for(uri) else {
+            return locations;
+        };
+
+        // Determine the class body the cursor is in.
+        let current_class = self.class_at_offset(uri, cursor_offset);
+        let (class_start, class_end) = match current_class {
+            Some(cc) => (cc.start_offset, cc.end_offset),
+            None => return locations,
+        };
+
+        let Some(parsed_uri) = crate::util::parse_url(uri) else {
+            tracing::warn!("find-references: could not parse URI {uri:?}");
+            return locations;
+        };
+
+        let lines = LineIndex::new(content);
+        for span in &symbol_map.spans {
+            // Only consider spans within the same class body.
+            if span.start < class_start || span.start > class_end {
+                continue;
+            }
+
+            let is_this = matches!(
+                &span.kind,
+                SymbolKind::SelfStaticParent(SelfStaticParentKind::This)
+            );
+
+            if is_this {
+                let start = lines.position(span.start as usize);
+                let end = lines.position(span.end as usize);
+                locations.push(Location {
+                    uri: parsed_uri.clone(),
+                    range: Range { start, end },
+                });
+            }
+        }
+
+        sort_locations_for_references(&mut locations);
+
+        locations
+    }
+}

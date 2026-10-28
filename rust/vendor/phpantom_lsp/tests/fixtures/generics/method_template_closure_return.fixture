@@ -1,0 +1,39 @@
+// test: method-level @template binds from closure return type annotation
+// feature: completion
+// expect: add(
+---
+<?php
+
+class Decimal {
+    public function add(Decimal $other): Decimal { return $this; }
+}
+
+class Orderproduct {
+    public Decimal $price;
+}
+
+/**
+ * @template TValue
+ */
+class ProductCollection {
+    /**
+     * @template TReduceInitial
+     * @template TReduceReturnType
+     *
+     * @param callable(TReduceInitial|TReduceReturnType, TValue): TReduceReturnType $callback
+     * @param TReduceInitial $initial
+     * @return TReduceReturnType
+     */
+    public function reduce(callable $callback, $initial) {
+        return $initial;
+    }
+}
+
+/** @var ProductCollection<Orderproduct> $products */
+$products = new ProductCollection();
+
+$total = $products->reduce(
+    fn(Decimal $carry, Orderproduct $p): Decimal => $carry->add($p->price),
+    new Decimal('0')
+);
+$total-><>

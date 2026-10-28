@@ -1,0 +1,25 @@
+// test: @phpstan-assert on static method narrows variable type
+// feature: completion
+// Adapted from phpactor narrowing/narrow.test
+// expect: fooMethod(
+---
+<?php
+
+class Foobar {
+    public function fooMethod(): void {}
+}
+
+final class Assert
+{
+    /**
+     * @phpstan-assert Foobar $class
+     */
+    public static function assertFoobar(object $class): void
+    {
+    }
+}
+
+function test(object $obj): void {
+    Assert::assertFoobar($obj);
+    $obj-><>
+}

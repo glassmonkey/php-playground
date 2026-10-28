@@ -1,0 +1,19 @@
+// test: foreach with namespaced type resolves to fully qualified class
+// feature: completion
+// Adapted from phpactor foreach/namespaced.test
+// expect: doWork(
+---
+<?php
+
+namespace Foobar;
+
+class Barfoo {
+    public function doWork(): void {}
+}
+
+/** @var Barfoo[] $items */
+$items = [];
+
+foreach ($items as $item) {
+    $item-><>
+}

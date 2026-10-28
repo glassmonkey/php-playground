@@ -1,0 +1,18 @@
+// test: combined negated type guards with throw narrow correctly
+// feature: completion
+// Adapted from phpactor if-statement/is_not_string_and_not_instanceof.test
+// expect: fooMethod(
+---
+<?php
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+function test(string|Foo|int $x): void {
+    if (false === is_string($x) && !$x instanceof Foo) {
+        throw new \RuntimeException('bad');
+    }
+
+    $x-><>
+}

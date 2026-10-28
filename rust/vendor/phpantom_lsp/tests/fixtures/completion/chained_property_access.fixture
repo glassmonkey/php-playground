@@ -1,0 +1,20 @@
+// test: chained property access resolves docblock type
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest 'Public property access'
+// expect: bar
+---
+<?php
+
+class Barar
+{
+    public $bar;
+}
+
+class Foobar
+{
+    /** @var Barar */
+    public $foo;
+}
+
+$foobar = new Foobar();
+$foobar->foo-><>

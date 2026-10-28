@@ -1,0 +1,40 @@
+// test: collection first() resolves through generic interface chain
+// feature: completion
+// Adapted from phpactor generics/gh-1530-example.test
+// expect: bar(
+---
+<?php
+
+namespace Test;
+
+interface Foo {
+    public function bar(): void;
+}
+
+interface Foos {
+    /**
+     * @return Collection<int, Foo>
+     */
+    public function all(): Collection;
+}
+
+/**
+ * @template TKey of array-key
+ * @template T
+ */
+interface Collection
+{
+    /**
+     * @return T
+     */
+    public function first();
+
+    /**
+     * @return Collection<TKey, T>
+     */
+    public function filter(\Closure $p);
+}
+
+function foobar(Foos $foos): void {
+    $foos->all()->first()-><>
+}

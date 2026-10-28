@@ -1,0 +1,22 @@
+// test: null coalescing expression result type resolves for member completion
+// feature: completion
+// Adapted from phpactor ternary_expression and combination patterns
+// expect: doWork(
+---
+<?php
+
+class Worker
+{
+    public function doWork(): void {}
+}
+
+class Fallback
+{
+    public function doWork(): void {}
+}
+
+/** @return Worker|null */
+function maybeWorker() {}
+
+$w = maybeWorker() ?? new Fallback();
+$w-><>

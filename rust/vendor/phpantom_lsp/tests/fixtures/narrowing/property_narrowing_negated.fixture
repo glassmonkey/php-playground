@@ -1,0 +1,24 @@
+// test: negated instanceof on property narrows type after early return
+// feature: completion
+// Adapted from phpactor if-statement/property_negated.test
+// expect: barMethod(
+---
+<?php
+
+class Bar {
+    public function barMethod(): void {}
+}
+
+class Foo
+{
+    private $bar;
+
+    public function test(): void
+    {
+        if (!$this->bar instanceof Bar) {
+            return;
+        }
+
+        $this->bar-><>
+    }
+}

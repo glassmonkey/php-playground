@@ -1,0 +1,18 @@
+// test: is_callable() narrows to callable, negation preserves other types
+// feature: completion
+// Adapted from phpactor function/is_callable.test
+// expect: fooMethod(
+---
+<?php
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+function test(Foo|callable $foo): void {
+    if (is_callable($foo)) {
+        return;
+    }
+
+    $foo-><>
+}

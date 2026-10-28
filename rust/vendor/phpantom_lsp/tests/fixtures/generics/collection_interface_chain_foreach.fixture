@@ -1,0 +1,24 @@
+// test: collection interface chain with IteratorAggregate foreach resolves item type
+// feature: completion
+// Adapted from phpactor generics/method_returns_collection2.test
+// expect: fiveMethod(
+---
+<?php
+/** @template T */
+interface Collection extends IteratorAggregate {
+    /** @return T */
+    public function first();
+}
+/** @extends Collection<Five> */
+interface Foobar extends Collection {
+}
+class Five {
+    public function fiveMethod(): void {}
+}
+class Test {
+    public function foobar(): Foobar {}
+}
+$foo = new Test();
+foreach ($foo->foobar() as $bar) {
+    $bar-><>
+}

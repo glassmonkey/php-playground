@@ -1,0 +1,26 @@
+// test: relative class names in docblock union types resolve within namespace
+// feature: completion
+// Adapted from phpactor type/union_from_relative_docblock.test
+// expect: fooMethod(
+// expect: barMethod(
+---
+<?php
+
+namespace App\Test;
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+class Bar {
+    public function barMethod(): void {}
+}
+
+class Baz {
+    /** @return Foo|Bar */
+    public function create(): object {}
+}
+
+function test(Baz $baz): void {
+    $baz->create()-><>
+}

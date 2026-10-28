@@ -1,0 +1,62 @@
+//! Rename (`textDocument/rename`) and prepare-rename support.
+//!
+//! When the user triggers a rename on a symbol, the LSP first calls
+//! `prepareRename` to validate that the symbol is renameable and to
+//! return the range + current name of the symbol.  If the user
+//! confirms, `rename` is called with the new name, and we produce a
+//! `WorkspaceEdit` that replaces every occurrence across the workspace.
+//!
+//! The heavy lifting (finding all references) is delegated to the
+//! existing `find_references` infrastructure.  This module adds:
+//!
+//! - Vendor rejection: symbols defined under the vendor directory
+//!   cannot be renamed.
+//! - Non-renameable symbol rejection: keywords like `self`, `static`,
+//!   `parent`, and `$this` cannot be renamed.
+//! - Property name fixup: `$this->foo` references need the edit to
+//!   replace only `foo`, not the `$` prefix.  Static properties
+//!   (`self::$prop`) include the `$` in the source but the rename
+//!   should replace the whole `$prop` token consistently.
+//! - Use-statement-aware class rename: when renaming a class, the
+//!   `use` import FQN is updated (last segment only), aliases are
+//!   preserved, and collisions with existing imports are resolved by
+//!   introducing an alias.
+//! - Staleness guards: every range that becomes a `TextEdit` is checked
+//!   against the text of the file it belongs to before the response goes
+//!   out.  See [`validate`] for why.
+//! - Namespace rename: when renaming a namespace segment, all
+//!   `namespace` declarations, `use` statements, and fully-qualified
+//!   references across the workspace are updated.  When a PSR-4
+//!   mapping exists, `RenameFile` operations are emitted to move
+//!   files so the directory structure stays consistent.
+
+mod blade;
+mod class;
+mod namespace;
+mod prepare;
+mod validate;
+
+mod tests;
+
+/// What a rename request answers with.
+///
+/// `Ok(Some(edit))` is the rename, `Ok(None)` means there was nothing
+/// renameable under the cursor, and `Err(message)` is a refusal the user
+/// needs to read — the editor surfaces it as the request's error.
+pub(crate) type RenameOutcome =
+    Result<Option<tower_lsp_server::gen_lsp_types::WorkspaceEdit>, String>;
+
+/// Parse a file's URI for use as a [`tower_lsp_server::gen_lsp_types::WorkspaceEdit`]
+/// change key, logging and skipping the file when it does not parse.
+///
+/// Every file a rename or move touches is named by a URI string read
+/// back out of an index; a `WorkspaceEdit`'s `changes` map is keyed by
+/// the structured [`tower_lsp_server::gen_lsp_types::Uri`] instead, so each one is
+/// reparsed here rather than trusted as already valid.
+fn parse_edit_target_uri(file_uri_str: &str) -> Option<tower_lsp_server::gen_lsp_types::Uri> {
+    let url = crate::util::parse_url(file_uri_str);
+    if url.is_none() {
+        tracing::warn!("rename: dropping edits for file with unparseable URI {file_uri_str:?}");
+    }
+    url
+}

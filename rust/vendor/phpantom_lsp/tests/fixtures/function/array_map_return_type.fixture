@@ -1,0 +1,19 @@
+// test: array_map with closure resolves return array type
+// feature: completion
+// Adapted from phpactor function/array_map.test
+// expect: strMethod(
+---
+<?php
+
+class StrWrapper {
+    public function strMethod(): void {}
+}
+
+/** @var int[] $numbers */
+$numbers = [10, 20, 30];
+
+$result = array_map(function (int $n): StrWrapper {
+    return new StrWrapper();
+}, $numbers);
+
+$result[0]-><>

@@ -1,0 +1,27 @@
+// test: @mixin provides members from another class
+// feature: completion
+// Adapted from phpactor reflection/mixin_class.test
+// expect: doA(
+---
+<?php
+
+class A
+{
+    public function doA(): string
+    {
+        return 'hello';
+    }
+}
+
+/**
+ * @mixin A
+ */
+class B
+{
+    public function doB(): void
+    {
+    }
+}
+
+$b = new B();
+$b-><>

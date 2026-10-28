@@ -1,0 +1,22 @@
+{
+    "repositories": [
+        {
+            "type": "path",
+            "url": "app-modules/*",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "App\\Models\\": "app/Models/",
+            "Database\\Factories\\": "database/factories/"
+        }
+    },
+    "require": {
+        "laravel/framework": "^13.0",
+        "demo/common": "@dev"
+    }
+}

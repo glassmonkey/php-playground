@@ -1,0 +1,357 @@
+//! Tests that a macro registered through a facade (`View::macro(...)`) also
+//! attaches to the facade's concrete container-bound class, so an instance
+//! call on the concrete type (`$factory->extends()`) resolves.
+//!
+//! The facade's `getFacadeAccessor()` is parsed statically for its
+//! container-binding string (`'view'`), which is looked up in the core
+//! container alias table to find the concrete class. No application booting.
+
+use crate::common::message_text;
+use crate::common::{completion_response, create_psr4_workspace, open_php_str, position_after};
+use tower_lsp_server::LanguageServer;
+use tower_lsp_server::gen_lsp_types::*;
+
+const COMPOSER_JSON: &str = r#"{
+    "require": { "laravel/framework": "^11.0" },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/",
+            "Illuminate\\Foundation\\": "vendor/illuminate/Foundation/",
+            "Illuminate\\Support\\Facades\\": "vendor/illuminate/Support/Facades/",
+            "Illuminate\\View\\": "vendor/illuminate/View/"
+        }
+    }
+}"#;
+
+/// Core container aliases binding the `'view'` string to the concrete factory.
+const APPLICATION_PHP: &str = r#"<?php
+namespace Illuminate\Foundation;
+class Application
+{
+    public function registerCoreContainerAliases()
+    {
+        foreach ([
+            'view' => [\Illuminate\View\Factory::class, \Illuminate\Contracts\View\Factory::class],
+        ] as $key => $aliases) {
+            foreach ($aliases as $alias) {
+                $this->alias($key, $alias);
+            }
+        }
+    }
+}
+"#;
+
+/// `Facade::defaultAliases()` so the `View` facade FQN is a known facade.
+const FACADE_PHP: &str = r#"<?php
+namespace Illuminate\Support\Facades;
+abstract class Facade
+{
+    public static function defaultAliases()
+    {
+        return new Collection([
+            'View' => View::class,
+        ]);
+    }
+
+    public static function __callStatic($method, $args)
+    {
+        return static::resolveFacadeInstance()->$method(...$args);
+    }
+}
+"#;
+
+/// The `View` facade: a string-alias accessor resolved via the container table.
+const FACADE_VIEW_PHP: &str = r#"<?php
+namespace Illuminate\Support\Facades;
+class View extends Facade
+{
+    protected static function getFacadeAccessor()
+    {
+        return 'view';
+    }
+}
+"#;
+
+/// The concrete class bound to `'view'`.
+const VIEW_FACTORY_PHP: &str = r#"<?php
+namespace Illuminate\View;
+class Factory
+{
+    public function make(): string { return ''; }
+}
+"#;
+
+/// A provider registering a macro through the facade.
+const PROVIDER_PHP: &str = r#"<?php
+namespace App\Providers;
+use Illuminate\Support\Facades\View;
+class ViewServiceProvider
+{
+    public function boot(): void
+    {
+        View::macro('extends', function (string $layout): string {
+            return $layout;
+        });
+    }
+}
+"#;
+
+fn base_files() -> Vec<(&'static str, &'static str)> {
+    vec![
+        (
+            "vendor/illuminate/Foundation/Application.php",
+            APPLICATION_PHP,
+        ),
+        ("vendor/illuminate/Support/Facades/Facade.php", FACADE_PHP),
+        (
+            "vendor/illuminate/Support/Facades/View.php",
+            FACADE_VIEW_PHP,
+        ),
+        ("vendor/illuminate/View/Factory.php", VIEW_FACTORY_PHP),
+        ("src/Providers/ViewServiceProvider.php", PROVIDER_PHP),
+    ]
+}
+
+#[tokio::test]
+async fn facade_macro_resolves_on_concrete_instance() {
+    let consumer = "\
+<?php
+namespace App;
+use Illuminate\\View\\Factory;
+class Consumer {
+    public function go(Factory $f): void {
+        $f->
+    }
+}
+";
+    let mut files = base_files();
+    files.push(("src/Consumer.php", consumer));
+    let (backend, _dir) = create_psr4_workspace(COMPOSER_JSON, &files);
+
+    // Opening the provider registers the macro (and expands it onto the
+    // concrete view factory via the facade accessor).
+    open_php_str(
+        &backend,
+        "file:///src/Providers/ViewServiceProvider.php",
+        PROVIDER_PHP,
+    )
+    .await;
+    open_php_str(&backend, "file:///src/Consumer.php", consumer).await;
+
+    let result = completion_response(
+        &backend,
+        &Uri::parse("file:///src/Consumer.php").unwrap(),
+        5,
+        12,
+        None,
+    )
+    .await;
+
+    let items = match result.expect("completion should return results") {
+        CompletionResponse::CompletionItemList(items) => items,
+        CompletionResponse::CompletionList(list) => list.items,
+    };
+    let names: Vec<&str> = items
+        .iter()
+        .filter_map(|i| i.filter_text.as_deref())
+        .collect();
+
+    assert!(
+        names.contains(&"extends"),
+        "facade-registered macro should attach to the concrete factory, got: {names:?}"
+    );
+    assert!(
+        names.contains(&"make"),
+        "real methods should still appear, got: {names:?}"
+    );
+}
+
+#[tokio::test]
+async fn facade_macro_instance_call_is_not_flagged() {
+    let consumer = "\
+<?php
+namespace App;
+use Illuminate\\View\\Factory;
+class Consumer {
+    public function go(Factory $f): string {
+        return $f->extends('layout');
+    }
+}
+";
+    let mut files = base_files();
+    files.push(("src/Consumer.php", consumer));
+    let (backend, _dir) = create_psr4_workspace(COMPOSER_JSON, &files);
+    open_php_str(
+        &backend,
+        "file:///src/Providers/ViewServiceProvider.php",
+        PROVIDER_PHP,
+    )
+    .await;
+
+    let uri = "file:///src/Consumer.php";
+    backend.update_ast(uri, consumer);
+    let mut diagnostics = Vec::new();
+    backend.collect_unknown_member_diagnostics(uri, consumer, &mut diagnostics);
+
+    let members: Vec<&str> = diagnostics
+        .iter()
+        .filter(|d| {
+            d.code
+                .as_ref()
+                .is_some_and(|c| matches!(c, Code::String(s) if s == "unknown_member"))
+        })
+        .map(|d| message_text(&d.message))
+        .collect();
+
+    assert!(
+        members.is_empty(),
+        "facade macro instance call should resolve, got: {members:?}"
+    );
+}
+
+#[tokio::test]
+async fn static_facade_macro_call_still_resolves() {
+    // The facade itself keeps the macro too, so the static form works.
+    let consumer = "\
+<?php
+namespace App;
+use Illuminate\\Support\\Facades\\View;
+class Consumer {
+    public function go(): string {
+        return View::extends('layout');
+    }
+}
+";
+    let mut files = base_files();
+    files.push(("src/Consumer.php", consumer));
+    let (backend, _dir) = create_psr4_workspace(COMPOSER_JSON, &files);
+    open_php_str(
+        &backend,
+        "file:///src/Providers/ViewServiceProvider.php",
+        PROVIDER_PHP,
+    )
+    .await;
+
+    let uri = "file:///src/Consumer.php";
+    backend.update_ast(uri, consumer);
+    let mut diagnostics = Vec::new();
+    backend.collect_unknown_member_diagnostics(uri, consumer, &mut diagnostics);
+
+    let members: Vec<&str> = diagnostics
+        .iter()
+        .filter(|d| {
+            d.code
+                .as_ref()
+                .is_some_and(|c| matches!(c, Code::String(s) if s == "unknown_member"))
+        })
+        .map(|d| message_text(&d.message))
+        .collect();
+
+    assert!(
+        members.is_empty(),
+        "static facade macro call should resolve, got: {members:?}"
+    );
+}
+
+#[tokio::test]
+async fn facade_macro_closure_this_resolves_to_concrete_class() {
+    let provider = "\
+<?php
+namespace App\\Providers;
+use Illuminate\\Support\\Facades\\View;
+class ViewServiceProvider
+{
+    public function boot(): void
+    {
+        View::macro('withLayout', function (): void {
+            $this->
+        });
+    }
+}
+";
+    let mut files = base_files();
+    files.push(("src/Providers/ViewServiceProvider.php", provider));
+    let (backend, _dir) = create_psr4_workspace(COMPOSER_JSON, &files);
+    let uri = "file:///src/Providers/ViewServiceProvider.php";
+    open_php_str(&backend, uri, provider).await;
+
+    let result = backend
+        .completion(CompletionParams {
+            text_document_position_params: TextDocumentPositionParams {
+                text_document: TextDocumentIdentifier {
+                    uri: Uri::parse(uri).unwrap(),
+                },
+                position: position_after(provider, "$this->"),
+            },
+            work_done_progress_params: WorkDoneProgressParams::default(),
+            partial_result_params: PartialResultParams::default(),
+            context: None,
+        })
+        .await
+        .unwrap();
+
+    let items = match result.expect("completion should return results") {
+        CompletionResponse::CompletionItemList(items) => items,
+        CompletionResponse::CompletionList(list) => list.items,
+    };
+    let names: Vec<&str> = items
+        .iter()
+        .filter_map(|i| i.filter_text.as_deref())
+        .collect();
+
+    assert!(
+        names.contains(&"make"),
+        "facade macro callback $this should resolve to the concrete factory, got: {names:?}"
+    );
+    assert!(
+        !names.contains(&"boot"),
+        "facade macro callback $this should not resolve to the provider, got: {names:?}"
+    );
+}
+
+/// `$this` inside a facade-registered macro closure resolves to the
+/// facade's concrete class for diagnostics too, not just completion.  Every
+/// call to a real method on the concrete class must go unflagged, and the
+/// diagnostic pass must not report it as a member of the enclosing service
+/// provider either.
+#[tokio::test]
+async fn facade_macro_closure_this_not_flagged_by_unknown_member_diagnostics() {
+    let provider = "\
+<?php
+namespace App\\Providers;
+use Illuminate\\Support\\Facades\\View;
+class ViewServiceProvider
+{
+    public function boot(): void
+    {
+        View::macro('withLayout', function (): string {
+            return $this->make();
+        });
+    }
+}
+";
+    let mut files = base_files();
+    files.push(("src/Providers/ViewServiceProvider.php", provider));
+    let (backend, _dir) = create_psr4_workspace(COMPOSER_JSON, &files);
+    let uri = "file:///src/Providers/ViewServiceProvider.php";
+    open_php_str(&backend, uri, provider).await;
+
+    backend.update_ast(uri, provider);
+    let mut diagnostics = Vec::new();
+    backend.collect_unknown_member_diagnostics(uri, provider, &mut diagnostics);
+
+    let members: Vec<&str> = diagnostics
+        .iter()
+        .filter(|d| {
+            d.code
+                .as_ref()
+                .is_some_and(|c| matches!(c, Code::String(s) if s == "unknown_member"))
+        })
+        .map(|d| message_text(&d.message))
+        .collect();
+
+    assert!(
+        members.is_empty(),
+        "$this->make() inside the macro closure should resolve to the concrete factory, got: {members:?}"
+    );
+}

@@ -1,0 +1,29 @@
+// test: generic class with $this template parameter resolves through builder pattern
+// feature: completion
+// Adapted from phpactor generics/generic_with_this.test
+// expect: parentMethod(
+---
+<?php
+/**
+ * @template T
+ */
+class DocblockBuilder
+{
+    /**
+     * @param T $parent
+     */
+    public function __construct($parent) {}
+    /**
+     * @return T
+     */
+    public function parent() {}
+}
+class ParentClass {
+    public function parentMethod(): void {}
+    /**
+     * @return DocblockBuilder<$this>
+     */
+    public function builder() {}
+}
+$p = new ParentClass();
+$p->builder()->parent()-><>

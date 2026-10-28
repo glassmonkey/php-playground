@@ -1,0 +1,28 @@
+// test: method-level @template resolves class-string<T> from non-first parameter
+// feature: completion
+// Adapted from phpactor generics/method_generic_class-string-2nd-arg.test
+// expect: bMethod(
+---
+<?php
+
+class BResult {
+    public function bMethod(): void {}
+}
+
+class Foo
+{
+    /**
+     * @template T
+     * @param string $label
+     * @param class-string<T> $class
+     * @return T
+     */
+    public function bar(string $label, string $class)
+    {
+        return new $class();
+    }
+}
+
+$f = new Foo();
+$res = $f->bar('Hello', BResult::class);
+$res-><>

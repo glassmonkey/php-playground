@@ -1,0 +1,18 @@
+// test: named parameter completion in nested function call context
+// feature: completion
+// Adapted from phpactor WorseNamedParameterCompletorTest 'Method call in method call'
+// expect: two:
+---
+<?php
+
+class B {
+    public function boo(string $two): B {}
+}
+
+class A {
+    public function bee(string $one) {}
+}
+
+$b = new B();
+$a = new A();
+$a->bee($b->boo(<>));

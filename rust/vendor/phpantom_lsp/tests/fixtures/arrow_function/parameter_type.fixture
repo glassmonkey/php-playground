@@ -1,0 +1,13 @@
+// test: arrow function parameter type resolves for completion
+// feature: completion
+// Adapted from phpactor arrow_function/parameter.test
+
+// expect: fooMethod(
+---
+<?php
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+$fn = fn (Foo $foo) => $foo-><>

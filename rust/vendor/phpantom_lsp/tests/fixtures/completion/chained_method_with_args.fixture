@@ -1,0 +1,19 @@
+// test: chained method call with arguments resolves return types
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest 'chained method call with arguments'
+// expect: goodbye(
+---
+<?php
+
+class BarBar {
+    public function hello($one, $two): Foobar {}
+}
+
+class Foobar {
+    public function goodbye(): BarBar {}
+}
+
+$foobar = (new Foobar())
+    ->goodbye()
+    ->hello('one', 'two')
+    -><>

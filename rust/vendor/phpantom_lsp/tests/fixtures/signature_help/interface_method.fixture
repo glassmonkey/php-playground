@@ -1,0 +1,17 @@
+// test: signature help on instance method from interface shows parameters
+// feature: signature_help
+// Adapted from phpactor WorseSignatureHelperTest 'instance from an interface'
+// expect_sig_label: (string $foo, int $bar): void
+// expect_sig_active: 0
+// expect_sig_param: string $foo
+// expect_sig_param: int $bar
+---
+<?php
+
+interface Foo {
+    public function hello(string $foo, int $bar): void;
+}
+
+function test(Foo $foo): void {
+    $foo->hello(<>);
+}

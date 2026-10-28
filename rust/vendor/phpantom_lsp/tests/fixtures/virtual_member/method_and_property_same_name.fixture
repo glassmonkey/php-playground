@@ -1,0 +1,16 @@
+// test: virtual method and property with same name both resolve
+// feature: completion
+// Adapted from phpactor virtual_member/method_and_property_with_same_name.test
+// When both @method and @property share a name, both should appear in completion
+// expect: foo(
+---
+<?php
+
+/**
+ * @method int foo()
+ * @property string $foo
+ */
+class A {}
+
+$a = new A();
+$a-><>

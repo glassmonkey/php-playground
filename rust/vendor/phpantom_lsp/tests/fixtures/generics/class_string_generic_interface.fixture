@@ -1,0 +1,26 @@
+// test: class-string generic on interface resolves T to the concrete class
+// feature: completion
+// Adapted from phpactor generics/class-string-generic-decared-interface.test
+// expect: fooMethod(
+---
+<?php
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+interface FooInterface {
+    /**
+     * @template T
+     * @param class-string<T> $class
+     * @return T
+     */
+    public function foobar($class): object;
+}
+
+class Bar implements FooInterface {
+    public function foobar($class): object {}
+}
+
+$bar = new Bar();
+$bar->foobar(Foo::class)-><>

@@ -1,0 +1,27 @@
+// test: negated instanceof with return narrows union type
+// feature: completion
+// Adapted from phpactor combination/union_narrow.test
+// After !instanceof Bar with early return, type narrows to Bar (which inherits from Foo)
+// expect: barMethod(
+// expect: fooMethod(
+---
+<?php
+
+abstract class Foo {
+    public function fooMethod(): void {}
+}
+
+class Bar extends Foo {
+    public function barMethod(): void {}
+}
+
+class Baz {
+    function test(Foo|Bar $foo): void
+    {
+        if (!$foo instanceof Bar) {
+            return;
+        }
+
+        $foo-><>
+    }
+}

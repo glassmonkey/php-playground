@@ -1,0 +1,16 @@
+// test: catch clause resolves exception variable to the caught type
+// feature: completion
+// Adapted from phpactor catch-clause/exceptions.test
+// expect: getDetails(
+---
+<?php
+
+class MyException extends \Exception {
+    public function getDetails(): string {}
+}
+
+try {
+    throw new MyException();
+} catch (MyException $exception) {
+    $exception-><>
+}

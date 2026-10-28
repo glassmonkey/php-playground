@@ -1,0 +1,17 @@
+// test: parent::__construct appears in parent:: completion
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest 'parent::__construct'
+// expect: __construct(
+---
+<?php
+
+class Bar {
+    public function __construct(string $foo) {}
+}
+
+class Foobar extends Bar
+{
+    public function bar(): string {
+        parent::<>
+    }
+}

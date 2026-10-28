@@ -1,0 +1,13 @@
+// test: instanceof resolves to bool
+// feature: hover
+// Adapted from phpactor binary-expression/type.test
+// expect_hover: $result => bool
+---
+<?php
+
+class Foo {}
+
+function test(): void {
+    $result = new Foo() instanceof Foo;
+    $<>result;
+}

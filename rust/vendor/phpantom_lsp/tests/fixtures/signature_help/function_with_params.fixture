@@ -1,0 +1,13 @@
+// test: signature help for function with parameters shows label and active parameter
+// feature: signature_help
+// Adapted from phpactor WorseSignatureHelperTest 'function with parameters'
+// expect_sig_label: (string $foo, int $bar): mixed
+// expect_sig_active: 0
+// expect_sig_param: string $foo
+// expect_sig_param: int $bar
+---
+<?php
+
+function hello(string $foo, int $bar) {}
+
+hello(<>

@@ -1,0 +1,14 @@
+// test: logical operators resolve to bool
+// feature: hover
+// Adapted from phpactor binary-expression/logical.test
+// expect_hover: $or => bool
+// expect_hover: $and => bool
+---
+<?php
+
+function test(): void {
+    $or = true || true;
+    $and = true && true;
+    $<>or;
+    $and;
+}

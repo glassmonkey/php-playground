@@ -1,0 +1,34 @@
+// test: property narrowing with instanceof resolves narrowed type members
+// feature: completion
+// Adapted from phpactor member-access/access-from-union.test
+// expect: getLinkedCustomer(
+---
+<?php
+
+interface Timeline
+{
+    public function getItems(): void;
+}
+
+class Trip implements Timeline
+{
+    public function getItems(): void {}
+
+    public function getLinkedCustomer(): string
+    {
+        return 'James Bond';
+    }
+}
+
+class Test
+{
+    /** @var Timeline */
+    public $timeline;
+
+    public function doSomething(): void
+    {
+        if ($this->timeline instanceof Trip) {
+            $this->timeline-><>
+        }
+    }
+}

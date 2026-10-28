@@ -1,0 +1,28 @@
+// test: nullable template parameter resolves through extends
+// feature: completion
+// Adapted from phpactor generics/nullable_template_param.test
+// expect: bMethod(
+---
+<?php
+
+class B {
+    public function bMethod(): void {}
+}
+
+/**
+ * @template T
+ */
+class AbstractFoo {
+    /**
+     * @return ?T
+     */
+    public function foo() {}
+}
+
+/**
+ * @extends AbstractFoo<B>
+ */
+class A extends AbstractFoo {}
+
+$a = new A();
+$a->foo()-><>

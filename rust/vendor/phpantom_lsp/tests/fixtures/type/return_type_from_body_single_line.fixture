@@ -1,0 +1,20 @@
+// test: return type inferred from single-line method body
+// feature: completion
+// Single-line methods like `function foo() { return new Bar(); }` must
+// also have their return type inferred from the body.
+// expect: barMethod(
+---
+<?php
+
+class SingleLineFactory {
+    public function create() { return new SingleLineProduct(); }
+}
+
+class SingleLineProduct {
+    public function barMethod(): void {}
+}
+
+function testSingleLine(SingleLineFactory $f): void {
+    $result = $f->create();
+    $result-><>
+}

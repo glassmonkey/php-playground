@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
 	Flex,
 	Box,
@@ -9,9 +9,10 @@ import {
 	Center,
 	Button,
 	Switch,
+	Checkbox,
 	useColorMode,
 } from '@chakra-ui/react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import * as lzstring from 'lz-string';
 
 import { Version, asVersion, defaultVersion } from './php-wasm/php';
@@ -20,15 +21,13 @@ import { Editor } from './editor';
 import { BellIcon } from '@chakra-ui/icons';
 import { Format, SelectFormat } from './format';
 import { previewThemeFor } from './preview-theme';
-
-type UrlState = {
-	v: Version;
-	c: string;
-	f: Format;
-};
+import { isAutoCompleteEnabled, withAutoComplete, withSearchParam } from './url-state';
 
 export default function App() {
-	const [searchParams, setSearchParams] = useSearchParams();
+	const location = useLocation();
+	const navigate = useNavigate();
+	const navigationType = useNavigationType();
+	const searchParams = new URLSearchParams(location.search);
 	const initCode =
 		lzstring.decompressFromEncodedURIComponent(
 			searchParams.get('c') ?? ''
@@ -41,59 +40,68 @@ export default function App() {
 
 	const currentFormat: Format =
 		searchParams.get('f') === 'console' ? 'console' : 'html';
+	const autoComplete = isAutoCompleteEnabled(searchParams);
+	const [editorHistoryKey, setEditorHistoryKey] = useState(0);
+	const previousLocationKey = useRef(location.key);
+	const initializedUrl = useRef(false);
+
+	useEffect(() => {
+		if (
+			previousLocationKey.current !== location.key &&
+			navigationType === 'POP'
+		) {
+			setEditorHistoryKey((key) => key + 1);
+		}
+		previousLocationKey.current = location.key;
+	}, [location.key, navigationType]);
+
+	useEffect(() => {
+		if (initializedUrl.current) return;
+		initializedUrl.current = true;
+		let next = new URLSearchParams(window.location.search);
+		next = withSearchParam(
+			next,
+			'c',
+			lzstring.compressToEncodedURIComponent(initCode)
+		);
+		next = withSearchParam(next, 'v', currentVersion);
+		next = withSearchParam(next, 'f', currentFormat);
+		navigate(
+			{ search: `?${next.toString()}` },
+			{ replace: true, state: location.state }
+		);
+	}, []);
 
 	function updateVersion(v: Version) {
-		const currentState = history.state as UrlState | null;
-		const code = lzstring.decompressFromEncodedURIComponent(
-			currentState?.c ?? initCode
+		updateSearchParam('v', v);
+	}
+
+	function updateSearchParam(key: string, value: string) {
+		const next = withSearchParam(
+			new URLSearchParams(window.location.search),
+			key,
+			value
 		);
-		const format = currentState?.f ?? currentFormat;
-		if (code == null) {
-			return;
-		}
-		setSearchParams({
-			v: v,
-			c: lzstring.compressToEncodedURIComponent(code),
-			f: format,
-		});
-		setHistory(code, v, format);
+		navigate({ search: `?${next.toString()}` }, { state: location.state });
 	}
-
-	function setHistory(code: string, version: Version, format: Format) {
-		const state: UrlState = {
-			c: lzstring.compressToEncodedURIComponent(code),
-			v: version,
-			f: format,
-		};
-		const urlSearchParam = new URLSearchParams(state).toString();
-		// Only push to history.
-		// I don't want to have it re-render with a URL change when the code changes.
-		history.pushState(state, '', `?${urlSearchParam}`);
-	}
-
-	useEffect(
-		function () {
-			updateVersion(currentVersion);
-			updateFormat(currentFormat);
-		},
-		[currentVersion, currentFormat]
-	);
 
 	function updateFormat(format: Format) {
-		const currentState = history.state as UrlState | null;
-		const code = lzstring.decompressFromEncodedURIComponent(
-			currentState?.c ?? initCode
+		updateSearchParam('f', format);
+	}
+
+	function updateAutoComplete(enabled: boolean) {
+		const next = withAutoComplete(
+			new URLSearchParams(window.location.search),
+			enabled
 		);
-		const version = currentState?.v ?? currentVersion;
-		if (code == null) {
-			return;
-		}
-		setSearchParams({
-			v: version,
-			c: lzstring.compressToEncodedURIComponent(code),
-			f: format,
-		});
-		setHistory(code, version, format);
+		navigate({ search: `?${next.toString()}` }, { state: location.state });
+	}
+
+	function updateCode(code: string) {
+		updateSearchParam(
+			'c',
+			lzstring.compressToEncodedURIComponent(code)
+		);
 	}
 
 	return (
@@ -147,6 +155,7 @@ export default function App() {
 						<Text fontSize="xs">Version:</Text>
 					</label>
 					<SelectPHP
+						key={currentVersion}
 						onChange={updateVersion}
 						version={currentVersion}
 					/>
@@ -165,16 +174,23 @@ export default function App() {
 						format={currentFormat}
 						updateFormat={updateFormat}
 					/>
+					<Checkbox
+						data-testid="checkbox-auto-complete"
+						isChecked={autoComplete}
+						onChange={(event) => updateAutoComplete(event.target.checked)}
+					>
+						Auto complete
+					</Checkbox>
 				</Flex>
 			</Flex>
 			<Editor
+				key={editorHistoryKey}
 				initCode={initCode}
 				version={currentVersion}
 				format={currentFormat}
+				autoComplete={autoComplete}
 				theme={previewTheme}
-				onChangeCode={function (code: string) {
-					setHistory(code, currentVersion, currentFormat);
-				}}
+				onChangeCode={updateCode}
 			/>
 		</main>
 	);

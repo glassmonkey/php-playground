@@ -1,0 +1,20 @@
+// test: virtual method returning $this resolves to the child class
+// feature: completion
+// Adapted from phpactor virtual_member/virtual-method-returns-this.test
+// expect: sendMessage(
+---
+<?php
+
+/**
+ * @method $this sendMessage(string $text)
+ */
+class Mailer
+{
+}
+
+class CoolMailer extends Mailer
+{
+}
+
+$coolMailer = new CoolMailer();
+$coolMailer->sendMessage('hi')-><>

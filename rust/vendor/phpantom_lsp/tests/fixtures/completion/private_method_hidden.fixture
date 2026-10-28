@@ -1,0 +1,15 @@
+// test: private method hidden from outside completion
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest 'Private method'
+// expect_absent: foo
+---
+<?php
+
+class Foobar
+{
+    private function foo(): void {}
+    public function bar(): void {}
+}
+
+$foobar = new Foobar();
+$foobar-><>

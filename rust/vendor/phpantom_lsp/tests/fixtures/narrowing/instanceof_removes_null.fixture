@@ -1,0 +1,17 @@
+// test: instanceof narrows union by removing null
+// feature: completion
+// Adapted from phpactor if-statement/instanceof_removes_null.test
+// expect: fooMethod(
+---
+<?php
+
+class Foobar {
+    public function fooMethod(): void {}
+}
+
+/** @var Foobar|null $foobar */
+$foobar = null;
+
+if ($foobar instanceof Foobar) {
+    $foobar-><>
+}

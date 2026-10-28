@@ -1,0 +1,28 @@
+// test: conditional return type resolves based on literal string argument
+// feature: completion
+
+// Adapted from phpactor type/conditional-type2.test
+// expect: strMethod(
+---
+<?php
+
+class StringResult {
+    public function strMethod(): void {}
+}
+
+class IntResult {
+    public function intMethod(): void {}
+}
+
+interface TreeMapper
+{
+    /**
+     * @return ($signature is "foo" ? StringResult : IntResult)
+     */
+    public function map(string $signature, $source);
+}
+
+function test(TreeMapper $mapper): void {
+    $map = $mapper->map('foo', 'bar');
+    $map-><>
+}

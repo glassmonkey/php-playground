@@ -1,0 +1,27 @@
+// test: instanceof narrows to intersection when existing type is an unrelated interface
+// feature: completion
+// expect: id
+// expect: shouldReceive(
+---
+<?php
+
+interface MockInterface {
+    public function shouldReceive(string $name): self;
+}
+
+class MolliePayment {
+    /** @var string */
+    public string $id;
+    public function canBeRefunded(): bool { return true; }
+}
+
+class TestCase {
+    /** @return MockInterface */
+    public function mock(string $class): MockInterface {}
+
+    public function test(): void {
+        $molliePayment = $this->mock(MolliePayment::class);
+        assert($molliePayment instanceof MolliePayment);
+        $molliePayment-><>
+    }
+}

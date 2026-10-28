@@ -1,0 +1,24 @@
+// test: instanceof inside if branch narrows union parameter type
+// feature: completion
+// Adapted from phpactor combination/param_with_multiple_types.test
+// expect: concatMethod(
+---
+<?php
+
+interface Concatable {
+    public function concatMethod(): string;
+}
+
+class Type {}
+
+class Foo {
+    private function walkBinaryExpression(
+        Type $left,
+        Type $right,
+        int $operator
+    ): void {
+        if ($left instanceof Concatable) {
+            $left-><>
+        }
+    }
+}

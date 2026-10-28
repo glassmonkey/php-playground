@@ -1,0 +1,17 @@
+// test: foreach assigns item type from docblock array annotation
+// feature: completion
+// Adapted from phpactor foreach/assigns_type_to_item.test
+// expect: greet(
+---
+<?php
+
+class Person {
+    public function greet(): string { return ''; }
+}
+
+/** @var Person[] $people */
+$people = [];
+
+foreach ($people as $person) {
+    $person-><>
+}

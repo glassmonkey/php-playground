@@ -1,0 +1,16 @@
+// test: nullable type parameter completion strips null for member access
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest 'nullable' yield
+// expect: doWork(
+---
+<?php
+
+class Service
+{
+    public function doWork(): void {}
+}
+
+function create(): ?Service {}
+
+$s = create();
+$s-><>

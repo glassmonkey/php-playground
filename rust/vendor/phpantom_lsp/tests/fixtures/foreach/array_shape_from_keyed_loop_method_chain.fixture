@@ -1,0 +1,44 @@
+// test: foreach over array built with variable-keyed shape assignments resolves chained method
+// feature: completion
+// The shape value type ('bundle' => ProductBundle) must survive the
+// variable-key merge and foreach extraction so that chaining
+// $entry['bundle']->parentProduct()-> resolves Product members.
+// expect: getName(
+---
+<?php
+
+class Product
+{
+    public function getName(): string { return ''; }
+}
+
+class ProductBundle
+{
+    public int $id = 1;
+
+    public function parentProduct(): Product { return new Product(); }
+}
+
+class Item
+{
+    public int $id = 0;
+    public ProductBundle $productBundle;
+}
+
+class Listener
+{
+    /** @param Item[] $items */
+    public function handle(array $items): void
+    {
+        $bundleProductCounts = [];
+        foreach ($items as $item) {
+            $bundleProductCounts[$item->id] = [
+                'bundle' => $item->productBundle,
+                'count'  => 1,
+            ];
+        }
+        foreach ($bundleProductCounts as $entry) {
+            $entry['bundle']->parentProduct()-><>
+        }
+    }
+}

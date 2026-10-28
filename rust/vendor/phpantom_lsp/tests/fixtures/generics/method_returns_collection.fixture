@@ -1,0 +1,29 @@
+// test: method returning generic collection resolves template through foreach
+// feature: completion
+// Adapted from phpactor generics/method_returns_collection.test
+// expect: doSomething(
+---
+<?php
+class Widget {
+    public function doSomething(): void {}
+}
+/**
+ * @template T
+ * @implements IteratorAggregate<T>
+ */
+class Collection implements IteratorAggregate {
+}
+/**
+ * @extends Collection<Widget>
+ */
+class WidgetCollection extends Collection {
+}
+class Test {
+    public function getWidgets(): WidgetCollection
+    {
+    }
+}
+$foo = new Test();
+foreach ($foo->getWidgets() as $item) {
+    $item-><>
+}

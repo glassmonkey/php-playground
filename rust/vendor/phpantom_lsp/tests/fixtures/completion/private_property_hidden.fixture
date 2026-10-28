@@ -1,0 +1,15 @@
+// test: private property hidden from outside completion
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest 'Private property'
+// expect_absent: foo
+---
+<?php
+
+class Foobar
+{
+    private $foo;
+    public function bar(): void {}
+}
+
+$foobar = new Foobar();
+$foobar-><>

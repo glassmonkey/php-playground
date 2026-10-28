@@ -1,0 +1,21 @@
+// test: static method by-ref parameter sets type on variable after call
+// feature: completion
+// After calling Foo::bar(&$baz) where $baz is typed as Qux, $baz should resolve to Qux
+// expect: doWork(
+---
+<?php
+
+class Qux {
+    public function doWork(): void {}
+}
+
+class Foo {
+    public static function bar(Qux &$baz): void
+    {
+        $baz = new Qux();
+    }
+}
+
+Foo::bar($baz);
+
+$baz-><>

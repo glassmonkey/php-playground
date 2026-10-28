@@ -1,0 +1,648 @@
+//! Workspace Symbols (`workspace/symbol`).
+//!
+//! Returns a flat list of symbols across the entire workspace so that
+//! editors can display a "Go to Symbol in Workspace" picker (typically
+//! triggered via Ctrl+T / Cmd+T).
+//!
+//! The handler builds the list from five data sources:
+//!
+//! 1. **`uri_classes_index`** — provides `ClassInfo` records for every class,
+//!    interface, trait, and enum across all indexed files.  Class members
+//!    (methods, properties, constants) are also emitted with
+//!    `container_name` set to the owning class FQN.
+//!
+//! 2. **`global_functions`** — provides `FunctionInfo` records keyed by
+//!    name with associated file URIs.
+//!
+//! 3. **`global_defines`** — provides `DefineInfo` records for
+//!    `define()` / top-level `const` declarations.
+//!
+//! 4. **`fqn_uri_index`** — maps fully-qualified class names to file URIs
+//!    for classes discovered during parsing but not necessarily open.
+//!    Paired with `fqn_index` for rich metadata when available.
+//!
+//! 5. **`fqn_uri_index`** — maps fully-qualified class names to file URIs,
+//!    covering vendor classes from Composer's classmap and other sources.
+
+use std::collections::HashSet;
+
+use tower_lsp_server::gen_lsp_types::*;
+
+use crate::Backend;
+use crate::text_position::LineIndex;
+use crate::types::{ClassLikeKind, FunctionInfo};
+
+/// Maximum number of symbols returned for a single workspace/symbol request.
+///
+/// When the query is empty (or very short) the result set can be enormous.
+/// We cap it to keep the response snappy and avoid overwhelming the client.
+const MAX_RESULTS: usize = 500;
+
+/// Relevance tier for sorting workspace symbol results.
+///
+/// Lower numeric values sort first (higher relevance).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum MatchTier {
+    /// The symbol name exactly equals the query (case-insensitive).
+    Exact = 0,
+    /// The symbol name starts with the query (case-insensitive).
+    Prefix = 1,
+    /// The symbol name contains the query as a substring.
+    Substring = 2,
+}
+
+/// A workspace symbol paired with its relevance tier for sorting.
+struct RankedSymbol {
+    symbol: SymbolInformation,
+    tier: MatchTier,
+}
+
+/// Where a matched symbol sits in its file, before the file has been read.
+enum Placement {
+    /// At a byte offset; the symbol is dropped when the file cannot be read.
+    Offset(u32),
+    /// At a byte offset, or at the start of the file when it cannot be read.
+    OffsetOrFileStart(u32),
+    /// At the start of the file; nothing is read for it.
+    FileStart,
+}
+
+/// A symbol the query matched, with its position still a byte offset.
+///
+/// Matching runs under the symbol indexes' read locks and records offsets
+/// only; the files are read and the offsets converted once every lock is
+/// released, so a query never blocks a parse of an edit on its disk reads.
+struct PendingSymbol {
+    name: String,
+    kind: SymbolKind,
+    tags: Option<Vec<SymbolTag>>,
+    container_name: Option<String>,
+    file_uri: String,
+    placement: Placement,
+    tier: MatchTier,
+}
+
+/// A class-like's symbol kind and deprecation tag.
+fn class_kind_and_tags(class: &crate::types::ClassInfo) -> (SymbolKind, Option<Vec<SymbolTag>>) {
+    let kind = match class.kind {
+        ClassLikeKind::Class => SymbolKind::Class,
+        ClassLikeKind::Interface => SymbolKind::Interface,
+        ClassLikeKind::Trait => SymbolKind::Class,
+        ClassLikeKind::Enum => SymbolKind::Enum,
+    };
+    let tags = class
+        .deprecation_message
+        .as_ref()
+        .map(|_| vec![SymbolTag::Deprecated]);
+    (kind, tags)
+}
+
+/// Determine the match tier of `name` against `query_lower`.
+///
+/// `query_lower` must already be lowercased.  Returns `None` when
+/// there is no match at all.
+///
+/// PHP identifiers are ASCII, so the common case is matched byte-wise
+/// with `eq_ignore_ascii_case` and never allocates.  Non-ASCII names
+/// (e.g. a class in a file using non-ASCII identifiers) fall back to
+/// the allocating `to_lowercase()` path.
+fn match_tier(name: &str, query_lower: &str) -> Option<MatchTier> {
+    if query_lower.is_empty() {
+        // Empty query matches everything at the lowest tier so that
+        // alphabetical ordering is the only tiebreaker.
+        return Some(MatchTier::Substring);
+    }
+
+    if name.is_ascii() {
+        if ascii_eq_ignore_case(name, query_lower) {
+            Some(MatchTier::Exact)
+        } else if ascii_starts_with_ignore_case(name, query_lower) {
+            Some(MatchTier::Prefix)
+        } else if crate::ci_map::contains_folded(name, query_lower) {
+            Some(MatchTier::Substring)
+        } else {
+            None
+        }
+    } else {
+        let name_lower = name.to_lowercase();
+        if name_lower == query_lower {
+            Some(MatchTier::Exact)
+        } else if name_lower.starts_with(query_lower) {
+            Some(MatchTier::Prefix)
+        } else if name_lower.contains(query_lower) {
+            Some(MatchTier::Substring)
+        } else {
+            None
+        }
+    }
+}
+
+/// Case-insensitive equality for ASCII strings, without allocating.
+fn ascii_eq_ignore_case(s: &str, lower: &str) -> bool {
+    s.as_bytes().eq_ignore_ascii_case(lower.as_bytes())
+}
+
+/// Case-insensitive prefix check for ASCII strings, without allocating.
+fn ascii_starts_with_ignore_case(s: &str, prefix_lower: &str) -> bool {
+    s.len() >= prefix_lower.len()
+        && s.as_bytes()[..prefix_lower.len()].eq_ignore_ascii_case(prefix_lower.as_bytes())
+}
+
+/// Match tier for a property name, which the user may search for with or
+/// without its leading `$`.
+fn property_match_tier(name: &str, query_lower: &str) -> Option<MatchTier> {
+    match_tier(name, query_lower).or_else(|| {
+        // The `$`-prefixed form can only match where the bare name does not
+        // when the query itself contains a `$`, so the rest of the time the
+        // formatting is skipped.
+        if query_lower.contains('$') {
+            match_tier(&format!("${name}"), query_lower)
+        } else {
+            None
+        }
+    })
+}
+
+/// Extract the short name from a symbol name for relevance ranking.
+///
+/// For namespaced names like `"App\\Models\\User"`, returns `"User"`.
+/// For member-qualified names like `"App\\Models\\User::findByEmail"`,
+/// returns `"findByEmail"`.  For unqualified names, returns the input
+/// as-is.
+fn short_name(full_name: &str) -> &str {
+    // Check for `::` first (class member notation).
+    if let Some(idx) = full_name.rfind("::") {
+        return &full_name[idx + 2..];
+    }
+    // Then check for `\` (namespace separator).
+    if let Some(idx) = full_name.rfind('\\') {
+        return &full_name[idx + 1..];
+    }
+    full_name
+}
+
+impl Backend {
+    /// Handle a `workspace/symbol` request.
+    ///
+    /// Searches classes, interfaces, traits, enums, their members
+    /// (methods, properties, class constants), standalone functions,
+    /// and global constants across all indexed files plus vendor classes
+    /// from the fqn_uri_index.  The `query` string
+    /// is matched as a case-insensitive substring against symbol names.
+    /// An empty query returns symbols from parsed files only (not the
+    /// full fqn_uri_index) to avoid flooding the picker.
+    ///
+    /// Results are sorted by relevance: exact matches first, then prefix
+    /// matches, then substring matches. Within each tier, symbols are
+    /// sorted alphabetically by name.
+    #[allow(deprecated)] // SymbolInformation::deprecated is deprecated in the LSP types crate
+    pub fn handle_workspace_symbol(&self, query: &str) -> Option<Vec<SymbolInformation>> {
+        let query_lower = query.to_lowercase();
+        let mut pending: Vec<PendingSymbol> = Vec::new();
+
+        // Track FQNs already emitted so that fqn_uri_index doesn't
+        // produce duplicates for classes already in the uri_classes_index.
+        let mut seen_fqns: HashSet<String> = HashSet::new();
+
+        // ── Classes, interfaces, traits, enums (from uri_classes_index) ───────
+        // Also emits methods, properties, and class constants.
+        {
+            let uri_classes = self.symbols.uri_classes_index.read();
+            for (file_uri, classes) in uri_classes.iter() {
+                for class in classes {
+                    // Skip anonymous classes (empty name or name starting with
+                    // "anonymous@" which the parser uses for anonymous classes).
+                    if class.name.is_empty() || class.name.starts_with("anonymous@") {
+                        continue;
+                    }
+
+                    let fqn = class.fqn();
+
+                    // ── The class itself ─────────────────────────────
+                    // Match against both the FQN and the short class name.
+                    let class_tier = match_tier(&fqn, &query_lower)
+                        .or_else(|| match_tier(&class.name, &query_lower));
+
+                    if let Some(tier) = class_tier
+                        && class.keyword_offset != 0
+                    {
+                        let (kind, tags) = class_kind_and_tags(class);
+                        seen_fqns.insert(fqn.to_string());
+                        pending.push(PendingSymbol {
+                            name: fqn.to_string(),
+                            kind,
+                            tags,
+                            container_name: class.file_namespace.map(|a| a.to_string()),
+                            file_uri: file_uri.clone(),
+                            placement: Placement::Offset(class.keyword_offset),
+                            tier,
+                        });
+                    }
+
+                    // ── Methods ──────────────────────────────────────
+                    for method in &class.methods {
+                        // Skip virtual methods — they have no real source position.
+                        if method.is_virtual || method.name_offset == 0 {
+                            continue;
+                        }
+                        let Some(tier) = match_tier(&method.name, &query_lower) else {
+                            continue;
+                        };
+                        pending.push(PendingSymbol {
+                            name: format!("{}::{}", fqn, method.name),
+                            kind: SymbolKind::Method,
+                            tags: method
+                                .deprecation_message()
+                                .as_ref()
+                                .map(|_| vec![SymbolTag::Deprecated]),
+                            container_name: Some(fqn.to_string()),
+                            file_uri: file_uri.clone(),
+                            placement: Placement::Offset(method.name_offset),
+                            tier,
+                        });
+                    }
+
+                    // ── Properties ───────────────────────────────────
+                    for prop in &class.properties {
+                        if prop.is_virtual || prop.name_offset == 0 {
+                            continue;
+                        }
+                        let Some(tier) = property_match_tier(&prop.name, &query_lower) else {
+                            continue;
+                        };
+                        pending.push(PendingSymbol {
+                            name: format!("{}::${}", fqn, prop.name),
+                            kind: SymbolKind::Property,
+                            tags: prop
+                                .deprecation_message
+                                .as_ref()
+                                .map(|_| vec![SymbolTag::Deprecated]),
+                            container_name: Some(fqn.to_string()),
+                            file_uri: file_uri.clone(),
+                            placement: Placement::Offset(prop.name_offset),
+                            tier,
+                        });
+                    }
+
+                    // ── Class constants ──────────────────────────────
+                    for constant in &class.constants {
+                        if constant.is_virtual || constant.name_offset == 0 {
+                            continue;
+                        }
+                        let Some(tier) = match_tier(&constant.name, &query_lower) else {
+                            continue;
+                        };
+                        // Use ENUM_MEMBER for enum cases, CONSTANT for class constants.
+                        let kind = if constant.is_enum_case {
+                            SymbolKind::EnumMember
+                        } else {
+                            SymbolKind::Constant
+                        };
+                        pending.push(PendingSymbol {
+                            name: format!("{}::{}", fqn, constant.name),
+                            kind,
+                            tags: constant
+                                .deprecation_message
+                                .as_ref()
+                                .map(|_| vec![SymbolTag::Deprecated]),
+                            container_name: Some(fqn.to_string()),
+                            file_uri: file_uri.clone(),
+                            placement: Placement::Offset(constant.name_offset),
+                            tier,
+                        });
+                    }
+                }
+            }
+        }
+
+        // ── Standalone functions ────────────────────────────────────
+        {
+            let fmap = self.symbols.global_functions.read();
+            for (_name, (file_uri, func)) in fmap.iter() {
+                // The Blade lowering's wrapper and marker functions are
+                // boilerplate no file wrote, so they are not symbols of
+                // the project even though they have to resolve.
+                if crate::blade::is_synthetic_function(&func.name) {
+                    continue;
+                }
+
+                let display_name = function_display_name(func);
+
+                let func_short = short_name(&display_name);
+                let Some(tier) = match_tier(&display_name, &query_lower)
+                    .or_else(|| match_tier(func_short, &query_lower))
+                else {
+                    continue;
+                };
+
+                // Skip functions with no usable offset.
+                if func.name_offset == 0 {
+                    continue;
+                }
+
+                pending.push(PendingSymbol {
+                    name: display_name,
+                    kind: SymbolKind::Function,
+                    tags: func
+                        .deprecation_message
+                        .as_ref()
+                        .map(|_| vec![SymbolTag::Deprecated]),
+                    container_name: func.namespace.clone(),
+                    file_uri: file_uri.clone(),
+                    placement: Placement::Offset(func.name_offset),
+                    tier,
+                });
+            }
+        }
+
+        // ── Global defines / constants ──────────────────────────────
+        {
+            let dmap = self.symbols.global_defines.read();
+            for (name, info) in dmap.iter() {
+                // A namespaced `const` is indexed fully-qualified, so the
+                // query has to be matched against its last segment too —
+                // users search for `GRADES`, not `App\Config\GRADES`.
+                let Some(tier) = match_tier(name, &query_lower)
+                    .or_else(|| match_tier(short_name(name), &query_lower))
+                else {
+                    continue;
+                };
+
+                // Skip constants with no usable offset.
+                if info.name_offset == 0 {
+                    continue;
+                }
+
+                pending.push(PendingSymbol {
+                    name: name.to_string(),
+                    kind: SymbolKind::Constant,
+                    tags: None,
+                    container_name: namespace_from_fqn(name),
+                    file_uri: info.file_uri.clone(),
+                    placement: Placement::Offset(info.name_offset),
+                    tier,
+                });
+            }
+        }
+
+        // ── fqn_uri_index (discovered classes not yet in uri_classes_index) ─────
+        // Only searched when the user has typed a query — an empty query
+        // would dump thousands of vendor classes into the picker.
+        if !query_lower.is_empty() {
+            // Grab the fqn_index for rich metadata (kind, deprecation).
+            // The indexing paths take these two write locks in URI-then-class
+            // order, so read them in that order as well: a writer parked
+            // between its two acquisitions blocks new readers of the second
+            // lock, and a reader holding them the other way round would then
+            // be waiting for that writer to finish.
+            let idx = self.symbols.fqn_uri_index.read();
+            let fqn_idx = self.symbols.fqn_class_index.read();
+            for (fqn, file_uri) in idx.iter() {
+                if seen_fqns.contains(fqn) {
+                    continue;
+                }
+
+                let fqn_short = short_name(fqn);
+                let Some(tier) =
+                    match_tier(fqn, &query_lower).or_else(|| match_tier(fqn_short, &query_lower))
+                else {
+                    continue;
+                };
+
+                // A class the parser has seen carries its kind, deprecation
+                // and declaration offset; one known only from the Composer
+                // classmap has not been parsed, so the file's start is all
+                // the position there is to offer.
+                let (kind, tags, container_name, placement) = match fqn_idx.get(fqn) {
+                    Some(class_info) => {
+                        let (kind, tags) = class_kind_and_tags(class_info);
+                        let placement = if class_info.keyword_offset > 0 {
+                            Placement::OffsetOrFileStart(class_info.keyword_offset)
+                        } else {
+                            Placement::FileStart
+                        };
+                        (
+                            kind,
+                            tags,
+                            class_info.file_namespace.map(|a| a.to_string()),
+                            placement,
+                        )
+                    }
+                    None => (
+                        SymbolKind::Class,
+                        None,
+                        namespace_from_fqn(fqn),
+                        Placement::FileStart,
+                    ),
+                };
+
+                seen_fqns.insert(fqn.to_owned());
+
+                pending.push(PendingSymbol {
+                    name: fqn.to_owned(),
+                    kind,
+                    tags,
+                    container_name,
+                    file_uri: file_uri.clone(),
+                    placement,
+                    tier,
+                });
+            }
+        }
+
+        // ── Sort by relevance then alphabetically, cap at MAX_RESULTS ──
+        // Sorting before the files are read keeps the disk reads to the
+        // symbols that will be answered.
+        pending.sort_by(|a, b| a.tier.cmp(&b.tier).then_with(|| a.name.cmp(&b.name)));
+        pending.truncate(MAX_RESULTS);
+
+        let mut ranked = self.locate_symbols(pending);
+        ranked.sort_by(|a, b| {
+            a.tier.cmp(&b.tier).then_with(|| {
+                a.symbol
+                    .base_symbol_information
+                    .name
+                    .cmp(&b.symbol.base_symbol_information.name)
+            })
+        });
+
+        let symbols: Vec<SymbolInformation> = ranked.into_iter().map(|r| r.symbol).collect();
+
+        if symbols.is_empty() {
+            None
+        } else {
+            Some(symbols)
+        }
+    }
+
+    /// Turn each pending symbol's byte offset into an LSP position.
+    ///
+    /// A file that is not open in the editor is read from disk, so it is
+    /// read once for every symbol in it, and one line table serves them
+    /// all: a fresh `offset_to_position` scan per symbol is quadratic in
+    /// the file size.
+    fn locate_symbols(&self, mut pending: Vec<PendingSymbol>) -> Vec<RankedSymbol> {
+        pending.sort_by(|a, b| a.file_uri.cmp(&b.file_uri));
+        let mut ranked = Vec::with_capacity(pending.len());
+        for group in pending.chunk_by(|a, b| a.file_uri == b.file_uri) {
+            let needs_content = group
+                .iter()
+                .any(|symbol| !matches!(symbol.placement, Placement::FileStart));
+            let content = needs_content
+                .then(|| self.get_file_content_arc(&group[0].file_uri))
+                .flatten();
+            let index = content.as_deref().map(|c| LineIndex::new(c));
+            for symbol in group {
+                let pos = match (&symbol.placement, &index) {
+                    (Placement::FileStart, _) => Position::new(0, 0),
+                    (
+                        Placement::Offset(offset) | Placement::OffsetOrFileStart(offset),
+                        Some(index),
+                    ) => index.position(*offset as usize),
+                    (Placement::OffsetOrFileStart(_), None) => Position::new(0, 0),
+                    (Placement::Offset(_), None) => continue,
+                };
+                ranked.push(RankedSymbol {
+                    symbol: make_symbol(
+                        symbol.name.clone(),
+                        symbol.kind,
+                        symbol.tags.clone(),
+                        &symbol.file_uri,
+                        pos,
+                        symbol.container_name.clone(),
+                    ),
+                    tier: symbol.tier,
+                });
+            }
+        }
+        ranked
+    }
+}
+
+/// Build the display name for a function, including its namespace prefix
+/// when present (e.g. `"Amp\\delay"`).
+fn function_display_name(func: &FunctionInfo) -> String {
+    match &func.namespace {
+        Some(ns) if !ns.is_empty() => format!("{}\\{}", ns, func.name),
+        _ => func.name.to_string(),
+    }
+}
+
+/// Extract the namespace portion from a fully-qualified class name.
+///
+/// Returns `Some("App\\Models")` for `"App\\Models\\User"`, or `None`
+/// for a class with no namespace (e.g. `"stdClass"`).
+fn namespace_from_fqn(fqn: &str) -> Option<String> {
+    fqn.rfind('\\').map(|i| fqn[..i].to_string())
+}
+
+/// Build a `SymbolInformation` pointing at one position in a file.
+///
+/// Every workspace symbol is a point rather than a span: the editor's
+/// symbol list shows the name and jumps to where it is declared, so the
+/// range is the declaration's own offset twice over. A URI that will not
+/// parse yields a placeholder rather than dropping the symbol, so a
+/// malformed entry costs the one result instead of the whole answer.
+#[allow(deprecated)] // SymbolInformation::deprecated is deprecated in the LSP types crate
+fn make_symbol(
+    name: String,
+    kind: SymbolKind,
+    tags: Option<Vec<SymbolTag>>,
+    file_uri: &str,
+    pos: Position,
+    container_name: Option<String>,
+) -> SymbolInformation {
+    SymbolInformation {
+        base_symbol_information: BaseSymbolInformation {
+            name,
+            kind,
+            tags,
+            container_name,
+        },
+        deprecated: None,
+        location: Location {
+            uri: crate::util::parse_url(file_uri).unwrap_or_else(crate::util::unknown_url),
+            range: Range::new(pos, pos),
+        },
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn short_name_no_separator() {
+        assert_eq!(short_name("Foo"), "Foo");
+    }
+
+    #[test]
+    fn short_name_with_namespace() {
+        assert_eq!(short_name("App\\Models\\User"), "User");
+    }
+
+    #[test]
+    fn short_name_with_member() {
+        assert_eq!(short_name("App\\Models\\User::findByEmail"), "findByEmail");
+    }
+
+    #[test]
+    fn short_name_member_takes_precedence() {
+        assert_eq!(short_name("Ns\\Cls::method"), "method");
+    }
+
+    #[test]
+    fn match_tier_exact() {
+        assert_eq!(match_tier("Foo", "foo"), Some(MatchTier::Exact));
+    }
+
+    #[test]
+    fn match_tier_prefix() {
+        assert_eq!(match_tier("FooBar", "foo"), Some(MatchTier::Prefix));
+    }
+
+    #[test]
+    fn match_tier_substring() {
+        assert_eq!(match_tier("MyFooBar", "foo"), Some(MatchTier::Substring));
+    }
+
+    #[test]
+    fn match_tier_no_match() {
+        assert_eq!(match_tier("Bar", "foo"), None);
+    }
+
+    #[test]
+    fn match_tier_empty_query() {
+        assert_eq!(match_tier("Anything", ""), Some(MatchTier::Substring));
+    }
+
+    #[test]
+    fn tier_ordering() {
+        assert!(MatchTier::Exact < MatchTier::Prefix);
+        assert!(MatchTier::Prefix < MatchTier::Substring);
+    }
+
+    #[test]
+    fn match_tier_non_ascii_name_falls_back() {
+        // Non-ASCII names (e.g. Turkish "İ") don't lowercase byte-for-byte,
+        // so they must go through the `to_lowercase()` fallback path.
+        assert_eq!(match_tier("Naïve", "naïve"), Some(MatchTier::Exact));
+        assert_eq!(match_tier("NaïveBar", "naïve"), Some(MatchTier::Prefix));
+        assert_eq!(
+            match_tier("MyNaïveBar", "naïve"),
+            Some(MatchTier::Substring)
+        );
+    }
+
+    #[test]
+    fn ascii_eq_ignore_case_matches() {
+        assert!(ascii_eq_ignore_case("Foo", "foo"));
+        assert!(!ascii_eq_ignore_case("FooBar", "foo"));
+    }
+
+    #[test]
+    fn ascii_starts_with_ignore_case_matches() {
+        assert!(ascii_starts_with_ignore_case("FooBar", "foo"));
+        assert!(!ascii_starts_with_ignore_case("Foo", "foobar"));
+    }
+}

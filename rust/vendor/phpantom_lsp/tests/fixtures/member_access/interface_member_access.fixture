@@ -1,0 +1,22 @@
+// test: interface typed variable shows interface methods in completion
+// feature: completion
+// Adapted from phpactor member-access patterns
+// expect: getItems(
+// expect: count(
+---
+<?php
+
+interface Countable
+{
+    public function count(): int;
+}
+
+interface Collection extends Countable
+{
+    public function getItems(): array;
+}
+
+function process(Collection $col): void
+{
+    $col-><>
+}

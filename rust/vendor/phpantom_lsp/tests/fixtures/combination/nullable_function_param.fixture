@@ -1,0 +1,16 @@
+// test: nullable function parameter retains type for completion
+// feature: completion
+// Adapted from phpactor combination/function_params.test
+// expect: doSomething(
+---
+<?php
+
+class Foo {
+    public function doSomething(): void {}
+}
+
+function test(?Foo $foo = null): void {
+    if ($foo !== null) {
+        $foo-><>
+    }
+}

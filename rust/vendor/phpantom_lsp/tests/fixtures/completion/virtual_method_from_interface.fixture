@@ -1,0 +1,18 @@
+// test: virtual method from interface propagates to implementing class
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest 'Virtual method'
+// expect: foo(
+---
+<?php
+
+/**
+ * @method \Foobar foo()
+ */
+interface Barfoo {}
+
+class Foobar implements Barfoo
+{
+}
+
+$foobar = new Foobar();
+$foobar-><>

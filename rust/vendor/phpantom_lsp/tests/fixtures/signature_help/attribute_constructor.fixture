@@ -1,0 +1,17 @@
+// test: signature help on attribute constructor shows parameters
+// feature: signature_help
+// Adapted from phpactor WorseSignatureHelperTest 'attribute 1'
+// expect_sig_label: (string $bar): mixed
+// expect_sig_active: 0
+// expect_sig_param: string $bar
+---
+<?php
+
+#[Attribute]
+class FooAttr
+{
+    public function __construct(string $bar) {}
+}
+
+#[FooAttr(<>)]
+class Bar {}

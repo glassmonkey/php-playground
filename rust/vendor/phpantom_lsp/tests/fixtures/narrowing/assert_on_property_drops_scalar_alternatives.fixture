@@ -1,0 +1,33 @@
+// test: a @phpstan-assert on a property path drops its scalar and array alternatives
+// feature: hover
+// expect: $kept = Instant
+// expect_absent: array
+// expect_absent: int
+---
+<?php
+
+interface Moment {}
+class Instant implements Moment {}
+class Interval {}
+
+final class Job {
+    /** @var Moment|Interval|array|int|null */
+    public $delay;
+}
+
+class Assert {
+    /**
+     * @template ExpectedType of object
+     * @param class-string<ExpectedType> $expected
+     * @phpstan-assert =ExpectedType $actual
+     */
+    public static function assertInstanceOf(string $expected, mixed $actual): void {}
+}
+
+final class JobTest extends Assert {
+    public function testDelay(Job $job): void {
+        self::assertInstanceOf(Instant::class, $job->delay);
+        $kept = $job->delay;
+        echo $ke<>pt;
+    }
+}

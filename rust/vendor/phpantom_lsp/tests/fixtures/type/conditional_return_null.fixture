@@ -1,0 +1,27 @@
+// test: conditional return type with null parameter resolves based on null check
+// feature: completion
+// Adapted from phpactor type/conditional-type-nullable.test
+// expect: json(
+---
+<?php
+
+class ResponseFactory
+{
+    public function json(): string {}
+}
+
+class HttpResponse
+{
+    public function send(): void {}
+}
+
+/**
+ * @param string|array|null $content
+ * @param int $status
+ * @param array $headers
+ * @return ($content is null ? ResponseFactory : HttpResponse)
+ */
+function response($content = null, $status = 200, array $headers = []) {}
+
+$r = response();
+$r-><>

@@ -1,0 +1,20 @@
+// test: @method virtual method on trait appears in completion
+// feature: completion
+// Adapted from phpactor virtual_member/trait_method1.test
+// expect: sayHello(
+---
+<?php
+
+/**
+ * @method void sayHello()
+ */
+trait Feature {
+    public function another(): void {}
+}
+
+class UseTrait {
+    use Feature;
+}
+
+$obj = new UseTrait();
+$obj-><>

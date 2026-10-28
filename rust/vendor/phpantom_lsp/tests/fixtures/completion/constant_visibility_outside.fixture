@@ -1,0 +1,18 @@
+// test: constant visibility from outside class hides private and protected constants
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest 'Constant visibility from outside'
+// expect: FOOBAR
+// expect_absent: BARFOO
+// expect_absent: BARFOX
+---
+<?php
+
+class Foobar
+{
+    const FOOBAR = 'foobar';
+    private const BARFOO = 'barfoo';
+    protected const BARFOX = 'barfox';
+}
+
+$foobar = new Foobar();
+$foobar::<>

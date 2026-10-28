@@ -1,0 +1,20 @@
+// test: chained method call from static method with arguments resolves return type
+// feature: completion
+// Adapted from phpactor WorseClassMemberCompletorTest 'chained static method call with arguments'
+// expect: goodbye(
+---
+<?php
+
+class BarBar {
+    public function hello($one, $two): Foobar {}
+}
+
+class Foobar {
+    public function goodbye(): BarBar {}
+
+    public static function create(): BarBar {}
+}
+
+Foobar::create()
+    ->hello('one', 'two')
+    -><>

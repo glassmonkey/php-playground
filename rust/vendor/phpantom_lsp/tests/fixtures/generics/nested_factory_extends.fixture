@@ -1,0 +1,36 @@
+// test: nested generic factory extends resolves through inheritance chain
+// feature: completion
+// Adapted from phpactor generics/gh-2295-test.test
+// expect: childMethod(
+---
+<?php
+
+abstract class Model {}
+
+/** @template TModel of Model */
+class Factory
+{
+    /**
+     * @return TModel
+     */
+    public function create(): object {}
+}
+
+/**
+ * @template TModel of Schedule
+ * @extends Factory<TModel>
+ */
+class ScheduleFactory extends Factory {}
+
+class Schedule extends Model {}
+
+class ChildSchedule extends Schedule
+{
+    public function childMethod(): void {}
+}
+
+/** @extends ScheduleFactory<ChildSchedule> */
+class ChildScheduleFactory extends ScheduleFactory {}
+
+$s = (new ChildScheduleFactory())->create();
+$s-><>

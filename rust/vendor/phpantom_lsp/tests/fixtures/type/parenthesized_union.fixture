@@ -1,0 +1,25 @@
+// test: parenthesized union type narrows correctly with instanceof
+// feature: completion
+// Adapted from phpactor type/parenthesized.test
+// expect: fooMethod(
+// reject: barMethod(
+---
+<?php
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+class Bar {
+    public function barMethod(): void {}
+}
+
+/** @param (Foo|Bar)|string $x */
+function test($x): void {
+    if (is_string($x)) {
+        return;
+    }
+    if ($x instanceof Foo) {
+        $x-><>
+    }
+}

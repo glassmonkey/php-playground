@@ -1,0 +1,19 @@
+// test: variable introduced in if branch has type after branch
+// feature: completion
+// Adapted from phpactor if-statement/variable_introduced_in_branch.test
+// expect: doSomething(
+---
+<?php
+class TextDocument {
+    public function doSomething(): void {}
+}
+function create(string $source): TextDocument
+{
+}
+function fromSource(object $source): void
+{
+    if (!$source instanceof TextDocument) {
+        $source = create('test');
+    }
+    $source-><>
+}

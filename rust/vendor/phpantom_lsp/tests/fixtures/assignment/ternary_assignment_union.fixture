@@ -1,0 +1,21 @@
+// test: ternary assignment produces union of both branch types
+// feature: completion
+// Adapted from phpactor assignment/ternary_expression.test
+// expect: fooMethod(
+// expect: barMethod(
+---
+<?php
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+class Bar {
+    public function barMethod(): void {}
+}
+
+function test(bool $cond): void {
+    $x = $cond ? new Foo() : new Bar();
+
+    $x-><>
+}

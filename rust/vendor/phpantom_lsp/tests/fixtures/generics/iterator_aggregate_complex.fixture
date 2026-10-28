@@ -1,0 +1,26 @@
+// test: IteratorAggregate with complex nested generic type resolves in foreach
+// feature: hover
+// Adapted from phpactor generics/iterator_aggregate2.test
+// expect_hover: $bar => array<string, Foo|Bar>
+---
+<?php
+
+class Foo {
+    public function fooMethod(): void {}
+}
+
+class Bar {
+    public function barMethod(): void {}
+}
+
+/**
+ * @implements IteratorAggregate<array<string, Foo|Bar>>
+ */
+class Foobar implements IteratorAggregate {
+}
+
+$foo = new Foobar();
+
+foreach ($foo as $bar) {
+    $bar<>
+}

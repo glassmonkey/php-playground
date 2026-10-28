@@ -1,0 +1,867 @@
+//! PHPCS (PHP_CodeSniffer) proxy for coding standard diagnostics.
+//!
+//! PHPantom can proxy diagnostics from PHP_CodeSniffer by running
+//! `phpcs --report=json` on the current file.  This surfaces coding
+//! standard violations (PSR-12, PSR-1, custom sniffs) as LSP
+//! diagnostics.
+//!
+//! ## Auto-detection
+//!
+//! When `command` is unset, PHPantom runs PHPCS only if the project
+//! lists `squizlabs/php_codesniffer` in `require-dev`, has a PHPCS
+//! ruleset file, or sets `standard`. It then resolves the `phpcs`
+//! binary via Composer's bin-dir, falling back to `$PATH`. Set
+//! `command = ""` to explicitly disable PHPCS.
+//!
+//! ## Configuration (`.phpantom.toml`)
+//!
+//! ```toml
+//! [phpcs]
+//! # Command/path for phpcs. When unset, auto-detected via
+//! # Composer's bin-dir, then $PATH, for projects that use PHPCS.
+//! # Set to "" to disable.
+//! # command = "vendor/bin/phpcs"
+//!
+//! # Coding standard. When unset, PHPCS uses its own default
+//! # detection (phpcs.xml / phpcs.xml.dist in project root,
+//! # then its built-in default).
+//! # standard = "PSR12"
+//!
+//! # Maximum runtime in milliseconds before PHPCS is killed.
+//! # Defaults to 30 000 ms (30 seconds).
+//! # timeout = 30000
+//! ```
+//!
+//! ## Output parsing
+//!
+//! PHPCS is invoked with `--report=json` and the JSON output is parsed
+//! to extract file-level messages which are converted to LSP
+//! `Diagnostic` values.  Each violation maps to a diagnostic with the
+//! sniff name as the code (e.g. `PSR12.Files.FileHeader.MissingPHPVersion`).
+//! Fixable violations are marked in `Diagnostic.data` so that a companion
+//! code action can offer `phpcbf` auto-fix.
+
+use std::path::{Path, PathBuf};
+use std::process::Command;
+use std::time::Duration;
+
+use tower_lsp_server::gen_lsp_types::{Code, Diagnostic, DiagnosticSeverity};
+
+use crate::composer::ComposerPackage;
+use crate::config::PhpcsConfig;
+use crate::process::paths_match;
+
+/// Default PHPCS timeout in milliseconds (30 seconds).
+const DEFAULT_TIMEOUT_MS: u64 = 30_000;
+
+// ── Tool resolution ─────────────────────────────────────────────────
+
+/// A resolved PHPCS binary ready to invoke.
+#[derive(Debug, Clone)]
+pub(crate) struct ResolvedPhpcs {
+    /// Absolute or relative path to the binary.
+    pub path: PathBuf,
+}
+
+/// Attempt to resolve the PHPCS binary from configuration and the
+/// workspace environment.
+///
+/// Resolution rules:
+/// - Config value `Some("")` (empty string) → disabled (`None`).
+/// - Config value `Some(cmd)` → use `cmd` as-is (user override).
+/// - Config value `None` → auto-detect, but only when a `standard` is
+///   configured or [`project_uses_phpcs`] says so: try
+///   `<bin_dir>/phpcs` under the workspace root, then search `$PATH`.
+pub(crate) fn resolve_phpcs(
+    workspace_root: Option<&Path>,
+    config: &PhpcsConfig,
+    bin_dir: Option<&str>,
+    composer_json: Option<&ComposerPackage>,
+) -> Option<ResolvedPhpcs> {
+    match config.command.as_deref() {
+        Some("") => None,
+        Some(cmd) => Some(ResolvedPhpcs {
+            path: PathBuf::from(cmd),
+        }),
+        None => {
+            if config.standard.is_none() && !project_uses_phpcs(workspace_root, composer_json) {
+                return None;
+            }
+            crate::process::auto_detect_binary(workspace_root, bin_dir, "phpcs")
+                .map(|path| ResolvedPhpcs { path })
+        }
+    }
+}
+
+/// Whether the project's own metadata says it uses PHP_CodeSniffer.
+///
+/// A `vendor/bin/phpcs` on disk is not evidence: packages such as
+/// coding-standard bundles or mail libraries pull
+/// `squizlabs/php_codesniffer` in transitively, and running it without
+/// a ruleset reports against PHPCS's built-in default standard. A
+/// direct `require-dev` entry or a ruleset file is.
+pub(crate) fn project_uses_phpcs(
+    workspace_root: Option<&Path>,
+    composer_json: Option<&ComposerPackage>,
+) -> bool {
+    composer_json.is_some_and(|package| {
+        crate::composer::has_require_dev(package, "squizlabs/php_codesniffer")
+    }) || workspace_root.is_some_and(has_project_config)
+}
+
+// ── PHPCS execution ─────────────────────────────────────────────────
+
+/// Run PHPCS on the given buffer content and return LSP diagnostics.
+///
+/// `file_path` is the real path of the file on disk.  `content` is the
+/// current editor buffer (which may differ from the on-disk version).
+/// PHPCS reads from stdin when the `-` argument is given, and
+/// `--stdin-path` tells it the original filename for ruleset matching.
+///
+/// `workspace_root` is needed to run PHPCS from the project root
+/// directory so that it picks up `phpcs.xml` / `phpcs.xml.dist`.
+pub(crate) fn run_phpcs(
+    resolved: &ResolvedPhpcs,
+    content: &str,
+    file_path: &Path,
+    workspace_root: &Path,
+    config: &PhpcsConfig,
+    cancelled: &std::sync::atomic::AtomicBool,
+) -> Result<Vec<Diagnostic>, String> {
+    let timeout_ms = config.timeout.unwrap_or(DEFAULT_TIMEOUT_MS);
+    let timeout = Duration::from_millis(timeout_ms);
+
+    let mut cmd = Command::new(&resolved.path);
+    cmd.arg("--report=json")
+        .arg("--no-colors")
+        .arg("-q")
+        .arg(format!("--stdin-path={}", file_path.display()))
+        .current_dir(workspace_root);
+
+    if let Some(ref standard) = config.standard {
+        cmd.arg(format!("--standard={}", standard));
+    }
+
+    // The `-` argument tells PHPCS to read from stdin.
+    cmd.arg("-");
+
+    // The buffer content is fed to PHPCS's stdin by the shared helper,
+    // which drains stdout/stderr concurrently so a large JSON report
+    // cannot deadlock against a full pipe buffer.
+    let result = crate::process::run_command_with_timeout(
+        &mut cmd,
+        timeout,
+        cancelled,
+        "PHPCS",
+        Some(content),
+    );
+
+    match result {
+        Ok(output) => {
+            // PHPCS exit codes:
+            //   0 = no violations found
+            //   1 = violations found (warnings only)
+            //   2 = violations found (errors present)
+            //   3 = processing error
+            match output.code {
+                0 => Ok(Vec::new()),
+                1 | 2 => parse_phpcs_json(&output.stdout, file_path),
+                _ => {
+                    // For other exit codes, try parsing JSON; fall back
+                    // to error.
+                    match parse_phpcs_json(&output.stdout, file_path) {
+                        Ok(diags) if !diags.is_empty() => Ok(diags),
+                        _ => Err(format!(
+                            "PHPCS exited with code {} (stderr: {})",
+                            output.code,
+                            output.stderr.trim()
+                        )),
+                    }
+                }
+            }
+        }
+        Err(e) => Err(e),
+    }
+}
+
+/// Whether the project has its own PHPCS ruleset file.
+///
+/// A project-wide run is only attempted when one exists: PHPCS needs
+/// the ruleset's `<file>` entries to know which paths to scan (we pass
+/// no path argument, so without them PHPCS exits with a usage error).
+pub(crate) fn has_project_config(workspace_root: &Path) -> bool {
+    [
+        "phpcs.xml",
+        "phpcs.xml.dist",
+        ".phpcs.xml",
+        ".phpcs.xml.dist",
+    ]
+    .iter()
+    .any(|name| workspace_root.join(name).is_file())
+}
+
+/// Run PHPCS once over the whole project and return diagnostics
+/// grouped by file path.
+///
+/// No path argument is passed, so PHPCS scans the `<file>` entries
+/// from its own ruleset (the caller checks [`has_project_config`]
+/// first).  Runs with an extended timeout.
+pub(crate) fn run_phpcs_workspace(
+    resolved: &ResolvedPhpcs,
+    workspace_root: &Path,
+    config: &PhpcsConfig,
+    cancelled: &std::sync::atomic::AtomicBool,
+) -> Result<std::collections::HashMap<PathBuf, Vec<Diagnostic>>, String> {
+    let timeout_ms = config
+        .timeout
+        .unwrap_or(DEFAULT_TIMEOUT_MS)
+        .saturating_mul(crate::process::WORKSPACE_TIMEOUT_FACTOR);
+    let timeout = Duration::from_millis(timeout_ms);
+
+    let mut cmd = Command::new(&resolved.path);
+    cmd.arg("--report=json")
+        .arg("--no-colors")
+        .arg("-q")
+        .current_dir(workspace_root);
+
+    if let Some(ref standard) = config.standard {
+        cmd.arg(format!("--standard={}", standard));
+    }
+
+    let output = crate::process::run_command_with_timeout(
+        &mut cmd,
+        timeout,
+        cancelled,
+        "PHPCS (workspace)",
+        None,
+    )?;
+
+    crate::process::workspace_run_result(&output, "PHPCS", &[1, 2], false, |stdout| {
+        parse_phpcs_json_workspace(stdout, workspace_root)
+    })
+}
+
+/// Parse PHPCS's JSON output into diagnostics grouped by file path.
+///
+/// Same message format as [`parse_phpcs_json`], but every file entry
+/// is kept.  Relative paths are resolved against the workspace root.
+fn parse_phpcs_json_workspace(
+    json_str: &str,
+    workspace_root: &Path,
+) -> Result<std::collections::HashMap<PathBuf, Vec<Diagnostic>>, String> {
+    let output: serde_json::Value =
+        serde_json::from_str(json_str).map_err(|e| format!("Failed to parse PHPCS JSON: {}", e))?;
+
+    let mut by_file: std::collections::HashMap<PathBuf, Vec<Diagnostic>> =
+        std::collections::HashMap::new();
+
+    if let Some(files) = output.get("files").and_then(|f| f.as_object()) {
+        for (path, file_data) in files {
+            let mut file_path = PathBuf::from(path);
+            if file_path.is_relative() {
+                file_path = workspace_root.join(file_path);
+            }
+
+            if let Some(messages) = file_data.get("messages").and_then(|m| m.as_array()) {
+                let diags = by_file.entry(file_path).or_default();
+                for msg in messages {
+                    if let Some(diag) = parse_phpcs_message(msg) {
+                        diags.push(diag);
+                    }
+                }
+            }
+        }
+    }
+
+    by_file.retain(|_, diags| !diags.is_empty());
+    Ok(by_file)
+}
+
+// ── JSON output parsing ─────────────────────────────────────────────
+
+/// Parse PHPCS's JSON output into LSP diagnostics.
+///
+/// PHPCS JSON format (with `--report=json`):
+///
+/// ```json
+/// {
+///   "totals": {
+///     "errors": 1,
+///     "warnings": 1,
+///     "fixable": 2
+///   },
+///   "files": {
+///     "/path/to/file.php": {
+///       "errors": 1,
+///       "warnings": 1,
+///       "messages": [
+///         {
+///           "message": "Line indented incorrectly; expected 4 spaces, found 2",
+///           "source": "PSR2.Methods.FunctionCallSignature.Indent",
+///           "severity": 5,
+///           "fixable": true,
+///           "type": "ERROR",
+///           "line": 42,
+///           "column": 1
+///         }
+///       ]
+///     }
+///   }
+/// }
+/// ```
+///
+/// We extract messages for the file being edited (matching by path).
+/// When using stdin mode with `--stdin-path`, PHPCS keys the output
+/// by the `--stdin-path` value.  When there is only one file entry,
+/// we use it regardless of the key to avoid path-matching issues.
+fn parse_phpcs_json(json_str: &str, file_path: &Path) -> Result<Vec<Diagnostic>, String> {
+    let output: serde_json::Value =
+        serde_json::from_str(json_str).map_err(|e| format!("Failed to parse PHPCS JSON: {}", e))?;
+
+    let mut diagnostics = Vec::new();
+
+    if let Some(files) = output.get("files").and_then(|f| f.as_object()) {
+        let messages = if files.len() == 1 {
+            files.values().next()
+        } else {
+            let file_path_str = file_path.to_string_lossy();
+            files
+                .iter()
+                .find(|(path, _)| paths_match(path, &file_path_str))
+                .map(|(_, v)| v)
+        };
+
+        if let Some(msgs) = messages
+            .and_then(|fd| fd.get("messages"))
+            .and_then(|m| m.as_array())
+        {
+            for msg in msgs {
+                if let Some(diag) = parse_phpcs_message(msg) {
+                    diagnostics.push(diag);
+                }
+            }
+        }
+    }
+
+    Ok(diagnostics)
+}
+
+/// Parse a single PHPCS message object into an LSP `Diagnostic`.
+fn parse_phpcs_message(msg: &serde_json::Value) -> Option<Diagnostic> {
+    let message = msg.get("message")?.as_str()?;
+    let line = msg.get("line").and_then(|l| l.as_u64()).unwrap_or(1);
+    let lsp_line = line.saturating_sub(1) as u32;
+
+    // PHPCS "source" is the sniff name, e.g. "PSR2.Methods.FunctionCallSignature.Indent"
+    let source_code = msg
+        .get("source")
+        .and_then(|s| s.as_str())
+        .unwrap_or("phpcs");
+
+    // PHPCS "type" is "ERROR" or "WARNING"
+    let severity = match msg.get("type").and_then(|t| t.as_str()) {
+        Some("ERROR") => DiagnosticSeverity::Error,
+        _ => DiagnosticSeverity::Warning,
+    };
+
+    let fixable = msg
+        .get("fixable")
+        .and_then(|f| f.as_bool())
+        .unwrap_or(false);
+
+    let data = Some(serde_json::json!({ "fixable": fixable }));
+
+    // PHPCS reports a single `column` per message, but its meaning
+    // varies by sniff: for `LineLength.TooLong` it is the total line
+    // length (the *end*), for indentation sniffs it is the offending
+    // token start, etc.  Because there is no reliable way to derive a
+    // precise range from a single ambiguous position, we underline the
+    // full line — the same strategy PHPStan uses.
+    Some(Diagnostic {
+        range: crate::process::full_line_range(lsp_line),
+        severity: Some(severity),
+        code: Some(Code::String(source_code.to_string())),
+        code_description: None,
+        source: Some("phpcs".to_string()),
+        message: message.to_string().into(),
+        related_information: None,
+        tags: None,
+        data,
+    })
+}
+
+// ── Tests ───────────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ── parse_phpcs_json_workspace ──────────────────────────────────
+
+    #[test]
+    fn parse_workspace_json_groups_by_file() {
+        let json = r#"{
+            "totals": {"errors": 1, "warnings": 1, "fixable": 0},
+            "files": {
+                "/proj/src/A.php": {"errors": 1, "warnings": 0, "messages": [
+                    {"message": "Bad indent", "source": "PSR12.Files.X", "severity": 5,
+                     "fixable": false, "type": "ERROR", "line": 3, "column": 1}
+                ]},
+                "src/B.php": {"errors": 0, "warnings": 1, "messages": [
+                    {"message": "Long line", "source": "Generic.Files.Y", "severity": 5,
+                     "fixable": false, "type": "WARNING", "line": 8, "column": 120}
+                ]},
+                "/proj/src/Clean.php": {"errors": 0, "warnings": 0, "messages": []}
+            }
+        }"#;
+
+        let map = parse_phpcs_json_workspace(json, Path::new("/proj")).unwrap();
+        // Clean files are dropped; relative paths resolve against the root.
+        assert_eq!(map.len(), 2);
+        assert_eq!(
+            crate::util::message_text(&map[Path::new("/proj/src/A.php")][0].message),
+            "Bad indent"
+        );
+        assert_eq!(map[Path::new("/proj/src/B.php")][0].range.start.line, 7);
+    }
+
+    // ── parse_phpcs_json ────────────────────────────────────────────
+
+    #[test]
+    fn parse_empty_result() {
+        let json = r#"{"totals":{"errors":0,"warnings":0,"fixable":0},"files":{}}"#;
+        let path = Path::new("/project/src/Foo.php");
+        let diags = parse_phpcs_json(json, path).unwrap();
+        assert!(diags.is_empty());
+    }
+
+    #[test]
+    fn parse_file_messages() {
+        let json = r#"{
+            "totals": {"errors": 1, "warnings": 1, "fixable": 2},
+            "files": {
+                "/project/src/Foo.php": {
+                    "errors": 1,
+                    "warnings": 1,
+                    "messages": [
+                        {
+                            "message": "Line indented incorrectly; expected 4 spaces, found 2",
+                            "source": "PSR2.Methods.FunctionCallSignature.Indent",
+                            "severity": 5,
+                            "fixable": true,
+                            "type": "ERROR",
+                            "line": 42,
+                            "column": 1
+                        },
+                        {
+                            "message": "Missing file doc comment",
+                            "source": "PEAR.Commenting.FileComment.Missing",
+                            "severity": 5,
+                            "fixable": false,
+                            "type": "WARNING",
+                            "line": 1,
+                            "column": 1
+                        }
+                    ]
+                }
+            }
+        }"#;
+        let path = Path::new("/project/src/Foo.php");
+        let diags = parse_phpcs_json(json, path).unwrap();
+        assert_eq!(diags.len(), 2);
+
+        // First diagnostic — ERROR, full-line range
+        assert_eq!(diags[0].range.start.line, 41); // 42 - 1
+        assert_eq!(diags[0].range.start.character, 0);
+        assert_eq!(diags[0].range.end.line, 41);
+        assert_eq!(diags[0].range.end.character, u32::MAX);
+        assert_eq!(diags[0].severity, Some(DiagnosticSeverity::Error));
+        assert_eq!(diags[0].source.as_deref(), Some("phpcs"));
+        assert_eq!(
+            diags[0].code,
+            Some(Code::String(
+                "PSR2.Methods.FunctionCallSignature.Indent".to_string()
+            ))
+        );
+        assert!(crate::util::message_text(&diags[0].message).contains("Line indented incorrectly"));
+        assert_eq!(diags[0].data, Some(serde_json::json!({ "fixable": true })));
+
+        // Second diagnostic — WARNING
+        assert_eq!(diags[1].range.start.line, 0); // 1 - 1
+        assert_eq!(diags[1].range.end.character, u32::MAX);
+        assert_eq!(diags[1].severity, Some(DiagnosticSeverity::Warning));
+        assert_eq!(
+            diags[1].code,
+            Some(Code::String(
+                "PEAR.Commenting.FileComment.Missing".to_string()
+            ))
+        );
+        assert_eq!(diags[1].data, Some(serde_json::json!({ "fixable": false })));
+    }
+
+    #[test]
+    fn parse_fixable_flag() {
+        let json_fixable = r#"{
+            "totals": {"errors": 1, "warnings": 0, "fixable": 1},
+            "files": {
+                "/project/src/Foo.php": {
+                    "errors": 1,
+                    "warnings": 0,
+                    "messages": [
+                        {
+                            "message": "Expected 1 space after comma.",
+                            "source": "Generic.Functions.FunctionCallArgumentSpacing.NoSpaceAfterComma",
+                            "severity": 5,
+                            "fixable": true,
+                            "type": "ERROR",
+                            "line": 10,
+                            "column": 15
+                        }
+                    ]
+                }
+            }
+        }"#;
+        let path = Path::new("/project/src/Foo.php");
+        let diags = parse_phpcs_json(json_fixable, path).unwrap();
+        assert_eq!(diags.len(), 1);
+        assert_eq!(diags[0].data, Some(serde_json::json!({ "fixable": true })));
+
+        let json_not_fixable = r#"{
+            "totals": {"errors": 1, "warnings": 0, "fixable": 0},
+            "files": {
+                "/project/src/Foo.php": {
+                    "errors": 1,
+                    "warnings": 0,
+                    "messages": [
+                        {
+                            "message": "Class name must be declared in StudlyCaps.",
+                            "source": "PSR1.Classes.ClassDeclaration.MissingNamespace",
+                            "severity": 5,
+                            "fixable": false,
+                            "type": "ERROR",
+                            "line": 3,
+                            "column": 7
+                        }
+                    ]
+                }
+            }
+        }"#;
+        let diags = parse_phpcs_json(json_not_fixable, path).unwrap();
+        assert_eq!(diags.len(), 1);
+        assert_eq!(diags[0].data, Some(serde_json::json!({ "fixable": false })));
+    }
+
+    #[test]
+    fn parse_single_file_entry_always_matches() {
+        let json = r#"{
+            "totals": {"errors": 1, "warnings": 0, "fixable": 0},
+            "files": {
+                "STDIN": {
+                    "errors": 1,
+                    "warnings": 0,
+                    "messages": [
+                        {
+                            "message": "Some violation.",
+                            "source": "Generic.Sniff.Name",
+                            "severity": 5,
+                            "fixable": false,
+                            "type": "ERROR",
+                            "line": 5,
+                            "column": 1
+                        }
+                    ]
+                }
+            }
+        }"#;
+        // The key is "STDIN" which does not match the file path at all,
+        // but since there is only one file entry, we use it.
+        let path = Path::new("/project/src/Foo.php");
+        let diags = parse_phpcs_json(json, path).unwrap();
+        assert_eq!(diags.len(), 1);
+        assert_eq!(diags[0].range.start.line, 4); // 5 - 1
+    }
+
+    #[test]
+    fn parse_no_matching_file() {
+        let json = r#"{
+            "totals": {"errors": 1, "warnings": 0, "fixable": 0},
+            "files": {
+                "/project/src/Bar.php": {
+                    "errors": 1,
+                    "warnings": 0,
+                    "messages": [
+                        {
+                            "message": "Error in Bar.",
+                            "source": "Generic.Sniff.Name",
+                            "severity": 5,
+                            "fixable": false,
+                            "type": "ERROR",
+                            "line": 1,
+                            "column": 1
+                        }
+                    ]
+                },
+                "/project/src/Baz.php": {
+                    "errors": 0,
+                    "warnings": 0,
+                    "messages": []
+                }
+            }
+        }"#;
+        let path = Path::new("/project/src/Foo.php");
+        let diags = parse_phpcs_json(json, path).unwrap();
+        assert!(diags.is_empty());
+    }
+
+    #[test]
+    fn parse_invalid_json() {
+        let result = parse_phpcs_json("not json", Path::new("Foo.php"));
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn parse_message_line_zero_defaults_to_line_1() {
+        let json = r#"{
+            "totals": {"errors": 1, "warnings": 0, "fixable": 0},
+            "files": {
+                "/project/src/Foo.php": {
+                    "errors": 1,
+                    "warnings": 0,
+                    "messages": [
+                        {
+                            "message": "Error at line zero.",
+                            "source": "Generic.Sniff.Name",
+                            "severity": 5,
+                            "fixable": false,
+                            "type": "ERROR",
+                            "line": 0,
+                            "column": 1
+                        }
+                    ]
+                }
+            }
+        }"#;
+        let path = Path::new("/project/src/Foo.php");
+        let diags = parse_phpcs_json(json, path).unwrap();
+        assert_eq!(diags.len(), 1);
+        // Line 0 saturating_sub(1) = 0
+        assert_eq!(diags[0].range.start.line, 0);
+    }
+
+    // ── resolve_phpcs ───────────────────────────────────────────────
+
+    #[test]
+    fn resolve_disabled_when_empty_string() {
+        let config = PhpcsConfig {
+            command: Some(String::new()),
+            standard: None,
+            timeout: None,
+        };
+        let result = resolve_phpcs(None, &config, None, None);
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn resolve_explicit_command() {
+        let config = PhpcsConfig {
+            command: Some("custom/phpcs".to_string()),
+            standard: None,
+            timeout: None,
+        };
+        let result = resolve_phpcs(None, &config, None, None);
+        assert!(result.is_some());
+        assert_eq!(result.unwrap().path, PathBuf::from("custom/phpcs"));
+    }
+
+    #[test]
+    fn auto_detect_ignores_a_transitively_installed_binary() {
+        let dir = tempfile::tempdir().unwrap();
+        let bin = dir.path().join("vendor/bin");
+        std::fs::create_dir_all(&bin).unwrap();
+        std::fs::write(bin.join("phpcs"), "").unwrap();
+
+        // A dependency pulled squizlabs/php_codesniffer in, but the
+        // project itself never asked for it.
+        let package: ComposerPackage =
+            r#"{"require": {"eduardokum/laravel-mail-auto-embed": "^2.0"}}"#
+                .parse()
+                .unwrap();
+        let config = PhpcsConfig::default();
+        assert!(resolve_phpcs(Some(dir.path()), &config, None, Some(&package)).is_none());
+        assert!(resolve_phpcs(Some(dir.path()), &config, None, None).is_none());
+    }
+
+    #[test]
+    fn auto_detect_accepts_require_dev_ruleset_or_standard() {
+        let dir = tempfile::tempdir().unwrap();
+        let bin = dir.path().join("vendor/bin");
+        std::fs::create_dir_all(&bin).unwrap();
+        std::fs::write(bin.join("phpcs"), "").unwrap();
+        let config = PhpcsConfig::default();
+
+        let package: ComposerPackage = r#"{"require-dev": {"squizlabs/php_codesniffer": "^3.0"}}"#
+            .parse()
+            .unwrap();
+        assert_eq!(
+            resolve_phpcs(Some(dir.path()), &config, None, Some(&package))
+                .unwrap()
+                .path,
+            bin.join("phpcs")
+        );
+
+        let with_standard = PhpcsConfig {
+            standard: Some("PSR12".to_string()),
+            ..Default::default()
+        };
+        assert_eq!(
+            resolve_phpcs(Some(dir.path()), &with_standard, None, None)
+                .unwrap()
+                .path,
+            bin.join("phpcs")
+        );
+
+        std::fs::write(dir.path().join("phpcs.xml.dist"), "").unwrap();
+        assert_eq!(
+            resolve_phpcs(Some(dir.path()), &config, None, None)
+                .unwrap()
+                .path,
+            bin.join("phpcs")
+        );
+    }
+
+    // ── PhpcsConfig helpers ─────────────────────────────────────────
+
+    #[test]
+    fn config_timeout_default() {
+        let config = PhpcsConfig::default();
+        assert_eq!(config.timeout_ms(), DEFAULT_TIMEOUT_MS);
+    }
+
+    #[test]
+    fn config_timeout_custom() {
+        let config = PhpcsConfig {
+            command: None,
+            standard: None,
+            timeout: Some(15_000),
+        };
+        assert_eq!(config.timeout_ms(), 15_000);
+    }
+
+    #[test]
+    fn config_is_disabled() {
+        let disabled = PhpcsConfig {
+            command: Some(String::new()),
+            standard: None,
+            timeout: None,
+        };
+        assert!(disabled.is_disabled());
+
+        let enabled = PhpcsConfig::default();
+        assert!(!enabled.is_disabled());
+
+        let explicit = PhpcsConfig {
+            command: Some("vendor/bin/phpcs".to_string()),
+            standard: None,
+            timeout: None,
+        };
+        assert!(!explicit.is_disabled());
+    }
+
+    #[test]
+    fn parse_warning_severity() {
+        let json = r#"{
+            "totals": {"errors": 0, "warnings": 1, "fixable": 0},
+            "files": {
+                "/project/src/Foo.php": {
+                    "errors": 0,
+                    "warnings": 1,
+                    "messages": [
+                        {
+                            "message": "Line exceeds 120 characters.",
+                            "source": "Generic.Files.LineLength.TooLong",
+                            "severity": 5,
+                            "fixable": false,
+                            "type": "WARNING",
+                            "line": 50,
+                            "column": 121
+                        }
+                    ]
+                }
+            }
+        }"#;
+        let path = Path::new("/project/src/Foo.php");
+        let diags = parse_phpcs_json(json, path).unwrap();
+        assert_eq!(diags.len(), 1);
+        assert_eq!(diags[0].severity, Some(DiagnosticSeverity::Warning));
+    }
+
+    #[test]
+    fn parse_full_line_range() {
+        let json = r#"{
+            "totals": {"errors": 1, "warnings": 0, "fixable": 0},
+            "files": {
+                "/project/src/Foo.php": {
+                    "errors": 1,
+                    "warnings": 0,
+                    "messages": [
+                        {
+                            "message": "Whitespace found.",
+                            "source": "Squiz.WhiteSpace.SuperfluousWhitespace.EndLine",
+                            "severity": 5,
+                            "fixable": true,
+                            "type": "ERROR",
+                            "line": 10,
+                            "column": 5
+                        }
+                    ]
+                }
+            }
+        }"#;
+        let path = Path::new("/project/src/Foo.php");
+        let diags = parse_phpcs_json(json, path).unwrap();
+        assert_eq!(diags.len(), 1);
+        // Full-line range: column is ignored because its semantics
+        // vary by sniff (token start vs line length vs other).
+        assert_eq!(diags[0].range.start.line, 9);
+        assert_eq!(diags[0].range.start.character, 0);
+        assert_eq!(diags[0].range.end.line, 9);
+        assert_eq!(diags[0].range.end.character, u32::MAX);
+    }
+
+    #[test]
+    fn parse_stdin_path_key() {
+        // When PHPCS is invoked with --stdin-path=/project/src/Foo.php,
+        // it reports the file under that path value.
+        let json = r#"{
+            "totals": {"errors": 1, "warnings": 0, "fixable": 0},
+            "files": {
+                "/project/src/Foo.php": {
+                    "errors": 1,
+                    "warnings": 0,
+                    "messages": [
+                        {
+                            "message": "Missing namespace declaration.",
+                            "source": "PSR1.Classes.ClassDeclaration.MissingNamespace",
+                            "severity": 5,
+                            "fixable": false,
+                            "type": "ERROR",
+                            "line": 2,
+                            "column": 1
+                        }
+                    ]
+                },
+                "/project/src/Bar.php": {
+                    "errors": 0,
+                    "warnings": 0,
+                    "messages": []
+                }
+            }
+        }"#;
+        // With multiple file entries, path matching is used.
+        // The --stdin-path value matches the requested file.
+        let path = Path::new("/project/src/Foo.php");
+        let diags = parse_phpcs_json(json, path).unwrap();
+        assert_eq!(diags.len(), 1);
+        assert!(crate::util::message_text(&diags[0].message).contains("Missing namespace"));
+    }
+}
