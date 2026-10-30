@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 import '@vitest/web-worker';
 import { convertCodeToPhpPlayground, runPHPInWorker } from '../client';
 import fs from 'fs';
@@ -46,6 +46,20 @@ describe('load wasm files', async function () {
 });
 
 describe('show phpinfo()', async function () {
+	let restoreNavigatorLanguage: (() => void) | undefined;
+
+	beforeEach(() => {
+		const languageSpy = vi.spyOn(globalThis.navigator, 'language', 'get');
+		restoreNavigatorLanguage = () => languageSpy.mockRestore();
+		languageSpy.mockReturnValue('ja-JP');
+	});
+
+	afterEach(() => {
+		const restore = restoreNavigatorLanguage;
+		restoreNavigatorLanguage = undefined;
+		restore?.();
+	});
+
 	it.each(versions)('version: %s run phpinfo().', async function (v) {
 		let actual = await callPHP(v, 'phpinfo();');
 		// Shrink the request time

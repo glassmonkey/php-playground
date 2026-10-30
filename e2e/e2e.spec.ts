@@ -288,11 +288,41 @@ test.describe('default page', () => {
   test.describe('switch preview', () => {
     test('defaults unsupported URL formats to the HTML preview', async ({page}) => {
       await page.emulateMedia({colorScheme: 'light'});
-      await page.goto(`${PAGE}/?f=unsupported`);
+      // End the beforeEach page first so its warmed WASM request cannot satisfy this wait.
+      await page.goto('about:blank');
 
-      await expect(page.getByTestId('preview-html')).toBeVisible();
-      await expect(page.getByTestId('checkbox-format')).toBeChecked();
-      await expect(page.getByTestId('preview-console')).not.toBeVisible();
+      const targetURL = `${PAGE}/?f=unsupported`;
+      const expectedWasmURL = new URL(`/php-${defaultVersion}.wasm`, PAGE);
+      const wasmReady = page.context().waitForEvent('requestfinished', {
+        predicate: request => {
+          const requestURL = new URL(request.url());
+          return requestURL.origin === expectedWasmURL.origin && requestURL.pathname === expectedWasmURL.pathname;
+        },
+        timeout: 30_000,
+      }).then(async request => {
+        const response = await request.response();
+        expect(response, 'the default PHP WASM request must receive a response').not.toBeNull();
+        expect(
+          [200, 304],
+          'the default PHP WASM request must complete from network or cache',
+        ).toContain(response?.status());
+      });
+      const navigation = page.goto(targetURL);
+      const formatAssertions = Promise.all([
+        expect(page).toHaveURL(/[?&]f=html(?:&|$)/, {timeout: 5000}),
+        expect(page.getByTestId('checkbox-format')).toBeChecked({timeout: 5000}),
+      ]);
+
+      void wasmReady.catch(() => undefined);
+      void navigation.catch(() => undefined);
+      void formatAssertions.catch(() => undefined);
+      await Promise.all([wasmReady, navigation, formatAssertions]);
+
+      await expect(page.getByTestId('preview-html')).toBeVisible({timeout: 5000});
+      await expect(page.getByTestId('preview-console')).not.toBeVisible({timeout: 5000});
+      await expect(
+        page.frameLocator('[data-testid="preview-html"]').locator('body'),
+      ).toContainText(versionPattern(defaultVersion), {timeout: 5000});
     });
 
     for (const variation of htmlPreviewVariations) {
@@ -313,6 +343,12 @@ test.describe('default page', () => {
         let lightRequests: PreviewRequest[] = [];
         if (variation.observeParserEffects) {
           await Promise.all([initialImageRequest, initialIframeRequest]);
+          await expect.poll(() => summarizeParserRequests(observedRequests)).toEqual({
+            parent: [],
+            unknown: [],
+            previewImage: 1,
+            previewIframe: 1,
+          });
           lightRequests = observedRequests.splice(0);
         }
 
@@ -443,14 +479,15 @@ test.describe('select version', () => {
         await page.keyboard.down("Tab");
 
         const editor = page.getByRole('code')
+        const editorContent = editor.locator('.editor-scrollable[role="presentation"]')
         // focus editor
         await editor.click()
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('<?')
+        await expect(editorContent).toHaveText('<?')
         // try 1+1
         await page.keyboard.type(' echo(1+1);')
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('<? echo(1+1);')
+        await expect(editorContent).toHaveText('<? echo(1+1);')
         // run and result is 2
         await page.getByTestId('checkbox-format').uncheck()
         await expect(await page.getByTestId('preview-console')).toHaveText('2')
@@ -468,14 +505,15 @@ test.describe('select version', () => {
         await page.keyboard.down("Tab");
 
         const editor = page.getByRole('code')
+        const editorContent = editor.locator('.editor-scrollable[role="presentation"]')
         // focus editor
         await editor.click()
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('<?')
+        await expect(editorContent).toHaveText('<?')
         // try 1+1
         await page.keyboard.type(' declare(strict_types=1);echo(1+1);')
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('<? declare(strict_types=1);echo(1+1);')
+        await expect(editorContent).toHaveText('<? declare(strict_types=1);echo(1+1);')
         // run and result is 2
         await page.getByTestId('checkbox-format').uncheck()
         await expect(await page.getByTestId('preview-console')).toHaveText('2')
@@ -488,14 +526,15 @@ test.describe('select version', () => {
         await page.keyboard.down("Tab");
 
         const editor = page.getByRole('code')
+        const editorContent = editor.locator('.editor-scrollable[role="presentation"]')
         // focus editor
         await editor.click()
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('<!---->')
+        await expect(editorContent).toHaveText('<!---->')
         // try 1+1
         await page.keyboard.type('Hello, World')
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('<!---->Hello, World')
+        await expect(editorContent).toHaveText('<!---->Hello, World')
         // run and result is 2
         await page.getByTestId('checkbox-format').uncheck()
         await expect(await page.getByTestId('preview-console')).toHaveText('<!---->Hello, World')
@@ -508,14 +547,15 @@ test.describe('select version', () => {
         await page.keyboard.down("Tab");
 
         const editor = page.getByRole('code')
+        const editorContent = editor.locator('.editor-scrollable[role="presentation"]')
         // focus editor
         await editor.click()
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('<!---->')
+        await expect(editorContent).toHaveText('<!---->')
         // try 1+1
         await page.keyboard.type('<body><?echo "x"."y"."z"?></body>')
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('<!----><body><?echo "x"."y"."z"?></body>')
+        await expect(editorContent).toHaveText('<!----><body><?echo "x"."y"."z"?></body>')
         // run and result is 2
         await page.getByTestId('checkbox-format').uncheck()
         await expect(await page.getByTestId('preview-console')).toHaveText('<!----><body>xyz</body>')
@@ -531,10 +571,11 @@ test.describe('select version', () => {
         await page.getByTestId('checkbox-format').uncheck()
 
         const editor = page.getByRole('code')
+        const editorContent = editor.locator('.editor-scrollable[role="presentation"]')
         // focus editor
         await editor.click()
         // display code in editor
-        await expect(page.getByRole('presentation')).toHaveText('<?')
+        await expect(editorContent).toHaveText('<?')
 
         // Add newline first, then type infinite loop
         await page.keyboard.press('End')
