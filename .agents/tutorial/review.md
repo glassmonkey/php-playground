@@ -1,11 +1,11 @@
-# 教材レビューの観点
+# Content review criteria
 
-既存のPR/教材/参照を、対象版へ解決した状態で確認する。修正の実装は始めず、根拠と改善案を返す。必要な検証は既存のチェック実行または結果の確認で行い、教材・fixture・設定を変更しない。
+Inspect the PR, content, and references after resolving the target versions. Return evidence and recommendations without implementing corrections. Run existing checks or inspect their results; do not modify content, fixtures, or configuration.
 
-- goalが学習者に見えるExample/Experimentで観察できるか。学習メモが埋まっていても意味の一致は別に評価する。[学習意図](learning-design.md) を使う。
-- 前提Lessonが当該版の表示順に存在するか。[学習意図](learning-design.md) の共通条件に沿って、Experimentの既習前提が学習者向けに満たされているか。章再編の妥当性を含む差分でのみ [カリキュラム設計](curriculum.md) を追加で読む。
-- 一次資料のリンク名・実際の主題・主張内容・導入版が一致するか。単にHTTP 200やtaxonomy一致だけで十分としない。[仕様参照](language-reference-map.md) を使う。
-- 互換変換のある差分では [版対応](versioning.md) に沿って説明・コード・理由・checkerの意味を確認する。
-- [検証](validation.md) の構造、実WASM、意味レビューの証拠を区別する。checker差分があるときだけ [演習評価](exercise-evaluation.md) のnegative controlsを見る。未実施を成功と報告しない。
+- Can learners observe the goal in the visible Example/Experiments? Populated learning notes still require semantic review. Use [learning design](learning-design.md).
+- Do prerequisites exist earlier in the displayed order for that version? Apply the shared prior-knowledge rules in [learning design](learning-design.md) to learner-facing Experiment prerequisites. Read [curriculum design](curriculum.md) only when the diff includes chapter/sequence decisions.
+- Do reference labels, actual topics, claims, and introduction versions agree? HTTP 200 or matching taxonomy alone is insufficient. Use [specification mapping](language-reference-map.md).
+- For compatibility adaptations, use [versioning](versioning.md) to compare the meaning of prose, code, reasons, and checkers.
+- Distinguish structural, actual WASM, and semantic evidence using [validation](validation.md). Inspect [exercise evaluation](exercise-evaluation.md) negative controls only for checker changes. Do not report unperformed checks as successful.
 
-指摘には重要度、ファイル/箇所、対象版、再現または根拠、利用者/教材への影響、推奨修正を付ける。確定した不具合と設計提案・未確認候補を区別し、具体的指摘がなければその旨と確認範囲を返す。教材レビューとスキル生成性能の実験を混同しない。
+For each finding, provide severity, file/location, target version, reproduction or evidence, learner/content impact, and recommended correction. Distinguish confirmed defects from design proposals and unverified candidates. If there are no concrete findings, state that along with the checked scope. Do not confuse content review with an experiment measuring skill generation performance.

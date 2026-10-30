@@ -1,18 +1,18 @@
-# カリキュラム設計
+# Curriculum design
 
-章追加、学習順変更、Lesson分割・再配置のための判断手順。単に既存章へLessonを足す作業では、既存の `chapters.ts` の基準を使い、章再設計を必須にしない。
+Use these criteria for chapter additions, learning-order changes, lesson splits, or relocation. An ordinary lesson addition within existing boundaries uses the criteria in `chapters.ts`; it does not require chapter redesign.
 
-## 判断材料と成果物
+## Decision inputs and deliverables
 
-対象版の `lessonsByVersion` を `groupLessons` で表示順へ解決し、各章の含む範囲・除く範囲・前提・後続で可能にする学習を確認する。実際の章/slug/版一覧はコードが正本。PHP仕様分類との違いを扱うときだけ [仕様参照](language-reference-map.md) を読む。
+Resolve target versions' `lessonsByVersion` through `groupLessons` and inspect each chapter's included/excluded scope, assumptions, and subsequent learning. Code owns the actual chapter/slug/version inventories. Read [specification mapping](language-reference-map.md) only when comparing learning chapters with PHP specification categories.
 
-追加・分割・移動案ごとに次を整理する:
+For each addition, split, or relocation option, identify:
 
-- 学習者が事前に知ること、Lesson後にできること、Example/Experimentとの対応。
-- 既存章に収まるか、新章が必要なら何を含み/除くか。曖昧なProjectsやSupplementalを受け皿にしない。
-- 未習構文の混入、版限定Lessonを前提にして古い版を壊す影響、各版での前提順。
-- Lessonが過密なら分割後の責務、前提の移動、既存URLの維持または明示的な移転先/リダイレクト。
+- What learners already know, what they can do afterward, and how the Example/Experiments demonstrate it.
+- Whether it fits an existing chapter; if a new chapter is needed, what it includes/excludes. Do not use vague Projects or Supplemental chapters as catch-all categories.
+- Untaught syntax, dependencies on version-limited lessons that would break older versions, and prerequisite order in each version.
+- For an overloaded lesson, the responsibilities after splitting, moved prerequisites, and preservation of existing URLs or explicit destinations/redirects.
 
-章の見栄えだけで配置を変えず、案とトレードオフ、依頼範囲内で実行する変更を明示する。設計だけの依頼ではコード・URLを変更しない。実装まで依頼された場合はcatalog、Lesson依存、必要な版別メモ・説明・routeを合わせて更新し、[検証](validation.md) で全影響版の構造・WASM・意味・生成物を確認する。
+Do not change placement just for visual organization. Explain alternatives, tradeoffs, and changes within the requested implementation scope. A design-only request does not authorize chapter or URL changes. When implementation is requested, update catalogs, lesson dependencies, required version-specific notes/prose, and routes together, then check structure, WASM behavior, meaning, and assets for all affected versions using [validation](validation.md).
 
-完了条件は、章境界・前提・後続学習・URL影響が整理され、依頼された実装範囲の変更と検証が揃うこと。latestの変更を学習順設計の一部として自動的に行わない。
+Complete the task when chapter boundaries, prerequisites, subsequent learning, and URL effects are explained, and the requested implementation scope and checks are complete. Do not automatically change latest as part of learning-order design.

@@ -1,21 +1,21 @@
-# 学習意図と評価
+# Learning intent and evaluation
 
-## 一つの教材データから説明・実行・評価をつなぐ
+## Connect explanations, execution, and evaluation through structured content
 
-正本の型は `src/tutorial/types.ts`、版解決後の教材は `lessonsByVersion`、著者用の学習メモは `src/tutorial/learning-notes.ts` を読みます。schemaや現行のchapter/version/slug一覧をこの文書へ複製しません。`sections/blocks` は提示の構造、`programs` は実行コードの正本です。目標は既存の `goal` を参照し、コードや期待出力を理由欄にコピーしません。
+Read canonical types in `src/tutorial/types.ts`, resolved lessons in `lessonsByVersion`, and author notes in `src/tutorial/learning-notes.ts`. Do not duplicate the schema or current chapter/version/slug inventories here. `sections/blocks` define presentation; `programs` own executable code. Refer to the existing `goal` rather than copying it, and do not copy code or expected output into reasons.
 
-学習メモは著者・評価者のための情報です。Exampleがなぜその挙動になるか、Experimentが何を変え・何を観察させ・なぜそうなるか、学習者がどこを誤解しやすくどう修正するかを具体的に書きます。理由を「PHPの仕様だから」「目標を理解するため」といった汎用文で埋めず、対応するコードの分岐・値・処理順などを説明します。学習者向けdescriptionや本文に既にある文章をそのまま複製せず、それぞれの役割を分けます。解答や理由を画面へ表示する変更は別のプロダクト判断です。
+Learning notes serve authors and reviewers. Explain why the Example behaves as it does; what an Experiment changes, what learners observe, and why; and the learner's likely misconception and its correction. Describe the relevant branches, values, or execution order instead of generic reasons such as “because PHP specifies it” or “to understand the goal.” Do not repeat learner-facing descriptions/prose verbatim; retain each field's distinct purpose. Displaying answers or reasons in the UI is a separate product decision.
 
-追加・更新では、sourceと学習メモを同時に更新し、掲載される全版の解決済みデータを見ます。新しい構文が古い版では別の構文に変わる場合、goal・説明・Example・Experiment・理由・参照先もその構文に一致させます。既存の限定的な互換変換だけで十分ならresolver全体を作り直しません。
+Update source and learning notes together, then inspect the resolved content in every included version. If older versions replace a construct with different syntax, align the goal, prose, Example, Experiment, reasons, and references with that syntax. Do not redesign the entire resolver when the existing targeted compatibility adaptations suffice.
 
-Example/Experimentの実行コードに必要な構文・関数・概念も一つずつ確認し、そのLessonの学習者向け本文で説明するか、当該版で先行するLessonで教えます。コード内だけの追加も対象です。著者用の学習メモに理由を書くだけでは学習者には届かず、公式Referenceリンクだけでも既習とは扱いません。前提slugの存在だけで未習事項の混入を検出できたとみなしません。
+Check every syntax construct, function, and concept required by Example/Experiment executable code: teach it in that lesson's learner-facing prose or in an earlier lesson available in the same version. This also covers additions found only in code. Author-only explanations do not reach learners, and official reference links alone do not establish prior knowledge. A prerequisite slug's existence does not prove that no untaught concepts were introduced.
 
-章を変更せず教材を追加するときも、`chapters.ts` の範囲と版別の既習前提を確認します。章境界や学習順そのものを変える判断は [カリキュラム設計](curriculum.md) を参照します。
+Even when adding a lesson without changing chapters, check `chapters.ts` boundaries and version-specific prior knowledge. For decisions that change chapter boundaries or learning order, use [curriculum design](curriculum.md).
 
-## 三段階で検証する
+## Validate in three stages
 
-1. **構造・参照**: canonical validatorとunit testsで、必要なメモ、program参照、goal参照、掲載版の前提順を確認する。フィールドが埋まっていることは意味の正しさを保証しない。
-2. **実行**: 既存のExample/Experiment用バージョン別fixtureと実WASMテストを再利用する。理由用にコードや期待出力を別管理しない。実行一致だけでは説明や学習目標の妥当性は分からない。
-3. **意味・教育**: 解決済みのgoal、本文、コード、学習メモ、実際の結果、公式資料を並べ、因果説明・版差・典型的誤解の修正・前提が一致するか人または独立レビューで評価する。未確認の版や参照内容を検証済みとしない。
+1. **Structure and references:** Use the canonical validator and unit tests to check required notes, program/goal references, and prerequisite order in each included version. Populated fields do not prove semantic correctness.
+2. **Execution:** Reuse existing versioned Example/Experiment fixtures and actual WASM tests. Do not maintain separate code or expected output for the reasons. Matching execution does not establish that the explanations or goals are educationally sound.
+3. **Semantics and teaching:** Compare resolved goals, prose, code, notes, actual results, and official sources in human or independent review. Check causal reasoning, version differences, misconception corrections, and prerequisites. Do not present unchecked versions or source content as verified.
 
-制作スキルの評価では、実際に追加・改訂する課題と成果物を記録し、上の三段階で判定します。指示の存在や既存教材の静的レビューだけで、将来の生成性能を保証したと報告しません。
+When evaluating an authoring skill, record a real addition/revision task and its artifacts, then assess them through these stages. Instructions being present or existing content passing static review does not guarantee future generation performance.

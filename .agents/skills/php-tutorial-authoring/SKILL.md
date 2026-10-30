@@ -3,18 +3,18 @@ name: php-tutorial-authoring
 description: Add or revise PHP tutorial lessons within the existing chapter design, including examples, experiments, learning notes and fixtures. Use for lesson writing, not curriculum redesign or read-only review.
 ---
 
-# 教材の追加・改訂
+# Add and revise lessons
 
-「既存の変数の章へLessonを追加」「Experimentの説明と学習メモを直す」など、既存章の基準に沿う執筆で使います。
+Use this skill for requests such as “add a lesson to the existing variables chapter” or “revise an Experiment and its learning notes.”
 
-本文、Example/Experiment、学習メモ、参照先と必要なfixtureを追加・改訂します。既存章へのLesson追加はこのスキルで完結します。章境界/学習順の変更が必要なら、必要性と影響を整理してカリキュラム設計へ返します。
+Add or revise learner-facing explanations, Examples, Experiments, learning notes, references, and required fixtures. A lesson that fits the existing chapter criteria can be completed here. If the task requires changing chapter boundaries or learning order, report the need and impact for a curriculum decision.
 
-## 進め方
+## Workflow
 
-[共通契約](../../tutorial/contract.md) を読み、[教材追加・改訂](../../tutorial/lesson-authoring.md) に沿って進めます。学習情報は [学習意図](../../tutorial/learning-design.md)、チェックと生成物は [検証](../../tutorial/validation.md) を使います。checkerの変更や互換対応などの条件付き詳細は、各文書の該当リンクから必要時だけ読みます。
+Read the [shared contract](../../tutorial/contract.md), then follow [lesson authoring](../../tutorial/lesson-authoring.md). Use [learning design](../../tutorial/learning-design.md) for educational information and [validation](../../tutorial/validation.md) for checks and generated assets. Read conditional details, such as checker evaluation or compatibility, only when the linked procedure applies.
 
-## 成果物と完了条件
+## Deliverables and completion
 
-成果物は対象Lesson/Program/学習メモと、必要な版別fixtureの差分です。既存章の境界と前提に収まり、対象版の構造・WASM・意味・生成物の確認が揃ったら完了です。対象版/slug、一次資料、実行結果と未確認範囲を報告します。
+Deliver the lesson, program, learning-note, and required per-version fixture changes. Complete the task when they fit the existing chapter boundaries and prerequisites, and structural, WASM, semantic, and generated-asset checks cover the target versions. Report affected versions/slugs, primary sources, execution results, and unverified scope.
 
-依頼例は [教材追加の雛形](prompts/add-lesson.md) を使います。別用途への切り替えが必要な場合だけ、[入口一覧](../../../doc/tutorial/README.md) から該当スキルを選びます。
+Use the [lesson prompt](prompts/add-lesson.md) for request examples. Only when switching to another task, select its skill from the [entry-point list](../../../doc/tutorial/README.md).

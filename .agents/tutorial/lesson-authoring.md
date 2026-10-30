@@ -1,10 +1,10 @@
-# 既存章での教材追加・改訂
+# Add and revise lessons within existing chapters
 
-まず対象版の既存Lessonと、その章の境界・表示順・前提をコードで確認する。既存の章基準に収まるLesson追加はこのタスクで完結する。章境界や学習順の変更が必要なら、必要性と影響を整理し、カリキュラム設計の判断へ戻す。執筆を進めるためだけに章を再編しない。
+Inspect the target versions' lessons and their chapter boundaries, display order, and prerequisites in code. A lesson addition that fits existing criteria can be completed in this task. If chapter boundaries or learning order must change, report the need and impact for curriculum design; do not reorganize chapters merely to continue writing.
 
-1. Lessonの学習目標と学習者の前提を定め、Exampleと小さなExperimentで観察できる違いを作る。本文と実行コードの前提は、共通の [学習意図](learning-design.md) にあるExample/Experimentの既習条件で確認する。
-2. 共有programs、sections/blocks、公式references、著者用学習メモを一緒に追加・改訂する。詳細は [学習意図](learning-design.md)。コードや期待出力を学習メモへ複製しない。
-3. 各掲載版へ解決したデータを確認する。既存版の構文差を直す必要があるときは [版対応](versioning.md) の互換確認を使い、runtime基盤の変更へ範囲を広げない。
-4. [検証](validation.md) の三段階と、対象の生成物を確認する。checker/solution/caseを変更する場合だけ [演習評価](exercise-evaluation.md) を追加で読む。
+1. Define the goal and prior knowledge, then create observable differences through an Example and small Experiments. Check prerequisites in prose and executable code against the shared Example/Experiment prior-knowledge requirements in [learning design](learning-design.md).
+2. Update shared programs, sections/blocks, official references, and author learning notes together. See [learning design](learning-design.md). Do not duplicate code or expected output in learning notes.
+3. Inspect the resolved content in every included version. When fixing existing syntax differences, use [versioning](versioning.md) without expanding the scope into runtime infrastructure changes.
+4. Complete the three validation stages and applicable asset checks in [validation](validation.md). Read [exercise evaluation](exercise-evaluation.md) only when changing checkers, solutions, or cases.
 
-学習上別々の目標や大量の新概念が一つに集まる場合は分割を提案できるが、分割・再配置・URL変更の実施範囲は依頼に従う。完了時は追加/修正したLesson、目標・Experimentの対応、対象版と実行証拠、未確認事項を報告する。
+If a lesson accumulates independent goals or many new concepts, propose splitting it; implement splits, relocation, or URL changes only within the requested scope. Report changed lessons, goal/Experiment alignment, target versions, execution evidence, and unverified scope.

@@ -1,12 +1,12 @@
-# 検証と生成物
+# Validation and generated assets
 
-変更・レビューの範囲に応じて以下を選ぶ。read-onlyレビューでは既存検証の実行・証拠確認までとし、教材、fixture、checkerの修正・再生成は提案として返す。
+Select checks according to the change or review scope. A read-only reviewer may run existing checks and inspect evidence, but must report proposed content, fixture, or checker changes rather than modifying or regenerating them.
 
-1. 構造・参照: `validateLesson` / `validateLessons` とunit testsで必要なフィールド、Program/goal参照、各掲載版の前提順を確認する。
-2. 実行: Exampleと全Experimentを対象版WASMで実行し、`src/tutorial/authoring/fixtures/example-outputs.json` / `experiment-outputs.json` の同じ版の値に照合する。版間で期待値をコピー・推測しない。fixtureの `cliVersion` は起点のCLI版であり、各entryの出典や教育的妥当性を保証しない。同じコードのruntime間parityと意味上の正しさを区別する。
-3. 意味・教育: 解決済みgoal・本文・コード・学習メモ・実結果・公式資料を照合し、前提と因果説明をレビューする。未確認の版・仕様を検証済みとしない。具体的観点は [学習意図](learning-design.md)。
+1. Structure/references: use `validateLesson` / `validateLessons` and unit tests to check required fields, Program/goal references, and prerequisite order in each included version.
+2. Execution: run the Example and every Experiment in the target WASM version and compare them with that version's values in `src/tutorial/authoring/fixtures/example-outputs.json` / `experiment-outputs.json`. Do not copy or infer expected values across versions. A fixture's `cliVersion` identifies the initial CLI version, not each entry's provenance or educational validity. Distinguish parity between runtimes executing the same code from semantic correctness.
+3. Semantics/teaching: compare resolved goals, prose, code, learning notes, actual results, and official sources for prerequisites and causal explanations. Do not present unchecked versions or behavior as verified. See [learning design](learning-design.md).
 
-既存アプリと同じPlaywright/Vite設定を使い、別のbuild rootや検証用Viteを増やさない。必要な対象を選ぶ:
+Use the application's existing Playwright/Vite configuration; do not add a separate build root or validation Vite server. Select the relevant targets:
 
 ```sh
 npm run test:ci
@@ -15,12 +15,12 @@ npm run test:e2e -- e2e/tutorial-runtime.spec.ts
 npm run build
 ```
 
-UIはExample/Experiment切替、draft/input、manual Run、出力消去、版変更と復旧を確認する。runtime suiteはExample/Experimentとsolution/checkerを各対象版で検証する。checkerやケースを扱う場合だけ [演習評価](exercise-evaluation.md) のnegative controlsと互換syntax確認を追加する。
+UI checks cover Example/Experiment selection, drafts/input, manual Run, output clearing, version switching, and recovery. Runtime checks cover Examples/Experiments and solutions/checkers on each target version. Only when handling checkers or cases, add the negative controls and syntax compatibility checks from [exercise evaluation](exercise-evaluation.md).
 
-## 記事・版追加に伴うSEO/OGP
+## SEO/OGP for lesson and version additions
 
-`lessonsByVersion` を正に、通常の `npm run build` が `seo-build.ts` から固定版HTML、canonical、sitemap、OGP PNGを同じ公開ディレクトリへ生成する。sitemapの手動追記や画像用の別教材JSONを作らない。記事の正規URL、HTMLのcanonical、sitemapを一致させ、未対応版・latestエイリアスをsitemapに含めない。`/tutorial/` と `/tutorial/latest/` は明示設定された固定版へ転送する。
+Using `lessonsByVersion` as the source, the normal `npm run build` generates fixed-version HTML, canonical URLs, sitemap, and OGP PNGs through `seo-build.ts` in the same public directory. Do not hand-edit the sitemap or create separate lesson JSON for images. Match each article's preferred URL, HTML canonical, and sitemap entry; exclude unsupported versions and latest aliases from the sitemap. `/tutorial/` and `/tutorial/latest/` redirect to the explicitly selected fixed version.
 
-`og-image.ts` はタイトル・Exampleコード・PHP版から画像を生成する。HTMLのog:image/twitter:imageが生成したPNGを参照すること、長文・コードの改行/省略、同梱フォントとライセンスを確認する。外部フォント取得やOSフォントに依存させない。検証用HTMLを壊さないことも確認する。
+`og-image.ts` renders titles, Example code, and PHP versions. Verify that HTML og:image/twitter:image point to the generated PNGs, inspect long-text/code wrapping and truncation, and check bundled fonts/licenses. Do not depend on external font downloads or OS fonts. Ensure the authoring HTML harness still works.
 
-完了報告には対象版/slug、一次資料、実行したチェックと結果、意味レビュー、未確認範囲を記す。スキル自体の生成性能は、別の課題と成果物を使う評価で扱い、文書整理や教材レビューの成功だけで性能向上を主張しない。
+Report affected versions/slugs, primary sources, executed checks/results, semantic review, and unverified scope. Evaluate skill generation performance separately with actual tasks and artifacts; do not claim performance improvement from document reorganization or successful content review alone.

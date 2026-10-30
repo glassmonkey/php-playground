@@ -3,18 +3,18 @@ name: php-tutorial-curriculum
 description: Design PHP tutorial chapters, learning order, lesson splits or relocation, with prerequisite and URL impact analysis. Use when chapter boundaries or sequence change, not routine lesson additions.
 ---
 
-# カリキュラム設計
+# Design the curriculum
 
-「章の構成を見直す」「過密なLessonを分割」「学習順を変える」など、章境界や配置自体を判断する依頼で使います。
+Use this skill for requests such as “reconsider the chapter structure,” “split an overloaded lesson,” or “change the learning order.” It handles decisions about chapter boundaries and placement.
 
-章の含む/除く範囲、既習前提、後続学習、Lesson配置と既存URLへの影響を整理します。設計のみか実装も含むかは依頼に従います。既存章へ収まる通常のLesson追加を、必ず章再設計へ拡大しません。
+Define what each chapter includes and excludes, its prerequisites, what it enables next, lesson placement, and effects on existing URLs. Follow the request's scope for design-only work versus implementation. Do not turn an ordinary lesson addition within an existing chapter into mandatory curriculum redesign.
 
-## 進め方
+## Workflow
 
-[共通契約](../../tutorial/contract.md) と [カリキュラム設計](../../tutorial/curriculum.md) を読みます。Lessonの目標/前提の評価が必要なら [学習意図](../../tutorial/learning-design.md)、実装を伴う場合は [検証](../../tutorial/validation.md) を読みます。他用途のSKILL.mdを一括で読みません。
+Read the [shared contract](../../tutorial/contract.md) and [curriculum design](../../tutorial/curriculum.md). Read [learning design](../../tutorial/learning-design.md) when evaluating lesson goals/prerequisites and [validation](../../tutorial/validation.md) when implementing changes. Do not load every other task's SKILL.md.
 
-## 成果物と完了条件
+## Deliverables and completion
 
-成果物は章境界・前提順・分割/配置案・URL影響と判断根拠です。実装を依頼された場合はcatalog・依存・必要なroute変更と影響版の検証も含めます。依頼範囲の案または実装が揃い、URL維持/移転と未確認事項が説明できたら完了です。
+Deliver chapter boundaries, prerequisite order, split/placement options, URL impact, and the reasoning for the decision. If implementation is requested, include catalog/dependency changes, required route changes, and checks for affected versions. Complete the task when the requested proposal or implementation is ready and URL preservation/migration and unverified scope are explained.
 
-依頼例は [構成検討の雛形](prompts/plan-curriculum.md) を使います。別用途への切り替えが必要な場合だけ、[入口一覧](../../../doc/tutorial/README.md) から該当スキルを選びます。
+Use the [curriculum prompt](prompts/plan-curriculum.md) for request examples. Only when switching to another task, select its skill from the [entry-point list](../../../doc/tutorial/README.md).

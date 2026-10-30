@@ -1,15 +1,15 @@
-# PHP教材の版対応
+# PHP version compatibility
 
-対応版・選択されたlatestは `config.ts` とその参照元、掲載可否と互換変換は `content.ts`、学習メモは `learning-notes.ts` を正とする。教材対応の依頼からruntime loader/WASMビルド/配布基盤まで自動的に広げない。対象runtimeが未提供なら、必要な基盤と未検証範囲を報告する。
+Use `config.ts` and its runtime registry source for supported versions and the selected latest, `content.ts` for lesson availability/adaptations, and `learning-notes.ts` for author notes. Do not automatically expand a content-support request into runtime loader, WASM build, or distribution infrastructure work. If the target runtime is unavailable, report the required infrastructure and unverified scope.
 
-## 対応手順
+## Procedure
 
-1. 対象版の導入機能・変更仕様を公式PHP Manual/release notesで確認し、掲載可否と各Lessonの直接参照を決める。分類対応が必要なら [仕様参照](language-reference-map.md)。
-2. 版解決後の本文、goal、Example/Experiment、理由・誤解、前提、exercise/checkerを照合する。共通文に新しい情報を加えるだけで旧版の意味が変わらないか確認する。既存の限定的な変換で足りるならresolverを全面改修しない。
-3. runtime一覧から教材も生成されるため、新runtimeが追加された場合は、その版の全生成Lessonとfeature gateを公開前に検証する。自動生成を互換性確認とみなさない。各版の期待出力を実WASMで確認してfixtureへ登録し、既存版への影響も検証する。[検証](validation.md) を使い、checker変更時は [演習評価](exercise-evaluation.md) も読む。
-4. latest更新が明示依頼された場合だけ、対象教材の全検証後に `latestTutorialVersion` を変更する。固定版URLをlatestへ転送せず、生成HTML・sitemap・OGP・aliasの整合性を確認する。
+1. Confirm introduced/changed behavior against the official PHP Manual/release notes, then determine availability and direct lesson references. Read [specification mapping](language-reference-map.md) when needed.
+2. Compare version-resolved prose, goals, Examples/Experiments, reasons/misconceptions, prerequisites, and exercises/checkers. Check whether shared additions change the meaning for older versions. Do not redesign the entire resolver when targeted adaptations suffice.
+3. The runtime list also generates curricula. Before publishing a newly added runtime, verify all generated lessons and feature gates for that version. Generation alone is not compatibility evidence. Check per-version expected output in actual WASM, register fixtures, and check existing versions for regressions. Use [validation](validation.md), adding [exercise evaluation](exercise-evaluation.md) when changing checkers.
+4. Only after an explicit latest-update request and full target-curriculum verification, update `latestTutorialVersion`. Do not redirect fixed-version URLs to latest; verify generated HTML, sitemap, OGP, and aliases.
 
-以下は安定した機能導入版の確認例であり、現行の対応版一覧や完全なfeature gate一覧ではない。
+The following are stable feature-introduction examples, not the current supported-version inventory or a complete feature-gate list.
 
 | Feature | First PHP version | Authoring rule | Official source |
 |---|---:|---|---|
@@ -29,5 +29,4 @@ The output fixtures are keyed by PHP version. Keep `versions[version]` metadata 
 
 Read the selected latest version from `latestTutorialVersion` in `src/tutorial/config.ts`. This is an explicit curriculum choice, not an inference from the newest or oldest bundled runtime. Change it only when explicitly requested and after the full lesson set for that target has been reviewed and run.
 
-
-完了条件は、掲載可否・構文・説明/学習メモ・期待出力・checker・既存版への影響が対象runtimeで確認され、未提供/未確認の項目とlatest変更有無が報告されること。
+Complete the task when availability, syntax, explanations/notes, expected output, checkers, and existing-version effects have been checked on the target runtime, and the report identifies unavailable/unverified scope and whether latest changed.
