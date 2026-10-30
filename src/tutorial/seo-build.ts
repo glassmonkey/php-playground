@@ -1,3 +1,4 @@
+import { resolve } from 'node:path';
 import { lessonsByVersion } from './content';
 import {
 	isTutorialVersion,
@@ -249,9 +250,13 @@ function renderDevelopmentHtml(html: string, requestUrl: string): string {
 
 export function tutorialSeoBuildPlugin(): Plugin {
 	let htmlTemplate = '';
+	let rootHtml = resolve('index.html');
 	return {
 		name: 'tutorial-seo-static-pages',
 		enforce: 'post' as const,
+		configResolved(config) {
+			rootHtml = resolve(config.root, 'index.html');
+		},
 		configureServer(server) {
 			server.middlewares.use((request, response, next) => {
 				const pathname = request.url?.split('?')[0];
@@ -310,6 +315,8 @@ export function tutorialSeoBuildPlugin(): Plugin {
 		transformIndexHtml: {
 			order: 'post',
 			handler(html, context) {
+				if (context?.filename && resolve(context.filename) !== rootHtml)
+					return html;
 				if (context?.server) {
 					return renderDevelopmentHtml(
 						html,

@@ -26,7 +26,7 @@ description: Create, revise, or evaluate lessons and exercises in this repositor
 
 各 `goal` は learner に見える Example / Experiment の中で確かめられる形にします。Program.input は code が `$input` を使う場合だけ設定します。Experiment に新しい構文や関数を入れるときは lesson 内で説明するか、先行する lesson で教えます。画面の chapter / lesson 順は raw manifest だけでなく `groupLessons` に基づいて確かめます。
 
-版追加・更新では、各 Lesson の可用性、Example/Experiment code、exercise checker syntax、PHP behavior、expected output をその版の runtime で別々に確認します。Runtime registry の追加だけで curriculum の lesson/version coverage や latest を自動で拡張しません。固定 version URL を保ち、`latestTutorialVersion` は対象カリキュラム全体を検証したうえで依頼された場合だけ変更します。現行 latest 8.5 は12 runtime のうち curriculum が意図して選んだ版です。詳細は `doc/tutorial/README.md` を参照します。
+版追加・更新では、各 Lesson の可用性、Example/Experiment code、exercise checker syntax、PHP behavior、expected output をその版の runtime で別々に確認します。現行実装は runtime 一覧から版別 curriculum を生成するため、runtime registry に版を追加すると、その版の教材・URL・OGP も生成対象になります。自動生成を対応確認の代わりにせず、公開前にその版の全教材、feature gate、期待出力を検証・登録します。latest は自動では変わりません。固定 version URL を保ち、`latestTutorialVersion` は対象カリキュラム全体を検証したうえで依頼された場合だけ変更します。現行 latest 8.5 は12 runtime のうち curriculum が意図して選んだ版です。詳細は `doc/tutorial/README.md` を参照します。
 
 完了時は、変更した版・slug、参照した一次資料、Playground で実行したサンプルとケース、意図的な誤答による評価確認、未確認事項を報告します。検証不能な結果を推測で埋めません。
 

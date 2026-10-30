@@ -8,6 +8,28 @@ import { getHomeMetadata } from '../seo';
 const template = readFileSync('index.html', 'utf8');
 
 describe('static metadata HTML', () => {
+	it('leaves the authoring HTML entry unchanged', () => {
+		const html = readFileSync(
+			'src/tutorial/authoring/assessment-harness.html',
+			'utf8'
+		);
+		const plugin = tutorialSeoBuildPlugin() as unknown as {
+			transformIndexHtml: {
+				handler(
+					html: string,
+					context: { filename: string; path: string; server: object }
+				): string;
+			};
+		};
+		expect(
+			plugin.transformIndexHtml.handler(html, {
+				filename: 'src/tutorial/authoring/assessment-harness.html',
+				path: '/src/tutorial/authoring/assessment-harness.html',
+				server: {},
+			})
+		).toBe(html);
+	});
+
 	it('writes escaped metadata before JavaScript runs and preserves the app entry', () => {
 		const html = renderMetadataHtml(template, {
 			title: 'Strings & "quotes" <PHP> $&',

@@ -1702,7 +1702,7 @@ const enumLesson: Lesson = {
 				},
 				{
 					type: 'paragraph',
-					text: 'An enum defines a closed set of named cases. PHP added enums in 8.1, so they are available in each tutorial version. Use :: to refer to a case; cases() returns all cases.',
+					text: 'An enum defines a closed set of named cases. PHP added enums in 8.1, so they are available in PHP 8.1 and later. Use :: to refer to a case; cases() returns all cases.',
 				},
 				{
 					type: 'paragraph',
