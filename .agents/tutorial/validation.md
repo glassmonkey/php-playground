@@ -15,9 +15,13 @@ npm run test:e2e -- e2e/tutorial-runtime.spec.ts
 npm run build
 ```
 
+PNG decoding checks use Chromium from the existing Playwright dependency, independently of the renderer. Install it with `npx playwright install chromium`; the unit CI job installs the browser and required OS libraries. Decoding/dimensions do not prove layout or literal-text correctness; record reviewed visual evidence separately.
+
 UI checks cover Example/Experiment selection, drafts/input, manual Run, output clearing, version switching, and recovery. Runtime checks cover Examples/Experiments and solutions/checkers on each target version. Only when handling checkers or cases, add the negative controls and syntax compatibility checks from [exercise evaluation](exercise-evaluation.md).
 
 ## SEO/OGP for lesson and version additions
+
+The normal `npm run build` also verifies generated canonical pages, compiled-asset/image references, per-runtime curriculum presence, and aliases against the explicitly configured latest. It does not use a separate build unit test or require a browser.
 
 Using `lessonsByVersion` as the source, the normal `npm run build` generates fixed-version HTML, canonical URLs, sitemap, and OGP PNGs through `seo-build.ts` in the same public directory. Do not hand-edit the sitemap or create separate lesson JSON for images. Match each article's preferred URL, HTML canonical, and sitemap entry; exclude unsupported versions and latest aliases from the sitemap. `/tutorial/` and `/tutorial/latest/` redirect to the explicitly selected fixed version.
 

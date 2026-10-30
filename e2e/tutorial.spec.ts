@@ -1,3 +1,8 @@
+import { versionCases } from '../src/tutorial/__test__/version-contract';
+import {
+	decodePng,
+	readPngPixels,
+} from '../src/tutorial/__test__/image-decoder';
 import { expect, test } from '@playwright/test';
 import lzString from 'lz-string';
 import { readFileSync } from 'node:fs';
@@ -54,8 +59,12 @@ test.describe('versioned tutorial routes', () => {
 
 	test('serves article OGP metadata and generated PNGs before JavaScript', async ({
 		request,
+		page,
 	}) => {
-		for (const path of ['/tutorial/8.5/variables/', '/tutorial/7.4/']) {
+		for (const path of versionCases.flatMap(([version]) => [
+			`/tutorial/${version}/`,
+			`/tutorial/${version}/variables/`,
+		])) {
 			const html = await (await request.get(path)).text();
 			expect(html).toContain(
 				`<meta property="og:image" content="https://php-play.dev${path}og.png">`
@@ -67,12 +76,11 @@ test.describe('versioned tutorial routes', () => {
 			expect(image.status()).toBe(200);
 			expect(image.headers()['content-type']).toMatch(/^image\/png/);
 			const bytes = await image.body();
-			expect([...bytes.subarray(0, 8)]).toEqual([
-				137, 80, 78, 71, 13, 10, 26, 10,
-			]);
-			expect([bytes.readUInt32BE(16), bytes.readUInt32BE(20)]).toEqual([
-				1200, 630,
-			]);
+
+			expect(await decodePng(page, bytes)).toEqual({
+				width: 1200,
+				height: 630,
+			});
 		}
 		for (const path of [
 			'/tutorial/8.0/enums/og.png',
@@ -400,6 +408,53 @@ test.describe('versioned tutorial routes', () => {
 				.first()
 		).toBeVisible();
 	});
+
+	for (const [version] of versionCases) {
+		for (const kind of ['index', 'variables'] as const) {
+			test(`matches the reviewed PHP ${version} ${kind} visual baseline`, async ({
+				page,
+				request,
+			}) => {
+				const path =
+					kind === 'index'
+						? `/tutorial/${version}/og.png`
+						: `/tutorial/${version}/variables/og.png`;
+				const image = await (await request.get(path)).body();
+				const baseline = readFileSync(
+					`src/tutorial/__test__/fixtures/ogp/${version}-${kind}.png`
+				);
+				expect(await readPngPixels(page, image)).toEqual(
+					await readPngPixels(page, baseline)
+				);
+			});
+		}
+	}
+
+	for (const [version, capability] of versionCases) {
+		test(`shows the independently specified capabilities for PHP ${version}`, async ({
+			page,
+		}) => {
+			await page.goto(`${PAGE}/tutorial/${version}/`);
+			// Semantic capability state; presentation/style is outside this contract.
+			const state = {
+				version: await page.getByLabel('Learn with').inputValue(),
+				features: await page
+					.locator(
+						'.tutorial-lessons a[href$="/enums/"], .tutorial-lessons a[href$="/property-hooks/"]'
+					)
+					.evaluateAll((links) =>
+						links.map((link) =>
+							link
+								.getAttribute('href')!
+								.split('/')
+								.filter(Boolean)
+								.pop()
+						)
+					),
+			};
+			expect(state).toEqual({ version, features: capability.features });
+		});
+	}
 
 	test('hides unsupported features at their version boundaries', async ({
 		page,
@@ -757,7 +812,7 @@ test.describe('lesson drafts and execution', () => {
 		);
 	});
 
-	for (const version of ['5.6', '8.5']) {
+	for (const [version] of versionCases) {
 		test(`reports unsuccessful PHP exits and recovers on ${version}`, async ({
 			page,
 		}) => {

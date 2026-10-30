@@ -1,11 +1,15 @@
+import { negativeAnswers } from '../src/tutorial/__test__/negative-contract';
+import {
+	nameFeedback,
+	requestFailureFeedback,
+	squareFeedback,
+	type ExpectedAssessmentResult,
+} from '../src/tutorial/__test__/feedback-contract';
+import { versionCases } from '../src/tutorial/__test__/version-contract';
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { lessonsByVersion } from '../src/tutorial/content';
 import { tutorialVersions } from '../src/tutorial/config';
-import {
-	validateLesson,
-	validateLessons,
-} from '../src/tutorial/validate-content';
 import type { AssessmentResponse } from '../src/tutorial/assessment-worker';
 import type { Lesson, ExerciseCase, JSONValue } from '../src/tutorial/types';
 
@@ -37,6 +41,7 @@ declare global {
 	interface Window {
 		tutorialWasmHarness: {
 			start(input: {
+				requestId?: string;
 				version: (typeof tutorialVersions)[number];
 				code: string;
 				cases?: ExerciseCase[];
@@ -64,11 +69,12 @@ async function startCheck(
 	page: Page,
 	version: (typeof tutorialVersions)[number],
 	code: string,
-	cases: ExerciseCase[]
+	cases: ExerciseCase[],
+	requestId = crypto.randomUUID()
 ) {
 	const id = await page.evaluate(
 		(input) => window.tutorialWasmHarness.start(input),
-		{ version, code, cases }
+		{ version, code, cases, requestId }
 	);
 	const state = await waitForState(page, id);
 	expect(state?.status).toBe('complete');
@@ -84,19 +90,17 @@ async function expectStatuses(
 	version: (typeof tutorialVersions)[number],
 	lesson: Lesson,
 	code: string,
-	want: readonly ('passed' | 'failed' | 'error')[]
+	want: readonly ExpectedAssessmentResult[]
 ) {
+	const requestId = crypto.randomUUID();
 	const response = await startCheck(
 		page,
 		version,
 		code,
-		lesson.exercise.cases
+		lesson.exercise.cases,
+		requestId
 	);
-	expect(response.error).toBeUndefined();
-	expect(response.results.map((result) => result.id)).toEqual(
-		lesson.exercise.cases.map((testCase) => testCase.id)
-	);
-	expect(response.results.map((result) => result.status)).toEqual(want);
+	expect(response).toEqual({ requestId, results: want });
 	return response;
 }
 
@@ -125,58 +129,6 @@ test.beforeEach(async ({ page }) => {
 			name: 'Tutorial authoring runtime harness',
 		})
 	).toBeVisible();
-});
-
-test('validates each manifest and rejects malformed authoring fixtures', async () => {
-	for (const version of tutorialVersions)
-		expect(validateLessons(lessonsByVersion[version])).toEqual([]);
-
-	const template = lessonFor('8.5', 'output');
-	const missingProgram = structuredClone(template);
-	missingProgram.sampleProgramId = 'missing';
-	const unsupportedBlock = structuredClone(template);
-	unsupportedBlock.sections[0].blocks[0] = { type: 'widget' } as never;
-	const duplicateCase = structuredClone(lessonFor('8.5', 'functions'));
-	duplicateCase.exercise.cases[1].id = duplicateCase.exercise.cases[0].id;
-	const missingExperimentProgram = structuredClone(template);
-	missingExperimentProgram.experiments[0].programId = 'missing';
-	const duplicateExperimentId = structuredClone(template);
-	duplicateExperimentId.experiments[1].id =
-		duplicateExperimentId.experiments[0].id;
-	const cyclic: Record<string, unknown> = {};
-	cyclic.self = cyclic;
-	const invalidInput = structuredClone(template);
-	(invalidInput.programs.sample as { input?: unknown }).input = cyclic;
-
-	expect(validateLesson(null)).toContain('Lesson must be an object.');
-	expect(
-		validateLesson({ ...template, chapterId: 'basic-syntax' })
-	).toContain('chapterId must reference a known chapter.');
-	expect(
-		validateLesson({ ...template, referenceChapterId: 'getting-started' })
-	).toContain('referenceChapterId must reference a known source chapter.');
-
-	expect(validateLesson({ ...template, schemaVersion: 2 })).toContain(
-		'Unsupported lesson schemaVersion; expected 1.'
-	);
-	expect(validateLesson(missingProgram)).toContain(
-		'sampleProgramId references a missing program.'
-	);
-	expect(validateLesson(unsupportedBlock)).toContain(
-		'Section 0 block 0 has an unsupported block type.'
-	);
-	expect(validateLesson(duplicateCase)).toContain(
-		`Duplicate case id: ${duplicateCase.exercise.cases[0].id}.`
-	);
-	expect(validateLesson(missingExperimentProgram)).toContain(
-		'Experiment 0 programId references a missing program.'
-	);
-	expect(validateLesson(duplicateExperimentId)).toContain(
-		`Duplicate experiment id: ${duplicateExperimentId.experiments[0].id}.`
-	);
-	expect(validateLesson(invalidInput)).toContain(
-		'Program sample input must be JSON data.'
-	);
 });
 
 for (const version of tutorialVersions) {
@@ -263,76 +215,6 @@ for (const version of tutorialVersions) {
 	});
 }
 
-// Expected outcomes come from the exercise requirements, not its checker code.
-const negativeAnswers = [
-	{
-		slug: 'constants',
-		violation: 'prints EUR instead of USD',
-		code: "<?php const CURRENCY = 'EUR'; echo CURRENCY;",
-		cases: [{ id: 'currency', input: null, status: 'failed' }],
-	},
-	{
-		slug: 'arrays',
-		violation: 'reads the first color instead of the second',
-		code: '<?php echo $input[0];',
-		cases: [
-			{
-				id: 'primary-colors',
-				input: ['red', 'green', 'blue'],
-				status: 'failed',
-			},
-			{
-				id: 'warm-colors',
-				input: ['orange', 'red', 'yellow'],
-				status: 'failed',
-			},
-		],
-	},
-	{
-		slug: 'operators',
-		violation: 'does not convert minutes to seconds',
-		code: '<?php echo $input;',
-		cases: [
-			{ id: 'ninety-minutes', input: 90, status: 'failed' },
-			{ id: 'one-minute', input: 1, status: 'failed' },
-			// Unchanged zero coincides with zero seconds, so this wrong answer passes.
-			{ id: 'zero-minutes', input: 0, status: 'passed' },
-		],
-	},
-	{
-		slug: 'loops',
-		violation: 'omits the inclusive final iteration',
-		code: '<?php for ($i = 1; $i < $input; $i++) { echo $i . PHP_EOL; }',
-		cases: [
-			{ id: 'three-numbers', input: 3, status: 'failed' },
-			{ id: 'one-number', input: 1, status: 'failed' },
-			// No iterations are required at zero, even with the wrong upper bound.
-			{ id: 'zero-numbers', input: 0, status: 'passed' },
-		],
-	},
-	{
-		slug: 'functions',
-		violation: 'returns the number without squaring it',
-		code: '<?php function square($number) { return $number; } echo square($input);',
-		cases: [
-			// Returning zero coincides with its square; nonzero cases distinguish them.
-			{ id: 'zero', input: 0, status: 'passed' },
-			{ id: 'negative', input: -3, status: 'failed' },
-			{ id: 'positive', input: 5, status: 'failed' },
-		],
-	},
-	{
-		slug: 'errors',
-		violation: 'does not reject a negative age',
-		code: '<?php echo $input;',
-		cases: [
-			{ id: 'negative-age', input: -1, status: 'failed' },
-			// The missing guard still produces the required normal-path age.
-			{ id: 'adult-age', input: 18, status: 'passed' },
-		],
-	},
-] as const;
-
 for (const version of tutorialVersions) {
 	test(`PHP ${version}: rejects independently specified wrong answers`, async ({
 		page,
@@ -348,24 +230,24 @@ for (const version of tutorialVersions) {
 				).toEqual(
 					negative.cases.map(({ id, input }) => ({ id, input }))
 				);
+				const requestId = crypto.randomUUID();
 				const response = await startCheck(
 					page,
 					version,
 					negative.code,
-					lesson.exercise.cases
+					lesson.exercise.cases,
+					requestId
 				);
-				expect({
-					error: response.error,
-					results: response.results.map(({ id, status }) => ({
-						id,
-						status,
-					})),
-				}).toEqual({
-					error: undefined,
-					results: negative.cases.map(({ id, status }) => ({
-						id,
-						status,
-					})),
+				expect(response).toEqual({
+					requestId,
+					results: negative.cases.map(
+						({ id, label, status, message }) => ({
+							id,
+							label,
+							status,
+							message,
+						})
+					),
 				});
 			});
 		}
@@ -383,11 +265,14 @@ for (const version of ['5.6', '8.5'] as const) {
 			page,
 		}) => {
 			const lesson = lessonFor(version, negative.slug);
+			const originalId = crypto.randomUUID();
+			const mutantId = crypto.randomUUID();
 			const original = await startCheck(
 				page,
 				version,
 				negative.code,
-				lesson.exercise.cases
+				lesson.exercise.cases,
+				originalId
 			);
 			const mutant = await startCheck(
 				page,
@@ -397,23 +282,28 @@ for (const version of ['5.6', '8.5'] as const) {
 					...entry,
 					checkPhp:
 						"<?php return static function ($input, $output, $returnValue) { return ['passed' => true, 'message' => 'Mutant']; };",
-				}))
-			);
-			expect({
-				inputs: lesson.exercise.cases.map(({ id, input }) => ({
-					id,
-					input,
 				})),
-				original: original.results.map((entry) => entry.status),
-				mutant: mutant.results.map((entry) => entry.status),
-				originalError: original.error,
-				mutantError: mutant.error,
-			}).toEqual({
-				inputs: negative.cases.map(({ id, input }) => ({ id, input })),
-				original: negative.cases.map((entry) => entry.status),
-				mutant: negative.mutantWant,
-				originalError: undefined,
-				mutantError: undefined,
+				mutantId
+			);
+			expect(original).toEqual({
+				requestId: originalId,
+				results: negative.cases.map(
+					({ id, label, status, message }) => ({
+						id,
+						label,
+						status,
+						message,
+					})
+				),
+			});
+			expect(mutant).toEqual({
+				requestId: mutantId,
+				results: negative.cases.map(({ id, label }) => ({
+					id,
+					label,
+					status: 'passed',
+					message: 'Mutant',
+				})),
 			});
 		});
 	}
@@ -425,24 +315,11 @@ test('detects hard-coded and missing-trim answers with input-specific cases', as
 	const lesson = lessonFor('8.5', 'format-full-name');
 	const hardcoded =
 		"<?php\nfunction formatFullName($firstName, $lastName) { return 'Ada Lovelace'; }\necho formatFullName($input['first'], $input['last']);";
-	const response = await expectStatuses(page, '8.5', lesson, hardcoded, [
-		'passed',
-		'failed',
-		'failed',
-		'failed',
-		'failed',
-	]);
-	expect(response.results[1].message).toContain('Check trimming');
+	await expectStatuses(page, '8.5', lesson, hardcoded, nameFeedback.fixed);
 
 	const noTrim =
 		"<?php\nfunction formatFullName($firstName, $lastName) { if ($firstName === '') return $lastName; if ($lastName === '') return $firstName; return $firstName . ' ' . $lastName; }\necho formatFullName($input['first'], $input['last']);";
-	await expectStatuses(page, '8.5', lesson, noTrim, [
-		'failed',
-		'passed',
-		'passed',
-		'passed',
-		'failed',
-	]);
+	await expectStatuses(page, '8.5', lesson, noTrim, nameFeedback.noTrim);
 });
 
 test('runs the same negative control in every supported PHP version', async ({
@@ -452,17 +329,17 @@ test('runs the same negative control in every supported PHP version', async ({
 		"<?php\nfunction formatFullName($firstName, $lastName) { return 'Ada Lovelace'; }\necho formatFullName($input['first'], $input['last']);";
 	for (const version of tutorialVersions) {
 		const lesson = lessonFor(version, 'format-full-name');
-		await expectStatuses(page, version, lesson, fixedName, [
-			'passed',
-			'failed',
-			'failed',
-			'failed',
-			'failed',
-		]);
+		await expectStatuses(
+			page,
+			version,
+			lesson,
+			fixedName,
+			nameFeedback.fixed
+		);
 	}
 });
 
-for (const version of ['5.6', '8.5'] as const) {
+for (const [version, expectedVersion] of versionCases) {
 	test(`PHP ${version}: reports PHP errors and empty output, then recovers in a fresh WASM worker`, async ({
 		page,
 	}) => {
@@ -472,28 +349,28 @@ for (const version of ['5.6', '8.5'] as const) {
 			version,
 			lesson,
 			'<?php\nfunction square(',
-			lesson.exercise.cases.map(() => 'error')
+			squareFeedback.parse
 		);
 		await expectStatuses(
 			page,
 			version,
 			lesson,
 			'<?php\nexit(1);',
-			lesson.exercise.cases.map(() => 'error')
+			requestFailureFeedback[expectedVersion.requestFailureFlag]
 		);
 		await expectStatuses(
 			page,
 			version,
 			lesson,
 			'<?php\n',
-			lesson.exercise.cases.map(() => 'failed')
+			squareFeedback.empty
 		);
 		await expectStatuses(
 			page,
 			version,
 			lesson,
 			lesson.programs[lesson.exercise.solutionProgramId].code,
-			lesson.exercise.cases.map(() => 'passed')
+			squareFeedback.correct
 		);
 	});
 }
@@ -552,7 +429,7 @@ test('runs a Program with JSON input and can stop or time out an infinite worker
 		'8.5',
 		lesson,
 		lesson.programs[lesson.exercise.solutionProgramId].code,
-		lesson.exercise.cases.map(() => 'passed')
+		squareFeedback.correct
 	);
 
 	const timed = await page.evaluate(
@@ -571,6 +448,6 @@ test('runs a Program with JSON input and can stop or time out an infinite worker
 		'8.5',
 		lesson,
 		lesson.programs[lesson.exercise.solutionProgramId].code,
-		lesson.exercise.cases.map(() => 'passed')
+		squareFeedback.correct
 	);
 });

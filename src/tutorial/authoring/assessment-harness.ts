@@ -17,6 +17,7 @@ declare global {
 	interface Window {
 		tutorialWasmHarness: {
 			start(input: {
+				requestId?: string;
 				version: TutorialVersion;
 				code: string;
 				cases?: ExerciseCase[];
@@ -42,9 +43,15 @@ function clear(id: string) {
 }
 
 const harness: Window['tutorialWasmHarness'] = {
-	start({ version, code, cases, runInput, timeoutMs = 30_000 }) {
+	start({
+		version,
+		code,
+		cases,
+		runInput,
+		timeoutMs = 30_000,
+		requestId = crypto.randomUUID(),
+	}) {
 		const id = crypto.randomUUID();
-		const requestId = crypto.randomUUID();
 		const worker = new AssessmentWorker();
 		workers.set(id, worker);
 		states.set(id, { status: 'running' });

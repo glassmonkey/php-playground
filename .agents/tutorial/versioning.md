@@ -9,6 +9,8 @@ Use `config.ts` and its runtime registry source for supported versions and the s
 3. The runtime list also generates curricula. Before publishing a newly added runtime, verify all generated lessons and feature gates for that version. Generation alone is not compatibility evidence. Check per-version expected output in actual WASM, register fixtures, and check existing versions for regressions. Use [validation](validation.md), adding [exercise evaluation](exercise-evaluation.md) when changing checkers.
 4. Only after an explicit latest-update request and full target-curriculum verification, update `latestTutorialVersion`. Do not redirect fixed-version URLs to latest; verify generated HTML, sitemap, OGP, and aliases.
 
+When adding a runtime, update the test-owned explicit expectations in `src/tutorial/__test__/version-contract.ts` after reviewing the target behavior. The exact-key check requires a row for each supported version; do not generate expectations from production gates. Review any new visual baseline before accepting it.
+
 The following are stable feature-introduction examples, not the current supported-version inventory or a complete feature-gate list.
 
 | Feature | First PHP version | Authoring rule | Official source |

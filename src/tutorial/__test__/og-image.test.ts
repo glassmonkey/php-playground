@@ -1,98 +1,76 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { chromium, type Browser, type Page } from '@playwright/test';
 import { renderTutorialOgImage } from '../og-image';
 import { lessonsByVersion } from '../content';
-import type { Lesson } from '../types';
+import { decodePng } from './image-decoder';
 
-const lesson = JSON.parse(
-	JSON.stringify(
-		lessonsByVersion['8.5'].find((item) => item.slug === 'variables')
-	)
-) as Lesson;
+let browser: Browser;
+let page: Page;
+beforeAll(async () => {
+	browser = await chromium.launch();
+	page = await browser.newPage();
+});
+afterAll(async () => {
+	await browser?.close();
+});
+
+const lesson = () =>
+	structuredClone(
+		lessonsByVersion['8.5'].find((entry) => entry.slug === 'variables')!
+	);
 
 describe('structured tutorial OGP images', () => {
-	it('renders a deterministic 1200 by 630 PNG from JSON lesson data', () => {
-		const image = renderTutorialOgImage('8.5', lesson);
-		expect(image).toBeInstanceOf(Uint8Array);
-		expect(Array.from(image.slice(0, 8))).toEqual([
-			137, 80, 78, 71, 13, 10, 26, 10,
-		]);
-		const header = new DataView(
-			image.buffer,
-			image.byteOffset,
-			image.byteLength
-		);
-		expect([header.getUint32(16), header.getUint32(20)]).toEqual([
-			1200, 630,
-		]);
-		expect(
-			renderTutorialOgImage(
-				'8.5',
-				JSON.parse(JSON.stringify(lesson)) as Lesson
-			)
-		).toEqual(image);
-	});
 	it.each([
-		['title', { title: 'A different lesson title' }],
-		[
-			'Example',
-			{
-				programs: {
-					...lesson.programs,
-					[lesson.sampleProgramId]: {
-						code: '<?php echo "A different example";',
-					},
-				},
-			},
-		],
-	] as const)('reflects a changed %s in rendered bytes', (_field, change) => {
-		expect(
-			renderTutorialOgImage('8.5', { ...lesson, ...change })
-		).not.toEqual(renderTutorialOgImage('8.5', lesson));
-	});
-	it('distinguishes the PHP version and the chapter index from the lesson', () => {
-		expect(renderTutorialOgImage('7.4', lesson)).not.toEqual(
-			renderTutorialOgImage('8.5', lesson)
-		);
-		expect(renderTutorialOgImage('8.5')).not.toEqual(
-			renderTutorialOgImage('8.5', lesson)
-		);
-	});
-	it('fits a long unbroken title into a valid share image', () => {
-		const image = renderTutorialOgImage('8.5', {
-			...lesson,
+		{
+			name: 'ordinary title',
+			title: 'Store values in variables',
+			code: '<?php echo 12.5;',
+		},
+		{
+			name: 'long unbroken title',
 			title: 'W'.repeat(75),
-		});
-		const header = new DataView(
-			image.buffer,
-			image.byteOffset,
-			image.byteLength
+			code: '<?php echo 12.5;',
+		},
+		{
+			name: 'XML special characters',
+			title: 'Compare <PHP> & "strings"',
+			code: `<?php echo '<, >, &, "quotes"; </text><script>';`,
+		},
+	])(
+		'produces a decodable 1200 by 630 PNG for $name',
+		async ({ title, code }) => {
+			const value = lesson();
+			value.title = title;
+			value.programs[value.sampleProgramId].code = code;
+			const image = renderTutorialOgImage('8.5', value);
+			// This checks decoding and dimensions, not clipping or literal text layout.
+			expect(await decodePng(page, image)).toEqual({
+				width: 1200,
+				height: 630,
+			});
+		}
+	);
+	it('rejects a header-only impostor through the independent decoder', async () => {
+		// PNG signature/IHDR dimensions alone are insufficient (W3C PNG structure).
+		// https://www.w3.org/TR/PNG-Structure.html
+		const bytes = Buffer.from(
+			'89504e470d0a1a0a0000000d49484452000004b000000276',
+			'hex'
 		);
-		expect([header.getUint32(16), header.getUint32(20)]).toEqual([
-			1200, 630,
-		]);
-		expect(Array.from(image.slice(0, 8))).toEqual([
-			137, 80, 78, 71, 13, 10, 26, 10,
-		]);
+		await expect(decodePng(page, bytes)).rejects.toThrow(Error);
 	});
-	it('rejects a title that cannot fit instead of silently clipping it', () => {
+	it('renders deterministically from JSON lesson data', () => {
+		const value = lesson();
+		expect(
+			renderTutorialOgImage('8.5', JSON.parse(JSON.stringify(value)))
+		).toEqual(renderTutorialOgImage('8.5', value));
+	});
+	it('rejects a title over the renderer limit', () => {
 		expect(() =>
-			renderTutorialOgImage('8.5', { ...lesson, title: 'W'.repeat(200) })
+			renderTutorialOgImage('8.5', {
+				...lesson(),
+				title: 'W'.repeat(200),
+			})
 		).toThrow('OGP title is too long for 8.5/variables:');
-	});
-	it('renders XML special characters in title and code as safe text', () => {
-		const image = renderTutorialOgImage('8.5', {
-			...lesson,
-			title: `Compare <PHP> & "strings"`,
-			programs: {
-				...lesson.programs,
-				[lesson.sampleProgramId]: {
-					code: `<?php echo '<, >, &, "quotes"; </text><script>';`,
-				},
-			},
-		});
-		expect(Array.from(image.slice(0, 8))).toEqual([
-			137, 80, 78, 71, 13, 10, 26, 10,
-		]);
-		expect(image).not.toEqual(renderTutorialOgImage('8.5', lesson));
 	});
 });

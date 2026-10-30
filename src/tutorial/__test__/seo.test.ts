@@ -114,9 +114,8 @@ describe('tutorial SEO build emission', () => {
 			const html = emitted.get(`${path.slice(1)}index.html`) as string;
 			const png = emitted.get(`${path.slice(1)}og.png`);
 			expect(png).toBeInstanceOf(Uint8Array);
-			expect(Array.from((png as Uint8Array).slice(0, 8))).toEqual([
-				137, 80, 78, 71, 13, 10, 26, 10,
-			]);
+			// Emission/reference coverage only; decoding is checked independently.
+
 			expect(html).toContain(
 				`<meta property="og:image" content="https://php-play.dev${path}og.png">`
 			);
