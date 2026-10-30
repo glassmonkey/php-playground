@@ -1,0 +1,1040 @@
+diff --git a/build.rs b/build.rs
+index c579d0b..3105201 100644
+--- a/build.rs
++++ b/build.rs
+@@ -66,6 +66,8 @@ use tar::Archive;
+ 
+ #[path = "src/stub_map.rs"]
+ mod stub_map;
++#[path = "build_support/stub_since.rs"]
++mod stub_since;
+ use stub_map::parse_section;
+ 
+ /// Relative path (from the stubs root) to the stubs map file.
+@@ -104,7 +106,31 @@ fn resolve_stubs_root() -> (PathBuf, bool) {
+     (out_stubs, needs_fetch)
+ }
+ 
++const SUPPORTED_PHP_TARGETS: &[&str] = &[
++    "5.6", "7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2", "8.3", "8.4", "8.5",
++];
++
++fn configure_wasi_php_target() {
++    println!("cargo:rerun-if-env-changed=PHPANTOM_TARGET_PHP_VERSION");
++    let is_wasi = env::var("CARGO_CFG_TARGET_ARCH").as_deref() == Ok("wasm32")
++        && env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("wasi");
++    if !is_wasi {
++        return;
++    }
++
++    let target = env::var("PHPANTOM_TARGET_PHP_VERSION")
++        .unwrap_or_else(|_| panic!("PHPANTOM_TARGET_PHP_VERSION is required for WASI builds"));
++    if !SUPPORTED_PHP_TARGETS.contains(&target.as_str()) {
++        panic!(
++            "unsupported PHPANTOM_TARGET_PHP_VERSION {target:?}; expected one of {}",
++            SUPPORTED_PHP_TARGETS.join(", ")
++        );
++    }
++    println!("cargo:rustc-env=PHPANTOM_TARGET_PHP_VERSION={target}");
++}
++
+ fn main() {
++    configure_wasi_php_target();
+     // Watch the project root directory so that creating/removing `stubs/`
+     // (which is gitignored) is detected via the directory mtime change.
+     // Without this, Cargo's default "any package file" check ignores
+@@ -338,6 +364,26 @@ fn generate_stub_map(stubs_path: &Path) {
+     }
+     out.push_str("];\n\n");
+ 
++    // PHP core functions use @since for introduction versions. Extension
++    // stubs use the same tag for extension releases, so only read it from
++    // the core and standard-library source trees.
++    let function_since_entries =
++        function_since_entries(stubs_path, &existing_files, &function_entries);
++    out.push_str("/// PHP core functions with an authoritative introduction version.\n");
++    out.push_str(&format!(
++        "pub(crate) static STUB_FUNCTION_SINCE: [(&str, u8, u8); {}] = [\n",
++        function_since_entries.len()
++    ));
++    for (name, major, minor) in &function_since_entries {
++        out.push_str(&format!(
++            "    (\"{}\", {}, {}),\n",
++            escape(name),
++            major,
++            minor
++        ));
++    }
++    out.push_str("];\n\n");
++
+     // 4. Constant name → file index mapping.
+     let constant_entries: Vec<(&str, usize)> = constant_map
+         .iter()
+@@ -362,6 +408,36 @@ fn generate_stub_map(stubs_path: &Path) {
+     write_if_changed(&out);
+ }
+ 
++fn function_since_entries<'a>(
++    stubs_path: &Path,
++    files: &[&str],
++    function_entries: &[(&'a str, usize)],
++) -> Vec<(&'a str, u8, u8)> {
++    let mut result = Vec::new();
++    let mut file_versions = BTreeMap::new();
++    for &(name, index) in function_entries {
++        let Some(path) = files.get(index) else {
++            continue;
++        };
++        if !path.starts_with("Core/") && !path.starts_with("standard/") {
++            continue;
++        }
++        let versions = file_versions.entry(index).or_insert_with(|| {
++            fs::read_to_string(stubs_path.join(path))
++                .map(|source| stub_since::function_since_versions(&source))
++                .unwrap_or_default()
++        });
++        let short_name = name.rsplit('\\').next().unwrap_or(name);
++        if let Some((_, major, minor)) = versions
++            .iter()
++            .find(|(declared_name, _, _)| declared_name.eq_ignore_ascii_case(short_name))
++        {
++            result.push((name, *major, *minor));
++        }
++    }
++    result
++}
++
+ // ── Stub fetching ───────────────────────────────────────────────────────
+ 
+ /// Read `stubs.lock` and return the pinned commit + hash.
+@@ -624,6 +700,7 @@ fn write_empty_stubs() {
+         "pub(crate) static STUB_FILES: [&str; 0] = [];\n",
+         "pub(crate) static STUB_CLASS_MAP: [(&str, usize); 0] = [];\n",
+         "pub(crate) static STUB_FUNCTION_MAP: [(&str, usize); 0] = [];\n",
++        "pub(crate) static STUB_FUNCTION_SINCE: [(&str, u8, u8); 0] = [];\n",
+         "pub(crate) static STUB_CONSTANT_MAP: [(&str, usize); 0] = [];\n",
+     );
+     write_if_changed(content);
+diff --git a/src/backend/settings.rs b/src/backend/settings.rs
+index 07afa09..f922666 100644
+--- a/src/backend/settings.rs
++++ b/src/backend/settings.rs
+@@ -110,6 +110,7 @@ impl Backend {
+     /// `stub_constant_index` to remove entries that do not exist in
+     /// the given PHP version.
+     pub fn set_php_version(&self, version: types::PhpVersion) {
++        let version_changed = self.php_version() != version;
+         *self.workspace.php_version.lock() = version;
+         // Every symbol a stub file declares shares that file's `&'static str`,
+         // so each file is scanned once for its removed declarations and the
+@@ -123,14 +124,22 @@ impl Backend {
+                 .as_ref()
+                 .is_some_and(|names| names.contains(kind, name))
+         };
+-        self.stub_function_index
+-            .write()
+-            .retain(|name, source| !is_removed(source, name, stubs::StubSymbolKind::Function));
++        self.stub_function_index.write().retain(|name, source| {
++            !is_removed(source, name, stubs::StubSymbolKind::Function)
++                && stubs::stub_function_available(name, version)
++        });
+         self.stub_index
+             .write()
+             .retain(|name, source| !is_removed(source, name, stubs::StubSymbolKind::Class));
+         self.stub_constant_index
+             .write()
+             .retain(|name, source| !is_removed(source, name, stubs::StubSymbolKind::Constant));
++        if version_changed {
++            self.symbols
++                .global_functions
++                .write()
++                .retain(|_, (uri, _)| !uri.starts_with(stubs::STUB_FUNCTION_URI_PREFIX));
++            self.symbols.function_not_found_cache.write().clear();
++        }
+     }
+ }
+diff --git a/src/completion/handler/named_args.rs b/src/completion/handler/named_args.rs
+index 8d628b6..14f7a74 100644
+--- a/src/completion/handler/named_args.rs
++++ b/src/completion/handler/named_args.rs
+@@ -14,7 +14,7 @@ use crate::completion::named_args::{
+     NamedArgContext, cursor_inside_nested_bracket, parse_existing_args,
+ };
+ use crate::text_position::position_to_offset;
+-use crate::types::FileContext;
++use crate::types::{FileContext, PhpVersion};
+ 
+ impl Backend {
+     /// Collect `name:` argument completion items inside function/method
+@@ -31,6 +31,10 @@ impl Backend {
+         position: Position,
+         ctx: &FileContext,
+     ) -> Vec<CompletionItem> {
++        if self.php_version() < PhpVersion::new(8, 0) {
++            return Vec::new();
++        }
++
+         // ── Primary path: AST-based detection via symbol map ────────
+         // The symbol map's `CallSite` data handles chains, nesting,
+         // and strings correctly.  Fall back to text scanning when the
+diff --git a/src/docblock/tags.rs b/src/docblock/tags.rs
+index 2d52d21..840d6af 100644
+--- a/src/docblock/tags.rs
++++ b/src/docblock/tags.rs
+@@ -616,6 +616,7 @@ pub fn extract_param_raw_type_from_info(info: &DocblockInfo, var_name: &str) ->
+ pub(crate) fn merge_param_docblock_into_parameters(
+     info: &DocblockInfo,
+     parameters: &mut Vec<ParameterInfo>,
++    excluded_parameters: &std::collections::HashSet<String>,
+     template_bounds: &crate::atom::AtomMap<PhpType>,
+ ) {
+     for param in parameters.iter_mut() {
+@@ -699,6 +700,10 @@ pub(crate) fn merge_param_docblock_into_parameters(
+     // These document parameters accessed via `func_get_args()` or
+     // similar mechanisms and should appear in hover/signature.
+     for (tag_name, tag_type) in extract_all_param_tags_from_info(info) {
++        let parameter_name = tag_name.strip_prefix('$').unwrap_or(&tag_name);
++        if excluded_parameters.contains(parameter_name) {
++            continue;
++        }
+         if !parameters.iter().any(|p| p.name == tag_name) {
+             let description = extract_param_description_from_info(info, &tag_name);
+             parameters.push(ParameterInfo {
+@@ -1154,6 +1159,28 @@ fn recover_base_type(s: &str) -> &str {
+ mod tests {
+     use super::*;
+ 
++    #[test]
++    fn excluded_native_parameter_does_not_hide_other_docblock_parameters() {
++        let info = parse_docblock_for_tags(
++            "/**\n * @param bool $before_needle PHP 8.3 parameter\n * @param string $virtual_extra Documented extra parameter\n */",
++        )
++        .unwrap();
++        let mut parameters = Vec::new();
++        merge_param_docblock_into_parameters(
++            &info,
++            &mut parameters,
++            &std::collections::HashSet::from(["before_needle".to_string()]),
++            &crate::atom::AtomMap::default(),
++        );
++
++        assert_eq!(parameters.len(), 1);
++        assert_eq!(parameters[0].name.as_str(), "$virtual_extra");
++        assert_eq!(
++            parameters[0].description.as_deref(),
++            Some("Documented extra parameter")
++        );
++    }
++
+     // ── extract_deprecation_message ─────────────────────────────────
+ 
+     #[test]
+diff --git a/src/lsp_dispatch.rs b/src/lsp_dispatch.rs
+index 3f4ff19..ab083d2 100644
+--- a/src/lsp_dispatch.rs
++++ b/src/lsp_dispatch.rs
+@@ -40,9 +40,12 @@ impl Default for LspDispatcher {
+ 
+ impl LspDispatcher {
+     pub fn new() -> LspDispatcher {
+-        LspDispatcher {
+-            backend: Backend::new_headless(),
+-        }
++        let target = env!("PHPANTOM_TARGET_PHP_VERSION");
++        let version = crate::types::PhpVersion::from_composer_constraint(target)
++            .expect("the build script validates the configured PHP target");
++        let backend = Backend::new_headless();
++        backend.set_php_version(version);
++        LspDispatcher { backend }
+     }
+ 
+     /// Handle one LSP JSON-RPC message. Returns a JSON-RPC response string for
+diff --git a/src/parser/classes/methods.rs b/src/parser/classes/methods.rs
+index 95a25a5..e02c063 100644
+--- a/src/parser/classes/methods.rs
++++ b/src/parser/classes/methods.rs
+@@ -50,6 +50,7 @@ pub(super) fn extract_method<'a>(
+     }
+     let Signature {
+         mut parameters,
++        excluded_parameters,
+         native_return_type,
+         return_type,
+         conditional_return,
+@@ -81,6 +82,7 @@ pub(super) fn extract_method<'a>(
+         docblock::merge_param_docblock_into_parameters(
+             info,
+             &mut parameters,
++            &excluded_parameters,
+             &template_bounds_in_scope(
+                 class_template_param_bounds,
+                 // A constructor binding the class's templates takes on
+diff --git a/src/parser/functions.rs b/src/parser/functions.rs
+index 1b8ba74..df03d5e 100644
+--- a/src/parser/functions.rs
++++ b/src/parser/functions.rs
+@@ -121,6 +121,7 @@ impl Backend {
+                 Statement::Function(func) => {
+                     let Some(Signature {
+                         mut parameters,
++                        excluded_parameters,
+                         native_return_type,
+                         return_type,
+                         conditional_return,
+@@ -187,6 +188,7 @@ impl Backend {
+                         docblock::merge_param_docblock_into_parameters(
+                             info,
+                             &mut parameters,
++                            &excluded_parameters,
+                             &func_template_param_bounds,
+                         );
+                     }
+diff --git a/src/parser/signature.rs b/src/parser/signature.rs
+index 57c05e8..f293055 100644
+--- a/src/parser/signature.rs
++++ b/src/parser/signature.rs
+@@ -7,6 +7,7 @@
+ 
+ use mago_span::HasSpan;
+ use mago_syntax::cst::*;
++use std::collections::HashSet;
+ 
+ use crate::atom::{Atom, AtomMap, atom};
+ use crate::docblock::{self, DocblockInfo};
+@@ -22,6 +23,8 @@ use super::{
+ /// [`extract_signature`].
+ pub(super) struct Signature<'a> {
+     pub parameters: Vec<ParameterInfo>,
++    /// Native parameters omitted by version-gated stub attributes.
++    pub excluded_parameters: HashSet<String>,
+     /// The native return hint, or the `#[LanguageLevelTypeAware]` type
+     /// that replaces it for the target PHP version.
+     pub native_return_type: Option<PhpType>,
+@@ -68,6 +71,20 @@ pub(super) fn extract_signature<'a>(
+         return None;
+     }
+ 
++    let excluded_parameters = if let (Some(version), Some(ctx)) = (php_version, doc_ctx) {
++        parameter_list
++            .parameters
++            .iter()
++            .filter(|param| !super::is_param_available_for_version(param, ctx, version))
++            .map(|param| {
++                crate::atom::bytes_to_str(param.variable.name)
++                    .trim_start_matches('$')
++                    .to_string()
++            })
++            .collect()
++    } else {
++        HashSet::new()
++    };
+     let parameters = extract_parameters(
+         parameter_list,
+         doc_ctx.map(|ctx| ctx.content),
+@@ -100,6 +117,7 @@ pub(super) fn extract_signature<'a>(
+         let return_type = finish_return_type(native_return_type.clone(), attribute_lists, doc_ctx);
+         return Some(Signature {
+             parameters,
++            excluded_parameters,
+             native_return_type,
+             return_type,
+             conditional_return: None,
+@@ -199,6 +217,7 @@ pub(super) fn extract_signature<'a>(
+ 
+     Some(Signature {
+         parameters,
++        excluded_parameters,
+         native_return_type,
+         return_type,
+         conditional_return,
+diff --git a/src/resolution/functions.rs b/src/resolution/functions.rs
+index bff8c3e..a5cf48b 100644
+--- a/src/resolution/functions.rs
++++ b/src/resolution/functions.rs
+@@ -200,6 +200,15 @@ impl Backend {
+         let _parse_guard = crate::parser::with_parse_cache(stub_content);
+         let ver = Some(self.php_version());
+         let mut functions = self.parse_functions_versioned(stub_content, ver);
++        let version = self.php_version();
++        functions.retain(|function| {
++            let name = function
++                .namespace
++                .as_ref()
++                .map(|namespace| format!("{namespace}\\{}", function.name))
++                .unwrap_or_else(|| function.name.to_string());
++            crate::stubs::stub_function_available(&name, version)
++        });
+         if functions.is_empty() {
+             return None;
+         }
+diff --git a/src/stubs.rs b/src/stubs.rs
+index a3aedeb..b6e3203 100644
+--- a/src/stubs.rs
++++ b/src/stubs.rs
+@@ -46,6 +46,14 @@ include!(concat!(env!("OUT_DIR"), "/stub_map_generated.rs"));
+ /// built without them.
+ pub const STUBS_VERSION: &str = env!("PHPANTOM_STUBS_VERSION");
+ 
++/// Whether a function declared by phpstorm-stubs exists in this PHP release.
++pub(crate) fn stub_function_available(name: &str, version: crate::types::PhpVersion) -> bool {
++    STUB_FUNCTION_SINCE
++        .iter()
++        .find(|(candidate, _, _)| candidate.eq_ignore_ascii_case(name))
++        .is_none_or(|(_, major, minor)| version >= crate::types::PhpVersion::new(*major, *minor))
++}
++
+ /// Warning shown when the binary embeds no stubs, so a broken package
+ /// says why everything built in is reported as unknown.
+ pub(crate) const MISSING_STUBS_WARNING: &str = "PHPantom was built without the PHP standard library stubs, so every built-in function, class, and constant is reported as unknown. Rebuild it with network access, or with PHPANTOM_STUBS_DIR pointing at phpstorm-stubs.";
+diff --git a/tests/integration/completion_named_args.rs b/tests/integration/completion_named_args.rs
+index f715aea..ee3875e 100644
+--- a/tests/integration/completion_named_args.rs
++++ b/tests/integration/completion_named_args.rs
+@@ -1,6 +1,53 @@
+ use crate::common::{complete_at, create_test_backend, filter_texts};
++use phpantom_lsp::types::PhpVersion;
+ use tower_lsp_server::gen_lsp_types::*;
+ 
++#[tokio::test]
++async fn named_argument_completion_requires_php_80_but_variable_completion_remains() {
++    let backend = create_test_backend();
++    backend.set_php_version(PhpVersion::new(7, 4));
++    let uri = Uri::parse("file:///na_php74.php").unwrap();
++    let source = concat!(
++        "<?php\n",
++        "function acceptsOptions(string $firstOption): void {}\n",
++        "function example(string $localValue): void {\n",
++        "    acceptsOptions(\n",
++        "}\n",
++    );
++
++    let items = complete_at(&backend, &uri, source, 3, 19).await;
++    assert!(
++        !filter_texts(&items).contains(&"firstOption"),
++        "PHP 7.4 must not suggest named arguments"
++    );
++
++    let variable_source = "<?php\nfunction example(string $localValue): void { $loc }";
++    let variable_items = complete_at(&backend, &uri, variable_source, 1, 55).await;
++    assert!(
++        filter_texts(&variable_items).contains(&"$localValue"),
++        "the named-argument version gate must preserve ordinary variable completion"
++    );
++}
++
++#[tokio::test]
++async fn named_argument_completion_remains_available_from_php_80() {
++    let backend = create_test_backend();
++    backend.set_php_version(PhpVersion::new(8, 0));
++    let uri = Uri::parse("file:///na_php80.php").unwrap();
++    let source = concat!(
++        "<?php\n",
++        "function acceptsOptions(string $firstOption): void {}\n",
++        "acceptsOptions(\n",
++    );
++
++    let items = complete_at(&backend, &uri, source, 2, 16).await;
++
++    assert!(
++        filter_texts(&items).contains(&"firstOption"),
++        "PHP 8.0 must retain named-argument suggestions"
++    );
++}
++
+ // ─── Basic: method on same-file class ───────────────────────────────────────
+ 
+ /// Named arg completion for `$this->method(|)` inside the same class.
+diff --git a/tests/integration/completion_stub_functions.rs b/tests/integration/completion_stub_functions.rs
+index f651816..ca99096 100644
+--- a/tests/integration/completion_stub_functions.rs
++++ b/tests/integration/completion_stub_functions.rs
+@@ -1,5 +1,6 @@
+ use crate::common::{
+-    complete_at, create_test_backend, create_test_backend_with_function_stubs, open_php,
++    complete_at, create_test_backend, create_test_backend_with_function_stubs, filter_texts,
++    open_php,
+ };
+ use phpantom_lsp::Backend;
+ use phpantom_lsp::atom::atom;
+@@ -67,6 +68,62 @@ async fn test_stub_function_index_resolves_json_decode() {
+     );
+ }
+ 
++#[tokio::test]
++async fn php_74_hides_core_functions_added_later_on_cold_and_warm_requests() {
++    let backend = Backend::new_test_with_full_stubs();
++    backend.set_php_version(phpantom_lsp::types::PhpVersion::new(7, 4));
++
++    for (uri, source, cursor_after, unavailable) in [
++        (
++            "file:///since-str.php",
++            "<?php\nstr_c",
++            "str_c",
++            "str_contains",
++        ),
++        (
++            "file:///since-array-first.php",
++            "<?php\narray_f",
++            "array_f",
++            "array_first",
++        ),
++        (
++            "file:///since-array-last.php",
++            "<?php\narray_l",
++            "array_l",
++            "array_last",
++        ),
++    ] {
++        let uri = Uri::parse(uri).unwrap();
++        let column = cursor_after.len() as u32;
++        let cold = complete_at(&backend, &uri, source, 1, column).await;
++        assert!(
++            !filter_texts(&cold).contains(&unavailable),
++            "PHP 7.4 cold completion should omit {unavailable}"
++        );
++
++        let warm = complete_at(&backend, &uri, source, 1, column).await;
++        assert!(
++            !filter_texts(&warm).contains(&unavailable),
++            "PHP 7.4 warm completion should omit {unavailable}"
++        );
++    }
++}
++
++#[tokio::test]
++async fn php_74_keeps_user_defined_str_contains_completion() {
++    let backend = Backend::new_test_with_full_stubs();
++    backend.set_php_version(phpantom_lsp::types::PhpVersion::new(7, 4));
++    let uri = Uri::parse("file:///user-str-contains.php").unwrap();
++    let source = "<?php\nfunction str_contains(string $value): bool {}\nstr_con";
++
++    let items = complete_at(&backend, &uri, source, 2, 7).await;
++
++    assert!(
++        filter_texts(&items).contains(&"str_contains"),
++        "version filtering must preserve the same-named user function"
++    );
++}
++
+ /// Verify that stub functions are cached in `global_functions` after the
+ /// first lookup, so subsequent lookups are fast (Phase 1 hit).
+ #[tokio::test]
+diff --git a/tests/integration/php_version.rs b/tests/integration/php_version.rs
+index df751bf..8afef3d 100644
+--- a/tests/integration/php_version.rs
++++ b/tests/integration/php_version.rs
+@@ -3,7 +3,7 @@
+ //! Tests that `#[PhpStormStubsElementAvailable]` attributes on functions,
+ //! methods, and parameters are respected when a target PHP version is set.
+ 
+-use crate::common::{create_test_backend, hover_at, hover_text};
++use crate::common::{complete_at, create_test_backend, filter_texts, hover_at, hover_text};
+ use phpantom_lsp::Backend;
+ use phpantom_lsp::types::PhpVersion;
+ 
+@@ -1217,3 +1217,24 @@ fn set_php_version_keeps_removed_constants_for_older_version() {
+         "OLD_CONST (@removed 8.0) should survive when targeting PHP 7.4"
+     );
+ }
++
++#[tokio::test]
++async fn strrchr_docblock_does_not_restore_a_version_filtered_parameter() {
++    let backend = Backend::new_test_with_full_stubs();
++    let uri = tower_lsp_server::gen_lsp_types::Uri::parse("file:///strrchr-php80.php").unwrap();
++    let source = "<?php\nstrrchr(\"haystack\", \"needle\", ";
++    backend.set_php_version(PhpVersion::new(8, 0));
++
++    let php80 = complete_at(&backend, &uri, source, 1, 31).await;
++    assert!(
++        !filter_texts(&php80).contains(&"before_needle"),
++        "PHP 8.0 must not regain the parameter from the function docblock"
++    );
++
++    backend.set_php_version(PhpVersion::new(8, 3));
++    let php83 = complete_at(&backend, &uri, source, 1, 31).await;
++    assert!(
++        filter_texts(&php83).contains(&"before_needle"),
++        "PHP 8.3 must retain the newly available parameter"
++    );
++}
+diff --git a/build_support/stub_since.rs b/build_support/stub_since.rs
+new file mode 100644
+index 0000000..9dafc86
+--- /dev/null
++++ b/build_support/stub_since.rs
+@@ -0,0 +1,116 @@
++/// Read PHP introduction versions from documented, top-level functions.
++///
++/// Callers must restrict this to PHP core stub files: extensions use
++/// `@since` for their own release versions.
++pub(crate) fn function_since_versions(source: &str) -> Vec<(String, u8, u8)> {
++    let mut result = Vec::new();
++    let mut search_from = 0;
++    while let Some(relative_tag) = source[search_from..].find("@since") {
++        let tag_pos = search_from + relative_tag;
++        let Some(doc_end) = source[tag_pos..]
++            .find("*/")
++            .map(|offset| tag_pos + offset + 2)
++        else {
++            break;
++        };
++        search_from = doc_end;
++        let Some(doc_start) = source[..tag_pos].rfind("/**") else {
++            continue;
++        };
++        let Some((major, minor)) = source[doc_start..doc_end]
++            .lines()
++            .filter_map(|line| line.split_once("@since").map(|(_, value)| value))
++            .find_map(parse_php_version)
++        else {
++            continue;
++        };
++        let after = &source[doc_end..];
++        let after = &after[..after.find("/**").unwrap_or(after.len())];
++        if let Some(name) = documented_top_level_function(after) {
++            result.push((name.to_string(), major, minor));
++        }
++    }
++    result
++}
++
++fn parse_php_version(value: &str) -> Option<(u8, u8)> {
++    let version = value
++        .trim()
++        .split(|character: char| !(character.is_ascii_digit() || character == '.'))
++        .find(|part| !part.is_empty())?;
++    let mut parts = version.split('.');
++    Some((parts.next()?.parse().ok()?, parts.next()?.parse().ok()?))
++}
++
++fn documented_top_level_function(text: &str) -> Option<&str> {
++    let mut in_block_comment = false;
++    let mut in_attribute = false;
++    for line in text.lines() {
++        let trimmed = line.trim();
++        if in_block_comment {
++            in_block_comment = !trimmed.contains("*/");
++            continue;
++        }
++        if trimmed.is_empty() || trimmed.starts_with("//") {
++            continue;
++        }
++        if trimmed.starts_with("/*") {
++            in_block_comment = !trimmed.contains("*/");
++            continue;
++        }
++        if in_attribute {
++            in_attribute = !trimmed.contains(']');
++            continue;
++        }
++        if trimmed.starts_with("#[") {
++            in_attribute = !trimmed.contains(']');
++            continue;
++        }
++        if line.trim_start() != line {
++            return None;
++        }
++        let rest = trimmed
++            .strip_prefix("function ")
++            .or_else(|| trimmed.strip_prefix("function&"))?;
++        return function_identifier(rest);
++    }
++    None
++}
++
++fn function_identifier(rest: &str) -> Option<&str> {
++    let rest = rest.trim_start_matches([' ', '\t', '&']);
++    let length = rest
++        .bytes()
++        .take_while(|byte| byte.is_ascii_alphanumeric() || *byte == b'_' || *byte >= 0x80)
++        .count();
++    (length > 0).then(|| &rest[..length])
++}
++
++#[cfg(test)]
++mod tests {
++    use super::function_since_versions;
++
++    #[test]
++    fn since_metadata_is_attached_only_to_the_documented_top_level_function() {
++        let source = r#"
++/** @since 8.0.2 introduced in core */
++#[Pure]
++function introduced_in_core(): void {}
++
++/** @since 8.1 */
++class VersionedType {
++    /** @since 8.2 */
++    public function method_since(): void {}
++}
++
++/** @since 8.3 */
++// function mentioned in a comment is not a declaration
++const DOCUMENTED_CONSTANT = 'function not_a_function';
++"#;
++
++        assert_eq!(
++            function_since_versions(source),
++            vec![("introduced_in_core".to_string(), 8, 0)]
++        );
++    }
++}
+diff --git a/tests/native_versioned_embedded.rs b/tests/native_versioned_embedded.rs
+new file mode 100644
+index 0000000..2d047ae
+--- /dev/null
++++ b/tests/native_versioned_embedded.rs
+@@ -0,0 +1,353 @@
++use phpantom_lsp::{Backend, types::PhpVersion};
++use tower_lsp_server::LanguageServer;
++use tower_lsp_server::gen_lsp_types::*;
++
++fn backend(major: u8, minor: u8) -> Backend {
++    let backend = Backend::new_headless();
++    backend.set_php_version(PhpVersion::new(major, minor));
++    backend
++}
++
++async fn open(backend: &Backend, uri: &Uri, source: &str) {
++    backend
++        .did_open(DidOpenTextDocumentParams {
++            text_document: TextDocumentItem {
++                uri: uri.clone(),
++                language_id: "php".to_string().into(),
++                version: 1,
++                text: source.to_string(),
++            },
++        })
++        .await;
++}
++
++async fn complete(backend: &Backend, uri: &Uri, line: u32, character: u32) -> Vec<CompletionItem> {
++    let response = backend
++        .completion(CompletionParams {
++            text_document_position_params: TextDocumentPositionParams {
++                text_document: TextDocumentIdentifier { uri: uri.clone() },
++                position: Position { line, character },
++            },
++            work_done_progress_params: WorkDoneProgressParams::default(),
++            partial_result_params: PartialResultParams::default(),
++            context: None,
++        })
++        .await
++        .unwrap();
++
++    match response {
++        Some(CompletionResponse::CompletionItemList(items)) => items,
++        Some(CompletionResponse::CompletionList(list)) => list.items,
++        None => Vec::new(),
++    }
++}
++
++fn labels(items: &[CompletionItem]) -> Vec<&str> {
++    items.iter().map(|item| item.label.as_str()).collect()
++}
++
++fn record(failures: &mut Vec<String>, label: &str, passed: bool, actual: impl std::fmt::Debug) {
++    if passed {
++        eprintln!("PASS {label}");
++    } else {
++        let failure = format!("{label}: actual={actual:?}");
++        eprintln!("FAIL {failure}");
++        failures.push(failure);
++    }
++}
++
++fn finish(failures: &[String]) {
++    assert!(
++        failures.is_empty(),
++        "{} failed native checks: {failures:#?}",
++        failures.len()
++    );
++}
++
++fn signature_params(signature: &SignatureHelp) -> Vec<String> {
++    let signature = signature.signatures.first().expect("one signature");
++    signature
++        .parameters
++        .as_ref()
++        .expect("signature parameters")
++        .iter()
++        .map(|parameter| match &parameter.label {
++            ParameterInformationLabel::String(label) => label.clone(),
++            ParameterInformationLabel::Tuple((start, end)) => {
++                signature.label[*start as usize..*end as usize].to_string()
++            }
++        })
++        .collect()
++}
++
++async fn signature_help(
++    backend: &Backend,
++    uri: &Uri,
++    line: u32,
++    character: u32,
++) -> Option<SignatureHelp> {
++    backend
++        .signature_help(SignatureHelpParams {
++            text_document_position_params: TextDocumentPositionParams {
++                text_document: TextDocumentIdentifier { uri: uri.clone() },
++                position: Position { line, character },
++            },
++            work_done_progress_params: WorkDoneProgressParams::default(),
++            context: None,
++        })
++        .await
++        .unwrap()
++}
++
++async fn builtin_case(major: u8, minor: u8, expected: bool) {
++    let mut failures = Vec::new();
++    let backend = backend(major, minor);
++    let string_uri = Uri::parse("file:///versioned_str_contains.php").unwrap();
++    open(&backend, &string_uri, "<?php\nstr_con").await;
++    let cold_string = complete(&backend, &string_uri, 1, 7).await;
++    let cold_string_labels = labels(&cold_string);
++    record(
++        &mut failures,
++        &format!("PHP {major}.{minor} cold str_contains"),
++        cold_string_labels.contains(&"str_contains") == expected,
++        &cold_string_labels,
++    );
++
++    for (prefix, symbol) in [("array_f", "array_first"), ("array_l", "array_last")] {
++        let uri = Uri::parse(&format!("file:///versioned_{symbol}.php")).unwrap();
++        open(&backend, &uri, &format!("<?php\n{prefix}")).await;
++        let items = complete(&backend, &uri, 1, prefix.len() as u32).await;
++        let actual = labels(&items);
++        record(
++            &mut failures,
++            &format!("PHP {major}.{minor} cold {symbol}"),
++            actual.contains(&symbol) == expected,
++            &actual,
++        );
++    }
++
++    let abs_uri = Uri::parse("file:///sibling_resolve.php").unwrap();
++    open(&backend, &abs_uri, "<?php\nabs").await;
++    let abs_items = complete(&backend, &abs_uri, 1, 3).await;
++    let abs = abs_items.iter().find(|item| item.label == "abs");
++    record(
++        &mut failures,
++        &format!("PHP {major}.{minor} sibling abs completion"),
++        abs.is_some(),
++        &labels(&abs_items),
++    );
++    if let Some(abs) = abs {
++        let resolved = backend.completion_resolve(abs.clone()).await.unwrap();
++        record(
++            &mut failures,
++            &format!("PHP {major}.{minor} sibling abs resolve"),
++            resolved.label == abs.label,
++            &resolved.label,
++        );
++    }
++
++    let warm_string_items = complete(&backend, &string_uri, 1, 7).await;
++    let warm_string = labels(&warm_string_items);
++    record(
++        &mut failures,
++        &format!("PHP {major}.{minor} warm str_contains after sibling resolve"),
++        warm_string.contains(&"str_contains") == expected,
++        &warm_string,
++    );
++    for (prefix, symbol) in [("array_f", "array_first"), ("array_l", "array_last")] {
++        let uri = Uri::parse(&format!("file:///warm_{symbol}.php")).unwrap();
++        open(&backend, &uri, &format!("<?php\n{prefix}")).await;
++        let items = complete(&backend, &uri, 1, prefix.len() as u32).await;
++        let actual = labels(&items);
++        record(
++            &mut failures,
++            &format!("PHP {major}.{minor} warm {symbol} after sibling resolve"),
++            actual.contains(&symbol) == expected,
++            &actual,
++        );
++    }
++    finish(&failures);
++}
++
++#[tokio::test]
++async fn php74_cold_warm_builtin_and_sibling_resolve() {
++    builtin_case(7, 4, false).await;
++}
++
++#[tokio::test]
++async fn php85_cold_warm_builtin_and_sibling_resolve() {
++    builtin_case(8, 5, true).await;
++}
++
++#[tokio::test]
++async fn php74_same_name_user_function_and_local_symbols_survive() {
++    let mut failures = Vec::new();
++    let backend = backend(7, 4);
++    let uri = Uri::parse("file:///same_name_user_function.php").unwrap();
++    let source = concat!(
++        "<?php\n",
++        "namespace EvalProbe;\n",
++        "/**\n",
++        " * EVAL_USER_SAME_NAME_MARKER\n",
++        " */\n",
++        "function str_contains(string $haystack, string $needle): bool {}\n",
++        "function local_probe_function(string $label): void {}\n",
++        "class LocalProbe { public function member_probe(): void {} }\n",
++        "$localProbe = new LocalProbe();\n",
++        "str_con\n",
++        "local_probe_f\n",
++        "$localP\n",
++        "$localProbe->",
++    );
++    open(&backend, &uri, source).await;
++
++    let same_name = complete(&backend, &uri, 9, 7).await;
++    record(
++        &mut failures,
++        "PHP 7.4 same-name user function completion",
++        same_name.iter().any(|item| {
++            item.filter_text
++                .as_deref()
++                .is_some_and(|name| name.eq_ignore_ascii_case("str_contains"))
++                && item
++                    .data
++                    .as_ref()
++                    .and_then(|data| data.get("m"))
++                    .and_then(|name| name.as_str())
++                    .is_some_and(|name| name.eq_ignore_ascii_case("EvalProbe\\str_contains"))
++        }),
++        &same_name
++            .iter()
++            .map(|item| (&item.label, &item.filter_text, &item.data))
++            .collect::<Vec<_>>(),
++    );
++    if let Some(item) = same_name.iter().find(|item| {
++        item.filter_text
++            .as_deref()
++            .is_some_and(|name| name.eq_ignore_ascii_case("str_contains"))
++            && item
++                .data
++                .as_ref()
++                .and_then(|data| data.get("m"))
++                .and_then(|name| name.as_str())
++                .is_some_and(|name| name.eq_ignore_ascii_case("EvalProbe\\str_contains"))
++    }) {
++        let resolved = backend.completion_resolve(item.clone()).await.unwrap();
++        let details = format!("{:?} {:?}", resolved.detail, resolved.documentation);
++        record(
++            &mut failures,
++            "PHP 7.4 same-name user signature resolve",
++            resolved.detail.as_deref() == Some("bool"),
++            &details,
++        );
++        eprintln!(
++            "INFO PHP 7.4 same-name user documentation resolve: {:?}",
++            resolved.documentation
++        );
++    }
++
++    for (line, character, expected) in [
++        (10, 13, "local_probe_function"),
++        (11, 7, "$localProbe"),
++        (12, 13, "member_probe"),
++    ] {
++        let items = complete(&backend, &uri, line, character).await;
++        let actual = labels(&items);
++        let found = if expected.starts_with('$') {
++            items.iter().any(|item| item.label.contains(expected))
++        } else {
++            actual.iter().any(|label| label.starts_with(expected))
++        };
++        record(
++            &mut failures,
++            &format!("PHP 7.4 {expected} completion at line {line}"),
++            found,
++            &actual,
++        );
++    }
++    finish(&failures);
++}
++
++async fn named_argument_case(major: u8, minor: u8, expected: bool) {
++    let backend = backend(major, minor);
++    let uri = Uri::parse(&format!("file:///named_arguments_{major}_{minor}.php")).unwrap();
++    let source = concat!(
++        "<?php\n",
++        "function eval_named_feature(string $firstOption, string $secondOption): void {}\n",
++        "eval_named_feature("
++    );
++    open(&backend, &uri, source).await;
++    let items = complete(&backend, &uri, 2, "eval_named_feature(".len() as u32).await;
++    let params = items
++        .iter()
++        .filter_map(|item| item.filter_text.as_deref())
++        .collect::<Vec<_>>();
++    assert_eq!(
++        params.contains(&"firstOption"),
++        expected,
++        "PHP {major}.{minor} named-argument completion: {params:?}"
++    );
++}
++
++#[tokio::test]
++async fn php74_named_argument_feature_boundary() {
++    named_argument_case(7, 4, false).await;
++}
++
++#[tokio::test]
++async fn php85_named_argument_feature_boundary() {
++    named_argument_case(8, 5, true).await;
++}
++
++async fn strrchr_case(major: u8, minor: u8, expected: bool) {
++    let mut failures = Vec::new();
++    let backend = backend(major, minor);
++    let uri = Uri::parse(&format!("file:///strrchr_{major}_{minor}.php")).unwrap();
++    let source = "<?php\nstrrchr(\"haystack\", \"needle\",";
++    let line = 1;
++    let character = source.lines().nth(line as usize).unwrap().len() as u32;
++    open(&backend, &uri, source).await;
++
++    let items = complete(&backend, &uri, line, character).await;
++    let parameter_items = items
++        .iter()
++        .filter_map(|item| item.filter_text.as_deref())
++        .collect::<Vec<_>>();
++    record(
++        &mut failures,
++        &format!("PHP {major}.{minor} strrchr parameter completion"),
++        parameter_items.contains(&"before_needle") == expected,
++        &parameter_items,
++    );
++
++    let signature = signature_help(&backend, &uri, line, character).await;
++    record(
++        &mut failures,
++        &format!("PHP {major}.{minor} strrchr signature available"),
++        signature.is_some(),
++        &signature.as_ref().map(|value| &value.signatures),
++    );
++    if let Some(signature) = signature {
++        let parameters = signature_params(&signature);
++        record(
++            &mut failures,
++            &format!("PHP {major}.{minor} strrchr signature parameter"),
++            parameters
++                .iter()
++                .any(|parameter| parameter.contains("before_needle"))
++                == expected,
++            &parameters,
++        );
++    }
++    finish(&failures);
++}
++
++#[tokio::test]
++async fn php80_strrchr_parameter_boundary() {
++    strrchr_case(8, 0, false).await;
++}
++
++#[tokio::test]
++async fn php83_strrchr_parameter_boundary() {
++    strrchr_case(8, 3, true).await;
++}
