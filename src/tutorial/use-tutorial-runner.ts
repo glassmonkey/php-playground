@@ -53,7 +53,15 @@ export function useTutorialRunner(version: TutorialVersion) {
 		);
 		active.current = { worker, timer };
 		worker.onmessage = ({ data }: MessageEvent<PHPResultMessage>) => {
-			if (data.requestId === requestId) finish(data.result, data.error);
+			if (data.requestId === requestId) {
+				const error =
+					data.error ||
+					data.errors?.trim() ||
+					(data.exitCode !== undefined && data.exitCode !== 0
+						? `PHP stopped (exit ${data.exitCode}).`
+						: '');
+				finish(data.result, error);
+			}
 		};
 		worker.onerror = (event) => finish('', event.message);
 		// The runtime accepts PHP source without the opening tag; preserve mixed HTML.

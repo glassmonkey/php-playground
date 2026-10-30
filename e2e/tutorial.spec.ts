@@ -757,6 +757,33 @@ test.describe('lesson drafts and execution', () => {
 		);
 	});
 
+	for (const version of ['5.6', '8.5']) {
+		test(`reports unsuccessful PHP exits and recovers on ${version}`, async ({
+			page,
+		}) => {
+			await page.goto(`${PAGE}/tutorial/${version}/output/`);
+			const editor = page.getByLabel('Edit code');
+			for (const code of [
+				"<?php echo 'Before exit'; exit(1);",
+				'<?php ini_set("display_errors", "0"); undefined_function();',
+			]) {
+				await editor.fill(code);
+				await page
+					.getByRole('button', { name: 'Run', exact: true })
+					.click();
+				await expect(page.getByRole('alert')).toContainText(
+					/PHP stopped|undefined_function/i
+				);
+			}
+			await editor.fill("<?php echo 'Recovered';");
+			await page
+				.getByRole('button', { name: 'Run', exact: true })
+				.click();
+			await expectOutput(page, 'Recovered');
+			await expect(page.getByRole('alert')).toHaveCount(0);
+		});
+	}
+
 	test('shows empty output, stops a failed run, then recovers with corrected code', async ({
 		page,
 	}) => {
