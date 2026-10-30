@@ -18,9 +18,10 @@ file_manifest='/opt/phpantom/patches/phase-b-versioned-target.files.json'
 target='wasm32-wasip1'
 build_mode="${1:-artifact}"
 php_target="${2:-}"
+expected_stubs_tree_sha256="${PHPANTOM_EXPECTED_STUBS_TREE_SHA256:-}"
 
 if [[ "$build_mode" != artifact && "$build_mode" != native-test ]]; then
-	printf 'Usage: %s artifact <7.4|8.0|8.3|8.5> | native-test\n' "$0" >&2
+	printf 'Usage: %s artifact <5.6|7.0-7.4|8.0-8.5> | native-test\n' "$0" >&2
 	exit 2
 fi
 if [[ ! -d /output ]]; then
@@ -33,8 +34,8 @@ if [[ -z "${PHPANTOM_BUILDER_IMAGE_ID:-}" || -z "${PHPANTOM_BUILDER_IMAGE_REF:-}
 fi
 if [[ "$build_mode" == artifact ]]; then
 	case "$php_target" in
-		7.4|8.0|8.3|8.5) ;;
-		*) printf 'An explicit tested PHP target is required: 7.4, 8.0, 8.3, or 8.5.\n' >&2; exit 2 ;;
+		5.6|7.0|7.1|7.2|7.3|7.4|8.0|8.1|8.2|8.3|8.4|8.5) ;;
+		*) printf 'Choose an explicit target from 5.6, 7.0-7.4, or 8.0-8.5.\n' >&2; exit 2 ;;
 	esac
 elif [[ -n "$php_target" ]]; then
 	printf 'native-test does not accept a PHP target argument.\n' >&2
@@ -50,9 +51,9 @@ fi
 
 PHPANTOM_BUILDER_BASE_IMAGE_REF="${PHPANTOM_BUILDER_BASE_IMAGE_REF:-${PHPANTOM_BASE_IMAGE_REF:?Docker base image pin is missing}}"
 attempt_root="$(mktemp -d /tmp/phpantom-versioned-build.XXXXXX)"
-source_root="$attempt_root/phpantom-source"
+source_root='/source/phpantom-source'
 archive_path="$attempt_root/phpantom-upstream.tar.gz"
-mkdir -p "$source_root"
+mkdir -p /source "$source_root"
 
 curl --fail --location --silent --show-error \
 	"https://codeload.github.com/${upstream_repository}/tar.gz/${upstream_commit}" \
@@ -264,6 +265,48 @@ export PHPANTOM_DOCKER_CONTEXT PHPANTOM_DOCKER_ENDPOINT
 export CARGO_HOME=/cache
 export CARGO_TARGET_DIR=/out/target
 mkdir -p "$CARGO_HOME" /out "$CARGO_TARGET_DIR"
+if [[ -n "$expected_stubs_tree_sha256" && ! "$expected_stubs_tree_sha256" =~ ^[a-f0-9]{64}$ ]]; then
+	printf 'Expected stubs tree SHA-256 has an invalid format.\n' >&2
+	exit 1
+fi
+shopt -s nullglob
+cached_stubs_markers=("$CARGO_TARGET_DIR/$target/wasm-release/build/phpantom_lsp-"*/out/stubs/jetbrains/phpstorm-stubs/.commit)
+if [[ "${#cached_stubs_markers[@]}" -eq 0 ]]; then
+	if [[ -n "$expected_stubs_tree_sha256" ]]; then
+		printf 'Expected a warmed stubs OUT_DIR but found no commit marker.\n' >&2
+		exit 1
+	fi
+	printf 'Prebuild stub-cache check: no existing OUT_DIR marker; first build must fetch the pinned archive.\n'
+elif [[ "${#cached_stubs_markers[@]}" -eq 1 ]]; then
+	cached_stubs_root="$(dirname "${cached_stubs_markers[0]}")"
+	cached_stubs_commit="$(cat "${cached_stubs_markers[0]}")"
+	if [[ "$cached_stubs_commit" != "$stubs_commit" ]]; then
+		printf 'Prebuild stub-cache commit mismatch: expected %s; got %s\n' "$stubs_commit" "$cached_stubs_commit" >&2
+		exit 1
+	fi
+	cached_tree_sha256="$(python3 - "$cached_stubs_root" <<'PY'
+import hashlib
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+digest = hashlib.sha256()
+for path in sorted((entry for entry in root.rglob('*') if entry.is_file()), key=lambda item: item.relative_to(root).as_posix()):
+    relative = path.relative_to(root).as_posix().encode()
+    digest.update(relative + b'\0' + hashlib.sha256(path.read_bytes()).digest() + b'\n')
+print(digest.hexdigest())
+PY
+)
+	if [[ -z "$expected_stubs_tree_sha256" || "$cached_tree_sha256" != "$expected_stubs_tree_sha256" ]]; then
+		printf 'Prebuild stub-cache tree SHA-256 mismatch: expected %s; got %s\n' \
+			"${expected_stubs_tree_sha256:-<no prior verified tree>}" "$cached_tree_sha256" >&2
+		exit 1
+	fi
+	printf 'Prebuild stub-cache check: full commit %s, tree SHA-256 %s.\n' "$cached_stubs_commit" "$cached_tree_sha256"
+else
+	printf 'Expected one cached stubs OUT_DIR marker; found %s.\n' "${#cached_stubs_markers[@]}" >&2
+	exit 1
+fi
 build_command="CARGO_HOME=$CARGO_HOME CARGO_TARGET_DIR=$CARGO_TARGET_DIR PHPANTOM_TARGET_PHP_VERSION=$php_target PHPANTOM_GIT_VERSION=$build_identity cargo rustc --locked --manifest-path $source_root/Cargo.toml --lib --crate-type cdylib --profile wasm-release --target $target"
 export PHPANTOM_BUILD_COMMAND="$build_command"
 build_started_seconds="$SECONDS"
@@ -289,6 +332,24 @@ if [[ ! -s "$stubs_map" ]]; then
 fi
 stubs_map_sha256="$(sha256sum "$stubs_map" | awk '{print $1}')"
 stubs_file_count="$(find "$stubs_root" -type f | wc -l | tr -d '[:space:]')"
+stubs_tree_sha256="$(python3 - "$stubs_root" <<'PY'
+import hashlib
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+digest = hashlib.sha256()
+for path in sorted((entry for entry in root.rglob('*') if entry.is_file()), key=lambda item: item.relative_to(root).as_posix()):
+    relative = path.relative_to(root).as_posix().encode()
+    digest.update(relative + b'\0' + hashlib.sha256(path.read_bytes()).digest() + b'\n')
+print(digest.hexdigest())
+PY
+)"
+if [[ -n "$expected_stubs_tree_sha256" && "$stubs_tree_sha256" != "$expected_stubs_tree_sha256" ]]; then
+	printf 'Postbuild stubs tree SHA-256 mismatch: expected %s; got %s\n' \
+		"$expected_stubs_tree_sha256" "$stubs_tree_sha256" >&2
+	exit 1
+fi
 printf 'Verified full stubs marker %s; archive SHA-256 %s; map SHA-256 %s; files %s.\n' \
 	"$resolved_stubs_commit" "$stubs_sha256" "$stubs_map_sha256" "$stubs_file_count"
 wasm_path="$CARGO_TARGET_DIR/$target/wasm-release/phpantom_lsp.wasm"
@@ -305,6 +366,8 @@ export PHPANTOM_WASM_BYTES="$wasm_bytes"
 export PHPANTOM_STUBS_RESOLVED_COMMIT="$resolved_stubs_commit"
 export PHPANTOM_STUBS_MAP_SHA256="$stubs_map_sha256"
 export PHPANTOM_STUBS_FILE_COUNT="$stubs_file_count"
+export PHPANTOM_STUBS_TREE_SHA256="$stubs_tree_sha256"
+export PHPANTOM_STUBS_OUT_DIR="$stubs_root"
 export PHPANTOM_BUILD_ELAPSED_SECONDS="$build_elapsed_seconds"
 export PHPANTOM_ARTIFACT_GENERATED_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 python3 - <<'PY'
@@ -335,6 +398,8 @@ provenance = {
         "resolvedCommitMarker": os.environ["PHPANTOM_STUBS_RESOLVED_COMMIT"],
         "mapSha256": os.environ["PHPANTOM_STUBS_MAP_SHA256"],
         "fileCount": int(os.environ["PHPANTOM_STUBS_FILE_COUNT"]),
+        "treeSha256": os.environ["PHPANTOM_STUBS_TREE_SHA256"],
+        "outDir": os.environ["PHPANTOM_STUBS_OUT_DIR"],
         "lockSha256": os.environ["PHPANTOM_STUBS_LOCK_SHA256"],
         "fullEmbeddedStubs": True,
     },

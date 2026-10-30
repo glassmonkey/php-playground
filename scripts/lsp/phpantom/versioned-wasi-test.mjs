@@ -8,7 +8,8 @@ const manifestPath = process.argv[2];
 assert.ok(manifestPath, 'usage: node versioned-wasi-test.mjs <artifact-provenance.json>');
 const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
 const target = manifest.phpTarget;
-assert.ok(['7.4', '8.0', '8.3', '8.5'].includes(target), `unverified target ${target}`);
+const supportedTargets = ['5.6', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5'];
+assert.ok(supportedTargets.includes(target), `unverified target ${target}`);
 assert.equal(manifest.phase, 'B');
 assert.equal(manifest.source?.commit, '49b9a7513ed19cbbfb79d5d08a3f3693ffb2b668');
 const reviewedDiff = manifest.source?.reviewedPhaseBDiffSha256
@@ -54,6 +55,11 @@ const decoder = new TextDecoder('utf-8', { fatal: true });
 let nextId = 1;
 let assertions = 0;
 const knownLimits = [];
+const [targetMajor, targetMinor] = target.split('.').map(Number);
+
+function targetAtLeast(major, minor) {
+	return targetMajor > major || (targetMajor === major && targetMinor >= minor);
+}
 
 function send(message) {
 	const requestBytes = encoder.encode(JSON.stringify(message));
@@ -147,17 +153,17 @@ function hasFunction(items, name) {
 }
 
 function versionedBuiltinAvailability() {
-	const expected = target === '8.5';
-	for (const [prefix, name] of [
-		['str_c', 'str_contains'],
-		['array_f', 'array_first'],
-		['array_l', 'array_last'],
-	]) {
+	const cases = [
+		['str_c', 'str_contains', targetAtLeast(8, 0)],
+		['array_f', 'array_first', targetAtLeast(8, 5)],
+		['array_l', 'array_last', targetAtLeast(8, 5)],
+	];
+	for (const [prefix, name, expected] of cases) {
 		const uri = `file:///phase-b/${target}/${name}.php`;
 		const source = `<?php\n${prefix}`;
 		open(uri, source);
 		const items = completionItems(completion(uri, source, prefix));
-		check(`${target} ${name} initial availability is ${expected}`, hasFunction(items, name) === expected, items);
+		check(`${target} ${name} cold availability is ${expected}`, hasFunction(items, name) === expected, items);
 	}
 
 	const siblingUri = `file:///phase-b/${target}/abs.php`;
@@ -168,12 +174,14 @@ function versionedBuiltinAvailability() {
 	check(`${target} sibling abs resolves`, Boolean(abs), siblingItems);
 	if (abs) request('completionItem/resolve', abs);
 
-	const warmUri = `file:///phase-b/${target}/warm-str.php`;
-	const warmSource = '<?php\nstr_c';
-	open(warmUri, warmSource);
-	const warmItems = completionItems(completion(warmUri, warmSource, 'str_c'));
-	check(`${target} str_contains remains version-correct after sibling resolve`,
-		hasFunction(warmItems, 'str_contains') === expected, warmItems);
+	for (const [prefix, name, expected] of cases) {
+		const warmUri = `file:///phase-b/${target}/warm-${name}.php`;
+		const warmSource = `<?php\n${prefix}`;
+		open(warmUri, warmSource);
+		const warmItems = completionItems(completion(warmUri, warmSource, prefix));
+		check(`${target} ${name} warm availability after sibling resolve is ${expected}`,
+			hasFunction(warmItems, name) === expected, warmItems);
+	}
 }
 
 function namedArgumentFeature() {
@@ -182,7 +190,7 @@ function namedArgumentFeature() {
 	open(uri, source);
 	const items = completionItems(completion(uri, source, 'profile_named(', 1));
 	const present = items.some((item) => item.filterText === 'firstOption');
-	const expected = Number(target.split('.')[0]) >= 8;
+	const expected = targetAtLeast(8, 0);
 	check(`${target} named-argument suggestions follow the PHP 8 feature boundary`, present === expected, items);
 }
 
@@ -229,7 +237,7 @@ function userSymbolsAndBaselineDocs() {
 }
 
 function strrchrBoundary() {
-	const expected = target === '8.3';
+	const expected = targetAtLeast(8, 3);
 	const source = '<?php\nstrrchr("haystack", "needle",';
 	const uri = `file:///phase-b/${target}/strrchr-parameter.php`;
 	open(uri, source);
@@ -280,14 +288,10 @@ function strrchrBoundary() {
 }
 
 initialize();
-if (target === '7.4' || target === '8.5') {
-	versionedBuiltinAvailability();
-	namedArgumentFeature();
-	userSymbolsAndBaselineDocs();
-} else {
-	strrchrBoundary();
-	userSymbolsAndBaselineDocs();
-}
+versionedBuiltinAvailability();
+namedArgumentFeature();
+strrchrBoundary();
+userSymbolsAndBaselineDocs();
 console.log(JSON.stringify({
 	target,
 	artifactSha256: actualSha,
