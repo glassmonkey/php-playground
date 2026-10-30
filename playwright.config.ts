@@ -43,7 +43,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    // baseURL: 'http://127.0.0.1:3000',
+    baseURL: 'http://127.0.0.1:8888',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -76,9 +76,9 @@ export default defineConfig({
     //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
     // },
 
-  /* Run production build before starting the tests */
+  /* Serve the app and source-only runtime harness through the same Vite server. */
   webServer: {
-    command: 'npm run preview',
+    command: 'npm run dev -- --host 127.0.0.1 --port 8888 --strictPort',
     url: 'http://127.0.0.1:8888',
     reuseExistingServer: false,
     timeout: 1000 * 60,

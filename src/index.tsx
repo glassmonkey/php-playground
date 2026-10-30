@@ -7,11 +7,33 @@ import Header from './header';
 import Footer from './footer';
 import Manual from './manual';
 import theme from './theme';
+import TutorialPage from './tutorial/page';
+
+function PlaygroundPage() {
+	return (
+		<>
+			<Box style={{ margin: '16px' }}>
+				<Header />
+			</Box>
+			<App />
+			<Box style={{ margin: '16px' }}>
+				<Manual />
+			</Box>
+			<Center>
+				<Footer />
+			</Center>
+		</>
+	);
+}
 
 const router = createBrowserRouter([
+	{ path: '/tutorial', element: <TutorialPage /> },
+	{ path: '/tutorial/:version', element: <TutorialPage /> },
+	{ path: '/tutorial/:version/:slug', element: <TutorialPage /> },
+	{ path: '/tutorial/*', element: <TutorialPage /> },
 	{
 		path: '*',
-		element: <App />,
+		element: <PlaygroundPage />,
 	},
 ]);
 
@@ -20,16 +42,7 @@ root.render(
 	<>
 		<ColorModeScript initialColorMode={theme.config.initialColorMode} />
 		<ChakraProvider theme={theme}>
-			<Box style={{ margin: '16px' }}>
-				<Header />
-			</Box>
 			<RouterProvider router={router} />
-			<Box style={{ margin: '16px' }}>
-				<Manual />
-			</Box>
-			<Center>
-				<Footer />
-			</Center>
 		</ChakraProvider>
 	</>
 );

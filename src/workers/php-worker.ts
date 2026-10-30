@@ -35,9 +35,17 @@ export async function initPHP(v: Version): Promise<PHP> {
 	});
 }
 
-export async function runPHP(php: PHP, code: string): Promise<string> {
+function executePHP(php: PHP, code: string) {
 	const output = php.run({ code });
-	return new TextDecoder().decode(output.body);
+	return {
+		result: new TextDecoder().decode(output.body),
+		errors: output.errors,
+		exitCode: output.exitCode,
+	};
+}
+
+export async function runPHP(php: PHP, code: string): Promise<string> {
+	return executePHP(php, code).result;
 }
 
 // PHP instances cache
@@ -60,11 +68,11 @@ self.onmessage = async (event: MessageEvent<RunPHPMessage>) => {
 
 	try {
 		const php = await getOrInitPHP(phpMessage.version);
-		const result = await runPHP(php, phpMessage.code);
+		const result = executePHP(php, phpMessage.code);
 
 		const resultMessage: PHPResultMessage = {
 			requestId: phpMessage.requestId,
-			result: result,
+			...result,
 		};
 		self.postMessage(resultMessage);
 	} catch (error) {

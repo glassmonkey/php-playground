@@ -36,7 +36,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node src/tutorial/verify-build.mjs",
     "preview": "vite build && vite preview --port 8888",
     "build:types": "npm run clean:types; npm-run-all --parallel build:types:*",
     "build:types:general": "tsc -p ./tsconfig.json",
@@ -71,6 +71,7 @@
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",
+    "@resvg/resvg-js": "2.6.2",
     "@testing-library/react": "16.3.3",
     "@types/debounce": "1.2.4",
     "@typescript-eslint/eslint-plugin": "8.65.0",

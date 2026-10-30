@@ -8,7 +8,6 @@ import {
 	Link,
 	Center,
 	Button,
-	Switch,
 	useColorMode,
 } from '@chakra-ui/react';
 import { useSearchParams } from 'react-router-dom';
@@ -20,6 +19,7 @@ import { Editor } from './editor';
 import { BellIcon } from '@chakra-ui/icons';
 import { Format, SelectFormat } from './format';
 import { previewThemeFor } from './preview-theme';
+import ThemeToggle from './theme-toggle';
 
 type UrlState = {
 	v: Version;
@@ -36,7 +36,7 @@ export default function App() {
 
 	const currentVersion = asVersion(searchParams.get('v')) ?? defaultVersion;
 
-	const { colorMode, toggleColorMode } = useColorMode();
+	const { colorMode } = useColorMode();
 	const previewTheme = previewThemeFor(colorMode);
 
 	const currentFormat: Format =
@@ -150,17 +150,7 @@ export default function App() {
 						onChange={updateVersion}
 						version={currentVersion}
 					/>
-					<Flex direction="row" gap={'8px'} alignItems={'center'}>
-						<Text fontSize="xs">UI Theme:</Text>
-						<Switch
-							variant="colormodeSwitcher"
-							size="lg"
-							fontSize="lg"
-							isChecked={colorMode === 'light'}
-							onChange={toggleColorMode}
-							mr={2}
-						/>
-					</Flex>
+					<ThemeToggle />
 					<SelectFormat
 						format={currentFormat}
 						updateFormat={updateFormat}
