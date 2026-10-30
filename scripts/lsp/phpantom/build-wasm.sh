@@ -6,7 +6,7 @@ base_image_ref='rust:1.99.0-bookworm@sha256:114c7a4425406451c2866b6aafe69fe29b1b
 build_mode="${1:-artifact}"
 php_target="${2:-}"
 if [[ "$build_mode" != artifact && "$build_mode" != native-test ]]; then
-	printf 'Usage: %s artifact <7.4|8.0|8.3|8.5> | native-test\n' "$0" >&2
+	printf 'Usage: %s artifact <5.6|7.0-7.4|8.0-8.5> | native-test\n' "$0" >&2
 	exit 2
 fi
 if [[ "$build_mode" == artifact ]]; then

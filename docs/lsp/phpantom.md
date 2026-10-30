@@ -46,8 +46,18 @@ scripts/lsp/phpantom/build-wasm.sh native-test
 scripts/lsp/phpantom/build-wasm.sh artifact 7.4
 ```
 
-The artifact target accepts PHP 5.6, 7.0–7.4, and 8.0–8.5. Verify a candidate
-against its adjacent provenance file with:
+The artifact target accepts PHP 5.6, 7.0–7.4, and 8.0–8.5. To rebuild and
+verify the complete matrix serially, run:
+
+```sh
+for php_target in 5.6 7.0 7.1 7.2 7.3 7.4 8.0 8.1 8.2 8.3 8.4 8.5; do
+	scripts/lsp/phpantom/build-wasm.sh artifact "$php_target"
+done
+```
+
+Each artifact command runs the required WASI probe and saves the immutable
+candidate, provenance, and test log. To rerun the probe against one saved
+candidate, pass its adjacent provenance file:
 
 ```sh
 node scripts/lsp/phpantom/versioned-wasi-test.mjs \
