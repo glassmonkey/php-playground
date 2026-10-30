@@ -33,10 +33,11 @@ Docker uses Rust `1.99.0` from
 The Docker context contains only `scripts/lsp/phpantom/`; generated output and
 the application asset are outside the image. Candidate artifacts, SHA-256
 sidecars, build provenance, and numeric Docker exits are retained under
-`build/phpantom-docker-candidates/`. Each target gets a separate attempt
-directory. Cargo uses fixed `/cache` and `/out/target` paths inside the builder
-to avoid host-specific registry paths in WASM output. The checked-in WASM
-asset is never replaced by these commands.
+`build/phpantom-docker-candidates/`. Final candidates are stored by PHP target
+and WASM SHA-256 under `build/phpantom-versioned-candidates/`. Cargo uses
+fixed `/cache` and `/out/target` paths inside the builder. Matrix builds are
+serialized, and each build revalidates the complete cached stub tree before
+and after Cargo runs. The checked-in WASM asset is never replaced.
 
 Run the native regression probe and build an explicit WASI candidate with:
 
@@ -45,32 +46,34 @@ scripts/lsp/phpantom/build-wasm.sh native-test
 scripts/lsp/phpantom/build-wasm.sh artifact 7.4
 ```
 
-The artifact target also accepts `8.0`, `8.3`, and `8.5`. Verify an artifact
+The artifact target accepts PHP 5.6, 7.0–7.4, and 8.0–8.5. Verify a candidate
 against its adjacent provenance file with:
 
 ```sh
 node scripts/lsp/phpantom/versioned-wasi-test.mjs \
-  build/phpantom-docker-candidates/<attempt>/output/provenance.json
+  build/phpantom-versioned-candidates/<php-version>/<wasm-sha256>/provenance.json
 ```
 
 The WASI probe checks the artifact hash and initialize build identity, then
-exercises the version-specific completion/signature/resolve requests for the
-selected target. Native tests cover cold and warm builtin availability,
-named-argument completion, nearby Core functions without `@since`, and
-preservation of user virtual parameters. The same-name user-function
-documentation marker is retained as a known baseline failure; it is not
-counted as a passing assertion.
+exercises version-specific cold and warm builtin availability, named-argument
+completion, `strrchr` completion/signature/resolve, and user-symbol behavior.
+Native tests cover the matching Rust APIs, nearby Core functions without
+`@since`, and preservation of user virtual parameters. The same-name
+user-function documentation marker is retained as a known baseline failure;
+it is reported as `KNOWN_LIMIT`, not counted as a passing assertion.
 
 ## Verified scope and limits
 
-The reviewed experiment built and exercised separate PHP 7.4, 8.0, 8.3, and
-8.5 WASI artifacts from the same patched source and full stubs pin. Results
-cover those four targets and the focused fixtures only. They do not establish
-support for the other PHP versions, full extension inventories, browser or
-Monaco integration, or a production asset update. The build identity records
-the PHPantom build; it is not the selected PHP language target. The target
-currently controls builtin availability, native parameter metadata, and the
-PHP 8.0 named-argument completion boundary. User-code parsing and syntax
-diagnostics still use PHPantom's upstream behavior. Artifact hashes can still
-vary across builds; source and input hashes are verified separately from the
-WASM byte hash.
+The approved matrix covers all 12 PHP targets: 5.6, 7.0–7.4, and 8.0–8.5.
+Eight candidates were built in the pinned Docker environment; the four
+manager-approved 7.4, 8.0, 8.3, and 8.5 artifacts were reused after provenance
+and source-equivalence checks. Each target passed 20 focused WASI assertions.
+The native public probe remains 6/7 because of the separate same-name user
+documentation-marker baseline; profile guards passed 2/2 and scanner tests
+1/1. These checks do not establish full extension inventories, browser or
+Monaco integration, or production asset readiness. The target controls tested
+builtin availability, native parameter metadata, and the PHP 8.0 named-
+argument boundary; it does not make user-code parsing or syntax diagnostics
+version-aware. The PHPantom build identity is distinct from the selected PHP
+target. Artifact hashes are recorded individually with source and input
+provenance.
