@@ -32,6 +32,26 @@ const expectOutput = async (
 		.toBe(want);
 };
 test.describe('versioned tutorial routes', () => {
+	for (const path of [
+		'/tutorial/8.5/variables/',
+		'/tutorial/8.5/variables?preview=1',
+		'/tutorial/latest/variables/',
+	]) {
+		test(`serves article canonical before JavaScript at ${path}`, async ({
+			request,
+		}) => {
+			const response = await request.get(path);
+			const html = await response.text();
+			expect(response.status()).toBe(200);
+			expect(
+				Array.from(
+					html.matchAll(/<link\s+rel="canonical"\s+href="([^"]+)"/g),
+					(match) => match[1]
+				)
+			).toEqual(['https://php-play.dev/tutorial/8.5/variables/']);
+		});
+	}
+
 	for (const path of ['/sitemap.xml', '/sitemap.xml?preview=1']) {
 		test(`serves XML instead of the SPA at ${path}`, async ({
 			request,

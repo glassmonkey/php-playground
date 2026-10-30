@@ -1,5 +1,9 @@
 import { lessonsByVersion } from './content';
-import { latestTutorialVersion, tutorialVersions } from './config';
+import {
+	isTutorialVersion,
+	latestTutorialVersion,
+	tutorialVersions,
+} from './config';
 import { getHomeMetadata, getTutorialMetadata, SITE_ORIGIN } from './seo';
 import type { Plugin } from 'vite';
 
@@ -182,6 +186,32 @@ function emitStaticTutorialPages(
 	}
 }
 
+function renderDevelopmentHtml(html: string, requestUrl: string): string {
+	const pathname = new URL(requestUrl, SITE_ORIGIN).pathname;
+	if (pathname !== '/tutorial' && !pathname.startsWith('/tutorial/')) {
+		return renderMetadataHtml(html, getHomeMetadata());
+	}
+	const match = pathname.match(/^\/tutorial(?:\/([^/]+))?(?:\/([^/]+))?\/?$/);
+	const version =
+		!match?.[1] || match[1] === 'latest' ? latestTutorialVersion : match[1];
+	if (match && isTutorialVersion(version)) {
+		const slug = match[2];
+		const lesson = lessonsByVersion[version].find(
+			(item) => item.slug === slug
+		);
+		if (!slug || lesson) {
+			return renderMetadataHtml(
+				html,
+				getTutorialMetadata(version, lesson)
+			);
+		}
+	}
+	return html
+		.replace(/<link\s+rel=["']canonical["'][^>]*>/gi, '')
+		.replace(/<meta\s+property=["']og:url["'][^>]*>/gi, '')
+		.replace('</head>', '<meta name="robots" content="noindex"></head>');
+}
+
 export function tutorialSeoBuildPlugin(): Plugin {
 	let htmlTemplate = '';
 	return {
@@ -210,7 +240,13 @@ export function tutorialSeoBuildPlugin(): Plugin {
 		},
 		transformIndexHtml: {
 			order: 'post',
-			handler(html) {
+			handler(html, context) {
+				if (context?.server) {
+					return renderDevelopmentHtml(
+						html,
+						context.originalUrl ?? context.path
+					);
+				}
 				htmlTemplate = renderMetadataHtml(html, getHomeMetadata());
 				return htmlTemplate;
 			},
