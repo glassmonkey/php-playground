@@ -282,9 +282,11 @@ function strrchrBoundary() {
 		userSignature.includes('userNeedle') && userSignature.includes('userMode'), userSignature);
 	const userNamed = completionItems(completion(userUri, userSource, 'strrchr(', 1));
 	const serialized = JSON.stringify(userNamed);
-	check(`${target} same-name user strrchr named parameters survive`,
-		serialized.includes('userNeedle') && serialized.includes('userMode')
-			&& !serialized.includes('before_needle'), userNamed);
+	const namedParametersPresent = serialized.includes('userNeedle') && serialized.includes('userMode');
+	const expectedNamedParameters = targetAtLeast(8, 0);
+	check(`${target} same-name user strrchr named-argument suggestions follow the PHP 8 boundary`,
+		namedParametersPresent === expectedNamedParameters
+			&& (!expectedNamedParameters || !serialized.includes('before_needle')), userNamed);
 }
 
 initialize();
