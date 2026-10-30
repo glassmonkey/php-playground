@@ -1,0 +1,3 @@
+interface:
+  display_name: "PHP Tutorial Versioning"
+  short_description: "Adapt PHP lessons and verify version compatibility"
