@@ -2,15 +2,23 @@
 set -euo pipefail
 
 version='0.11.1'
+upstream_repository='PHPantom-dev/phpantom_lsp'
 upstream_commit='49b9a7513ed19cbbfb79d5d08a3f3693ffb2b668'
-source_snapshot_reference='506d253c5ee27bfc3c51fb2541d3e8d819bb4622'
+upstream_archive_sha256='f5861b581a5503c7bf033df82390d08fbc9a971fa769afa90a310d0c623eb59d'
+upstream_cargo_lock_sha256='0a601fc471628943f15c4e3f97649b99417b1037cf4f824bd835e8a3a12fad1d'
 expected_stubs_commit='2049ca3cfa1feabf52db074108fe776a5713cf02'
 expected_stubs_sha256='3ef62542d2f77ad30c7dab7dfa726e57e86dd5e3403780294119cf4f5ca6dcb7'
+phase_a_patch_sha256='9ba5fdfbe29fcfacc974611159c6aaf6bcdc15797e0e2a2c6cbf6989ad93f3d9'
+reviewed_phase_b_diff_sha256='e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d'
+phase_b_bundle_sha256='60aad10373b97a65da73196aa28e6893a77480a21d5687ad1b140e6d74bd30a3'
+phase_b_patch_sha256='4996a41403b2c570ba3e6a5a67c86bbe2833129c95bca62f19c5e39581a4b31d'
+patch_file='/opt/phpantom/patches/phase-b-versioned-target.patch'
 target='wasm32-wasip1'
 build_mode="${1:-artifact}"
+php_target="${2:-}"
 
 if [[ "$build_mode" != artifact && "$build_mode" != native-test ]]; then
-	printf 'Usage: %s [artifact|native-test]\n' "$0" >&2
+	printf 'Usage: %s artifact <7.4|8.0|8.3|8.5> | native-test\n' "$0" >&2
 	exit 2
 fi
 if [[ ! -d /output ]]; then
@@ -21,79 +29,155 @@ if [[ -z "${PHPANTOM_BUILDER_IMAGE_ID:-}" || -z "${PHPANTOM_BUILDER_IMAGE_REF:-}
 	printf 'Docker image identity environment is missing.\n' >&2
 	exit 1
 fi
+if [[ "$build_mode" == artifact ]]; then
+	case "$php_target" in
+		7.4|8.0|8.3|8.5) ;;
+		*) printf 'An explicit tested PHP target is required: 7.4, 8.0, 8.3, or 8.5.\n' >&2; exit 2 ;;
+	esac
+elif [[ -n "$php_target" ]]; then
+	printf 'native-test does not accept a PHP target argument.\n' >&2
+	exit 2
+fi
 
-wrapper_manifest='rust/phpantom-runtime-wrapper/Cargo.toml'
-phpantom_manifest='rust/vendor/phpantom_lsp/Cargo.toml'
-stubs_lock='rust/vendor/phpantom_lsp/stubs.lock'
-for required_file in Cargo.toml Cargo.lock rust-toolchain.toml "$wrapper_manifest" "$phpantom_manifest" "$stubs_lock"; do
-	if [[ ! -f "$required_file" ]]; then
-		printf 'Required local Cargo source is missing: %s\n' "$required_file" >&2
-		exit 1
-	fi
-done
+actual_patch_sha256="$(sha256sum "$patch_file" | awk '{print $1}')"
+if [[ "$actual_patch_sha256" != "$phase_b_patch_sha256" ]]; then
+	printf 'Phase B source patch hash mismatch: expected %s; got %s\n' \
+		"$phase_b_patch_sha256" "$actual_patch_sha256" >&2
+	exit 1
+fi
 
+PHPANTOM_BUILDER_BASE_IMAGE_REF="${PHPANTOM_BUILDER_BASE_IMAGE_REF:-${PHPANTOM_BASE_IMAGE_REF:?Docker base image pin is missing}}"
+attempt_root="$(mktemp -d /tmp/phpantom-versioned-build.XXXXXX)"
+source_root="$attempt_root/phpantom-source"
+archive_path="$attempt_root/phpantom-upstream.tar.gz"
+mkdir -p "$source_root"
+
+curl --fail --location --silent --show-error \
+	"https://codeload.github.com/${upstream_repository}/tar.gz/${upstream_commit}" \
+	--output "$archive_path"
+printf '%s  %s\n' "$upstream_archive_sha256" "$archive_path" | sha256sum --check --status || {
+	printf 'Downloaded PHPantom source archive SHA-256 did not match the pinned commit.\n' >&2
+	exit 1
+}
+tar -xzf "$archive_path" --strip-components=1 -C "$source_root"
+
+actual_cargo_lock_sha256="$(sha256sum "$source_root/Cargo.lock" | awk '{print $1}')"
+if [[ "$actual_cargo_lock_sha256" != "$upstream_cargo_lock_sha256" ]]; then
+	printf 'Upstream Cargo.lock hash mismatch: expected %s; got %s\n' \
+		"$upstream_cargo_lock_sha256" "$actual_cargo_lock_sha256" >&2
+	exit 1
+fi
+
+stubs_lock="$source_root/stubs.lock"
 stubs_commit="$(sed -n 's/^commit = "\(.*\)"$/\1/p' "$stubs_lock")"
 stubs_sha256="$(sed -n 's/^sha256 = "\(.*\)"$/\1/p' "$stubs_lock")"
 if [[ "$stubs_commit" != "$expected_stubs_commit" || "$stubs_sha256" != "$expected_stubs_sha256" ]]; then
-	printf 'Local stubs.lock does not match the reviewed pin.\n' >&2
-	printf 'Expected %s %s; got %s %s\n' \
+	printf 'Upstream stubs.lock mismatch: expected %s %s; got %s %s\n' \
 		"$expected_stubs_commit" "$expected_stubs_sha256" "$stubs_commit" "$stubs_sha256" >&2
 	exit 1
 fi
 
-cargo_lock_sha256="$(sha256sum Cargo.lock | awk '{print $1}')"
+patch --dry-run --batch --forward -p1 -d "$source_root" -i "$patch_file"
+patch --batch --forward -p1 -d "$source_root" -i "$patch_file"
+if [[ ! -f "$source_root/build_support/stub_since.rs" || ! -f "$source_root/tests/native_versioned_embedded.rs" ]]; then
+	printf 'Complete Phase B patch is missing its scanner helper or focused native test.\n' >&2
+	exit 1
+fi
+
+source_cargo_lock_sha256="$actual_cargo_lock_sha256"
 stubs_lock_sha256="$(sha256sum "$stubs_lock" | awk '{print $1}')"
-source_fingerprint="$(python3 - <<'PY'
-from hashlib import sha256
-from pathlib import Path
-
-files = [Path("Cargo.toml"), Path("Cargo.lock"), Path("rust-toolchain.toml")]
-files.extend(path for path in Path("rust").rglob("*") if path.is_file())
-files = sorted(set(files), key=lambda path: path.as_posix())
-
-fingerprint = sha256()
-for path in files:
-    digest = sha256(path.read_bytes()).digest()
-    fingerprint.update(path.as_posix().encode("utf-8"))
-    fingerprint.update(b"\0")
-    fingerprint.update(digest)
-print(fingerprint.hexdigest())
-PY
-)"
-
-PHPANTOM_BUILDER_BASE_IMAGE_REF="${PHPANTOM_BUILDER_BASE_IMAGE_REF:-${PHPANTOM_BASE_IMAGE_REF:?Docker base image pin is missing}}"
 build_started_utc="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-export PHPANTOM_GIT_VERSION="$version"
-export CARGO_TARGET_DIR="/tmp/phpantom-cargo-target"
+build_identity="49b9a751-phase-b-e12de794"
+export PHPANTOM_GIT_VERSION="$build_identity"
+unset PHPANTOM_STUBS_DIR
 
 if [[ "$build_mode" == native-test ]]; then
-	native_test_started="$SECONDS"
-	cargo test --locked -p phpantom-runtime-wrapper --test public_lsp -- --nocapture
-	native_test_seconds="$((SECONDS - native_test_started))"
+	native_probe="$attempt_root/phpantom-native-probe"
+	mkdir -p "$native_probe"
+	cp -R /opt/phpantom/native-probe/. "$native_probe/"
+	if [[ "$(rustc --version | awk '{print $2}')" != '1.99.0' ]]; then
+		printf 'Expected Rust 1.99.0 in the digest-pinned builder.\n' >&2
+		exit 1
+	fi
+
+	behavior_log='/output/native-versioned-embedded.log'
+	expected_failure='PHP 7.4 same-name user documentation marker (known baseline)'
+	behavior_started="$SECONDS"
+	set +e
+	PHPANTOM_TARGET_PHP_VERSION=7.4 cargo test --locked \
+		--manifest-path "$native_probe/Cargo.toml" \
+		--test native_versioned_embedded -- --nocapture >"$behavior_log" 2>&1
+	behavior_exit=$?
+	set -e
+	if [[ "$behavior_exit" -ne 101 ]] \
+		|| ! grep -Fq "$expected_failure" "$behavior_log" \
+		|| ! grep -Eq '6 passed; 1 failed' "$behavior_log"; then
+		tail -n 100 "$behavior_log" >&2
+		printf 'Native public probe differed from the accepted 6/7 + known docs baseline.\n' >&2
+		exit 1
+	fi
+
+	guard_log='/output/native-profile-guards.log'
+	PHPANTOM_TARGET_PHP_VERSION=7.4 cargo test --locked \
+		--manifest-path "$native_probe/Cargo.toml" \
+		--test native_profile_guards -- --nocapture >"$guard_log" 2>&1
+	rustc --edition=2024 --test "$source_root/build_support/stub_since.rs" \
+		-o "$attempt_root/stub-since-tests"
+	"$attempt_root/stub-since-tests" > /output/stub-since-tests.log 2>&1
+	native_test_seconds="$((SECONDS - behavior_started))"
 	export PHPANTOM_NATIVE_TEST_SECONDS="$native_test_seconds"
-	export PHPANTOM_SOURCE_FINGERPRINT="$source_fingerprint"
-	export PHPANTOM_SOURCE_SNAPSHOT_REFERENCE="$source_snapshot_reference"
-	export PHPANTOM_CARGO_LOCK_SHA256="$cargo_lock_sha256"
+	export PHPANTOM_BEHAVIOR_EXIT="$behavior_exit"
+	export PHPANTOM_CARGO_LOCK_SHA256="$(sha256sum "$native_probe/Cargo.lock" | awk '{print $1}')"
+	export PHPANTOM_SOURCE_CARGO_LOCK_SHA256="$source_cargo_lock_sha256"
+	export PHPANTOM_PHASE_A_PATCH_SHA256="$phase_a_patch_sha256"
+	export PHPANTOM_REVIEWED_PHASE_B_DIFF_SHA256="$reviewed_phase_b_diff_sha256"
+	export PHPANTOM_PHASE_B_PATCH_SHA256="$actual_patch_sha256"
+	export PHPANTOM_BUILD_IDENTITY="$build_identity"
 	export PHPANTOM_STUBS_LOCK_SHA256="$stubs_lock_sha256"
-	export PHPANTOM_STUBS_COMMIT="$stubs_commit"
-	export PHPANTOM_STUBS_ARCHIVE_SHA256="$stubs_sha256"
 	export PHPANTOM_RUSTC_VERBOSE="$(rustc --version --verbose)"
 	export PHPANTOM_CARGO_VERSION="$(cargo --version)"
 	export PHPANTOM_BUILDER_BASE_IMAGE_REF
-	export PHPANTOM_DOCKER_SERVER_VERSION
+	export PHPANTOM_BUILDER_IMAGE_REF PHPANTOM_BUILDER_IMAGE_ID
+	export PHPANTOM_BUILDER_IMAGE_PLATFORM PHPANTOM_DOCKER_SERVER_VERSION
+	export PHPANTOM_DOCKER_CONTEXT PHPANTOM_DOCKER_ENDPOINT
 	python3 - <<'PY'
 import json
 import os
 from pathlib import Path
 
 summary = {
-    "command": "cargo test --locked -p phpantom-runtime-wrapper --test public_lsp -- --nocapture",
-    "source_fingerprint": os.environ["PHPANTOM_SOURCE_FINGERPRINT"],
-    "source_snapshot_reference": os.environ["PHPANTOM_SOURCE_SNAPSHOT_REFERENCE"],
-    "cargo_lock_sha256": os.environ["PHPANTOM_CARGO_LOCK_SHA256"],
-    "stubs_lock_sha256": os.environ["PHPANTOM_STUBS_LOCK_SHA256"],
-    "stubs_commit": os.environ["PHPANTOM_STUBS_COMMIT"],
-    "stubs_archive_sha256": os.environ["PHPANTOM_STUBS_ARCHIVE_SHA256"],
+    "source": {
+        "repository": "PHPantom-dev/phpantom_lsp",
+        "commit": "49b9a7513ed19cbbfb79d5d08a3f3693ffb2b668",
+        "archive_sha256": "f5861b581a5503c7bf033df82390d08fbc9a971fa769afa90a310d0c623eb59d",
+        "cargo_lock_sha256": os.environ["PHPANTOM_SOURCE_CARGO_LOCK_SHA256"],
+        "phase_a_patch_sha256": os.environ["PHPANTOM_PHASE_A_PATCH_SHA256"],
+        "reviewed_phase_b_diff_sha256": os.environ["PHPANTOM_REVIEWED_PHASE_B_DIFF_SHA256"],
+        "phase_b_patch_sha256": os.environ["PHPANTOM_PHASE_B_PATCH_SHA256"],
+    },
+    "stubs": {
+        "commit": "2049ca3cfa1feabf52db074108fe776a5713cf02",
+        "archive_sha256": "3ef62542d2f77ad30c7dab7dfa726e57e86dd5e3403780294119cf4f5ca6dcb7",
+        "lock_sha256": "" + os.environ.get("PHPANTOM_STUBS_LOCK_SHA256", ""),
+    },
+    "native_probe": {
+        "php_target": "7.4",
+        "build_identity": os.environ["PHPANTOM_BUILD_IDENTITY"],
+        "command": "cargo test --locked --manifest-path <native-probe>/Cargo.toml --test native_versioned_embedded -- --nocapture",
+        "exit_code": int(os.environ["PHPANTOM_BEHAVIOR_EXIT"]),
+        "result": "6/7 passed; the sole failure is the preserved same-name user documentation marker baseline",
+        "log": "native-versioned-embedded.log",
+    },
+    "guards": {
+        "command": "cargo test --locked --manifest-path <native-probe>/Cargo.toml --test native_profile_guards -- --nocapture",
+        "result": "2/2 passed",
+        "log": "native-profile-guards.log",
+    },
+    "scanner_test": {
+        "command": "rustc --edition=2024 --test <patched-source>/build_support/stub_since.rs",
+        "result": "1/1 passed",
+        "log": "stub-since-tests.log",
+    },
     "rustc_verbose": os.environ["PHPANTOM_RUSTC_VERBOSE"],
     "cargo_version": os.environ["PHPANTOM_CARGO_VERSION"],
     "docker": {
@@ -102,87 +186,124 @@ summary = {
         "builder_image_id": os.environ["PHPANTOM_BUILDER_IMAGE_ID"],
         "platform": os.environ["PHPANTOM_BUILDER_IMAGE_PLATFORM"],
         "server_version": os.environ["PHPANTOM_DOCKER_SERVER_VERSION"],
+        "context": os.environ["PHPANTOM_DOCKER_CONTEXT"],
+        "endpoint": os.environ["PHPANTOM_DOCKER_ENDPOINT"],
     },
     "elapsed_seconds": int(os.environ["PHPANTOM_NATIVE_TEST_SECONDS"]),
 }
 Path("/output/native-test.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n")
 PY
-	printf 'PHPantom public native LSP regression suite succeeded in %s seconds.\n' "$native_test_seconds"
+	printf 'Native probe recorded: 6/7 with one known baseline docs failure; guards 2/2; scanner 1/1.\n'
 	exit 0
 fi
 
-cargo build --locked -p phpantom-runtime-wrapper \
-	--profile wasm-release --target "$target"
+if [[ -z "$php_target" ]]; then
+	printf 'PHP target is required for artifact builds.\n' >&2
+	exit 2
+fi
+export PHPANTOM_TARGET_PHP_VERSION="$php_target"
+export PHPANTOM_TARGET="$php_target"
+export PHPANTOM_SOURCE_REPOSITORY="$upstream_repository"
+export PHPANTOM_UPSTREAM_COMMIT="$upstream_commit"
+export PHPANTOM_UPSTREAM_ARCHIVE_SHA256="$upstream_archive_sha256"
+export PHPANTOM_UPSTREAM_CARGO_LOCK_SHA256="$source_cargo_lock_sha256"
+export PHPANTOM_STUBS_COMMIT="$stubs_commit"
+export PHPANTOM_STUBS_ARCHIVE_SHA256="$stubs_sha256"
+export PHPANTOM_STUBS_LOCK_SHA256="$stubs_lock_sha256"
+export PHPANTOM_PHASE_A_PATCH_SHA256="$phase_a_patch_sha256"
+export PHPANTOM_PHASE_B_DIFF_SHA256="$reviewed_phase_b_diff_sha256"
+export PHPANTOM_PHASE_B_BUNDLE_SHA256="$phase_b_bundle_sha256"
+export PHPANTOM_PHASE_B_PATCH_SHA256="$actual_patch_sha256"
+export PHPANTOM_BUILD_IDENTITY="$build_identity"
+export PHPANTOM_RUSTC_VERBOSE="$(rustc --version --verbose)"
+export PHPANTOM_CARGO_VERSION="$(cargo --version)"
+export PHPANTOM_WASM_TARGET="$target"
+export PHPANTOM_BUILD_STARTED_UTC="$build_started_utc"
+export PHPANTOM_BUILDER_BASE_IMAGE_REF
+export PHPANTOM_BUILDER_IMAGE_REF PHPANTOM_BUILDER_IMAGE_ID
+export PHPANTOM_BUILDER_IMAGE_PLATFORM PHPANTOM_DOCKER_SERVER_VERSION
+export PHPANTOM_DOCKER_CONTEXT PHPANTOM_DOCKER_ENDPOINT
 
-wasm_path="$CARGO_TARGET_DIR/$target/wasm-release/phpantom_runtime_wrapper.wasm"
+export CARGO_TARGET_DIR="$attempt_root/cargo-target/$php_target"
+mkdir -p "$CARGO_TARGET_DIR"
+build_command="PHPANTOM_TARGET_PHP_VERSION=$php_target PHPANTOM_GIT_VERSION=$build_identity CARGO_TARGET_DIR=$CARGO_TARGET_DIR cargo rustc --locked --manifest-path $source_root/Cargo.toml --lib --crate-type cdylib --profile wasm-release --target $target"
+export PHPANTOM_BUILD_COMMAND="$build_command"
+build_started_seconds="$SECONDS"
+cargo rustc --locked --manifest-path "$source_root/Cargo.toml" \
+	--lib --crate-type cdylib --profile wasm-release --target "$target"
+build_elapsed_seconds="$((SECONDS - build_started_seconds))"
+
+shopt -s nullglob
+stubs_markers=("$CARGO_TARGET_DIR/$target/wasm-release/build/phpantom_lsp-"*/out/stubs/jetbrains/phpstorm-stubs/.commit)
+if [[ "${#stubs_markers[@]}" -ne 1 || "$(cat "${stubs_markers[0]}")" != "$stubs_commit" ]]; then
+	printf 'Cargo did not resolve the exact full phpstorm-stubs pin.\n' >&2
+	exit 1
+fi
+wasm_path="$CARGO_TARGET_DIR/$target/wasm-release/phpantom_lsp.wasm"
 if [[ ! -s "$wasm_path" ]]; then
-	printf 'Cargo did not produce the expected wrapper module: %s\n' "$wasm_path" >&2
+	printf 'Cargo did not produce the expected upstream WASI reactor: %s\n' "$wasm_path" >&2
 	exit 1
 fi
 wasm_sha256="$(sha256sum "$wasm_path" | awk '{print $1}')"
 wasm_bytes="$(wc -c < "$wasm_path" | tr -d '[:space:]')"
 cp "$wasm_path" /output/phpantom_lsp.wasm
 printf '%s\n' "$wasm_sha256" > /output/phpantom_lsp.wasm.sha256
-
-export PHPANTOM_VERSION="$version"
-export PHPANTOM_UPSTREAM_COMMIT="$upstream_commit"
-export PHPANTOM_SOURCE_SNAPSHOT_REFERENCE="$source_snapshot_reference"
-export PHPANTOM_SOURCE_FINGERPRINT="$source_fingerprint"
-export PHPANTOM_CARGO_LOCK_SHA256="$cargo_lock_sha256"
-export PHPANTOM_STUBS_COMMIT="$stubs_commit"
-export PHPANTOM_STUBS_ARCHIVE_SHA256="$stubs_sha256"
-export PHPANTOM_STUBS_LOCK_SHA256="$stubs_lock_sha256"
-export PHPANTOM_TARGET="$target"
-export PHPANTOM_RUSTC_VERBOSE="$(rustc --version --verbose)"
-export PHPANTOM_CARGO_VERSION="$(cargo --version)"
 export PHPANTOM_WASM_SHA256="$wasm_sha256"
 export PHPANTOM_WASM_BYTES="$wasm_bytes"
-export PHPANTOM_BUILD_STARTED_UTC="$build_started_utc"
+export PHPANTOM_BUILD_ELAPSED_SECONDS="$build_elapsed_seconds"
 export PHPANTOM_ARTIFACT_GENERATED_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-export PHPANTOM_BUILDER_BASE_IMAGE_REF
-export PHPANTOM_BUILDER_IMAGE_PLATFORM
-export PHPANTOM_DOCKER_SERVER_VERSION
-
 python3 - <<'PY'
 import json
 import os
 from pathlib import Path
 
 provenance = {
-    "phpantom_version": os.environ["PHPANTOM_VERSION"],
-    "source_repository": "php-playground",
-    "source_path": "rust/vendor/phpantom_lsp",
-    "source_upstream_commit": os.environ["PHPANTOM_UPSTREAM_COMMIT"],
-    "source_snapshot_reference": os.environ["PHPANTOM_SOURCE_SNAPSHOT_REFERENCE"],
-    "source_fingerprint": os.environ["PHPANTOM_SOURCE_FINGERPRINT"],
-    "cargo_lock_sha256": os.environ["PHPANTOM_CARGO_LOCK_SHA256"],
+    "schemaVersion": 1,
+    "phase": "B",
+    "phpTarget": os.environ["PHPANTOM_TARGET_PHP_VERSION"],
+    "buildIdentity": os.environ["PHPANTOM_BUILD_IDENTITY"],
+    "source": {
+        "repository": os.environ["PHPANTOM_SOURCE_REPOSITORY"],
+        "commit": os.environ["PHPANTOM_UPSTREAM_COMMIT"],
+        "archiveSha256": os.environ["PHPANTOM_UPSTREAM_ARCHIVE_SHA256"],
+        "cargoLockSha256": os.environ["PHPANTOM_UPSTREAM_CARGO_LOCK_SHA256"],
+        "reviewedPhaseADiffSha256": os.environ["PHPANTOM_PHASE_A_PATCH_SHA256"],
+        "reviewedPhaseBDiffSha256": os.environ["PHPANTOM_PHASE_B_DIFF_SHA256"],
+        "reviewedPhaseBBundleSha256": os.environ["PHPANTOM_PHASE_B_BUNDLE_SHA256"],
+        "appliedPhaseBPatchSha256": os.environ["PHPANTOM_PHASE_B_PATCH_SHA256"],
+    },
     "stubs": {
+        "repository": "JetBrains/phpstorm-stubs",
         "commit": os.environ["PHPANTOM_STUBS_COMMIT"],
-        "archive_sha256": os.environ["PHPANTOM_STUBS_ARCHIVE_SHA256"],
-        "lock_sha256": os.environ["PHPANTOM_STUBS_LOCK_SHA256"],
+        "archiveSha256": os.environ["PHPANTOM_STUBS_ARCHIVE_SHA256"],
+        "lockSha256": os.environ["PHPANTOM_STUBS_LOCK_SHA256"],
+        "fullEmbeddedStubs": True,
     },
-    "rustc_verbose": os.environ["PHPANTOM_RUSTC_VERBOSE"],
-    "cargo_version": os.environ["PHPANTOM_CARGO_VERSION"],
-    "target": os.environ["PHPANTOM_TARGET"],
+    "build": {
+        "command": os.environ["PHPANTOM_BUILD_COMMAND"],
+        "target": os.environ["PHPANTOM_WASM_TARGET"],
+        "rustcVerbose": os.environ["PHPANTOM_RUSTC_VERBOSE"],
+        "cargoVersion": os.environ["PHPANTOM_CARGO_VERSION"],
+        "elapsedSeconds": int(os.environ["PHPANTOM_BUILD_ELAPSED_SECONDS"]),
+        "startedUtc": os.environ["PHPANTOM_BUILD_STARTED_UTC"],
+        "finishedUtc": os.environ["PHPANTOM_ARTIFACT_GENERATED_UTC"],
+    },
     "docker": {
-        "base_image_ref": os.environ["PHPANTOM_BUILDER_BASE_IMAGE_REF"],
-        "builder_image_ref": os.environ["PHPANTOM_BUILDER_IMAGE_REF"],
-        "builder_image_id": os.environ["PHPANTOM_BUILDER_IMAGE_ID"],
+        "baseImageRef": os.environ["PHPANTOM_BUILDER_BASE_IMAGE_REF"],
+        "builderImageRef": os.environ["PHPANTOM_BUILDER_IMAGE_REF"],
+        "builderImageId": os.environ["PHPANTOM_BUILDER_IMAGE_ID"],
         "platform": os.environ["PHPANTOM_BUILDER_IMAGE_PLATFORM"],
-        "server_version": os.environ["PHPANTOM_DOCKER_SERVER_VERSION"],
+        "serverVersion": os.environ["PHPANTOM_DOCKER_SERVER_VERSION"],
+        "context": os.environ["PHPANTOM_DOCKER_CONTEXT"],
+        "endpoint": os.environ["PHPANTOM_DOCKER_ENDPOINT"],
     },
-    "build_started_utc": os.environ["PHPANTOM_BUILD_STARTED_UTC"],
-    "artifact_generated_utc": os.environ["PHPANTOM_ARTIFACT_GENERATED_UTC"],
     "artifact": {
-        "file": "phpantom_lsp.wasm",
-        "bytes": int(os.environ["PHPANTOM_WASM_BYTES"]),
+        "path": "phpantom_lsp.wasm",
         "sha256": os.environ["PHPANTOM_WASM_SHA256"],
+        "bytes": int(os.environ["PHPANTOM_WASM_BYTES"]),
     },
 }
-Path("/output/provenance.json").write_text(
-    json.dumps(provenance, indent=2, sort_keys=True) + "\n"
-)
+Path("/output/provenance.json").write_text(json.dumps(provenance, indent=2, sort_keys=True) + "\n")
 PY
-
-printf 'WASM SHA-256: %s\n' "$wasm_sha256"
-printf 'WASM bytes: %s\n' "$wasm_bytes"
+printf 'Candidate PHP %s WASI build complete: %s bytes, SHA-256 %s\n' \
+	"$php_target" "$wasm_bytes" "$wasm_sha256"

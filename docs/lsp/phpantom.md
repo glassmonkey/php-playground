@@ -1,106 +1,66 @@
-# PHPantom runtime
+# PHPantom versioned WASI builds
 
-The PHPantom LSP adapter runs the WASI reactor in a module Worker. The public
-runtime contract is `LspClient.connect({ worker, model, monaco, phpVersion,
-onStatus })` and `dispose()`; `createWorker()` creates the module Worker. One
-JSON-RPC message is handled at a time, document changes are versioned, stale
-changes and late Monaco results are ignored, and disposal unregisters providers
-and terminates the Worker.
+PHPantom's WASI artifact can be built for an explicit PHP target. The target
+selects embedded builtin availability and version-specific native parameters
+before the server indexes requests. It does not change PHPantom's parser or
+make syntax diagnostics version-aware.
 
-## PHP versions and stub availability
+## Reproducible candidate builds
 
-The Worker passes the selected PHP target to PHPantom during `initialize`.
-Supported targets follow `src/php-wasm/php.ts`: 5.6, 7.0–7.4, and 8.0–8.5.
-The WASM build reports that target in `serverInfo.version`, which the adapter
-checks before marking initialization ready. Named-argument completion is
-suppressed below PHP 8.0.
-
-Recognized `PhpStormStubsElementAvailable` parameter attributes are filtered
-before PHPDoc merge. Names of native parameters excluded for the selected
-version are carried through function and method signature reconstruction, so a
-matching `@param` cannot restore them as virtual parameters. Unmatched
-user-documented extra parameters remain visible, and surviving native
-parameters retain PHPDoc type enrichment. The `strrchr` `before_needle`
-parameter is absent at PHP 8.0 and present starting at PHP 8.3.
-
-The pinned core stub paths filter exact PHP `@since X.Y` tags. Extension stub
-paths are excluded because their `@since` tags can refer to extension
-releases. User documents are not in the embedded stub map and are not filtered
-by this rule. The versioned indexes and lazily loaded function cache use the
-same availability check, so resolving an older completion does not bring a
-newer builtin back into subsequent completion results.
-
-This configures builtin availability and selected parameter metadata; it does
-not make PHPantom's user-code parser grammar or syntax diagnostics version
-aware. Full inventories for every installed PHP extension are outside scope.
-
-## WASM source, asset, and provenance
-
-PHPantom is maintained in this repository as the Cargo source tree
-`rust/vendor/phpantom_lsp`, with a small public wrapper at
-`rust/phpantom-runtime-wrapper`. The vendored source is based on upstream
-`49b9a7513ed19cbbfb79d5d08a3f3693ffb2b668`; it contains local runtime changes
-documented in `rust/vendor/README.md`. The source snapshot reference
-`506d253c5ee27bfc3c51fb2541d3e8d819bb4622` identifies the reviewed input, not
-an external build dependency. PHPantom's `stubs.lock` pins phpstorm-stubs at
-`2049ca3cfa1feabf52db074108fe776a5713cf02` with archive SHA-256
+The build starts from PHPantom `PHPantom-dev/phpantom_lsp` commit
+`49b9a7513ed19cbbfb79d5d08a3f3693ffb2b668` and verifies the upstream source
+archive SHA-256
+`f5861b581a5503c7bf033df82390d08fbc9a971fa769afa90a310d0c623eb59d` and
+Cargo.lock SHA-256
+`0a601fc471628943f15c4e3f97649b99417b1037cf4f824bd835e8a3a12fad1d`. It
+applies the reviewed version-target patch
+`4996a41403b2c570ba3e6a5a67c86bbe2833129c95bca62f19c5e39581a4b31d`.
+The patch includes the build-time target selection, core-stub availability
+scanner, focused regression tests, and protection for user PHPDoc parameters.
+The full stubs archive is fetched and verified through the pinned upstream
+`stubs.lock`: JetBrains phpstorm-stubs commit
+`2049ca3cfa1feabf52db074108fe776a5713cf02`, archive SHA-256
 `3ef62542d2f77ad30c7dab7dfa726e57e86dd5e3403780294119cf4f5ca6dcb7`.
 
-The root Cargo workspace pins Rust `1.99.0`, target `wasm32-wasip1`, and
-locked dependencies. `make build-phpantom-runtime` builds the local workspace
-through the pinned Docker image
+Docker uses Rust `1.99.0` from
 `rust:1.99.0-bookworm@sha256:114c7a4425406451c2866b6aafe69fe29b1b298832db1277d411ac73c82d04d6`.
-The Dockerfile-specific ignore file sends only the Cargo manifests, toolchain,
-Rust sources, and container entry point. It excludes `target`, `node_modules`,
-assets, and build output. The Cargo source uses its checked-in `stubs.lock` to
-download and verify the fixed stubs archive. The build does not fetch PHPantom
-source from another repository or apply a source patch.
+The Docker context contains only `scripts/lsp/phpantom/`; generated output and
+the application asset are outside the image. Candidate artifacts, SHA-256
+sidecars, build provenance, and numeric Docker exits are retained under
+`build/phpantom-docker-candidates/`. Each target gets a separate attempt
+directory. The checked-in WASM asset is never replaced by these commands.
 
-`make test-phpantom-runtime-native` runs the wrapper's public `public_lsp`
-integration suite in the same Docker build environment. The artifact target
-builds the same wrapper for WASI. Both use `--locked`. The candidate, source
-fingerprint, Cargo and stubs lock hashes, toolchain, Docker identity, and WASM
-hash are written under `build/phpantom-docker-candidates/`. A failed build or
-smoke test leaves the checked-in asset unchanged.
-
-The committed asset is
-`assets/lsp/phpantom/phpantom_lsp.wasm` (18,700,209 bytes,
-SHA-256 `605854cd7d868c2432223c73d18002b2e39e86ea2c26e00655181a2345db6c4e`).
-Its Worker URL includes that hash to avoid reusing stale cached bytes. The
-asset and `assets/lsp/phpantom/phpantom_lsp.provenance.json` were updated
-together from the local workspace candidate after native tests, WASI build,
-and all-version smoke passed. A clean application checkout can run `npm ci`
-and the Vite/Pages build without Docker or Rust.
-
-## WASI regression harness
-
-Install the root package dependencies and run the real reactor under Node:
+Run the native regression probe and build an explicit WASI candidate with:
 
 ```sh
-npm ci
-node scripts/lsp/phpantom/smoke-test.mjs
+scripts/lsp/phpantom/build-wasm.sh native-test
+scripts/lsp/phpantom/build-wasm.sh artifact 7.4
 ```
 
-The harness checks the actual WASM exports and initialize response for all 12
-versions; same-file, member, static, builtin, hover and signature completion;
-completion resolve; named-argument behavior below/above PHP 8.0; `strrchr`'s
-`before_needle` boundary at PHP 8.3; PHP 7.0 class availability; `intdiv` 7.0
-and `array_key_first` 7.3 boundaries; PHP 8.0, 8.4, and 8.5 builtin boundaries;
-cold and warm completion before and after resolving sibling builtins;
-fresh-engine version changes; user-source `@since` preservation; request IDs;
-stale document versions; and JSON-RPC errors/notifications.
+The artifact target also accepts `8.0`, `8.3`, and `8.5`. Verify an artifact
+against its adjacent provenance file with:
 
-## Verification record
+```sh
+node scripts/lsp/phpantom/versioned-wasi-test.mjs \
+  build/phpantom-docker-candidates/<attempt>/output/provenance.json
+```
 
-| Check | Result | Evidence and limits |
-| --- | --- | --- |
-| Docker native public LSP suite | Passed, 3/3 | `make test-phpantom-runtime-native`; suite time 1.54s, command time 398s. Log and summary are under `build/phpantom-docker-candidates/20261028T060431Z.Z2JgwI/`. |
-| Docker WASI build | Passed | `make build-phpantom-runtime`; Rust 1.99.0, target `wasm32-wasip1`, Linux/arm64 Docker builder. Local source fingerprint `2033ded4f19ae88f16f2c27537f47bd79905eefb68fec95f60a9acba24108f36`; Cargo.lock SHA-256 `88b54771ff92cb6d8ce2c0ffef65ffff45f9686f3a75b97f709d56d74b910154`. Log and provenance are under `build/phpantom-docker-candidates/20261028T061139Z.h5SpDn/`. |
-| WASI initialization | Passed, 12/12 | `node rust/phpantom-runtime-wrapper/tests/wasm_versions.mjs <candidate>` initialized each supported PHP version in a fresh session. |
-| App reactor smoke | Passed | `PHPANTOM_WASM_PATH=<candidate> node scripts/lsp/phpantom/smoke-test.mjs`; ABI exports, completion, resolve, hover, signature help, errors and notifications passed. |
-| Candidate / committed asset identity | Passed | 18,700,209 bytes; SHA-256 `605854cd7d868c2432223c73d18002b2e39e86ea2c26e00655181a2345db6c4e`. The same candidate hash is in the Worker URL and provenance. |
-| Clean app install | Passed | `npm ci`; 751 packages installed from the root lockfile. |
-| Lint and types | Passed | `npm run lint:js` and `npm run build:types`. |
-| Client URL tests | Passed, 2/2 | `npm exec vitest run src/lsp/__test__/client.spec.ts`. |
-| Vite production build | Passed | `npm run build`; existing large-chunk warning remains. |
-| Browser Worker and integrated UI | Not verified in this lane | Requires integrated UI verification after runtime review and the #434 sync gate. |
+The WASI probe checks the artifact hash and initialize build identity, then
+exercises the version-specific completion/signature/resolve requests for the
+selected target. Native tests cover cold and warm builtin availability,
+named-argument completion, nearby Core functions without `@since`, and
+preservation of user virtual parameters. The same-name user-function
+documentation marker is retained as a known baseline failure; it is not
+counted as a passing assertion.
+
+## Verified scope and limits
+
+The reviewed experiment built and exercised separate PHP 7.4, 8.0, 8.3, and
+8.5 WASI artifacts from the same patched source and full stubs pin. Results
+cover those four targets and the focused fixtures only. They do not establish
+support for the other PHP versions, full extension inventories, browser or
+Monaco integration, or a production asset update. The build identity records
+the PHPantom build; it is not the selected PHP language target. The target
+currently controls builtin availability, native parameter metadata, and the
+PHP 8.0 named-argument completion boundary. User-code parsing and syntax
+diagnostics still use PHPantom's upstream behavior.
