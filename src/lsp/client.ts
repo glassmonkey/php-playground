@@ -72,6 +72,26 @@ type ClientOptions = {
 
 const REQUEST_TIMEOUT_MS = 15_000;
 const phpDocumentSelector = { language: 'php' };
+const REQUEST_CANCELLED = Symbol('request-cancelled');
+
+function raceCancellation<T>(
+	request: Promise<T>,
+	token: Monaco.CancellationToken
+): Promise<T | typeof REQUEST_CANCELLED> {
+	let cancellationListener: Monaco.IDisposable | undefined;
+	const cancellation = new Promise<typeof REQUEST_CANCELLED>((resolve) => {
+		if (token.isCancellationRequested) {
+			resolve(REQUEST_CANCELLED);
+			return;
+		}
+		cancellationListener = token.onCancellationRequested(() =>
+			resolve(REQUEST_CANCELLED)
+		);
+	});
+	return Promise.race([request, cancellation]).finally(() =>
+		cancellationListener?.dispose()
+	);
+}
 
 function rpcError(message: RpcMessage): Error {
 	return new Error(message.error?.message ?? 'LSP request failed.');
@@ -273,19 +293,25 @@ export class LspClient {
 					triggerCharacters: ['$', '>', ':', '\\'],
 					provideCompletionItems: async (
 						requestedModel,
-						position
+						position,
+						_context,
+						token
 					) => {
 						if (!isCurrentModel(requestedModel))
 							return { suggestions: [] };
 						const version = requestedModel.getVersionId();
 						try {
-							const result = await this.request<
-								LspCompletionList | LspCompletionItem[]
-							>('textDocument/completion', {
-								textDocument: { uri: this.uri },
-								position: currentPosition(position),
-							});
+							const result = await raceCancellation(
+								this.request<
+									LspCompletionList | LspCompletionItem[]
+								>('textDocument/completion', {
+									textDocument: { uri: this.uri },
+									position: currentPosition(position),
+								}),
+								token
+							);
 							if (
+								result === REQUEST_CANCELLED ||
 								!isCurrentModel(requestedModel) ||
 								requestedModel.getVersionId() !== version
 							)
@@ -386,18 +412,19 @@ export class LspClient {
 
 		this.disposables.push(
 			monaco.languages.registerHoverProvider(phpDocumentSelector, {
-				provideHover: async (requestedModel, position) => {
+				provideHover: async (requestedModel, position, token) => {
 					if (!isCurrentModel(requestedModel)) return null;
 					const version = requestedModel.getVersionId();
 					try {
-						const result = await this.request<LspHover>(
-							'textDocument/hover',
-							{
+						const result = await raceCancellation(
+							this.request<LspHover>('textDocument/hover', {
 								textDocument: { uri: this.uri },
 								position: currentPosition(position),
-							}
+							}),
+							token
 						);
 						if (
+							result === REQUEST_CANCELLED ||
 							!result.contents ||
 							!isCurrentModel(requestedModel) ||
 							requestedModel.getVersionId() !== version

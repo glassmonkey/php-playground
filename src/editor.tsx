@@ -34,6 +34,7 @@ function PhpEditor(params: {
 	const { code, updateCode } = useActiveCode();
 	const { sandpack } = useSandpack();
 	const [lspBinding, setLspBinding] = React.useState<{
+		editor: Monaco.editor.IStandaloneCodeEditor;
 		model: Monaco.editor.ITextModel;
 		monaco: typeof Monaco;
 	} | null>(null);
@@ -75,6 +76,8 @@ function PhpEditor(params: {
 
 		return () => {
 			cancelled = true;
+			void lspBinding.editor.getAction('hideSuggestWidget')?.run();
+			void lspBinding.editor.getAction('editor.action.hideHover')?.run();
 			if (client) client.dispose();
 			else worker.terminate();
 		};
@@ -91,7 +94,7 @@ function PhpEditor(params: {
 			onChange={onChangeCode}
 			onMount={(editor, monaco) => {
 				const model = editor.getModel();
-				if (model) setLspBinding({ model, monaco });
+				if (model) setLspBinding({ editor, model, monaco });
 			}}
 			loading={<LoadSpinner />}
 			options={{

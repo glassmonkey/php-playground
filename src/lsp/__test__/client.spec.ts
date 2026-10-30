@@ -175,6 +175,27 @@ function testModel() {
 	};
 }
 
+function testCancellationToken() {
+	let cancelled = false;
+	const listeners = new Set<() => void>();
+	return {
+		token: {
+			get isCancellationRequested() {
+				return cancelled;
+			},
+			onCancellationRequested: (listener: () => void) => {
+				listeners.add(listener);
+				return { dispose: () => listeners.delete(listener) };
+			},
+		} as Monaco.CancellationToken,
+		cancel: () => {
+			cancelled = true;
+			for (const listener of listeners) listener();
+			listeners.clear();
+		},
+	};
+}
+
 describe('PHPantom Monaco lifecycle', () => {
 	afterEach(() => vi.restoreAllMocks());
 
@@ -400,5 +421,79 @@ describe('PHPantom Monaco lifecycle', () => {
 		).rejects.toThrow(/supports PHP versions 7\.4, 8\.0, 8\.3, 8\.5/);
 		expect(monaco.getActive()).toHaveLength(0);
 		expect(worker.terminated).toBe(true);
+	});
+
+	it('settles a cancelled completion before its late LSP response', async () => {
+		const document = testModel();
+		const monaco = testMonaco(document.model);
+		const worker = new TestWorker();
+		worker.delayCompletions = true;
+		const onStatus = vi.fn();
+		const client = await LspClient.connect({
+			worker: worker as unknown as Worker,
+			model: document.model,
+			monaco: monaco.monaco,
+			phpVersion: '8.5',
+			onStatus,
+		});
+		const token = testCancellationToken();
+		const provider = monaco.getActive()[0]
+			.provider as Monaco.languages.CompletionItemProvider;
+		const pending = provider.provideCompletionItems(
+			document.model,
+			{ lineNumber: 1, column: 5 } as Monaco.Position,
+			{ triggerKind: 1, triggerCharacter: undefined },
+			token.token
+		);
+
+		token.cancel();
+
+		await expect(pending).resolves.toEqual({ suggestions: [] });
+		worker.reply({
+			jsonrpc: '2.0',
+			id: worker.lastCompletion?.id,
+			result: { items: [{ label: 'late stale result' }] },
+		});
+		expect(onStatus).toHaveBeenCalledTimes(1);
+		expect(onStatus).toHaveBeenLastCalledWith('ready');
+		client.dispose();
+	});
+
+	it('reports an active completion backend error instead of treating it as cancellation', async () => {
+		const document = testModel();
+		const monaco = testMonaco(document.model);
+		const worker = new TestWorker();
+		worker.delayCompletions = true;
+		const onStatus = vi.fn();
+		const client = await LspClient.connect({
+			worker: worker as unknown as Worker,
+			model: document.model,
+			monaco: monaco.monaco,
+			phpVersion: '8.5',
+			onStatus,
+		});
+		const provider = monaco.getActive()[0]
+			.provider as Monaco.languages.CompletionItemProvider;
+		const pending = provider.provideCompletionItems(
+			document.model,
+			{ lineNumber: 1, column: 5 } as Monaco.Position,
+			{ triggerKind: 1, triggerCharacter: undefined },
+			{
+				isCancellationRequested: false,
+				onCancellationRequested: () => ({ dispose: () => undefined }),
+			}
+		);
+		worker.reply({
+			jsonrpc: '2.0',
+			id: worker.lastCompletion?.id,
+			error: { code: -32603, message: 'PHPantom completion failed.' },
+		});
+
+		await expect(pending).resolves.toEqual({ suggestions: [] });
+		expect(onStatus).toHaveBeenCalledWith(
+			'error',
+			'PHPantom completion failed.'
+		);
+		client.dispose();
 	});
 });
