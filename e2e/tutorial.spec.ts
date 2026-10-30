@@ -32,7 +32,47 @@ const expectOutput = async (
 		.toBe(want);
 };
 test.describe('versioned tutorial routes', () => {
-	test('opens the tutorial from the Playground description on desktop and mobile', async ({
+	for (const path of ['/sitemap.xml', '/sitemap.xml?preview=1']) {
+		test(`serves XML instead of the SPA at ${path}`, async ({
+			request,
+		}) => {
+			const response = await request.get(path);
+			const body = await response.text();
+			const urls = Array.from(
+				body.matchAll(/<loc>([^<]+)<\/loc>/g),
+				(match) => match[1]
+			);
+			const want = [
+				'https://php-play.dev/',
+				...tutorialVersions.flatMap((version) => [
+					`https://php-play.dev/tutorial/${version}/`,
+					...lessonsByVersion[version].map(
+						(lesson) =>
+							`https://php-play.dev/tutorial/${version}/${lesson.slug}/`
+					),
+				]),
+			];
+			expect(response.status()).toBe(200);
+			expect(response.headers()['content-type']).toBe(
+				'application/xml; charset=utf-8'
+			);
+			expect(body).toMatch(/^<\?xml/);
+			expect(urls.sort()).toEqual(want.sort());
+		});
+	}
+
+	test('advertises the sitemap in robots.txt', async ({ request }) => {
+		const response = await request.get('/robots.txt');
+		expect(response.status()).toBe(200);
+		expect(response.headers()['content-type']).toBe(
+			'text/plain; charset=utf-8'
+		);
+		expect(await response.text()).toBe(
+			'User-agent: *\nAllow: /\nSitemap: https://php-play.dev/sitemap.xml\n'
+		);
+	});
+
+	test('opens the tutorial beside About on desktop and mobile', async ({
 		page,
 	}) => {
 		for (const viewport of [
@@ -42,7 +82,7 @@ test.describe('versioned tutorial routes', () => {
 			await page.setViewportSize(viewport);
 			await page.goto(PAGE);
 			const entry = page.getByRole('link', {
-				name: 'Learn the basics with interactive examples',
+				name: 'PHP Tutorial',
 				exact: true,
 			});
 			await expect(entry).toBeVisible();

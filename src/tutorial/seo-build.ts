@@ -1,8 +1,5 @@
 import { lessonsByVersion } from './content';
-import {
-	latestTutorialVersion,
-	tutorialVersions,
-} from './config';
+import { latestTutorialVersion, tutorialVersions } from './config';
 import { getHomeMetadata, getTutorialMetadata, SITE_ORIGIN } from './seo';
 import type { Plugin } from 'vite';
 
@@ -120,6 +117,21 @@ function allCanonicalUrls(): string[] {
 	return [...urls];
 }
 
+function discoveryAssets() {
+	return [
+		{
+			fileName: 'sitemap.xml',
+			contentType: 'application/xml; charset=utf-8',
+			source: sitemapXml(allCanonicalUrls()),
+		},
+		{
+			fileName: 'robots.txt',
+			contentType: 'text/plain; charset=utf-8',
+			source: `User-agent: *\nAllow: /\nSitemap: ${new URL('/sitemap.xml', SITE_ORIGIN).toString()}\n`,
+		},
+	];
+}
+
 function emitStaticTutorialPages(
 	emitFile: (asset: {
 		type: 'asset';
@@ -165,16 +177,9 @@ function emitStaticTutorialPages(
 		});
 	}
 
-	emitFile({
-		type: 'asset',
-		fileName: 'sitemap.xml',
-		source: sitemapXml(allCanonicalUrls()),
-	});
-	emitFile({
-		type: 'asset',
-		fileName: 'robots.txt',
-		source: `User-agent: *\nAllow: /\nSitemap: ${new URL('/sitemap.xml', SITE_ORIGIN).toString()}\n`,
-	});
+	for (const { fileName, source } of discoveryAssets()) {
+		emitFile({ type: 'asset', fileName, source });
+	}
 }
 
 export function tutorialSeoBuildPlugin(): Plugin {
@@ -182,6 +187,27 @@ export function tutorialSeoBuildPlugin(): Plugin {
 	return {
 		name: 'tutorial-seo-static-pages',
 		enforce: 'post' as const,
+		configureServer(server) {
+			server.middlewares.use((request, response, next) => {
+				const pathname = request.url?.split('?')[0];
+				if (pathname !== '/sitemap.xml' && pathname !== '/robots.txt') {
+					next();
+					return;
+				}
+				const asset = discoveryAssets().find(
+					(item) => pathname === `/${item.fileName}`
+				);
+				if (!asset || !['GET', 'HEAD'].includes(request.method ?? '')) {
+					next();
+					return;
+				}
+				response.statusCode = 200;
+				response.setHeader('Content-Type', asset.contentType);
+				response.end(
+					request.method === 'HEAD' ? undefined : asset.source
+				);
+			});
+		},
 		transformIndexHtml: {
 			order: 'post',
 			handler(html) {

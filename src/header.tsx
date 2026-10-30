@@ -6,18 +6,17 @@ export default function Header() {
 	return (
 		<Flex gap="8px" direction="column">
 			<Heading as="h1">PHP Playground</Heading>
-			<Text as="p">
-				Run PHP code in your browser using WebAssembly. New to PHP?{' '}
-				<Link as={RouterLink} to="/tutorial/" textDecoration="underline">
-					Learn the basics with interactive examples
-				</Link>
-				.
-			</Text>
-			<Flex gap="24px" direction="row">
+			<Text as="p">Run PHP code in your browser using WebAssembly.</Text>
+			<Flex gap="24px" direction="row" wrap="wrap">
 				<Center>
 					<Text fontStyle="italic" href="#about" as="a">
 						About PHP Playground?
 					</Text>
+				</Center>
+				<Center>
+					<Link as={RouterLink} to="/tutorial/" fontStyle="italic">
+						PHP Tutorial
+					</Link>
 				</Center>
 			</Flex>
 		</Flex>
