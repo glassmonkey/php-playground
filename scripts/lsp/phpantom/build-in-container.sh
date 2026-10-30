@@ -195,7 +195,7 @@ PYRESULT
 		expected_baseline=true
 	fi
 	clean_pass=false
-	if [[ "$behavior_exit" -eq 0 && "$native_failed" -eq 0 \
+	if [[ "$behavior_exit" -eq 0 && "$native_passed" -eq 7 && "$native_failed" -eq 0 \
 		&& "$failure_count" -eq 0 && "$unexpected_failures" -eq 0 ]]; then
 		clean_pass=true
 	fi
@@ -305,7 +305,8 @@ summary = {
 }
 Path("/output/native-test.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n")
 PY
-	printf 'Native probe recorded: 6/7 with one known baseline docs failure; guards 2/2; scanner 1/1.\n'
+	printf 'Native probe recorded: raw exit=%s, %s passed, %s failed, known limit matched=%s, unexpected failures=%s; guards 2/2; scanner 1/1.\n' \
+		"$behavior_exit" "$native_passed" "$native_failed" "$known_limit_matched" "$unexpected_failures"
 	exit 0
 fi
 
