@@ -15,6 +15,12 @@ Cargo.lock SHA-256
 `0a601fc471628943f15c4e3f97649b99417b1037cf4f824bd835e8a3a12fad1d`. It
 applies the reviewed version-target patch
 `4996a41403b2c570ba3e6a5a67c86bbe2833129c95bca62f19c5e39581a4b31d`.
+After applying it, the builder hashes all 15 changed and added Rust files and
+compares them with `patches/phase-b-versioned-target.files.json` (SHA-256
+`b15beb40bcac3d50ab75f722c874aba5cb93dcab55aa41aef1e54108c6d35598`).
+The builder also requires the unique Cargo `OUT_DIR` `.commit` marker to equal
+the full 40-character stubs lock commit, and records the marker, complete
+archive SHA-256, `PhpStormStubsMap.php` SHA-256, and embedded stub-file count.
 The patch includes the build-time target selection, core-stub availability
 scanner, focused regression tests, and protection for user PHPDoc parameters.
 The full stubs archive is fetched and verified through the pinned upstream
@@ -28,7 +34,9 @@ The Docker context contains only `scripts/lsp/phpantom/`; generated output and
 the application asset are outside the image. Candidate artifacts, SHA-256
 sidecars, build provenance, and numeric Docker exits are retained under
 `build/phpantom-docker-candidates/`. Each target gets a separate attempt
-directory. The checked-in WASM asset is never replaced by these commands.
+directory. Cargo uses fixed `/cache` and `/out/target` paths inside the builder
+to avoid host-specific registry paths in WASM output. The checked-in WASM
+asset is never replaced by these commands.
 
 Run the native regression probe and build an explicit WASI candidate with:
 
@@ -63,4 +71,6 @@ Monaco integration, or a production asset update. The build identity records
 the PHPantom build; it is not the selected PHP language target. The target
 currently controls builtin availability, native parameter metadata, and the
 PHP 8.0 named-argument completion boundary. User-code parsing and syntax
-diagnostics still use PHPantom's upstream behavior.
+diagnostics still use PHPantom's upstream behavior. Artifact hashes can still
+vary across builds; source and input hashes are verified separately from the
+WASM byte hash.

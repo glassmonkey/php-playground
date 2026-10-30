@@ -18,12 +18,20 @@ assert.equal(reviewedDiff,
 if (manifest.source?.appliedPhaseBPatchSha256) {
 	assert.equal(manifest.source.appliedPhaseBPatchSha256,
 		'4996a41403b2c570ba3e6a5a67c86bbe2833129c95bca62f19c5e39581a4b31d');
+	assert.equal(manifest.source.appliedFileManifestSha256,
+		'b15beb40bcac3d50ab75f722c874aba5cb93dcab55aa41aef1e54108c6d35598');
 } else {
 	assert.equal(manifest.source?.reviewedSourceBundleSha256,
 		'60aad10373b97a65da73196aa28e6893a77480a21d5687ad1b140e6d74bd30a3',
 		'legacy frozen-artifact provenance identifies the verified source bundle');
 }
 assert.equal(manifest.stubs?.commit, '2049ca3cfa1feabf52db074108fe776a5713cf02');
+if (manifest.stubs?.resolvedCommitMarker) {
+	assert.equal(manifest.stubs.resolvedCommitMarker, manifest.stubs.commit,
+		'the verified build-output .commit marker is the full locked stub commit');
+	assert.equal(manifest.stubs.fullEmbeddedStubs, true);
+	assert.match(manifest.stubs.mapSha256, /^[a-f0-9]{64}$/);
+}
 const buildIdentity = manifest.buildIdentity
 	?? manifest.build?.command.match(/PHPANTOM_GIT_VERSION=([^ ]+)/)?.[1];
 assert.ok(buildIdentity, 'provenance must record the exact initialize build identity');

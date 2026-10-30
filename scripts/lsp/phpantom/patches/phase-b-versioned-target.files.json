@@ -1,0 +1,69 @@
+{
+  "completePatchSha256": "4996a41403b2c570ba3e6a5a67c86bbe2833129c95bca62f19c5e39581a4b31d",
+  "fileCount": 15,
+  "files": [
+    {
+      "path": "build.rs",
+      "sha256": "02313f1d792cdaac7fd85450440c96d075d908c7067ddec9eee0a8106515a532"
+    },
+    {
+      "path": "src/backend/settings.rs",
+      "sha256": "f2de5d64f7fa4b799243608aec0a1ba37944cc5d3bac5bd7107ad2902dbfa0dd"
+    },
+    {
+      "path": "src/completion/handler/named_args.rs",
+      "sha256": "80b2326a57356fc393a84663a3797b04eb22910439b01f603a76e09c6ecde88d"
+    },
+    {
+      "path": "src/docblock/tags.rs",
+      "sha256": "a8bf6ff65a8dbcf91ff96dd7c996090449ccdf81901cfaf3a67aef4a5f79062d"
+    },
+    {
+      "path": "src/lsp_dispatch.rs",
+      "sha256": "edd511bb98871cc2f9e8bb347e416e1408f327f28d7e5cb92a6929a6caaee9a5"
+    },
+    {
+      "path": "src/parser/classes/methods.rs",
+      "sha256": "a87edccf4f9101af4e51223f6dd1a45c51cdd767f7e992b3f201f92ebb24e7db"
+    },
+    {
+      "path": "src/parser/functions.rs",
+      "sha256": "91dc8163694613d5f3e36a319b41a45eee2d51bd59c592f0904153a8c70708de"
+    },
+    {
+      "path": "src/parser/signature.rs",
+      "sha256": "1fd2cf16ef6a71b6f5f61e3c8e070616f8355ae3301a536cc54ec48bec5a8c9f"
+    },
+    {
+      "path": "src/resolution/functions.rs",
+      "sha256": "ed50c94431905b22058832ed223a67344f683e793bf41e11a23d29f173e49f53"
+    },
+    {
+      "path": "src/stubs.rs",
+      "sha256": "2e63f4527e8b65b77c549668ea53e05bc7c197e24b378c25988ddb366414a5c6"
+    },
+    {
+      "path": "tests/integration/completion_named_args.rs",
+      "sha256": "9cd49b6c015172ef8ca7fd1ff1f5f50db98c06786407c24e19d379bddb9df8f8"
+    },
+    {
+      "path": "tests/integration/completion_stub_functions.rs",
+      "sha256": "d994563c6ca116f5be0f3bd842dccbaba648d4267c082b1c9a47ad780892a338"
+    },
+    {
+      "path": "tests/integration/php_version.rs",
+      "sha256": "6cfaef90def93dbbb763a96634c15334ce57187cdb6b65bc6aeaa07f76e14179"
+    },
+    {
+      "path": "build_support/stub_since.rs",
+      "sha256": "8b4a28692bca309a843b1f4ecb572494d923b8b2dccb9b4d7fe019bab3b2f146"
+    },
+    {
+      "path": "tests/native_versioned_embedded.rs",
+      "sha256": "5fb697ca18f4028ddb191ee089dc585efd5f33ace1cae6c6f74873d0e88e7ee9"
+    }
+  ],
+  "reviewedPhaseBDiffSha256": "e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d",
+  "schemaVersion": 1,
+  "upstreamCommit": "49b9a7513ed19cbbfb79d5d08a3f3693ffb2b668"
+}

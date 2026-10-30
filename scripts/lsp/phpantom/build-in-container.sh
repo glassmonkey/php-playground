@@ -12,7 +12,9 @@ phase_a_patch_sha256='9ba5fdfbe29fcfacc974611159c6aaf6bcdc15797e0e2a2c6cbf6989ad
 reviewed_phase_b_diff_sha256='e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d'
 phase_b_bundle_sha256='60aad10373b97a65da73196aa28e6893a77480a21d5687ad1b140e6d74bd30a3'
 phase_b_patch_sha256='4996a41403b2c570ba3e6a5a67c86bbe2833129c95bca62f19c5e39581a4b31d'
+phase_b_file_manifest_sha256='b15beb40bcac3d50ab75f722c874aba5cb93dcab55aa41aef1e54108c6d35598'
 patch_file='/opt/phpantom/patches/phase-b-versioned-target.patch'
+file_manifest='/opt/phpantom/patches/phase-b-versioned-target.files.json'
 target='wasm32-wasip1'
 build_mode="${1:-artifact}"
 php_target="${2:-}"
@@ -83,6 +85,35 @@ if [[ ! -f "$source_root/build_support/stub_since.rs" || ! -f "$source_root/test
 	printf 'Complete Phase B patch is missing its scanner helper or focused native test.\n' >&2
 	exit 1
 fi
+actual_file_manifest_sha256="$(sha256sum "$file_manifest" | awk '{print $1}')"
+if [[ "$actual_file_manifest_sha256" != "$phase_b_file_manifest_sha256" ]]; then
+	printf 'Phase B applied-source manifest hash mismatch: expected %s; got %s\n' \
+		"$phase_b_file_manifest_sha256" "$actual_file_manifest_sha256" >&2
+	exit 1
+fi
+python3 - "$source_root" "$file_manifest" "$actual_patch_sha256" <<'PY'
+import hashlib
+import json
+import sys
+from pathlib import Path
+
+source_root = Path(sys.argv[1])
+manifest_path = Path(sys.argv[2])
+patch_sha256 = sys.argv[3]
+manifest = json.loads(manifest_path.read_text())
+if manifest["completePatchSha256"] != patch_sha256:
+    raise SystemExit("applied-source manifest refers to a different patch")
+if manifest["upstreamCommit"] != "49b9a7513ed19cbbfb79d5d08a3f3693ffb2b668":
+    raise SystemExit("applied-source manifest refers to a different upstream commit")
+if manifest["fileCount"] != len(manifest["files"]):
+    raise SystemExit("applied-source manifest file count is inconsistent")
+for entry in manifest["files"]:
+    path = source_root / entry["path"]
+    actual = hashlib.sha256(path.read_bytes()).hexdigest()
+    if actual != entry["sha256"]:
+        raise SystemExit(f"patched source differs from frozen Phase B: {entry['path']}")
+print(f"Verified {manifest['fileCount']} patched source files against the frozen Phase B manifest.")
+PY
 
 source_cargo_lock_sha256="$actual_cargo_lock_sha256"
 stubs_lock_sha256="$(sha256sum "$stubs_lock" | awk '{print $1}')"
@@ -132,6 +163,7 @@ if [[ "$build_mode" == native-test ]]; then
 	export PHPANTOM_PHASE_A_PATCH_SHA256="$phase_a_patch_sha256"
 	export PHPANTOM_REVIEWED_PHASE_B_DIFF_SHA256="$reviewed_phase_b_diff_sha256"
 	export PHPANTOM_PHASE_B_PATCH_SHA256="$actual_patch_sha256"
+	export PHPANTOM_PHASE_B_FILE_MANIFEST_SHA256="$actual_file_manifest_sha256"
 	export PHPANTOM_BUILD_IDENTITY="$build_identity"
 	export PHPANTOM_STUBS_LOCK_SHA256="$stubs_lock_sha256"
 	export PHPANTOM_RUSTC_VERBOSE="$(rustc --version --verbose)"
@@ -154,6 +186,7 @@ summary = {
         "phase_a_patch_sha256": os.environ["PHPANTOM_PHASE_A_PATCH_SHA256"],
         "reviewed_phase_b_diff_sha256": os.environ["PHPANTOM_REVIEWED_PHASE_B_DIFF_SHA256"],
         "phase_b_patch_sha256": os.environ["PHPANTOM_PHASE_B_PATCH_SHA256"],
+        "file_manifest_sha256": os.environ["PHPANTOM_PHASE_B_FILE_MANIFEST_SHA256"],
     },
     "stubs": {
         "commit": "2049ca3cfa1feabf52db074108fe776a5713cf02",
@@ -214,6 +247,10 @@ export PHPANTOM_PHASE_A_PATCH_SHA256="$phase_a_patch_sha256"
 export PHPANTOM_PHASE_B_DIFF_SHA256="$reviewed_phase_b_diff_sha256"
 export PHPANTOM_PHASE_B_BUNDLE_SHA256="$phase_b_bundle_sha256"
 export PHPANTOM_PHASE_B_PATCH_SHA256="$actual_patch_sha256"
+export PHPANTOM_PHASE_B_FILE_MANIFEST_SHA256="$actual_file_manifest_sha256"
+export PHPANTOM_SOURCE_CARGO_LOCK_SHA256="$source_cargo_lock_sha256"
+export PHPANTOM_STUBS_RESOLVED_COMMIT="$stubs_commit"
+export PHPANTOM_STUBS_LOCK_SHA256="$stubs_lock_sha256"
 export PHPANTOM_BUILD_IDENTITY="$build_identity"
 export PHPANTOM_RUSTC_VERBOSE="$(rustc --version --verbose)"
 export PHPANTOM_CARGO_VERSION="$(cargo --version)"
@@ -224,9 +261,10 @@ export PHPANTOM_BUILDER_IMAGE_REF PHPANTOM_BUILDER_IMAGE_ID
 export PHPANTOM_BUILDER_IMAGE_PLATFORM PHPANTOM_DOCKER_SERVER_VERSION
 export PHPANTOM_DOCKER_CONTEXT PHPANTOM_DOCKER_ENDPOINT
 
-export CARGO_TARGET_DIR="$attempt_root/cargo-target/$php_target"
-mkdir -p "$CARGO_TARGET_DIR"
-build_command="PHPANTOM_TARGET_PHP_VERSION=$php_target PHPANTOM_GIT_VERSION=$build_identity CARGO_TARGET_DIR=$CARGO_TARGET_DIR cargo rustc --locked --manifest-path $source_root/Cargo.toml --lib --crate-type cdylib --profile wasm-release --target $target"
+export CARGO_HOME=/cache
+export CARGO_TARGET_DIR=/out/target
+mkdir -p "$CARGO_HOME" /out "$CARGO_TARGET_DIR"
+build_command="CARGO_HOME=$CARGO_HOME CARGO_TARGET_DIR=$CARGO_TARGET_DIR PHPANTOM_TARGET_PHP_VERSION=$php_target PHPANTOM_GIT_VERSION=$build_identity cargo rustc --locked --manifest-path $source_root/Cargo.toml --lib --crate-type cdylib --profile wasm-release --target $target"
 export PHPANTOM_BUILD_COMMAND="$build_command"
 build_started_seconds="$SECONDS"
 cargo rustc --locked --manifest-path "$source_root/Cargo.toml" \
@@ -235,10 +273,24 @@ build_elapsed_seconds="$((SECONDS - build_started_seconds))"
 
 shopt -s nullglob
 stubs_markers=("$CARGO_TARGET_DIR/$target/wasm-release/build/phpantom_lsp-"*/out/stubs/jetbrains/phpstorm-stubs/.commit)
-if [[ "${#stubs_markers[@]}" -ne 1 || "$(cat "${stubs_markers[0]}")" != "$stubs_commit" ]]; then
+resolved_stubs_commit=''
+if [[ "${#stubs_markers[@]}" -eq 1 ]]; then
+	resolved_stubs_commit="$(cat "${stubs_markers[0]}")"
+fi
+if [[ "${#stubs_markers[@]}" -ne 1 || "$resolved_stubs_commit" != "$stubs_commit" ]]; then
 	printf 'Cargo did not resolve the exact full phpstorm-stubs pin.\n' >&2
 	exit 1
 fi
+stubs_root="$(dirname "${stubs_markers[0]}")"
+stubs_map="$stubs_root/PhpStormStubsMap.php"
+if [[ ! -s "$stubs_map" ]]; then
+	printf 'Verified phpstorm-stubs tree has no nonempty PhpStormStubsMap.php.\n' >&2
+	exit 1
+fi
+stubs_map_sha256="$(sha256sum "$stubs_map" | awk '{print $1}')"
+stubs_file_count="$(find "$stubs_root" -type f | wc -l | tr -d '[:space:]')"
+printf 'Verified full stubs marker %s; archive SHA-256 %s; map SHA-256 %s; files %s.\n' \
+	"$resolved_stubs_commit" "$stubs_sha256" "$stubs_map_sha256" "$stubs_file_count"
 wasm_path="$CARGO_TARGET_DIR/$target/wasm-release/phpantom_lsp.wasm"
 if [[ ! -s "$wasm_path" ]]; then
 	printf 'Cargo did not produce the expected upstream WASI reactor: %s\n' "$wasm_path" >&2
@@ -250,6 +302,9 @@ cp "$wasm_path" /output/phpantom_lsp.wasm
 printf '%s\n' "$wasm_sha256" > /output/phpantom_lsp.wasm.sha256
 export PHPANTOM_WASM_SHA256="$wasm_sha256"
 export PHPANTOM_WASM_BYTES="$wasm_bytes"
+export PHPANTOM_STUBS_RESOLVED_COMMIT="$resolved_stubs_commit"
+export PHPANTOM_STUBS_MAP_SHA256="$stubs_map_sha256"
+export PHPANTOM_STUBS_FILE_COUNT="$stubs_file_count"
 export PHPANTOM_BUILD_ELAPSED_SECONDS="$build_elapsed_seconds"
 export PHPANTOM_ARTIFACT_GENERATED_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 python3 - <<'PY'
@@ -271,11 +326,15 @@ provenance = {
         "reviewedPhaseBDiffSha256": os.environ["PHPANTOM_PHASE_B_DIFF_SHA256"],
         "reviewedPhaseBBundleSha256": os.environ["PHPANTOM_PHASE_B_BUNDLE_SHA256"],
         "appliedPhaseBPatchSha256": os.environ["PHPANTOM_PHASE_B_PATCH_SHA256"],
+        "appliedFileManifestSha256": os.environ["PHPANTOM_PHASE_B_FILE_MANIFEST_SHA256"],
     },
     "stubs": {
         "repository": "JetBrains/phpstorm-stubs",
         "commit": os.environ["PHPANTOM_STUBS_COMMIT"],
         "archiveSha256": os.environ["PHPANTOM_STUBS_ARCHIVE_SHA256"],
+        "resolvedCommitMarker": os.environ["PHPANTOM_STUBS_RESOLVED_COMMIT"],
+        "mapSha256": os.environ["PHPANTOM_STUBS_MAP_SHA256"],
+        "fileCount": int(os.environ["PHPANTOM_STUBS_FILE_COUNT"]),
         "lockSha256": os.environ["PHPANTOM_STUBS_LOCK_SHA256"],
         "fullEmbeddedStubs": True,
     },
