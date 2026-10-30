@@ -2,7 +2,7 @@ import { Resvg } from '@resvg/resvg-js';
 import { fileURLToPath } from 'node:url';
 import type { TutorialVersion } from './config';
 import type { Lesson } from './types';
-import { chapters } from './chapters';
+import { lessonsByVersion } from './content';
 
 // Build/server only. Bundled fonts keep output independent of the host OS.
 const font = {
@@ -62,56 +62,65 @@ export function renderTutorialOgImage(
 	version: TutorialVersion,
 	lesson?: Lesson
 ): Uint8Array {
-	const title = lesson?.title ?? 'Learn PHP in your browser';
-	const summary =
-		lesson?.summary ??
-		'Explore interactive examples and experiments. Edit the code, predict the result, then run it yourself.';
-	const chapter = lesson
-		? chapters.find((item) => item.id === lesson.chapterId)?.title
-		: 'Interactive tutorial';
-	let titleSize = 64;
-	let titleLines = wrap(title, titleSize, 700, 1056);
-	while (titleLines.length > 3 && titleSize > 36) {
-		titleSize -= 4;
-		titleLines = wrap(title, titleSize, 700, 1056);
+	const title = lesson?.title ?? 'Start with the basics';
+	const exampleLesson = lesson ?? lessonsByVersion[version][0];
+	const program = exampleLesson.programs[exampleLesson.sampleProgramId];
+	if (!program)
+		throw new Error(
+			`Missing OGP Example for ${version}/${exampleLesson.slug}`
+		);
+	let titleSize = 34;
+	let titleLines = wrap(title, titleSize, 700, 490);
+	while (titleLines.length > 3 && titleSize > 18) {
+		titleSize -= 2;
+		titleLines = wrap(title, titleSize, 700, 490);
 	}
-	if (titleLines.length > 3) {
+	if (titleLines.length > 3)
 		throw new Error(
 			`OGP title is too long for ${version}/${lesson?.slug ?? ''}: ${title}`
 		);
-	}
-	const summaryLines = wrap(summary, 28, 400, 1056);
-	if (summaryLines.length > 2) {
-		summaryLines.length = 2;
-		let last = summaryLines[1];
-		while (width(`${last}…`, 28, 400) > 1056) last = last.slice(0, -1);
-		summaryLines[1] = `${last}…`;
-	}
 	const titleSvg = titleLines
 		.map(
 			(line, i) =>
-				`<text x="72" y="${226 + i * 74}" font-size="${titleSize}" font-weight="700" fill="#1A202C">${xml(line)}</text>`
+				`<text x="64" y="${399 + i * 40}" font-size="${titleSize}" font-weight="700" fill="#1A202C">${xml(line)}</text>`
 		)
 		.join('');
-	const summaryY = Math.max(350, 226 + (titleLines.length - 1) * 74 + 56);
-	const summarySvg = summaryLines
-		.map(
-			(line, i) =>
-				`<text x="72" y="${summaryY + i * 39}" font-size="28" fill="#4A5568">${xml(line)}</text>`
-		)
+	const codeLines = program.code
+		.replaceAll('\t', '    ')
+		.split(/\r?\n/)
+		.filter((line) => line.trim());
+	if (codeLines.length > 6) codeLines.splice(5, codeLines.length - 5, '…');
+	const codeSvg = codeLines
+		.map((line, i) => {
+			let shown = line;
+			if (width(shown, 21, 400) > 468) {
+				while (width(`${shown}…`, 21, 400) > 468)
+					shown = shown.slice(0, -1);
+				shown += '…';
+			}
+			return `<text x="638" y="${250 + i * 33}" font-size="21" fill="#E2E8F0" xml:space="preserve">${xml(shown)}</text>`;
+		})
 		.join('');
 	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
 		<rect width="1200" height="630" fill="#F7FAFC"/>
 		<rect width="1200" height="12" fill="#2F855A"/>
 		<g font-family="Lato">
-			<text x="72" y="87" font-size="32" font-weight="700" fill="#1A202C">PHP Playground</text>
-			<rect x="936" y="44" width="192" height="60" rx="12" fill="#C6F6D5"/>
-			<text x="1032" y="83" text-anchor="middle" font-size="28" font-weight="700" fill="#22543D">PHP ${xml(version)}</text>
-			<text x="72" y="154" font-size="22" fill="#276749">${xml(chapter ?? 'Interactive tutorial')}</text>
-			${titleSvg}${summarySvg}
-			<path d="M72 526H1128" stroke="#CBD5E0"/>
-			<text x="72" y="577" font-size="24" font-weight="700" fill="#276749">Example · Experiment · Run</text>
-			<text x="1128" y="577" text-anchor="end" font-size="24" fill="#4A5568">php-play.dev</text>
+			<text x="64" y="78" font-size="30" font-weight="700" fill="#1A202C">PHP Playground</text>
+			<rect x="978" y="43" width="158" height="48" rx="10" fill="#C6F6D5"/>
+			<text x="1001" y="76" font-size="25" font-weight="700" fill="#22543D">PHP ${xml(version)}</text>
+			<text x="64" y="165" font-size="24" font-weight="700" fill="#276749">INTERACTIVE PHP TUTORIAL</text>
+			<text x="64" y="244" font-size="64" font-weight="700" fill="#1A202C">Learn PHP</text>
+			<text x="64" y="318" font-size="64" font-weight="700" fill="#276749">by doing.</text>
+			${titleSvg}
+			<rect x="610" y="154" width="526" height="320" rx="16" fill="#1E1E1E"/>
+			<rect x="610" y="154" width="526" height="56" rx="16" fill="#2D3748"/>
+			<rect x="610" y="183" width="526" height="27" fill="#2D3748"/>
+			<text x="638" y="192" font-size="23" font-weight="700" fill="#E2E8F0">Example</text>
+			<text x="1050" y="192" font-size="20" fill="#C6F6D5">PHP</text>
+			${codeSvg}
+			<rect y="517" width="1200" height="113" fill="#E6F5EA"/>
+			<text x="64" y="571" font-size="28" font-weight="700" fill="#22543D">Edit an Example. Try an Experiment. Press Run.</text>
+			<text x="984" y="608" font-size="22" fill="#4A5568">php-play.dev</text>
 		</g>
 	</svg>`;
 	return new Resvg(svg, { font }).render().asPng();

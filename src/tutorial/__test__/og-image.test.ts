@@ -33,7 +33,17 @@ describe('structured tutorial OGP images', () => {
 	});
 	it.each([
 		['title', { title: 'A different lesson title' }],
-		['summary', { summary: 'A different lesson summary' }],
+		[
+			'Example',
+			{
+				programs: {
+					...lesson.programs,
+					[lesson.sampleProgramId]: {
+						code: '<?php echo "A different example";',
+					},
+				},
+			},
+		],
 	] as const)('reflects a changed %s in rendered bytes', (_field, change) => {
 		expect(
 			renderTutorialOgImage('8.5', { ...lesson, ...change })
@@ -69,11 +79,16 @@ describe('structured tutorial OGP images', () => {
 			renderTutorialOgImage('8.5', { ...lesson, title: 'W'.repeat(200) })
 		).toThrow('OGP title is too long for 8.5/variables:');
 	});
-	it('renders XML special characters in title and summary as safe text', () => {
+	it('renders XML special characters in title and code as safe text', () => {
 		const image = renderTutorialOgImage('8.5', {
 			...lesson,
 			title: `Compare <PHP> & "strings"`,
-			summary: `Use <, >, &, "quotes" and 'apostrophes'; </text><script> is text.`,
+			programs: {
+				...lesson.programs,
+				[lesson.sampleProgramId]: {
+					code: `<?php echo '<, >, &, "quotes"; </text><script>';`,
+				},
+			},
 		});
 		expect(Array.from(image.slice(0, 8))).toEqual([
 			137, 80, 78, 71, 13, 10, 26, 10,
