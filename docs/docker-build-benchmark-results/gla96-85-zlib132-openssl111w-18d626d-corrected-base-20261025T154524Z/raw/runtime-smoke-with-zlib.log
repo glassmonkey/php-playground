@@ -1,0 +1,13 @@
+
+> php-playground@0.1.0 test:ci
+> vitest run src/php-wasm/__tests__/php-response.test.ts src/php-wasm/__tests__/enabled-libs-8.5.transient.test.ts
+
+
+ RUN  v4.1.10 /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure
+
+
+ Test Files  4 passed (4)
+      Tests  13 passed (13)
+   Start at  00:58:18
+   Duration  523ms (transform 563ms, setup 64ms, import 659ms, tests 793ms, environment 0ms)
+

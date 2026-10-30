@@ -1,0 +1,14 @@
+...#1 [compile 1/1] RUN make FAILED
+..E.....
+======================================================================
+ERROR: test_link_input_change_identity_pins_blob_and_patch (__main__.BenchmarkHarnessContractTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/scripts/test-benchmark-docker-build.py", line 83, in test_link_input_change_identity_pins_blob_and_patch
+    (context / "build-assets/other.txt").write_text("unexpected input change\n", encoding="utf-8")
+NameError: name 'context' is not defined
+
+----------------------------------------------------------------------
+Ran 11 tests in 3.339s
+
+FAILED (errors=1)

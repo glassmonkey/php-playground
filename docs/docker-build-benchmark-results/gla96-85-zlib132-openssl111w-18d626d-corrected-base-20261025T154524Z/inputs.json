@@ -1,0 +1,212 @@
+{
+  "kind": "correctness-build-inputs",
+  "benchmark_eligible": false,
+  "run_id": "gla96-85-zlib132-openssl111w-18d626d-corrected-base-20261025T154524Z",
+  "repo_revision": "18d626d39d0ca998414d0183e10dc5f2739e5ca1",
+  "context_tree_sha": "7dbea758a1cc8d6d261284c311e629d1be0d2919",
+  "context_archive_sha256": "6fd071ce79bbe445aa77656c630fad46e58c17ab392e425d4d2e6c217d6f8b41",
+  "context_archive": "docs/docker-build-benchmark-results/gla96-85-zlib132-openssl111w-18d626d-corrected-base-20261025T154524Z/contexts/target.tar",
+  "context_path": "src/wasm",
+  "exported_context": "/Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/gla96-85-zlib132-openssl111w-18d626d-corrected-base-20261025T154524Z/contexts/target",
+  "input_tree_sha": "4045438bc840a4eedfda94209ded8a19caf2883a",
+  "php_version": "8.5",
+  "php_source_sha": "48b3f94fe2d1055d05b4bfdebd9d84ce6565a73a",
+  "emsdk_version": "6.0.13",
+  "emsdk_repo_sha": "d7b4130688bfa348392b921ab04015aa15c4f154",
+  "base_image": "ubuntu",
+  "base_image_digest": "sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+  "platform": "linux/arm64",
+  "host": "shunsukenoMacBook-Air.local",
+  "host_arch": "arm64",
+  "builder": "gla96-a3c1",
+  "resources": {
+    "builder_cpu_set": "0-1",
+    "builder_cpus": 2,
+    "builder_memory": "5GiB",
+    "step_cpu_set": "0-1",
+    "step_memory": "4g",
+    "parallelism": 1
+  },
+  "feature_build_args": {
+    "WITH_VRZNO": "yes",
+    "WITH_LIBXML": "yes",
+    "WITH_LIBPNG": "yes",
+    "WITH_LIBZIP": "yes",
+    "WITH_MBSTRING": "yes",
+    "WITH_CLI_SAPI": "no",
+    "WITH_OPENSSL": "yes",
+    "WITH_NODEFS": "no",
+    "WITH_CURL": "no",
+    "WITH_SQLITE": "yes",
+    "WITH_MYSQL": "no",
+    "WITH_WS_NETWORKING_PROXY": "no",
+    "EMSCRIPTEN_ENVIRONMENT": "web"
+  },
+  "zlib_source": {
+    "version": "1.3.2",
+    "url": "https://zlib.net/zlib-1.3.2.tar.gz",
+    "sha256": "bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16",
+    "archive_bytes": 1502830,
+    "sha256_checked_before_extract": true,
+    "build_mode": "--static; explicit libz.a compile/install; no broad make failure suppression"
+  },
+  "openssl_source": {
+    "version": "1.1.1w",
+    "url": "https://www.openssl.org/source/old/1.1.1/openssl-1.1.1w.tar.gz",
+    "sha256": "cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8",
+    "archive_bytes": 9893384,
+    "sha256_checked_before_extract": true,
+    "configure": "linux-generic32 no-asm no-shared",
+    "fallback_allowed": false,
+    "public_release": "final public 1.1.1 release; public maintenance ended; compatibility candidate only"
+  },
+  "image_tag": "gla96-enabled-library-85:gla96-85-zlib132-openssl111w-18d626d-corrected-base-20261025T154524Z",
+  "expected_export_paths": [
+    "php-8.5.js",
+    "php-8.5.wasm"
+  ],
+  "export_target": "php-artifacts",
+  "export_destination": "/Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/gla96-85-zlib132-openssl111w-18d626d-corrected-base-20261025T154524Z/exported-assets",
+  "preflight": {
+    "status": "passed",
+    "dockerfile": "/Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/gla96-85-zlib132-openssl111w-18d626d-corrected-base-20261025T154524Z/contexts/target/Dockerfile",
+    "context": "/Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/gla96-85-zlib132-openssl111w-18d626d-corrected-base-20261025T154524Z/contexts/target",
+    "checks": [
+      {
+        "source": "build-assets/replace.sh",
+        "status": "found",
+        "matches": [
+          "build-assets/replace.sh"
+        ],
+        "instruction": "COPY build-assets/replace.sh /root/replace.sh"
+      },
+      {
+        "source": "build-assets/ncurses.patch",
+        "status": "found",
+        "matches": [
+          "build-assets/ncurses.patch"
+        ],
+        "instruction": "COPY build-assets/ncurses.patch /root/"
+      },
+      {
+        "source": "build-assets/bison27.patch",
+        "status": "found",
+        "matches": [
+          "build-assets/bison27.patch"
+        ],
+        "instruction": "COPY build-assets/bison27.patch /root/bison27.patch"
+      },
+      {
+        "source": "build-assets/php*.patch",
+        "status": "found",
+        "matches": [
+          "build-assets/php5.6-function-signatures.patch",
+          "build-assets/php5.6-openssl1.1.patch",
+          "build-assets/php5.6.patch",
+          "build-assets/php7.0-function-signatures.patch",
+          "build-assets/php7.0.patch",
+          "build-assets/php7.1-function-signatures.patch",
+          "build-assets/php7.1.patch",
+          "build-assets/php7.2-function-signatures.patch",
+          "build-assets/php7.2.patch",
+          "build-assets/php7.3-function-signatures.patch",
+          "build-assets/php7.3.patch",
+          "build-assets/php7.4-function-signatures.patch",
+          "build-assets/php7.4.patch",
+          "build-assets/php8.0.patch",
+          "build-assets/php8.1.patch",
+          "build-assets/php8.2.patch",
+          "build-assets/php8.3.patch",
+          "build-assets/php8.4.patch"
+        ],
+        "instruction": "COPY build-assets/php*.patch /root/"
+      },
+      {
+        "source": "build-assets/php_wasm.c",
+        "status": "found",
+        "matches": [
+          "build-assets/php_wasm.c"
+        ],
+        "instruction": "COPY build-assets/php_wasm.c /root/"
+      },
+      {
+        "source": "build-assets/phpwasm-emscripten-library.js",
+        "status": "found",
+        "matches": [
+          "build-assets/phpwasm-emscripten-library.js"
+        ],
+        "instruction": "COPY build-assets/phpwasm-emscripten-library.js /root/phpwasm-emscripten-library.js"
+      }
+    ]
+  },
+  "argv": [
+    "docker",
+    "buildx",
+    "build",
+    "--builder",
+    "gla96-a3c1",
+    "--progress=plain",
+    "--provenance=mode=max",
+    "--platform",
+    "linux/arm64",
+    "--file",
+    "/Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/gla96-85-zlib132-openssl111w-18d626d-corrected-base-20261025T154524Z/contexts/target/Dockerfile",
+    "--target",
+    "php-artifacts",
+    "--tag",
+    "gla96-enabled-library-85:gla96-85-zlib132-openssl111w-18d626d-corrected-base-20261025T154524Z",
+    "--metadata-file",
+    "/Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/gla96-85-zlib132-openssl111w-18d626d-corrected-base-20261025T154524Z/raw/build.metadata.json",
+    "--output",
+    "type=local,dest=/Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/gla96-85-zlib132-openssl111w-18d626d-corrected-base-20261025T154524Z/exported-assets",
+    "--resource",
+    "cpuset-cpus=0-1",
+    "--resource",
+    "memory=4g",
+    "--build-arg",
+    "WITH_VRZNO=yes",
+    "--build-arg",
+    "WITH_LIBXML=yes",
+    "--build-arg",
+    "WITH_LIBPNG=yes",
+    "--build-arg",
+    "WITH_LIBZIP=yes",
+    "--build-arg",
+    "WITH_MBSTRING=yes",
+    "--build-arg",
+    "WITH_CLI_SAPI=no",
+    "--build-arg",
+    "WITH_OPENSSL=yes",
+    "--build-arg",
+    "WITH_NODEFS=no",
+    "--build-arg",
+    "WITH_CURL=no",
+    "--build-arg",
+    "WITH_SQLITE=yes",
+    "--build-arg",
+    "WITH_MYSQL=no",
+    "--build-arg",
+    "WITH_WS_NETWORKING_PROXY=no",
+    "--build-arg",
+    "EMSCRIPTEN_ENVIRONMENT=web",
+    "--build-arg",
+    "BASE_IMAGE=ubuntu@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+    "--build-arg",
+    "PHP_VERSION=8.5",
+    "--build-arg",
+    "PHP_SOURCE_REF=48b3f94fe2d1055d05b4bfdebd9d84ce6565a73a",
+    "--build-arg",
+    "EMSDK_VERSION=6.0.13",
+    "--build-arg",
+    "EMSDK_REPO_REF=d7b4130688bfa348392b921ab04015aa15c4f154",
+    "--build-arg",
+    "ZLIB_VERSION=1.3.2",
+    "--build-arg",
+    "ZLIB_SHA256=bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16",
+    "/Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/gla96-85-zlib132-openssl111w-18d626d-corrected-base-20261025T154524Z/contexts/target"
+  ],
+  "command": "docker buildx build --builder gla96-a3c1 --progress=plain --provenance=mode=max --platform linux/arm64 --file /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/gla96-85-zlib132-openssl111w-18d626d-corrected-base-20261025T154524Z/contexts/target/Dockerfile --target php-artifacts --tag gla96-enabled-library-85:gla96-85-zlib132-openssl111w-18d626d-corrected-base-20261025T154524Z --metadata-file /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/gla96-85-zlib132-openssl111w-18d626d-corrected-base-20261025T154524Z/raw/build.metadata.json --output type=local,dest=/Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/gla96-85-zlib132-openssl111w-18d626d-corrected-base-20261025T154524Z/exported-assets --resource cpuset-cpus=0-1 --resource memory=4g --build-arg WITH_VRZNO=yes --build-arg WITH_LIBXML=yes --build-arg WITH_LIBPNG=yes --build-arg WITH_LIBZIP=yes --build-arg WITH_MBSTRING=yes --build-arg WITH_CLI_SAPI=no --build-arg WITH_OPENSSL=yes --build-arg WITH_NODEFS=no --build-arg WITH_CURL=no --build-arg WITH_SQLITE=yes --build-arg WITH_MYSQL=no --build-arg WITH_WS_NETWORKING_PROXY=no --build-arg EMSCRIPTEN_ENVIRONMENT=web --build-arg BASE_IMAGE=ubuntu@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac --build-arg PHP_VERSION=8.5 --build-arg PHP_SOURCE_REF=48b3f94fe2d1055d05b4bfdebd9d84ce6565a73a --build-arg EMSDK_VERSION=6.0.13 --build-arg EMSDK_REPO_REF=d7b4130688bfa348392b921ab04015aa15c4f154 --build-arg ZLIB_VERSION=1.3.2 --build-arg ZLIB_SHA256=bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16 /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/gla96-85-zlib132-openssl111w-18d626d-corrected-base-20261025T154524Z/contexts/target",
+  "cwd": "/Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure",
+  "planned_runs": 1,
+  "spawned_at_utc": null
+}

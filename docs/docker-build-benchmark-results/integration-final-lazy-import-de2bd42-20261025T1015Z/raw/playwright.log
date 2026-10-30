@@ -1,0 +1,48 @@
+started_utc=2026-10-25T10:16:04Z
+LANG=ja_JP.UTF-8 LC_ALL=C.UTF-8
+LANG="ja_JP.UTF-8"
+LC_COLLATE="C.UTF-8"
+LC_CTYPE="C.UTF-8"
+LC_MESSAGES="C.UTF-8"
+LC_MONETARY="C.UTF-8"
+LC_NUMERIC="C.UTF-8"
+LC_TIME="C.UTF-8"
+LC_ALL="C.UTF-8"
+command=npm run test:e2e -- --reporter=line
+
+> php-playground@0.1.0 test:e2e
+> playwright test --reporter=line
+
+[WebServer] 
+[WebServer] > php-playground@0.1.0 preview
+[WebServer] > vite build && vite preview --port 8888
+[WebServer] 
+
+[WebServer] (node:13804) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+[WebServer] vite v7.3.2 building client environment for production...
+
+[WebServer] transforming...
+
+[WebServer] ✓ 1174 modules transformed.
+
+[WebServer] ✗ Build failed in 11.71s
+
+[WebServer] error during build:
+[WebServer] [vite:worker] Could not load /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/src/workers/php-worker.ts?worker (imported by src/workers/client.ts): Invalid value "iife" for option "worker.format" - UMD and IIFE output formats are not supported for code-splitting builds.
+[WebServer]     at getRollupError (file:///Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/node_modules/vite/node_modules/rollup/dist/es/shared/parseAst.js:402:41)
+[WebServer]     at error (file:///Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/node_modules/vite/node_modules/rollup/dist/es/shared/parseAst.js:398:42)
+[WebServer]     at validateOptionsForMultiChunkOutput (file:///Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/node_modules/vite/node_modules/rollup/dist/es/shared/node-entry.js:20754:16)
+[WebServer]     at Bundle.generate (file:///Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/node_modules/vite/node_modules/rollup/dist/es/shared/node-entry.js:20609:17)
+[WebServer]     at async file:///Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/node_modules/vite/node_modules/rollup/dist/es/shared/node-entry.js:23558:27
+[WebServer]     at async catchUnfinishedHookActions (file:///Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/node_modules/vite/node_modules/rollup/dist/es/shared/node-entry.js:22925:16)
+[WebServer]     at async bundleWorkerEntry (file:///Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/node_modules/vite/dist/node/chunks/config.js:26685:12)
+[WebServer]     at async workerFileToUrl (file:///Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/node_modules/vite/dist/node/chunks/config.js:26718:17)
+[WebServer]     at async Object.handler (file:///Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/node_modules/vite/dist/node/chunks/config.js:26800:21)
+[WebServer]     at async PluginDriver.hookFirstAndGetPlugin (file:///Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/node_modules/vite/node_modules/rollup/dist/es/shared/node-entry.js:22453:28)
+
+Error: Process from config.webServer was not able to start. Exit code: 1
+
+ended_utc=2026-10-25T10:16:24Z
+exit_code=1

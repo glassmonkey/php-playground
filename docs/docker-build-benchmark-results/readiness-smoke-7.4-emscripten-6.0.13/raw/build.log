@@ -1,0 +1,77 @@
+#0 building with "gla96-a3c1" instance using docker-container driver
+
+#1 [internal] load build definition from gla96-a3c1-php74-emscripten-longjmp-smoke.Dockerfile
+#1 transferring dockerfile:
+#1 transferring dockerfile: 42.69kB 0.8s done
+#1 WARN: FromAsCasing: 'as' and 'FROM' keywords' casing do not match (line 4)
+#1 DONE 0.9s
+
+#2 [internal] load metadata for docker.io/library/ubuntu:noble@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac
+#2 DONE 3.7s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B 0.0s done
+#3 DONE 0.1s
+
+#4 [emscripten  1/12] FROM docker.io/library/ubuntu:noble@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac
+#4 resolve docker.io/library/ubuntu:noble@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac 0.0s done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 77B 0.0s done
+#5 DONE 0.1s
+
+#6 [emscripten  5/12] RUN ln -s /usr/bin/python3 /usr/bin/python
+#6 CACHED
+
+#7 [emscripten  7/12] RUN mkdir -p /root/lib/lib /root/lib/include /root/lib/share /root/lib/bin
+#7 CACHED
+
+#8 [emscripten  8/12] RUN echo $'#!/bin/bash\nfor dir in $(ls $1); do \n    mkdir -p /root/lib/$dir/ && \n    cp -r /root/$1/$dir/* /root/lib/$dir/ 2>/dev/null || :; \n    done ' > /root/copy-lib.sh
+#8 CACHED
+
+#9 [emscripten  4/12] RUN set -euxo pipefail;    apt-get update;     apt-get --no-install-recommends -y install     build-essential     automake     autoconf     libxml2-dev     libtool     pkgconf     flex     make     re2c     gdb     git     pv     ca-certificates     curl     wget     unzip     cmake     python3
+#9 CACHED
+
+#10 [emscripten  9/12] RUN chmod a+x /root/copy-lib.sh
+#10 CACHED
+
+#11 [emscripten 10/12] COPY build-assets/replace.sh /root/replace.sh
+#11 CACHED
+
+#12 [emscripten  2/12] WORKDIR /root
+#12 CACHED
+
+#13 [emscripten  3/12] RUN mkdir lib
+#13 CACHED
+
+#14 [emscripten  6/12] RUN git clone https://github.com/emscripten-core/emsdk.git &&     if [ -n "d7b4130688bfa348392b921ab04015aa15c4f154" ]; then         cd emsdk && git fetch --depth 1 origin "d7b4130688bfa348392b921ab04015aa15c4f154" && git checkout --detach FETCH_HEAD &&         test "$(git rev-parse HEAD)" = "d7b4130688bfa348392b921ab04015aa15c4f154" && cd /root;     fi &&     echo "EMSDK_REPO_SHA=$(git -C /root/emsdk rev-parse HEAD)" &&     ./emsdk/emsdk install 6.0.13 &&     /root/emsdk/emsdk activate 6.0.13 &&     source /root/emsdk/emsdk_env.sh &&     emcc --version
+#14 CACHED
+
+#15 [emscripten 11/12] RUN chmod a+x /root/replace.sh
+#15 CACHED
+
+#16 [emscripten 12/12] RUN cp /root/emsdk/upstream/emscripten/emcc /root/emsdk/upstream/emscripten/emcc2 &&     cp /root/emsdk/upstream/emscripten/emcc.py /root/emsdk/upstream/emscripten/emcc2.py &&     echo $'#!/bin/bash\nfor arg do shift\n    [[ " ${EMCC_SKIP[*]} " =~ " ${arg} " ]] && continue \n    set -- "$@" "$arg" \ndone\nif [[ "$@" == "-v" ]]; then\n    export EMCC_FLAGS=""\nfi\n/root/emsdk/upstream/emscripten/emcc2 "$@" $EMCC_FLAGS \n' > /root/emsdk/upstream/emscripten/emcc &&     chmod a+x /root/emsdk/upstream/emscripten/emcc
+#16 CACHED
+
+#17 [longjmp-compiler-smoke 1/1] RUN source /root/emsdk/emsdk_env.sh &&     printf '%s\n' '#include <setjmp.h>' 'int main(void) { jmp_buf env; volatile int code = setjmp(env); if (code == 0) longjmp(env, 7); return code == 7 ? 0 : 1; }' > /tmp/longjmp-smoke.c &&     emcc /tmp/longjmp-smoke.c -sSUPPORT_LONGJMP=emscripten -o /tmp/longjmp-smoke.js
+#17 1.393 Setting up EMSDK environment (suppress these messages with EMSDK_QUIET=1)
+#17 1.492 Adding directories to PATH:
+#17 1.492 PATH += /root/emsdk
+#17 1.492 PATH += /root/emsdk/upstream/emscripten
+#17 1.492 PATH += /root/emsdk/node/24.19.0_64bit/bin
+#17 1.492 
+#17 1.492 Setting environment variables:
+#17 1.492 PATH = /root/emsdk:/root/emsdk/upstream/emscripten:/root/emsdk/node/24.19.0_64bit/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+#17 1.492 EMSDK = /root/emsdk
+#17 1.492 EMSDK_NODE = /root/emsdk/node/24.19.0_64bit/bin/node
+#17 1.492 Clearing existing environment variable: EMSDK_REPO_REF
+#17 1.492 Clearing existing environment variable: EMSDK_VERSION
+#17 DONE 7.4s
+WARNING: No output specified with docker-container driver. Build result will only remain in the build cache. To push result image into registry use --push or to load image into docker use --load
+
+ [33m4 warnings found (use docker --debug to expand):
+[0m - FromAsCasing: 'as' and 'FROM' keywords' casing do not match (line 4)
+ - LegacyKeyValueFormat: "ENV key=value" should be used instead of legacy "ENV key value" format (line 8)
+ - UndefinedVar: Usage of undefined variable '$@' (line 9)
+ - LegacyKeyValueFormat: "ENV key=value" should be used instead of legacy "ENV key value" format (line 9)

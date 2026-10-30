@@ -1,0 +1,7 @@
+#0 building with "gla96-a3c1" instance using docker-container driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 2B 0.1s done
+#1 DONE 0.1s
+WARNING: No output specified with docker-container driver. Build result will only remain in the build cache. To push result image into registry use --push or to load image into docker use --load
+ERROR: failed to build: failed to solve: failed to read dockerfile: open Dockerfile: no such file or directory

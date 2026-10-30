@@ -1,0 +1,23 @@
+{
+  "kind": "correctness-build-result",
+  "repo_revision": "1d8fe66af54251de214491ed5e532ca716f36654",
+  "php_source_sha": "05fb10165081cb4fb55a9943b44cab62c627db7a",
+  "php_version": "5.6",
+  "exit_code": 1,
+  "observed_utc": "2026-10-24T13:21:28.094307+00:00",
+  "ended_utc": "2026-10-24T13:21:46.993849+00:00",
+  "summary": {
+    "status": "failed",
+    "note": "cache-enabled correctness/export build via manager sandbox escalation; not a performance measurement"
+  },
+  "raw_log": "raw/build.log",
+  "command": "raw/build-command.txt",
+  "metadata": "raw/build-metadata.json",
+  "image": {
+    "tag": "gla96-candidate-php56-php561dev:1d8fe66-manager-elevated-20261024T1320Z",
+    "digest": null
+  },
+  "benchmark_eligible": false,
+  "context_archive_sha256": "a5d55afd21cf71edde222698e6d7b8a9b522e8a4dd727e2eb70c05508439a3d6",
+  "buildkit_metadata": {}
+}

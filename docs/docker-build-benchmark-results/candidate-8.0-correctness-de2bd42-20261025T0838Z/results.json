@@ -1,0 +1,53 @@
+{
+  "actual_php_version": "8.0.30",
+  "asset_evidence": {
+    "formatted_js": {
+      "bytes": 147740,
+      "path": "src/wasm-assets/php-8.0.js",
+      "sha256": "3d518a724a3349465b186c520369b9a456aafa1c596097e0b40f9eb769798d78"
+    },
+    "installed_wasm": {
+      "bytes": 4534434,
+      "path": "assets/php-8.0.wasm",
+      "sha256": "936c858adf8b88a74e30a6717d8aa2856678dad3d385db6c99885b3f62d98a52"
+    },
+    "raw_js": {
+      "bytes": 111221,
+      "path": "docs/docker-build-benchmark-results/candidate-8.0-correctness-de2bd42-20261025T0838Z/exported-assets/php-8.0.js",
+      "sha256": "2b6e5ef940c27f676025c4930e8b2f413fe068d07878584f8a1de622edbfd84d"
+    },
+    "raw_wasm": {
+      "bytes": 4534434,
+      "path": "docs/docker-build-benchmark-results/candidate-8.0-correctness-de2bd42-20261025T0838Z/exported-assets/php-8.0.wasm",
+      "sha256": "936c858adf8b88a74e30a6717d8aa2856678dad3d385db6c99885b3f62d98a52"
+    }
+  },
+  "benchmark_eligible": false,
+  "command": "raw/build-command.txt",
+  "context_tree_sha": "b7c7411be2b1eb0af865952eb0d4961a5a7eb29e",
+  "ended_utc": "2026-10-25T08:46:20Z",
+  "exit_code": 0,
+  "focused_verification": {
+    "exit_code": 0,
+    "log": "raw/vitest-php80-focused-final.log",
+    "passed": 2,
+    "result": "load/eval and phpinfo snapshot pass",
+    "skipped": 306
+  },
+  "image": {
+    "digest": "sha256:2fe9b52e54e9d1e55e08681d91f373512026ef1cb26f004eba7937d1be24bb94",
+    "tag": "gla96-candidate-php80:de2bd42-branchpin"
+  },
+  "kind": "correctness-build-result",
+  "metadata": "raw/build-metadata.json",
+  "observed_utc": "2026-10-25T08:38:23Z",
+  "php_source_sha": "670052c427eb08a67577789e3b00e56a4fd640a7",
+  "php_version": "8.0",
+  "raw_log": "raw/build.log",
+  "raw_log_sha256": "8dd2bd9c56d6b48ab13df2ecbba8d43dbe88bb0ecf20c3dd74e8c8365a7885a0",
+  "repo_revision": "de2bd42912cae3c861b6b421df61ad140492f2f9",
+  "summary": {
+    "note": "Cache-enabled correctness/export build; not benchmark eligible.",
+    "status": "succeeded"
+  }
+}

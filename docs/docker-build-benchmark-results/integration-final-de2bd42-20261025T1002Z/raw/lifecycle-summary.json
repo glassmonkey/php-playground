@@ -1,0 +1,64 @@
+{
+  "kind": "worker-lifecycle-diagnostic",
+  "same_test_context": "Node v24.12.0, Vitest4.1.10, LANG ja_JP.UTF-8, LC_ALL C.UTF-8, unchanged PHP5.6/7.0 candidate wasm/assets",
+  "observed_events": [
+    {
+      "event": "client:request",
+      "date_time_ms": 1792922363386,
+      "details": "5.6 id-1792922363386-0.4896425523489555"
+    },
+    {
+      "event": "client:posted",
+      "date_time_ms": 1792922363387,
+      "details": "5.6 id-1792922363386-0.4896425523489555"
+    },
+    {
+      "event": "client:request",
+      "date_time_ms": 1792922368001,
+      "details": "7.0 id-1792922368001-0.466879171732153"
+    },
+    {
+      "event": "client:posted",
+      "date_time_ms": 1792922368002,
+      "details": "7.0 id-1792922368001-0.466879171732153"
+    },
+    {
+      "event": "message",
+      "date_time_ms": 1792922370967,
+      "details": "5.6 id-1792922363386-0.4896425523489555"
+    },
+    {
+      "event": "initPHP:start",
+      "date_time_ms": 1792922370967,
+      "details": "5.6"
+    },
+    {
+      "event": "initPHP:ready",
+      "date_time_ms": 1792922371104,
+      "details": "5.6"
+    },
+    {
+      "event": "module:ready",
+      "date_time_ms": 1792922371259,
+      "details": "5.6"
+    },
+    {
+      "event": "runPHP:start",
+      "date_time_ms": 1792922371259,
+      "details": "5.6"
+    },
+    {
+      "event": "runPHP:done",
+      "date_time_ms": 1792922371626,
+      "details": "5.6 0 1"
+    },
+    {
+      "event": "worker:posted",
+      "date_time_ms": 1792922371667,
+      "details": "5.6 id-1792922363386-0.4896425523489555"
+    }
+  ],
+  "finding": "For PHP5.6, worker received the request after the standard 5000ms deadline, initialized and ran PHP with exit0, then called postMessage. No client onmessage callback was observed for that request before the run ended. The isolated performance.now diagnostic on PHP5.6/7.0 also shows worker onmessage delivery after the request deadline. This establishes a delay before worker handling in this test harness, but does not prove which runner/worker-bootstrap component is responsible.",
+  "source_log": "raw/vitest-php56-70-diagnostic.log",
+  "source_log_sha256": "2fb363a50bbdb84b6f140f2f1c559a96ae5c8a96e1c47cc0176eafe60ca6f7d3"
+}

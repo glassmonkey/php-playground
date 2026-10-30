@@ -1,6 +1,7 @@
 # Originally forked from https://github.com/WordPress/wordpress-playground
 # ubuntu:noble supports amd64 and arm64 (Apple Silicon)
-FROM ubuntu:noble as emscripten
+ARG BASE_IMAGE=ubuntu:noble
+FROM ${BASE_IMAGE} as emscripten
 
 SHELL ["/bin/bash", "-c"]
 
@@ -35,18 +36,19 @@ RUN set -euxo pipefail;\
 # Install Emscripten from the repository. We'd use the official
 # Docker image, but there is no arm64 image available which makes
 # the build take forever on Apple Silicon.
-#
-# The version is pinned because newer releases break this build:
-# * 5.0.4+ runs --fpcast-emu before --post-emscripten, which makes
-#   wasm-opt crash for PHP < 8.0 (EMULATE_FUNCTION_POINTER_CASTS).
-# * 6.0.3+ already emits stream.stream_ops?.poll and 6.0.13+ no longer
-#   emits the ENVIRONMENT_IS_* variables, so the php.js post-processing
-#   step below finds nothing to replace and fails.
-ARG EMSDK_VERSION=4.0.22
+ARG EMSDK_VERSION=latest
+ARG EMSDK_REPO_REF=
 RUN ln -s /usr/bin/python3 /usr/bin/python
 RUN git clone https://github.com/emscripten-core/emsdk.git && \
+    if [ -n "$EMSDK_REPO_REF" ]; then \
+        cd emsdk && git fetch --depth 1 origin "$EMSDK_REPO_REF" && git checkout --detach FETCH_HEAD && \
+        test "$(git rev-parse HEAD)" = "$EMSDK_REPO_REF" && cd /root; \
+    fi && \
+    echo "EMSDK_REPO_SHA=$(git -C /root/emsdk rev-parse HEAD)" && \
     ./emsdk/emsdk install $EMSDK_VERSION && \
-    /root/emsdk/emsdk activate $EMSDK_VERSION
+    /root/emsdk/emsdk activate $EMSDK_VERSION && \
+    source /root/emsdk/emsdk_env.sh && \
+    emcc --version
 
 RUN mkdir -p /root/lib/lib /root/lib/include /root/lib/share /root/lib/bin
 
@@ -95,21 +97,33 @@ fi\n\
 
 # Compile libz
 FROM emscripten AS emscripten-libz
-COPY build-assets/zlib /root/zlib
-RUN source /root/emsdk/emsdk_env.sh && \
-    cd /root/zlib && \
-    emconfigure ./configure --prefix=/root/lib && \
-    # emmake make fails, but only after it builds the library files.
-    # Let's just ignore the errors and proceed with the built libraries.
-    (EMCC_FLAGS="-fPIC" emmake make || true) && \
+ARG ZLIB_VERSION=1.3.2
+ARG ZLIB_SHA256=bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16
+RUN set -euxo pipefail && \
+    source /root/emsdk/emsdk_env.sh && \
+    wget -O zlib-$ZLIB_VERSION.tar.gz https://zlib.net/zlib-$ZLIB_VERSION.tar.gz && \
+    echo "$ZLIB_SHA256  zlib-$ZLIB_VERSION.tar.gz" | sha256sum -c - && \
+    tar -xzf zlib-$ZLIB_VERSION.tar.gz && \
+    cd zlib-$ZLIB_VERSION && \
+    emconfigure ./configure --static --prefix=/root/lib && \
+    EMCC_FLAGS="-fPIC" emmake make -j 2 libz.a && \
     EMCC_FLAGS="-fPIC" emmake make install
 
 # Compile libzip
 FROM emscripten AS emscripten-libzip
 ARG PHP_VERSION
+ARG WITH_LIBZIP=no
 COPY --from=emscripten-libz /root/lib /root/lib-libz
-RUN /root/copy-lib.sh lib-libz
-RUN     if [[ "${PHP_VERSION:0:1}" -le "7" && "${PHP_VERSION:2:1}" -le "3" ]] || [ "${PHP_VERSION:0:1}" -le "5" ]; then \
+# Older libzip releases hard-code the zip target as SHARED and do not consume
+# BUILD_SHARED_LIBS. Normalize that source declaration so the existing OFF
+# setting selects a static archive, without a PHP-version condition.
+RUN if [ "$WITH_LIBZIP" = "yes" ]; then \
+        /root/copy-lib.sh lib-libz; \
+    else \
+        mkdir -p /root/lib; \
+    fi
+RUN if [ "$WITH_LIBZIP" = "yes" ]; then \
+        if [[ "${PHP_VERSION:0:1}" -le "7" && "${PHP_VERSION:2:1}" -le "3" ]] || [ "${PHP_VERSION:0:1}" -le "5" ]; then \
             export LIBZIP_VERSION=1.2.0; \
         else \
             export LIBZIP_VERSION=1.9.2; \
@@ -117,22 +131,37 @@ RUN     if [[ "${PHP_VERSION:0:1}" -le "7" && "${PHP_VERSION:2:1}" -le "3" ]] ||
         cd /root && \
         curl -k https://libzip.org/download/libzip-$LIBZIP_VERSION.tar.gz -o libzip-$LIBZIP_VERSION.tar.gz && \
         tar -xzf libzip-$LIBZIP_VERSION.tar.gz && \
-        mv libzip-$LIBZIP_VERSION libzip;
-RUN mkdir -p libzip/build
-RUN cd libzip/build && \
+        mv libzip-$LIBZIP_VERSION libzip && \
+        shared_target_count=$(grep -Fc 'ADD_LIBRARY(zip SHARED ' libzip/lib/CMakeLists.txt || true) && \
+        if [ "$shared_target_count" = "1" ]; then \
+            sed -i 's/ADD_LIBRARY(zip SHARED /ADD_LIBRARY(zip /' libzip/lib/CMakeLists.txt; \
+        elif [ "$shared_target_count" != "0" ]; then \
+            echo "Expected at most one explicit shared libzip target; found $shared_target_count" >&2; exit 1; \
+        fi; \
+    else \
+        echo "WITH_LIBZIP=$WITH_LIBZIP; skipping libzip download/configure/build/install"; \
+    fi
+RUN if [ "$WITH_LIBZIP" = "yes" ]; then mkdir -p libzip/build; fi
+RUN if [ "$WITH_LIBZIP" = "yes" ]; then cd libzip/build && \
         source /root/emsdk/emsdk_env.sh && \
         emcmake cmake \
             -DCMAKE_INSTALL_PREFIX=/root/lib \
+            -DBUILD_SHARED_LIBS=OFF \
             -DZLIB_LIBRARY=/root/lib/lib/libz.a \
             -DZLIB_INCLUDE_DIR=/root/lib/include \
-            ..
-RUN cd libzip/build && source /root/emsdk/emsdk_env.sh && EMCC_SKIP="-lz" EMCC_FLAGS=" -sSIDE_MODULE " emmake make
-RUN cd libzip/build && source /root/emsdk/emsdk_env.sh && EMCC_SKIP="-lz" EMCC_FLAGS=" -sSIDE_MODULE " emmake make install
+            ..; \
+    else \
+        echo "WITH_LIBZIP=$WITH_LIBZIP; skipping libzip configure"; \
+    fi
+RUN if [ "$WITH_LIBZIP" = "yes" ]; then cd libzip/build && source /root/emsdk/emsdk_env.sh && EMCC_SKIP="-lz" emmake make; else echo "WITH_LIBZIP=$WITH_LIBZIP; skipping libzip build"; fi
+RUN if [ "$WITH_LIBZIP" = "yes" ]; then cd libzip/build && source /root/emsdk/emsdk_env.sh && EMCC_SKIP="-lz" emmake make install; else echo "WITH_LIBZIP=$WITH_LIBZIP; skipping libzip install"; fi
 
 # Compile ncurses
 FROM emscripten AS emscripten-ncurses
+ARG WITH_CLI_SAPI=no
 COPY build-assets/ncurses.patch /root/
-RUN     set -euxo pipefail &&\
+RUN if [ "$WITH_CLI_SAPI" = "yes" ]; then \
+        set -euxo pipefail &&\
         # Install libncurses
         wget https://ftp.gnu.org/gnu/ncurses/ncurses-6.2.tar.gz && \
         tar -xzf ncurses-6.2.tar.gz && \
@@ -164,13 +193,18 @@ RUN     set -euxo pipefail &&\
         /root/replace.sh $'s/^\s+cd misc.*$//g' Makefile && \
         /root/replace.sh $'s/^\s+cd c\+\+.*$//g' Makefile && \
         emmake make && \
-        emmake make install
+        emmake make install; \
+    else \
+        echo "WITH_CLI_SAPI=$WITH_CLI_SAPI; skipping ncurses configure/build/install"; \
+    fi
 
 # Compile libedit (readline alternative)
 FROM emscripten AS emscripten-libedit
+ARG WITH_CLI_SAPI=no
 COPY --from=emscripten-ncurses /root/lib /root/lib-ncurses
 RUN /root/copy-lib.sh lib-ncurses
-RUN     wget https://www.thrysoee.dk/editline/libedit-20221030-3.1.tar.gz && \
+RUN if [ "$WITH_CLI_SAPI" = "yes" ]; then \
+        wget https://www.thrysoee.dk/editline/libedit-20221030-3.1.tar.gz && \
         tar -xzf libedit-20221030-3.1.tar.gz  && \
         source /root/emsdk/emsdk_env.sh && \
         cd libedit-20221030-3.1 && \
@@ -188,11 +222,16 @@ RUN     wget https://www.thrysoee.dk/editline/libedit-20221030-3.1.tar.gz && \
         # http://lists.busybox.net/pipermail/buildroot/2016-January/149100.html
         EMCC_SKIP="-lc -lncurses " EMCC_FLAGS=" -sSIDE_MODULE -D__STDC_ISO_10646__=201103L " \
         emmake make && \
-        emmake make install
+        emmake make install; \
+    else \
+        echo "WITH_CLI_SAPI=$WITH_CLI_SAPI; skipping libedit configure/build/install"; \
+    fi
 
 # Compile Libxml2
 FROM emscripten AS emscripten-libxml
-RUN source /root/emsdk/emsdk_env.sh && \
+ARG WITH_LIBXML=no
+RUN if [ "$WITH_LIBXML" = "yes" ]; then \
+    source /root/emsdk/emsdk_env.sh && \
     env GIT_SSL_NO_VERIFY=true git clone https://gitlab.gnome.org/GNOME/libxml2.git libxml2 \
         --branch v2.9.10 \
         --single-branch     \
@@ -201,7 +240,10 @@ RUN source /root/emsdk/emsdk_env.sh && \
     ./autogen.sh && \
     emconfigure ./configure --with-http=no --with-ftp=no --with-python=no --with-threads=no --enable-shared=no --prefix=/root/lib/ &&\
     EMCC_FLAGS=" -sSIDE_MODULE " emmake make && \
-    emmake make install
+    emmake make install; \
+    else \
+        mkdir -p /root/lib && echo "WITH_LIBXML=$WITH_LIBXML; skipping libxml2 configure/build/install"; \
+    fi
 
 # Compile Bison 2.7 (for PHP  <=7.3)
 FROM emscripten AS emscripten-bison-2-7
@@ -217,9 +259,11 @@ RUN wget http://ftp.gnu.org/gnu/bison/bison-2.7.tar.gz && \
 
 # Compile Sqlite3
 FROM emscripten AS emscripten-sqlite3
+ARG WITH_SQLITE=no
 COPY --from=emscripten-libz /root/lib /root/lib-libz
 RUN /root/copy-lib.sh lib-libz
-RUN     set -euxo pipefail &&\
+RUN if [ "$WITH_SQLITE" = "yes" ]; then \
+        set -euxo pipefail &&\
         wget --no-check-certificate https://www.sqlite.org/2022/sqlite-autoconf-3400100.tar.gz && \
         tar -xzvf sqlite-autoconf-3400100.tar.gz && \
         cd sqlite-autoconf-3400100 && \
@@ -229,52 +273,71 @@ RUN     set -euxo pipefail &&\
             --target wasm32-unknown-emscripten \
             --prefix=/root/lib/ && \
         EMCC_SKIP="-lc" EMCC_FLAGS=" -sSIDE_MODULE " emmake make && \
-        emmake make install
+        emmake make install; \
+    else \
+        echo "WITH_SQLITE=$WITH_SQLITE; skipping sqlite configure/build/install"; \
+    fi
 
 # Compile OpenSSL
 # Inspired by: https://github.com/TrueBitFoundation/wasm-ports/blob/79aac7272729baaf131ca0c49cc3b684eedff835/openssl.sh
 FROM emscripten AS emscripten-openssl
-ARG PHP_VERSION
+ARG WITH_OPENSSL=no
 COPY --from=emscripten-libz /root/lib /root/lib-libz
 RUN /root/copy-lib.sh lib-libz
-RUN set -euxo pipefail && \
+RUN if [ "$WITH_OPENSSL" = "yes" ]; then \
+    set -euxo pipefail && \
     source /root/emsdk/emsdk_env.sh && \
-    export OPENSSL_VERSION=1.1.0h && \
-    wget https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz && \
+    export OPENSSL_VERSION=1.1.1w && \
+    export OPENSSL_SHA256=cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8 && \
+    wget -O openssl-$OPENSSL_VERSION.tar.gz https://www.openssl.org/source/old/1.1.1/openssl-$OPENSSL_VERSION.tar.gz && \
+    echo "$OPENSSL_SHA256  openssl-$OPENSSL_VERSION.tar.gz" | sha256sum -c - && \
     tar xf openssl-$OPENSSL_VERSION.tar.gz && \
     cd openssl-$OPENSSL_VERSION && \
-    emconfigure ./Configure dist -DHAVE_FORK=0 -DOPENSSL_NO_AFALGENG=1 no-threads --prefix=/root/lib && \
+    emconfigure ./Configure linux-generic32 no-asm no-shared -DHAVE_FORK=0 -DOPENSSL_NO_AFALGENG=1 no-threads --prefix=/root/lib && \
     sed -i 's|^CROSS_COMPILE.*$|CROSS_COMPILE=|g' Makefile && \
-    EMCC_FLAGS=" -sSIDE_MODULE " EMCC_SKIP="-lz" emmake make -j 12 build_generated libssl.a libcrypto.a; \
+    EMCC_FLAGS=" -sSIDE_MODULE " EMCC_SKIP="-lz" emmake make -j 12 build_generated libssl.a libcrypto.a && \
     cp -RL include/openssl /root/lib/include && \
     cp libcrypto.a libssl.a /root/lib/lib && \
-    EMCC_FLAGS=" -sSIDE_MODULE " EMCC_SKIP="-lz" emmake make install;
+    EMCC_FLAGS=" -sSIDE_MODULE " EMCC_SKIP="-lz" emmake make install; \
+    else \
+        echo "WITH_OPENSSL=$WITH_OPENSSL; skipping OpenSSL configure/build/install"; \
+    fi
 
 # Compile libpng
 FROM emscripten AS emscripten-libpng
+ARG WITH_LIBPNG=no
 COPY --from=emscripten-libz /root/lib /root/lib-libz
 RUN /root/copy-lib.sh lib-libz
-RUN wget http://prdownloads.sourceforge.net/libpng/libpng-1.6.39.tar.gz?download -O libpng-1.6.39.tar.gz
-RUN tar -xzf libpng-1.6.39.tar.gz
+RUN if [ "$WITH_LIBPNG" = "yes" ]; then wget http://prdownloads.sourceforge.net/libpng/libpng-1.6.39.tar.gz?download -O libpng-1.6.39.tar.gz; else echo "WITH_LIBPNG=$WITH_LIBPNG; skipping libpng download"; fi
+RUN if [ "$WITH_LIBPNG" = "yes" ]; then tar -xzf libpng-1.6.39.tar.gz; else echo "WITH_LIBPNG=$WITH_LIBPNG; skipping libpng extraction"; fi
 WORKDIR /root/libpng-1.6.39
-RUN     source /root/emsdk/emsdk_env.sh && \
+RUN if [ "$WITH_LIBPNG" = "yes" ]; then \
+        source /root/emsdk/emsdk_env.sh && \
         CPPFLAGS="-I/root/lib/include " \
         LDFLAGS="-L/root/lib/lib " \
         emconfigure ./configure \
             PKG_CONFIG_PATH=$PKG_CONFIG_PATH \
             --build i386-pc-linux-gnu \
             --target wasm32-unknown-emscripten \
-            --prefix=/root/lib/
-RUN source /root/emsdk/emsdk_env.sh && EMCC_SKIP="-lc -lz" EMCC_FLAGS="-sSIDE_MODULE" emmake make
-RUN source /root/emsdk/emsdk_env.sh && emmake make install
+            --prefix=/root/lib/; \
+    else \
+        echo "WITH_LIBPNG=$WITH_LIBPNG; skipping libpng configure"; \
+    fi
+RUN if [ "$WITH_LIBPNG" = "yes" ]; then source /root/emsdk/emsdk_env.sh && EMCC_SKIP="-lc -lz" EMCC_FLAGS="-sSIDE_MODULE" emmake make; else echo "WITH_LIBPNG=$WITH_LIBPNG; skipping libpng build"; fi
+RUN if [ "$WITH_LIBPNG" = "yes" ]; then source /root/emsdk/emsdk_env.sh && emmake make install; else echo "WITH_LIBPNG=$WITH_LIBPNG; skipping libpng install"; fi
 
 # Clone PHP
 FROM emscripten AS emscripten-php-src
 ARG PHP_VERSION
-RUN git clone https://github.com/php/php-src.git php-src \
-    --branch PHP-$PHP_VERSION   \
-    --single-branch          \
-    --depth 1;
+ARG PHP_SOURCE_REF=
+RUN if [ -n "$PHP_SOURCE_REF" ]; then \
+        git init php-src && cd php-src && git remote add origin https://github.com/php/php-src.git && \
+        git fetch --depth 1 origin "$PHP_SOURCE_REF" && git checkout --detach FETCH_HEAD && \
+        test "$(git rev-parse HEAD)" = "$PHP_SOURCE_REF"; \
+    else \
+        git clone https://github.com/php/php-src.git php-src --branch PHP-$PHP_VERSION --single-branch --depth 1; \
+    fi && \
+    echo "PHP_SOURCE_SHA=$(git -C php-src rev-parse HEAD)"
 
 
 # Build PHP
@@ -389,7 +452,7 @@ RUN if [ "$WITH_SQLITE" = "yes" ]; \
         echo -n ' --with-sqlite3 --enable-pdo --with-pdo-sqlite ' >> /root/.php-configure-flags && \
         echo -n ' -I ext/pdo_sqlite ' >> /root/.emcc-php-wasm-flags; \
         if [[ "${PHP_VERSION:0:1}" -eq "7" && "${PHP_VERSION:2:1}" -ge "4" ]] || [ "${PHP_VERSION:0:1}" -eq "8" ]; then \
-            echo -n ' -lsqlite3 ' >> /root/.emcc-php-wasm-flags; \
+            echo -n ' /root/lib/lib/libsqlite3.a ' >> /root/.emcc-php-wasm-flags; \
         fi; \
     fi;
 
@@ -399,7 +462,7 @@ RUN if [ "$WITH_LIBPNG" = "yes" ]; \
     then \
         bash /root/copy-lib.sh lib-libpng && \
         echo -n ' --with-png-dir=/root/lib --with-gd --enable-gd ' >> /root/.php-configure-flags && \
-        echo -n ' -I /root/zlib -I /root/libpng16 -lz -lpng16 ' >> /root/.emcc-php-wasm-flags; \
+        echo -n ' -I /root/zlib -I /root/libpng16 -lz /root/lib/lib/libpng16.a ' >> /root/.emcc-php-wasm-flags; \
     fi;
 
 # Add openssl if needed
@@ -462,6 +525,17 @@ RUN if [ "$WITH_MYSQL" = "yes" ]; then \
 
 # Build the patched PHP
 WORKDIR /root/php-src
+# Emscripten configure checks execute their test modules under Node from this
+# working directory. Make linked side modules discoverable from the test CWD.
+RUN set -eu; \
+    for library in /root/lib/lib/*.so; do \
+        [ -f "$library" ] || continue; \
+        module="/root/php-src/${library##*/}"; \
+        if [ ! -e "$module" ] && [ ! -L "$module" ]; then \
+            ln -s "$library" "$module"; \
+        fi; \
+    done
+
 RUN source /root/emsdk/emsdk_env.sh && \
     emconfigure ./configure \
     PKG_CONFIG_PATH=$PKG_CONFIG_PATH \
@@ -525,7 +599,9 @@ RUN echo 'extern int wasm_close(int fd);' >> /root/php-src/main/php_config.h;
 
 RUN source /root/emsdk/emsdk_env.sh && \
     # We're compiling PHP as emscripten's side module...
-    EMCC_FLAGS=" -sSIDE_MODULE -Dsetsockopt=wasm_setsockopt -Dpopen=wasm_popen -Dpclose=wasm_pclose " \
+    # Use the common JavaScript longjmp implementation for every PHP version.
+    # This must match SUPPORT_LONGJMP in the final link below.
+    EMCC_FLAGS=" -sSIDE_MODULE -sSUPPORT_LONGJMP=emscripten -Dsetsockopt=wasm_setsockopt -Dpopen=wasm_popen -Dpclose=wasm_pclose " \
     # ...which means we must skip all the libraries - they will be provided in the final linking step.
     EMCC_SKIP="-lz -ledit -ldl -lncurses -lzip -lpng16 -lssl -lcrypto -lxml2 -lc -lm -lsqlite3 /root/lib/lib/libxml2.a /root/lib/lib/libsqlite3.so /root/lib/lib/libsqlite3.a /root/lib/lib/libpng16.so" \
     emmake make -j8
@@ -541,17 +617,6 @@ RUN if [ "$EMSCRIPTEN_ENVIRONMENT" = "node" ]; then \
         # Preserve symbol names in node.js build – the bundle size doesn't matter as much
         # as on the web, and this makes debugging **much** easier.
         echo -n ' -g2 ' >> /root/.emcc-php-wasm-flags; \
-    fi
-
-# PHP < 8.0 errors out with "null function or function signature mismatch"
-# unless EMULATE_FUNCTION_POINTER_CASTS is enabled. The error originates in
-# the rc_dtor_func which traces back to calling the zend_list_free function.
-# The signatures are the same on the face value, but the wasm runtime is not
-# happy somehow. This can probably be patched in PHP, but for now we just
-# enable the flag and pay the price of the additional overhead.
-# https://emscripten.org/docs/porting/guidelines/function_pointer_issues.html
-RUN if [ "${PHP_VERSION:0:1}" -lt "8" ]; then \
-        echo -n ' -s EMULATE_FUNCTION_POINTER_CASTS=1' >> /root/.emcc-php-wasm-flags; \
     fi
 
 # Add ws networking proxy support if needed
@@ -846,16 +911,13 @@ RUN if [ "$WITH_WS_NETWORKING_PROXY" = "yes" ]; \
 "zim_ReflectionMethod_invokeArgs",\
 "zim_reflection_method_invoke",\
 "zim_reflection_method_invokeArgs"'; \
-    # If pointer casts are enabled, we need to asyncify both the prefixed and unprefixed names
-    if [ "${PHP_VERSION:0:1}" -lt "8" ]; then \
-        export ASYNCIFY_ONLY="$ASYNCIFY_ONLY,"$(echo "$ASYNCIFY_ONLY" | sed -E $'s/"([a-zA-Z])/"byn$fpcast-emu$\1/g'); \
-    fi; \
     echo -n ' -s ASYNCIFY_ONLY=['$ASYNCIFY_ONLY_UNPREFIXED$ASYNCIFY_ONLY'] '| tr -d "\n" >> /root/.emcc-php-wasm-flags; \
 fi;
 
 # Build the final .wasm file
 RUN mkdir /root/output
 COPY build-assets/phpwasm-emscripten-library.js /root/phpwasm-emscripten-library.js
+# Keep emsdk 6.0.13's incoming API and add optional wasmBinary for Node callers.
 RUN source /root/emsdk/emsdk_env.sh && \
     export EXPORTED_FUNCTIONS=$'["_php_wasm_init", \n\
 "_phpwasm_destroy_uploaded_files_hash", \n\
@@ -898,6 +960,8 @@ RUN source /root/emsdk/emsdk_env.sh && \
     -s ERROR_ON_UNDEFINED_SYMBOLS=0  \
     -s INVOKE_RUN=0                  \
     -s EXIT_RUNTIME=1                \
+    -s SUPPORT_LONGJMP=emscripten    \
+    -s 'INCOMING_MODULE_JS_API=["ENVIRONMENT","arguments","canvas","dynamicLibraries","elementPointerLock","instantiateWasm","locateFile","monitorRunDependencies","noExitRuntime","noInitialRun","onAbort","onExit","onRuntimeInitialized","postRun","preInit","preRun","print","printErr","setStatus","statusMessage","stderr","stdin","stdout","thisProgram","wasm","websocket","wasmBinary"]' \
         /root/lib/libphp.a \
         /root/php_wasm.c \
         $(cat /root/.emcc-php-wasm-sources) \
@@ -942,11 +1006,6 @@ RUN \
         fi; \
     # Make the php.wasm URL configurable via the dependencyFilename loader argument:
         /root/replace.sh $'s/["\']php\.wasm[\'"]/dependencyFilename/g' /root/output/php.js && \
-    # Patch a "property undefined" error
-        # Emscripten produces an if that checkes a stream.stream_ops.poll property. However,
-        # stream.stream_ops is sometimes undefined and the check fails. Let's adjust it to
-        # tolerate a null stream.stream_ops value.
-        /root/replace.sh "s/if\s*\(stream\.stream_ops\.poll\)/if (stream.stream_ops?.poll)/g" /root/output/php.js && \
     # Make Emscripten websockets configurable
         # Emscripten makes the Websocket proxy connect to a fixed URL.
         # This assumes the traffic is always forwarded to the same target.
@@ -975,18 +1034,7 @@ RUN \
             /root/replace.sh 's/recvmsg:\s*function\(sock,\s*length\)/recvmsg: function(sock, length, flags)/g' /root/output/php.js && \
             /root/replace.sh 's/if\s*\(sock\.type\s*===\s*1\s*&&\s*bytesRead\s*<\s*queuedLength\)/if (flags&2) {bytesRead = 0;} if (sock.type === 1 && bytesRead < queuedLength)/g' /root/output/php.js; \
         fi ; \
-    # Replace the hardcoded ENVIRONMENT variable with a dynamic computation
-        #
-        # The JavaScript code of the web loader and web worker loader is identical,
-        # but Emscripten forces running different code paths by setting
-        #
-        # ENVIRONMENT_IS_WEB = true; ENVIRONMENT_IS_WORKER = false
-        #
-        # This project supports both environments and would have to maintain two
-        # separate copies of the code. Instead, we use a dynamic computation of the
-        # environment, based on the `RuntimeName` variable, which is an argument to the
-        # wrapper function.
-        /root/replace.sh $'s/ENVIRONMENT_IS_([A-Z]+)\s*=\s*(true|false)/ENVIRONMENT_IS_$1=RuntimeName==="$1"/g' /root/output/php.js && \
+    # Let PHPLoader.ENV provide the initial environment variables
         /root/replace.sh 's/var ENV\s*=\s*\{\}/var ENV = PHPLoader.ENV || {}/g' /root/output/php.js && \
     # Turn the php.js file into an ES module
         # Manually turn the output into a esm module instead of relying on -s MODULARIZE=1.
@@ -1001,3 +1049,10 @@ RUN \
         # Rename the build files to their final names
         mv /root/output/php-module.js "/root/output/$JS_FILENAME" && \
         mv /root/output/php.wasm "/root/output/$WASM_FILENAME"
+
+# Export generated JS/Wasm artifacts without copying the toolchain filesystem.
+FROM scratch AS php-artifacts
+COPY --from=emscripten-php /root/output/ /
+
+# Keep the default build target and its complete image filesystem unchanged.
+FROM emscripten-php AS default

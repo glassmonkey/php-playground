@@ -1,0 +1,176 @@
+{
+  "kind": "libzip-1.2.0-static-output-review",
+  "reviewed_utc": "2026-10-25T13:45:00Z",
+  "php56_attempt": {
+    "run_id": "8cda86f0-b06f-4d22-bf0e-fc23ac529f8f",
+    "repo_revision": "973c7d8d517e50026a6c6bc3b439f5d35766e41a",
+    "php_source_sha": "05fb10165081cb4fb55a9943b44cab62c627db7a",
+    "inputs_sha256": "dcea9dec3e24fbee7817873b6f35dc5f5c3287b2e5e4a1f27342f1bc77a43437",
+    "result_sha256": "cb3f65326b063216f1623bfa31e62d6fae63e7911fad7f0910ea6c925d9c3339",
+    "terminal_result_sha256": "cb3f65326b063216f1623bfa31e62d6fae63e7911fad7f0910ea6c925d9c3339",
+    "build_log_sha256": "a551406f88cc319100d3115808931ffa818b8fcec33d4ff6db47b3a0a1271114",
+    "exit_code": 1,
+    "php_version": "5.6",
+    "libzip_version_selection": "Dockerfile branch selects LIBZIP_VERSION=1.2.0 for PHP 5.6; inputs and Dockerfile args preserved.",
+    "cmake_invocation_evidence": [
+      {
+        "line": 88,
+        "text": "#23 0.214 emcmake: cmake -DCMAKE_INSTALL_PREFIX=/root/lib -DBUILD_SHARED_LIBS=OFF -DZLIB_LIBRARY=/root/lib/lib/libz.a -DZLIB_INCLUDE_DIR=/root/lib/include .. -DCMAKE_TOOLCHAIN_FILE=/root/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake -DCMAKE_CROSSCOMPILING_EMULATOR=/root/emsdk/node/24.19.0_64bit/bin/node in directory /root/libzip/build"
+      }
+    ],
+    "build_target_evidence": [
+      {
+        "line": 335,
+        "text": "#24 7.718 [ 83%] Linking C shared library libzip.so"
+      },
+      {
+        "line": 336,
+        "text": "#24 7.838 [ 83%] Built target zip"
+      },
+      {
+        "line": 366,
+        "text": "#24 17.41 [ 85%] Built target zipcmp"
+      },
+      {
+        "line": 369,
+        "text": "#24 17.71 [ 86%] Built target zipmerge"
+      },
+      {
+        "line": 382,
+        "text": "#24 18.15 [ 89%] Built target ziptool"
+      },
+      {
+        "line": 421,
+        "text": "#25 0.201 [ 83%] Built target zip"
+      },
+      {
+        "line": 422,
+        "text": "#25 0.210 [ 85%] Built target zipcmp"
+      },
+      {
+        "line": 423,
+        "text": "#25 0.218 [ 86%] Built target zipmerge"
+      },
+      {
+        "line": 424,
+        "text": "#25 0.227 [ 89%] Built target ziptool"
+      }
+    ],
+    "install_manifest_evidence": [
+      {
+        "line": 434,
+        "text": "#25 0.293 -- Installing: /root/lib/lib/libzip/include/zipconf.h"
+      },
+      {
+        "line": 436,
+        "text": "#25 0.294 -- Installing: /root/lib/lib/libzip.so.3.0"
+      },
+      {
+        "line": 437,
+        "text": "#25 0.294 -- Installing: /root/lib/lib/libzip.so.3"
+      },
+      {
+        "line": 438,
+        "text": "#25 0.294 -- Installing: /root/lib/lib/libzip.so"
+      }
+    ],
+    "final_prefix_inventory_evidence": [
+      {
+        "line": 436,
+        "text": "#25 0.294 -- Installing: /root/lib/lib/libzip.so.3.0"
+      },
+      {
+        "line": 5103,
+        "text": "#92 0.027 lrwxrwxrwx 1 root root      11 Oct 25 13:41 libzip.so -> libzip.so.3"
+      },
+      {
+        "line": 5104,
+        "text": "#92 0.027 lrwxrwxrwx 1 root root      13 Oct 25 13:41 libzip.so.3 -> libzip.so.3.0"
+      },
+      {
+        "line": 5105,
+        "text": "#92 0.027 -rwxr-xr-x 1 root root  202081 Oct 25 13:41 libzip.so.3.0"
+      },
+      {
+        "line": 5218,
+        "text": "#92 0.039 /root/lib/lib/libzip.so.3.0"
+      }
+    ],
+    "final_link_missing_archive_evidence": [
+      {
+        "line": 5569,
+        "text": "#93 0.149 emcc2: error: /root/lib/lib/libzip.a: No such file or directory (\"/root/lib/lib/libzip.a\" was expected to be an input file, based on the commandline arguments provided)"
+      },
+      {
+        "line": 5582,
+        "text": "0.149 emcc2: error: /root/lib/lib/libzip.a: No such file or directory (\"/root/lib/lib/libzip.a\" was expected to be an input file, based on the commandline arguments provided)"
+      }
+    ],
+    "interpretation": "Confirmed by exact source: libzip1.2.0 hard-codes the sole zip target as SHARED and does not declare/consume BUILD_SHARED_LIBS. The commented zipstatic target is not built. Build log records only libzip.so install outputs; final-prefix inventory has those shared artifacts and no libzip.a. Therefore the archive was never generated/installed, not a Docker COPY omission or alternate path. CMakeCache/install_manifest were not captured, but source target definition and actual build/install output establish why."
+  },
+  "php74_all_enabled_static_runtime": {
+    "repo_revision": "973c7d8d517e50026a6c6bc3b439f5d35766e41a",
+    "php_source_sha": "004cb827501d1ddaf98daacb185a53e0816f78a7",
+    "build_result_sha": "7d999f8b3bb06f87b78ed225b52b33c6f07acffd67eec6060b157121860d2e46",
+    "smoke_result_sha256": "7d19545d5ed394ddeeb2d1cfa14f41c6b69c34d2ff61bdd1afac29f17ad430ee",
+    "smoke_log_sha256": "b148cb476d2445f52a9c156a8ff943eb90070b7cf206b2b4838971c2377cdcbd",
+    "exit_code": 0,
+    "tests": [
+      "",
+      " RUN  v4.1.10 /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure",
+      "",
+      "\u00b7",
+      "",
+      " Test Files  1 passed (1)",
+      "      Tests  1 passed (1)",
+      "   Start at  22:39:43",
+      "   Duration  242ms (transform 69ms, setup 20ms, import 69ms, tests 65ms, environment 0ms)",
+      ""
+    ],
+    "wasm_dynamic_side_module_names": [],
+    "observed_linked_archives": [
+      "libpng16.a",
+      "libsqlite3.a",
+      "libzip.a",
+      "libxml2.a",
+      "libssl.a",
+      "libcrypto.a",
+      "libz.a"
+    ],
+    "runtime_checks": [
+      "PNG output bytes",
+      "SQLite insert/query",
+      "ZIP write/read",
+      "OpenSSL encrypt/decrypt",
+      "DOM/XML parse",
+      "mbstring UTF-8 count"
+    ],
+    "older_dynamic_link_evidence_sha256": "e2715f31cfe47c4e1f6e6584448a2ab409fdad226d7cb1c1a3669001a8e289a4",
+    "older_side_module_names": [
+      "libpng16.so",
+      "libsqlite3.so"
+    ],
+    "qualification": "Static-link candidate 7.4 output is runtime-verified; older candidate6349148 side-module evidence is distinct and not a proof about static-link output."
+  },
+  "upstream_source_review": {
+    "source_url": "https://libzip.org/download/libzip-1.2.0.tar.gz",
+    "archive_sha256": "6cf9840e427db96ebf3936665430bab204c9ebbd0120c326459077ed9c907d9f",
+    "source_excerpts": [
+      {
+        "file": "/private/tmp/gla96-libzip-1.2.0-inspect/libzip-1.2.0/CMakeLists.txt",
+        "sha256": "21a2b0ea16ae7b9137a846356a8e90d4c9ea2e05d692044ee2c84abda1ffe229",
+        "line_start": 1,
+        "line_end": 26,
+        "text": "1: # TODO:\n2: # 1. pkgconfig file not yet built.\n3: # 2. installation not tested.\n4: # 3. Problems generating html pages.\n5: # 4. create usable libtool .la file\n6: \n7: CMAKE_MINIMUM_REQUIRED(VERSION 2.6)\n8: \n9: PROJECT(libzip C)\n10: \n11: INCLUDE(CheckFunctionExists)\n12: INCLUDE(CheckIncludeFiles)\n13: INCLUDE(CheckSymbolExists)\n14: INCLUDE(CheckTypeSize)\n15: INCLUDE(CheckCSourceRuns)\n16: INCLUDE(CheckCSourceCompiles)\n17: INCLUDE(CheckStructHasMember)\n18: INCLUDE(TestBigEndian)\n19: \n20: SET(PACKAGE \"libzip\")\n21: SET(PACKAGE_NAME ${PACKAGE})\n22: SET(PACKAGE_VERSION_MAJOR \"1\")\n23: SET(PACKAGE_VERSION_MINOR \"2\")\n24: SET(PACKAGE_VERSION_PATCH \"0\")\n25: #SET(VERSION \"${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR}\")\n26: SET(VERSION \"${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR}.${PACKAGE_VERSION_PATCH}\")"
+      },
+      {
+        "file": "/private/tmp/gla96-libzip-1.2.0-inspect/libzip-1.2.0/lib/CMakeLists.txt",
+        "sha256": "b3e2433afa264d68f7fee44eb23b5edb8c48b72da43dfed40ff553aed475ecf7",
+        "line_start": 189,
+        "line_end": 209,
+        "text": "189: CHECK_FUNCTION_EXISTS(mkstemp HAVE_MKSTEMP)\n190: IF(NOT HAVE_MKSTEMP)\n191:   SET(LIBZIP_EXTRA_FILES mkstemp.c)\n192: ENDIF(NOT HAVE_MKSTEMP)\n193: \n194: ADD_LIBRARY(zip SHARED ${LIBZIP_SOURCES} ${LIBZIP_EXTRA_FILES} ${LIBZIP_OPSYS_FILES})\n195: SET_TARGET_PROPERTIES(zip PROPERTIES VERSION 3.0 SOVERSION 3 )\n196: TARGET_LINK_LIBRARIES(zip ${ZLIB_LIBRARY})\n197: INSTALL(TARGETS zip\n198:   RUNTIME DESTINATION bin\n199:   ARCHIVE DESTINATION lib\n200:   LIBRARY DESTINATION lib)\n201: #CREATE_LIBTOOL_FILE(zip lib)\n202: \n203: #ADD_LIBRARY(zipstatic STATIC ${LIBZIP_SOURCES} ${LIBZIP_EXTRA_FILES} ${LIBZIP_OPSYS_FILES})\n204: #SET_TARGET_PROPERTIES(zipstatic PROPERTIES VERSION 3.0 SOVERSION 3 )\n205: #TARGET_LINK_LIBRARIES(zipstatic ${ZLIB_LIBRARY})\n206: #INSTALL(TARGETS zipstatic\n207: #  RUNTIME DESTINATION bin\n208: #  ARCHIVE DESTINATION lib\n209: #  LIBRARY DESTINATION lib)"
+      }
+    ],
+    "finding": "Exact libzip 1.2.0 source lib/CMakeLists.txt:194 declares ADD_LIBRARY(zip SHARED ...) unconditionally. Lines203-209 contain only a commented-out zipstatic target. Root CMakeLists has no BUILD_SHARED_LIBS declaration or use. Therefore -DBUILD_SHARED_LIBS=OFF is passed by the Docker recipe but cannot alter this explicitly typed target. INSTALL(TARGETS zip) lists ARCHIVE and LIBRARY destinations; static archive output would be installed there after target correction."
+  }
+}

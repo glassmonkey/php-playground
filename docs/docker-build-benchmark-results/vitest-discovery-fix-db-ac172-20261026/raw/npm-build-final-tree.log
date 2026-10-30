@@ -1,0 +1,35 @@
+
+> php-playground@0.1.0 build
+> vite build
+
+vite v7.3.2 building client environment for production...
+transforming...
+✓ 1221 modules transformed.
+rendering chunks...
+computing gzip size...
+public/index.html                            1.77 kB │ gzip:   0.71 kB
+public/php-worker-BGnQv4bC.js                5.59 kB
+public/php-7.1-DKFQYiZV.js                 147.16 kB
+public/php-7.2-oQnAsNag.js                 147.40 kB
+public/php-7.3-dr-o9hYK.js                 147.40 kB
+public/php-7.4-BXrnFgvh.js                 147.40 kB
+public/php-7.0-DkO_Sodq.js                 147.44 kB
+public/php-8.0-u6ppDM0z.js                 147.74 kB
+public/php-8.1--TnsCQ6O.js                 148.82 kB
+public/php-8.4-Cc-FbvC8.js                 149.03 kB
+public/php-8.2-Ck0UCKTG.js                 149.16 kB
+public/php-5.6-L09ZW6Rm.js                 149.28 kB
+public/php-8.3-CPRBsQLd.js                 149.29 kB
+public/php-8.5-WDBNiP1b.js                 151.34 kB
+public/base-80a1f760-D3RQk1FY.js             0.62 kB │ gzip:   0.29 kB
+public/consoleHook-59e792cb-Bm-mBBFF.js     19.70 kB │ gzip:   6.03 kB
+public/index-BvX34LK7.js                    27.65 kB │ gzip:   8.69 kB
+public/index-599aeaf7-DnR7rK54.js          144.23 kB │ gzip:  24.40 kB
+public/index-HMwZlM6W.js                   149.37 kB │ gzip:  25.30 kB
+public/index-CvPuDldH.js                 1,265.97 kB │ gzip: 421.70 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 2.32s

@@ -1,0 +1,26 @@
+
+> php-playground@0.1.0 test:ci
+> vitest run src/php-wasm/__tests__/php-response.test.ts --reporter=verbose
+
+failed to load config from /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/vitest.config.js
+
+⎯⎯⎯⎯⎯⎯⎯ Startup Error ⎯⎯⎯⎯⎯⎯⎯⎯
+Error: EPERM: operation not permitted, open '/Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/node_modules/.vite-temp/vitest.config.js.timestamp-1792831855020-dbcc32e8a577d.mjs'
+    at async open (node:internal/fs/promises:642:25)
+    at async Object.writeFile (node:internal/fs/promises:1249:14)
+    at async loadConfigFromBundledFile (file:///Users/glassmonkey/src/github.com/glassmonkey/php-playground/node_modules/vite/dist/node/chunks/config.js:35918:3)
+    at async bundleAndLoadConfigFile (file:///Users/glassmonkey/src/github.com/glassmonkey/php-playground/node_modules/vite/dist/node/chunks/config.js:35808:17)
+    at async loadConfigFromFile (file:///Users/glassmonkey/src/github.com/glassmonkey/php-playground/node_modules/vite/dist/node/chunks/config.js:35775:42)
+    at async resolveConfig (file:///Users/glassmonkey/src/github.com/glassmonkey/php-playground/node_modules/vite/dist/node/chunks/config.js:35424:22)
+    at async _createServer (file:///Users/glassmonkey/src/github.com/glassmonkey/php-playground/node_modules/vite/dist/node/chunks/config.js:25365:67)
+    at async createViteServer (file:///Users/glassmonkey/src/github.com/glassmonkey/php-playground/node_modules/vitest/dist/chunks/cli-api.BKg19Fvw.js:9815:17)
+    at async createVitest (file:///Users/glassmonkey/src/github.com/glassmonkey/php-playground/node_modules/vitest/dist/chunks/cli-api.BKg19Fvw.js:13119:17)
+    at async prepareVitest (file:///Users/glassmonkey/src/github.com/glassmonkey/php-playground/node_modules/vitest/dist/chunks/cli-api.BKg19Fvw.js:13481:14) {
+  errno: -1,
+  code: 'EPERM',
+  syscall: 'open',
+  path: '/Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/node_modules/.vite-temp/vitest.config.js.timestamp-1792831855020-dbcc32e8a577d.mjs'
+}
+
+
+

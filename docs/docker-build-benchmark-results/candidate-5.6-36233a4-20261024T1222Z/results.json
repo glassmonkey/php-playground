@@ -1,0 +1,25 @@
+{
+  "kind": "correctness-build-result",
+  "repo_revision": "36233a46fa82c8db2ff8b7655c6d14cadcaa194c",
+  "php_source_sha": "4b8f72da5dfb201af4e82dee960261d8657e414f",
+  "php_version": "5.6",
+  "exit_code": 0,
+  "observed_utc": "2026-10-24T12:22:50Z",
+  "ended_utc": "2026-10-24T12:47:20Z",
+  "summary": {
+    "status": "succeeded",
+    "note": "cache-enabled correctness/export build; not a performance measurement"
+  },
+  "raw_log": "raw/build.log",
+  "command": "raw/build-command.txt",
+  "metadata": "raw/build-metadata.json",
+  "image": {
+    "tag": "gla96-candidate-php56:36233a4",
+    "reference": "docker.io/library/gla96-candidate-php56:36233a4",
+    "digest": "sha256:1c8505c8c8ab77324e6369631f8e10aeb2a2c571b7e6a1e0b8f582446cafa5e4",
+    "index_digest": "sha256:1c8505c8c8ab77324e6369631f8e10aeb2a2c571b7e6a1e0b8f582446cafa5e4",
+    "name": "docker.io/library/gla96-candidate-php56:36233a4"
+  },
+  "benchmark_eligible": false,
+  "host_load_sample": "21:22  5 users, load averages: 17.45 71.31 77.85"
+}

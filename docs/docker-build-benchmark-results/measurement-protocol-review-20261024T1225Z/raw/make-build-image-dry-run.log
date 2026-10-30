@@ -1,0 +1,18 @@
+sysctl: sysctl fmt -1 1024 1: Operation not permitted
+cd src/wasm && \
+	docker build  . --tag=php-wasm:5.6 \
+		--build-arg PHP_VERSION=5.6 \
+		--build-arg WITH_VRZNO=yes \
+		--build-arg WITH_LIBXML=no \
+		--build-arg WITH_LIBPNG=no \
+		--build-arg WITH_LIBZIP=no \
+		--build-arg WITH_MBSTRING=yes \
+		--build-arg WITH_CLI_SAPI=no \
+		--build-arg WITH_OPENSSL=no \
+		--build-arg WITH_NODEFS=no \
+		--build-arg WITH_CURL=no \
+		--build-arg WITH_SQLITE=no \
+		--build-arg WITH_MYSQL=no \
+		--build-arg WITH_WS_NETWORKING_PROXY=no \
+		--build-arg EMSCRIPTEN_ENVIRONMENT=web && \
+	cd -

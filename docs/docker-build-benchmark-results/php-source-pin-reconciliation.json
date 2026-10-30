@@ -1,0 +1,134 @@
+{
+  "kind": "php-source-pin-reconciliation",
+  "created_utc": "2026-10-25",
+  "historical_manifest": "inputs.json (unchanged)",
+  "selection_policy": "Record the exact upstream PHP source commit used for correctness exports. Do not rewrite historical pins or alter source versions to satisfy tests. Before a baseline/candidate comparison, use the identical source SHA on both sides.",
+  "versions": [
+    {
+      "php_version": "5.6",
+      "actual_source_sha": "05fb10165081cb4fb55a9943b44cab62c627db7a",
+      "runtime_version_evidence": "5.6.41-dev",
+      "build_input_manifest": "candidate-5.6-php561dev-srcwasm-manager-elevated-1d8fe66-20261024T1325Z/inputs.json",
+      "result": "candidate-5.6-php561dev-srcwasm-manager-elevated-1d8fe66-20261024T1325Z/results.json",
+      "historical_manifest_sha": null,
+      "notes": "Actual SHA recorded from build inputs; prior source pin not overwritten."
+    },
+    {
+      "php_version": "7.0",
+      "actual_source_sha": "bd289af9630f827728b32360bcd09a614aae8f23",
+      "runtime_version_evidence": "7.0.33-dev",
+      "build_input_manifest": "candidate-7.0-correctness-de2bd42-20261025T0740Z/inputs.json",
+      "result": "candidate-7.0-correctness-de2bd42-20261025T0740Z/results.json",
+      "historical_manifest_sha": null,
+      "notes": "Actual SHA recorded from build inputs; prior source pin not overwritten."
+    },
+    {
+      "php_version": "7.1",
+      "actual_source_sha": "1d9205b665d898453cdd32036ad9b687cf6278fe",
+      "runtime_version_evidence": "7.1.34-dev",
+      "build_input_manifest": "candidate-7.1-correctness-de2bd42-20261025T0802Z/inputs.json",
+      "result": "candidate-7.1-correctness-de2bd42-20261025T0802Z/results.json",
+      "historical_manifest_sha": null,
+      "notes": "Actual SHA recorded from build inputs; prior source pin not overwritten."
+    },
+    {
+      "php_version": "7.2",
+      "actual_source_sha": "2d3d72412a6734e19a38ed10f385227a6238e4a6",
+      "runtime_version_evidence": "7.2.35-dev",
+      "build_input_manifest": "candidate-7.2-correctness-de2bd42-20261025T0818Z/inputs.json",
+      "result": "candidate-7.2-correctness-de2bd42-20261025T0818Z/results.json",
+      "historical_manifest_sha": null,
+      "notes": "Actual SHA recorded from build inputs; prior source pin not overwritten."
+    },
+    {
+      "php_version": "7.3",
+      "actual_source_sha": "7d92153182f86722f83963d6fb054609c40bed8d",
+      "runtime_version_evidence": "7.3.34-dev",
+      "build_input_manifest": "candidate-7.3-correctness-de2bd42-20261025T0828Z/inputs.json",
+      "result": "candidate-7.3-correctness-de2bd42-20261025T0828Z/results.json",
+      "historical_manifest_sha": null,
+      "notes": "Actual SHA recorded from build inputs; prior source pin not overwritten."
+    },
+    {
+      "php_version": "7.4",
+      "actual_source_sha": "004cb827501d1ddaf98daacb185a53e0816f78a7",
+      "runtime_version_evidence": "7.4.34-dev",
+      "build_input_manifest": "candidate-7.4-correctness-aa244646-20261025T0724Z/inputs.json",
+      "result": "candidate-7.4-correctness-aa244646-20261025T0724Z/results.json",
+      "historical_manifest_sha": null,
+      "notes": "Actual SHA recorded from build inputs; prior source pin not overwritten."
+    },
+    {
+      "php_version": "8.0",
+      "actual_source_sha": "670052c427eb08a67577789e3b00e56a4fd640a7",
+      "runtime_version_evidence": "8.0.30",
+      "build_input_manifest": "candidate-8.0-correctness-de2bd42-20261025T0838Z/inputs.json",
+      "result": "candidate-8.0-correctness-de2bd42-20261025T0838Z/results.json",
+      "historical_manifest_sha": null,
+      "notes": "Actual SHA recorded from build inputs; prior source pin not overwritten."
+    },
+    {
+      "php_version": "8.1",
+      "actual_source_sha": "6f82565f12630ba320c52c96e28160189b15ecbf",
+      "runtime_version_evidence": "8.1.34",
+      "build_input_manifest": "candidate-8.1-correctness-de2bd42-20261025T0848Z/inputs.json",
+      "result": "candidate-8.1-correctness-de2bd42-20261025T0848Z/results.json",
+      "historical_manifest_sha": null,
+      "notes": "Actual SHA recorded from build inputs; prior source pin not overwritten."
+    },
+    {
+      "php_version": "8.2",
+      "actual_source_sha": "a640b5288bc97882165631612bd6cb8e75dbf6d5",
+      "runtime_version_evidence": "8.2.36-dev",
+      "build_input_manifest": "candidate-8.2-correctness-de2bd42-20261025T0900Z/inputs.json",
+      "result": "candidate-8.2-correctness-de2bd42-20261025T0900Z/results.json",
+      "historical_manifest_sha": null,
+      "notes": "Actual SHA recorded from build inputs; prior source pin not overwritten."
+    },
+    {
+      "php_version": "8.3",
+      "actual_source_sha": "f35ed4fb5cf44ef9ecc48e105b6a53b590d54f0b",
+      "runtime_version_evidence": "8.3.37-dev",
+      "build_input_manifest": "candidate-8.3-correctness-de2bd42-20261025T0916Z/inputs.json",
+      "result": "candidate-8.3-correctness-de2bd42-20261025T0916Z/results.json",
+      "historical_manifest_sha": null,
+      "notes": "Actual SHA recorded from build inputs; prior source pin not overwritten."
+    },
+    {
+      "php_version": "8.4",
+      "actual_source_sha": "055e11e0c7e6fe5a9649afc2b79391608933ee79",
+      "runtime_version_evidence": "8.4.28-dev",
+      "build_input_manifest": "candidate-8.4-correctness-de2bd42-20261025T0932Z/inputs.json",
+      "result": "candidate-8.4-correctness-de2bd42-20261025T0932Z/results.json",
+      "historical_manifest_sha": "ad7ad7c425ae816426ed88f2540b0be3626f4222",
+      "notes": "Selected current official PHP branch commit; historical pin retained separately."
+    },
+    {
+      "php_version": "8.5",
+      "actual_source_sha": "48b3f94fe2d1055d05b4bfdebd9d84ce6565a73a",
+      "runtime_version_evidence": "8.5 build source version verified in prior runtime",
+      "build_input_manifest": "candidate-8.5-wasmBinary-36233a4-20261024T1056Z/inputs.json",
+      "result": "candidate-8.5-wasmBinary-36233a4-20261024T1056Z/results.json",
+      "historical_manifest_sha": null,
+      "notes": "Actual SHA recorded from build inputs; prior source pin not overwritten."
+    }
+  ],
+  "exceptions": [
+    {
+      "version": "5.6",
+      "source_sha": "4b8f72da5dfb201af4e82dee960261d8657e414f",
+      "evidence": "candidate-5.6-36233a4-20261024T1222Z/inputs.json",
+      "status": "preserved wrong-source 5.6.40 result; not adopted for 5.6.41-dev assets"
+    },
+    {
+      "version": "7.1",
+      "evidence": "candidate-7.1-correctness-de2bd42-20261025T0802Z/results.json",
+      "status": "build exit/end unknown; do not infer success terminal fields or rerun for bookkeeping"
+    },
+    {
+      "version": "7.0",
+      "evidence": "candidate-7.0-correctness-de2bd42-20261025T0740Z/raw/vitest-php70-worker-focused.log",
+      "status": "runtime load/phpinfo existing 5000ms timeout; unresolved; no timeout increase"
+    }
+  ]
+}

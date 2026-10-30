@@ -1,0 +1,22 @@
+{
+  "benchmark_eligible": false,
+  "command": "raw/build-command.txt",
+  "context_tree_sha": "b7c7411be2b1eb0af865952eb0d4961a5a7eb29e",
+  "ended_utc": "2026-10-25T07:37:16Z",
+  "exit_code": 0,
+  "image": {
+    "digest": "sha256:1a38be9d308e9d1acdfd48fe0ec2ac22a4ba6f5c066213daa99085fbf1cc0d15",
+    "tag": "gla96-candidate-php74:aa244646-correctness"
+  },
+  "kind": "correctness-build-result",
+  "metadata": "raw/build-metadata.json",
+  "observed_utc": "2026-10-25T07:24:59Z",
+  "php_source_sha": "004cb827501d1ddaf98daacb185a53e0816f78a7",
+  "php_version": "7.4",
+  "raw_log": "raw/build.log",
+  "repo_revision": "aa2446460137ae9ecdca6e739ae5f228dd2f5163",
+  "summary": {
+    "note": "cache-enabled correctness/export build; not a benchmark sample",
+    "status": "succeeded"
+  }
+}

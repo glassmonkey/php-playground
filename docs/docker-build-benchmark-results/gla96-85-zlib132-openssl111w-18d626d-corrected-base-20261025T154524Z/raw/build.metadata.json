@@ -1,0 +1,99 @@
+{
+  "buildx.build.provenance": {
+    "builder": {
+      "id": ""
+    },
+    "buildType": "https://mobyproject.org/buildkit@v1",
+    "materials": [
+      {
+        "uri": "pkg:docker/ubuntu?digest=sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac\u0026platform=linux%2Farm64",
+        "digest": {
+          "sha256": "68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac"
+        }
+      }
+    ],
+    "invocation": {
+      "configSource": {
+        "entryPoint": "Dockerfile"
+      },
+      "parameters": {
+        "frontend": "dockerfile.v0",
+        "args": {
+          "build-arg:BASE_IMAGE": "ubuntu@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+          "build-arg:EMSCRIPTEN_ENVIRONMENT": "web",
+          "build-arg:EMSDK_REPO_REF": "d7b4130688bfa348392b921ab04015aa15c4f154",
+          "build-arg:EMSDK_VERSION": "6.0.13",
+          "build-arg:PHP_SOURCE_REF": "48b3f94fe2d1055d05b4bfdebd9d84ce6565a73a",
+          "build-arg:PHP_VERSION": "8.5",
+          "build-arg:WITH_CLI_SAPI": "no",
+          "build-arg:WITH_CURL": "no",
+          "build-arg:WITH_LIBPNG": "yes",
+          "build-arg:WITH_LIBXML": "yes",
+          "build-arg:WITH_LIBZIP": "yes",
+          "build-arg:WITH_MBSTRING": "yes",
+          "build-arg:WITH_MYSQL": "no",
+          "build-arg:WITH_NODEFS": "no",
+          "build-arg:WITH_OPENSSL": "yes",
+          "build-arg:WITH_SQLITE": "yes",
+          "build-arg:WITH_VRZNO": "yes",
+          "build-arg:WITH_WS_NETWORKING_PROXY": "no",
+          "build-arg:ZLIB_SHA256": "bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16",
+          "build-arg:ZLIB_VERSION": "1.3.2",
+          "cpusetcpus": "0-1",
+          "memory": "4294967296",
+          "target": "php-artifacts"
+        },
+        "locals": [
+          {
+            "name": "context"
+          },
+          {
+            "name": "dockerfile"
+          }
+        ],
+        "root": {
+          "configSource": {
+            "path": "Dockerfile"
+          },
+          "request": {
+            "args": {
+              "build-arg:BASE_IMAGE": "ubuntu@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+              "build-arg:EMSCRIPTEN_ENVIRONMENT": "web",
+              "build-arg:EMSDK_REPO_REF": "d7b4130688bfa348392b921ab04015aa15c4f154",
+              "build-arg:EMSDK_VERSION": "6.0.13",
+              "build-arg:PHP_SOURCE_REF": "48b3f94fe2d1055d05b4bfdebd9d84ce6565a73a",
+              "build-arg:PHP_VERSION": "8.5",
+              "build-arg:WITH_CLI_SAPI": "no",
+              "build-arg:WITH_CURL": "no",
+              "build-arg:WITH_LIBPNG": "yes",
+              "build-arg:WITH_LIBXML": "yes",
+              "build-arg:WITH_LIBZIP": "yes",
+              "build-arg:WITH_MBSTRING": "yes",
+              "build-arg:WITH_MYSQL": "no",
+              "build-arg:WITH_NODEFS": "no",
+              "build-arg:WITH_OPENSSL": "yes",
+              "build-arg:WITH_SQLITE": "yes",
+              "build-arg:WITH_VRZNO": "yes",
+              "build-arg:WITH_WS_NETWORKING_PROXY": "no",
+              "build-arg:ZLIB_SHA256": "bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16",
+              "build-arg:ZLIB_VERSION": "1.3.2",
+              "cpusetcpus": "0-1",
+              "memory": "4294967296",
+              "target": "php-artifacts",
+              "vcs:localdir:context": "docs/docker-build-benchmark-results/gla96-85-zlib132-openssl111w-18d626d-corrected-base-20261025T154524Z/contexts/target",
+              "vcs:localdir:dockerfile": "docs/docker-build-benchmark-results/gla96-85-zlib132-openssl111w-18d626d-corrected-base-20261025T154524Z/contexts/target",
+              "vcs:revision": "18d626d39d0ca998414d0183e10dc5f2739e5ca1",
+              "vcs:source": "https://github.com/glassmonkey/php-playground.git"
+            }
+          }
+        },
+        "compatibilityVersion": 30
+      },
+      "environment": {
+        "dockerfileVersion": "1.27.0",
+        "platform": "linux/arm64"
+      }
+    }
+  },
+  "buildx.build.ref": "gla96-a3c1/gla96-a3c10/bhpr1morxq7jyelq7rrcl0j17"
+}

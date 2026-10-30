@@ -1,0 +1,60 @@
+started_utc=2026-10-25T09:59:12Z
+command: ./node_modules/.bin/vitest run src/workers/__test__/php-worker.spec.ts -t 'version: (5\.6|7\.0) should load wasm file' --exclude docs/docker-build-benchmark-results/**
+
+ RUN  v4.1.10 /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure
+
+stderr | src/workers/__test__/php-worker.spec.ts > load wasm files > version: 5.6 should load wasm file, eval(1+1=2)
+[gla96-diag] client:request 1792922363386 5.6 id-1792922363386-0.4896425523489555
+[gla96-diag] client:posted 1792922363387 5.6 id-1792922363386-0.4896425523489555
+
+stderr | src/workers/__test__/php-worker.spec.ts > load wasm files > version: 7.0 should load wasm file, eval(1+1=2)
+[gla96-diag] client:request 1792922368001 7.0 id-1792922368001-0.466879171732153
+[gla96-diag] client:posted 1792922368002 7.0 id-1792922368001-0.466879171732153
+
+stderr | src/workers/__test__/php-worker.spec.ts > load wasm files > version: 7.0 should load wasm file, eval(1+1=2)
+[gla96-diag] message 1792922370967 5.6 id-1792922363386-0.4896425523489555
+[gla96-diag] initPHP:start 1792922370967 5.6
+
+stderr | src/workers/__test__/php-worker.spec.ts > load wasm files > version: 7.0 should load wasm file, eval(1+1=2)
+wasm streaming compile failed: TypeError [ERR_INVALID_ARG_TYPE]: The "source" argument must be an instance of Response or an Promise resolving to Response. Received an instance of ResponseMock
+falling back to ArrayBuffer instantiation
+
+stderr | src/workers/__test__/php-worker.spec.ts > load wasm files > version: 7.0 should load wasm file, eval(1+1=2)
+[gla96-diag] initPHP:ready 1792922371104 5.6
+
+stderr | src/workers/__test__/php-worker.spec.ts > load wasm files > version: 7.0 should load wasm file, eval(1+1=2)
+[gla96-diag] module:ready 1792922371259 5.6
+[gla96-diag] runPHP:start 1792922371259 5.6
+[gla96-diag] runPHP:done 1792922371626 5.6 0 1
+
+stderr | src/workers/__test__/php-worker.spec.ts > load wasm files > version: 7.0 should load wasm file, eval(1+1=2)
+[gla96-diag] worker:posted 1792922371667 5.6 id-1792922363386-0.4896425523489555
+
+ ❯ src/workers/__test__/php-worker.spec.ts (308 tests | 2 failed | 306 skipped) 10021ms
+     × version: 5.6 should load wasm file, eval(1+1=2) 5012ms
+     × version: 7.0 should load wasm file, eval(1+1=2) 5005ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/workers/__test__/php-worker.spec.ts > load wasm files > version: 5.6 should load wasm file, eval(1+1=2)
+ FAIL  src/workers/__test__/php-worker.spec.ts > load wasm files > version: 7.0 should load wasm file, eval(1+1=2)
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/workers/__test__/php-worker.spec.ts:31:18
+     29|
+     30| describe('load wasm files', async function () {
+     31|  it.each(versions)(
+       |                  ^
+     32|   'version: %s should load wasm file, eval(1+1=2)',
+     33|   async function (v) {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 306 skipped (308)
+   Start at  18:59:19
+   Duration  13.37s (transform 7.71s, setup 74ms, import 1.37s, tests 10.02s, environment 0ms)
+
+ended_utc=2026-10-25T09:59:33Z
+exit_code=1

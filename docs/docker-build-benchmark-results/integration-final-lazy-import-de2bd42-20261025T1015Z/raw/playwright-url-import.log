@@ -1,0 +1,78 @@
+started_utc=2026-10-25T10:17:58Z
+LANG=ja_JP.UTF-8 LC_ALL=C.UTF-8
+LANG="ja_JP.UTF-8"
+LC_COLLATE="C.UTF-8"
+LC_CTYPE="C.UTF-8"
+LC_MESSAGES="C.UTF-8"
+LC_MONETARY="C.UTF-8"
+LC_NUMERIC="C.UTF-8"
+LC_TIME="C.UTF-8"
+LC_ALL="C.UTF-8"
+command=npm run test:e2e -- --reporter=line
+
+> php-playground@0.1.0 test:e2e
+> playwright test --reporter=line
+
+[WebServer] 
+[WebServer] > php-playground@0.1.0 preview
+[WebServer] > vite build && vite preview --port 8888
+[WebServer] 
+
+[WebServer] (node:17358) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+[WebServer] vite v7.3.2 building client environment for production...
+
+[WebServer] transforming...
+
+[WebServer] ✓ 1221 modules transformed.
+
+[WebServer] rendering chunks...
+
+[WebServer] computing gzip size...
+
+[WebServer] public/index.html                            1.77 kB │ gzip:   0.71 kB
+
+[WebServer] public/php-worker-BllrmWR5.js                5.59 kB
+[WebServer] public/php-7.1-DKFQYiZV.js                 147.16 kB
+[WebServer] public/php-7.2-oQnAsNag.js                 147.40 kB
+[WebServer] public/php-7.3-dr-o9hYK.js                 147.40 kB
+[WebServer] public/php-7.4-BXrnFgvh.js                 147.40 kB
+[WebServer] public/php-7.0-DkO_Sodq.js                 147.44 kB
+[WebServer] public/php-5.6-D2cBEf98.js                 147.70 kB
+[WebServer] public/php-8.0-u6ppDM0z.js                 147.74 kB
+[WebServer] public/php-8.1--TnsCQ6O.js                 148.82 kB
+[WebServer] public/php-8.4-Cc-FbvC8.js                 149.03 kB
+[WebServer] public/php-8.2-Ck0UCKTG.js                 149.16 kB
+[WebServer] public/php-8.3-CPRBsQLd.js                 149.29 kB
+[WebServer] public/php-8.5-B1GrM3HL.js                 149.55 kB
+[WebServer] public/base-80a1f760-CUZogR-q.js             0.62 kB │ gzip:   0.29 kB
+[WebServer] public/consoleHook-59e792cb-D4FAW1VT.js     19.70 kB │ gzip:   6.04 kB
+
+[WebServer] public/index-Dz1lnv5u.js                    27.65 kB │ gzip:   8.69 kB
+[WebServer] public/index-599aeaf7-ptQtt1h6.js          144.23 kB │ gzip:  24.40 kB
+[WebServer] public/index-ZNG5CuCC.js                   149.37 kB │ gzip:  25.30 kB
+[WebServer] public/index-DZ1oZ4zC.js                 1,265.97 kB │ gzip: 421.70 kB
+
+[WebServer] 
+[WebServer] (!) Some chunks are larger than 500 kB after minification. Consider:
+[WebServer] - Using dynamic import() to code-split the application
+[WebServer] - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+[WebServer] - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+
+[WebServer] ✓ built in 25.16s
+
+[WebServer] (node:18255) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+[WebServer] error when starting preview server:
+[WebServer] Error: listen EPERM: operation not permitted 127.0.0.1:8888
+[WebServer]     at Server.setupListenHandle [as _listen2] (node:net:1918:21)
+[WebServer]     at listenInCluster (node:net:1997:12)
+[WebServer]     at node:net:2206:7
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Error: Process from config.webServer was not able to start. Exit code: 1
+
+ended_utc=2026-10-25T10:18:33Z
+exit_code=1

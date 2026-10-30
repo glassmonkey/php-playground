@@ -1,0 +1,8 @@
+...#1 [compile 1/1] RUN make FAILED
+.........
+----------------------------------------------------------------------
+Ran 12 tests in 3.603s
+
+OK
+py_compile_exit=0
+contract_test_exit=0
