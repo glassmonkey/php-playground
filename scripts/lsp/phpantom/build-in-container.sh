@@ -296,7 +296,7 @@ for path in sorted((entry for entry in root.rglob('*') if entry.is_file()), key=
     digest.update(relative + b'\0' + hashlib.sha256(path.read_bytes()).digest() + b'\n')
 print(digest.hexdigest())
 PY
-)
+ )"
 	if [[ -z "$expected_stubs_tree_sha256" || "$cached_tree_sha256" != "$expected_stubs_tree_sha256" ]]; then
 		printf 'Prebuild stub-cache tree SHA-256 mismatch: expected %s; got %s\n' \
 			"${expected_stubs_tree_sha256:-<no prior verified tree>}" "$cached_tree_sha256" >&2
