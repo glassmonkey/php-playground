@@ -14,6 +14,9 @@ describe('static metadata HTML', () => {
 			description: 'Read "a & b" safely.',
 			canonicalPath: '/tutorial/5.6/string-functions/',
 			canonicalUrl: 'https://php-play.dev/tutorial/5.6/string-functions/',
+			imageUrl:
+				'https://php-play.dev/tutorial/5.6/string-functions/og.png',
+			imageAlt: 'String functions & PHP',
 		});
 		expect(html.match(/<link\s+rel="canonical"[^>]*>/g)).toEqual([
 			'<link rel="canonical" href="https://php-play.dev/tutorial/5.6/string-functions/">',
@@ -43,7 +46,11 @@ describe('static metadata HTML', () => {
 
 describe('tutorial SEO build emission', () => {
 	it('emits registry pages with one canonical and excludes aliases and unsupported lessons from the sitemap', () => {
-		type Asset = { type: 'asset'; fileName: string; source: string };
+		type Asset = {
+			type: 'asset';
+			fileName: string;
+			source: string | Uint8Array;
+		};
 		// Exercise the actual Vite hooks with only the context API this plugin uses.
 		const plugin = tutorialSeoBuildPlugin() as unknown as {
 			transformIndexHtml: { handler(html: string): string };
@@ -71,7 +78,9 @@ describe('tutorial SEO build emission', () => {
 			...fixedPaths.map((path) => `https://php-play.dev${path}`),
 		];
 		const sitemapUrls = Array.from(
-			emitted.get('sitemap.xml')!.matchAll(/<loc>([^<]+)<\/loc>/g),
+			(emitted.get('sitemap.xml') as string).matchAll(
+				/<loc>([^<]+)<\/loc>/g
+			),
 			(match) => match[1]
 		);
 		expect(sitemapUrls.sort()).toEqual(expectedUrls.sort());
@@ -80,7 +89,15 @@ describe('tutorial SEO build emission', () => {
 			'<link rel="canonical" href="https://php-play.dev/">',
 		]);
 		for (const path of fixedPaths) {
-			const html = emitted.get(`${path.slice(1)}index.html`)!;
+			const html = emitted.get(`${path.slice(1)}index.html`) as string;
+			const png = emitted.get(`${path.slice(1)}og.png`);
+			expect(png).toBeInstanceOf(Uint8Array);
+			expect(Array.from((png as Uint8Array).slice(0, 8))).toEqual([
+				137, 80, 78, 71, 13, 10, 26, 10,
+			]);
+			expect(html).toContain(
+				`<meta property="og:image" content="https://php-play.dev${path}og.png">`
+			);
 			expect(html.match(/<link\s+rel="canonical"[^>]*>/g), path).toEqual([
 				`<link rel="canonical" href="https://php-play.dev${path}">`,
 			]);
@@ -106,7 +123,7 @@ describe('tutorial SEO build emission', () => {
 			]),
 		];
 		for (const [file, path] of aliases) {
-			const html = emitted.get(file)!;
+			const html = emitted.get(file) as string;
 			expect(html, file).toContain(
 				`<meta http-equiv="refresh" content="0;url=https://php-play.dev${path}">`
 			);
@@ -120,5 +137,5 @@ describe('tutorial SEO build emission', () => {
 		expect(emitted.get('robots.txt')).toContain(
 			'Sitemap: https://php-play.dev/sitemap.xml'
 		);
-	});
+	}, 30_000);
 });

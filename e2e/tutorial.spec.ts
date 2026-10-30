@@ -52,6 +52,37 @@ test.describe('versioned tutorial routes', () => {
 		});
 	}
 
+	test('serves article OGP metadata and generated PNGs before JavaScript', async ({
+		request,
+	}) => {
+		for (const path of ['/tutorial/8.5/variables/', '/tutorial/7.4/']) {
+			const html = await (await request.get(path)).text();
+			expect(html).toContain(
+				`<meta property="og:image" content="https://php-play.dev${path}og.png">`
+			);
+			expect(html).toContain(
+				`<meta name="twitter:image" content="https://php-play.dev${path}og.png">`
+			);
+			const image = await request.get(`${path}og.png`);
+			expect(image.status()).toBe(200);
+			expect(image.headers()['content-type']).toMatch(/^image\/png/);
+			const bytes = await image.body();
+			expect([...bytes.subarray(0, 8)]).toEqual([
+				137, 80, 78, 71, 13, 10, 26, 10,
+			]);
+			expect([bytes.readUInt32BE(16), bytes.readUInt32BE(20)]).toEqual([
+				1200, 630,
+			]);
+		}
+		for (const path of [
+			'/tutorial/8.0/enums/og.png',
+			'/tutorial/8.5/missing/og.png',
+			'/tutorial/5.5/og.png',
+		]) {
+			expect((await request.get(path)).status()).toBe(404);
+		}
+	});
+
 	for (const path of ['/sitemap.xml', '/sitemap.xml?preview=1']) {
 		test(`serves XML instead of the SPA at ${path}`, async ({
 			request,
@@ -153,6 +184,11 @@ test.describe('versioned tutorial routes', () => {
 			'content',
 			await page.title()
 		);
+		await expect(page.locator('meta[property="og:image"]')).toHaveCount(1);
+		await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+			'content',
+			'https://php-play.dev/tutorial/8.5/variables/og.png'
+		);
 		await page.getByLabel('Learn with').selectOption('7.4');
 		await expect(canonical).toHaveCount(1);
 		await expect(canonical).toHaveAttribute(
@@ -167,6 +203,16 @@ test.describe('versioned tutorial routes', () => {
 			'href',
 			'https://php-play.dev/tutorial/7.4/arrays/'
 		);
+		await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+			'content',
+			'https://php-play.dev/tutorial/7.4/arrays/og.png'
+		);
+		await expect(
+			page.locator('meta[name="twitter:image"]')
+		).toHaveAttribute(
+			'content',
+			'https://php-play.dev/tutorial/7.4/arrays/og.png'
+		);
 		await page
 			.getByRole('link', { name: 'PHP Playground', exact: true })
 			.click();
@@ -176,6 +222,13 @@ test.describe('versioned tutorial routes', () => {
 			'https://php-play.dev/'
 		);
 		await expect(page).toHaveTitle('PHP Playground');
+		await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+			'content',
+			'https://php-play.dev/ogp.png'
+		);
+		await expect(
+			page.locator('meta[name="twitter:image"]')
+		).toHaveAttribute('content', 'https://php-play.dev/ogp.png');
 		await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
 			'content',
 			'https://php-play.dev/'

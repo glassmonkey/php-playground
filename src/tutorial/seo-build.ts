@@ -6,6 +6,7 @@ import {
 } from './config';
 import { getHomeMetadata, getTutorialMetadata, SITE_ORIGIN } from './seo';
 import type { Plugin } from 'vite';
+import { renderTutorialOgImage } from './og-image';
 
 function escapeAttribute(value: string): string {
 	return value
@@ -78,6 +79,30 @@ export function renderMetadataHtml(
 		`<meta property="og:description" content="${escapeAttribute(metadata.description)}">`,
 		'Open Graph description'
 	);
+	html = replaceExactlyOne(
+		html,
+		/<meta\s+property=["']og:image["'][^>]*>/gi,
+		`<meta property="og:image" content="${escapeAttribute(metadata.imageUrl)}">`,
+		'Open Graph image'
+	);
+	html = replaceExactlyOne(
+		html,
+		/<meta\s+name=["']twitter:image["'][^>]*>/gi,
+		`<meta name="twitter:image" content="${escapeAttribute(metadata.imageUrl)}">`,
+		'Twitter image'
+	);
+	html = replaceExactlyOne(
+		html,
+		/<meta\s+property=["']og:image:alt["'][^>]*>/gi,
+		`<meta property="og:image:alt" content="${escapeAttribute(metadata.imageAlt)}">`,
+		'Open Graph image alt'
+	);
+	html = replaceExactlyOne(
+		html,
+		/<meta\s+name=["']twitter:image:alt["'][^>]*>/gi,
+		`<meta name="twitter:image:alt" content="${escapeAttribute(metadata.imageAlt)}">`,
+		'Twitter image alt'
+	);
 	return html.replace(/href=(['"])favicon\.svg\1/g, 'href="/favicon.svg"');
 }
 
@@ -140,7 +165,7 @@ function emitStaticTutorialPages(
 	emitFile: (asset: {
 		type: 'asset';
 		fileName: string;
-		source: string;
+		source: string | Uint8Array;
 	}) => void,
 	template: string
 ): void {
@@ -151,12 +176,22 @@ function emitStaticTutorialPages(
 			fileName: outputPath(indexMetadata.canonicalPath),
 			source: renderMetadataHtml(template, indexMetadata),
 		});
+		emitFile({
+			type: 'asset',
+			fileName: `${indexMetadata.canonicalPath.replace(/^\/+|\/+$/g, '')}/og.png`,
+			source: renderTutorialOgImage(version),
+		});
 		for (const lesson of lessonsByVersion[version]) {
 			const metadata = getTutorialMetadata(version, lesson);
 			emitFile({
 				type: 'asset',
 				fileName: outputPath(metadata.canonicalPath),
 				source: renderMetadataHtml(template, metadata),
+			});
+			emitFile({
+				type: 'asset',
+				fileName: `${metadata.canonicalPath.replace(/^\/+|\/+$/g, '')}/og.png`,
+				source: renderTutorialOgImage(version, lesson),
 			});
 		}
 	}
@@ -220,6 +255,40 @@ export function tutorialSeoBuildPlugin(): Plugin {
 		configureServer(server) {
 			server.middlewares.use((request, response, next) => {
 				const pathname = request.url?.split('?')[0];
+				const imageMatch = pathname?.match(
+					/^\/tutorial\/([^/]+)(?:\/([^/]+))?\/og\.png$/
+				);
+				if (imageMatch) {
+					if (!['GET', 'HEAD'].includes(request.method ?? '')) {
+						next();
+						return;
+					}
+					const version = imageMatch[1];
+					const slug = imageMatch[2];
+					const lesson = slug
+						? isTutorialVersion(version)
+							? lessonsByVersion[version].find(
+									(item) => item.slug === slug
+								)
+							: undefined
+						: undefined;
+					if (!isTutorialVersion(version) || (slug && !lesson)) {
+						response.statusCode = 404;
+						response.setHeader(
+							'Content-Type',
+							'text/plain; charset=utf-8'
+						);
+						response.end('Not found');
+						return;
+					}
+					const image = renderTutorialOgImage(version, lesson);
+					response.statusCode = 200;
+					response.setHeader('Content-Type', 'image/png');
+					response.setHeader('Content-Length', image.byteLength);
+					response.setHeader('Cache-Control', 'no-store');
+					response.end(request.method === 'HEAD' ? undefined : image);
+					return;
+				}
 				if (pathname !== '/sitemap.xml' && pathname !== '/robots.txt') {
 					next();
 					return;

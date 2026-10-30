@@ -30,4 +30,6 @@ description: Create, revise, or evaluate lessons and exercises in this repositor
 
 完了時は、変更した版・slug、参照した一次資料、Playground で実行したサンプルとケース、意図的な誤答による評価確認、未確認事項を報告します。検証不能な結果を推測で埋めません。
 
-記事・版の追加時は `lessonsByVersion` を正本にします。通常の `npm run build` が `src/tutorial/seo-build.ts` から固定版の HTML、canonical、sitemap.xml を生成するため、サイトマップを手作業で追記しません。生成物で対象記事の URL と canonical が一致し、未対応版や latest エイリアスが sitemap に含まれないことを確認します。`/tutorial/` と `/tutorial/latest/` は設定された固定版へ転送し、canonical は常に本番ドメインの固定版 URL にします。
+記事・版の追加時は `lessonsByVersion` を正本にします。通常の `npm run build` が `src/tutorial/seo-build.ts` から固定版の HTML、canonical、sitemap.xml、OGP PNG を同じ公開ディレクトリへ生成するため、サイトマップを手作業で追記しません。生成物で対象記事の URL と canonical が一致し、未対応版や latest エイリアスが sitemap に含まれないことを確認します。`/tutorial/` と `/tutorial/latest/` は設定された固定版へ転送し、canonical は常に本番ドメインの固定版 URL にします。
+
+OGP は `src/tutorial/og-image.ts` が Lesson の title・summary・chapterId と PHP 版から生成します。画像用の文言や JSON を別管理せず、記事データの更新に追従させます。通常ビルドで生成される記事の `og.png` と `og:image` / `twitter:image` の対応を確認し、長いタイトルや要約を更新した場合は画像の改行・省略も目視確認します。フォントはライセンス付きで同梱し、外部フォント取得や OS フォントに依存させません。

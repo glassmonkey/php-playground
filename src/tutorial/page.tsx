@@ -43,6 +43,8 @@ function applyPageMetadata(
 	const selected = metadata ?? {
 		title: 'Tutorial not found | PHP Playground',
 		description: 'This tutorial page is unavailable.',
+		imageUrl: getHomeMetadata().imageUrl,
+		imageAlt: getHomeMetadata().imageAlt,
 	};
 	document.title = selected.title;
 	const meta = (
@@ -64,6 +66,10 @@ function applyPageMetadata(
 	meta('name', 'description', selected.description);
 	meta('property', 'og:title', selected.title);
 	meta('property', 'og:description', selected.description);
+	meta('property', 'og:image', selected.imageUrl);
+	meta('property', 'og:image:alt', selected.imageAlt);
+	meta('name', 'twitter:image', selected.imageUrl);
+	meta('name', 'twitter:image:alt', selected.imageAlt);
 	const canonicalNodes = Array.from(
 		document.head.querySelectorAll<HTMLLinkElement>('link[rel="canonical"]')
 	);
