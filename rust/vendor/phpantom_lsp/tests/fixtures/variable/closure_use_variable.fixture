@@ -1,9 +1,0 @@
-// test: closure use variable completion shows outer scope variables
-// feature: completion
-// Adapted from phpactor WorseLocalVariableCompletorTest 'Use variables'
-// expect: $foobar
----
-<?php
-$barfoo = 12;
-$foobar = new stdClass();
-$f = function () use ($<>

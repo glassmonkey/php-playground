@@ -1,9 +1,0 @@
-// test: variable completion expands array shape keys as variable suggestions
-// feature: completion
-// Adapted from phpactor WorseLocalVariableCompletorTest 'array keys'
-// expect: $foo
----
-<?php
-/** @var array{name:string,age:int} $foo */
-$foo = getData();
-$fo<>

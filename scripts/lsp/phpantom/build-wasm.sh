@@ -46,10 +46,11 @@ trap 'rmdir "$lock_dir"' EXIT
 mkdir -p "$matrix_cache/cache" "$matrix_cache/out-target"
 
 expected_stubs_tree_sha256=''
+wasm_target_cache="$matrix_cache/out-target/wasm32-wasip1"
 if [[ -f "$matrix_cache/stubs-tree.sha256" ]]; then
 	expected_stubs_tree_sha256="$(cat "$matrix_cache/stubs-tree.sha256")"
-elif find "$matrix_cache/out-target" -mindepth 1 -print -quit | grep -q .; then
-	printf 'Cargo target cache is populated but has no verified stubs tree record; refusing reuse.\n' >&2
+elif find "$wasm_target_cache" -mindepth 1 -print -quit 2>/dev/null | grep -q .; then
+	printf 'WASI target cache is populated but has no verified stubs tree record; refusing reuse.\n' >&2
 	exit 1
 fi
 

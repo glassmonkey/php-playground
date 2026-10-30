@@ -2,55 +2,40 @@ name: PHPantom runtime
 
 on:
   push:
-    branches: [gla-115-inrepo-rust]
+    branches: [gla-115-phpantom-runtime]
     paths:
-      - Cargo.toml
-      - Cargo.lock
-      - rust-toolchain.toml
-      - rust/**
+      - Makefile
       - .github/workflows/phpantom-runtime.yml
+      - docs/lsp/phpantom.md
+      - scripts/lsp/phpantom/**
   pull_request:
     branches: [master]
     paths:
-      - Cargo.toml
-      - Cargo.lock
-      - rust-toolchain.toml
-      - rust/**
+      - Makefile
       - .github/workflows/phpantom-runtime.yml
+      - docs/lsp/phpantom.md
+      - scripts/lsp/phpantom/**
 
 permissions:
   contents: read
 
-env:
-  CARGO_TERM_COLOR: always
-  CARGO_BUILD_TARGET: x86_64-unknown-linux-gnu
-  PHPANTOM_GIT_VERSION: 0.11.1
+concurrency:
+  group: phpantom-runtime-${{ github.event.pull_request.head.ref || github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
   phpantom-runtime:
-    name: PHPantom runtime
+    name: Pinned PHPantom native and WASI checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: 1.99.0
-          components: clippy, rustfmt
-          targets: wasm32-wasip1
-      - uses: Swatinem/rust-cache@v2
-        with:
-          shared-key: phpantom-runtime
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: cargo fmt --all --check
-      - run: cargo clippy --locked -p phpantom_lsp --features lsp-dispatch --lib --target x86_64-unknown-linux-gnu -- -D warnings
-      - run: cargo clippy --locked -p phpantom-runtime-wrapper --all-targets --target x86_64-unknown-linux-gnu -- -D warnings
-      - run: cargo test --locked -p phpantom-runtime-wrapper --test public_lsp --target x86_64-unknown-linux-gnu -- --nocapture
-      - run: cargo clippy --locked -p phpantom-runtime-wrapper --lib --target wasm32-wasip1 -- -D warnings
-      - name: Build the browser runtime wrapper
-        run: cargo build --locked -p phpantom-runtime-wrapper --profile wasm-release --target wasm32-wasip1
-      - name: Smoke-test the WASI reactor
-        run: node rust/vendor/phpantom_lsp/scripts/wasm-smoke-test.mjs target/wasm32-wasip1/wasm-release/phpantom_runtime_wrapper.wasm
-      - name: Check all supported PHP versions through the WASI ABI
-        run: node rust/phpantom-runtime-wrapper/tests/wasm_versions.mjs target/wasm32-wasip1/wasm-release/phpantom_runtime_wrapper.wasm
+      - name: Run native regression probe
+        run: make test-phpantom-runtime-native
+      - name: Build and test selected WASI version boundaries
+        run: |
+          for php_version in 7.4 8.0 8.3 8.5; do
+            make build-phpantom-runtime PHPANTOM_TARGET_VERSION="$php_version"
+          done
