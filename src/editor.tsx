@@ -45,7 +45,7 @@ function PhpEditor(params: {
 	React.useEffect(() => {
 		if (!params.autoComplete || !lspBinding) return;
 
-		const worker = createWorker();
+		const worker = createWorker(params.version);
 		let client: LspClient | undefined;
 		let cancelled = false;
 

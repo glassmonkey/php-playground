@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type * as Monaco from 'monaco-editor';
-import { versions } from '../../php-wasm/php';
 import type { Version } from '../../php-wasm/php';
 import { LspClient } from '../client';
 import { phpVersionInitializationError } from '../phpantom/php-version.mjs';
+import { reviewedPhpVersions } from '../phpantom/artifact-registry';
 
 type RpcMessage = {
 	jsonrpc: '2.0';
@@ -55,7 +55,7 @@ class TestWorker {
 		if (message.method === 'initialize') {
 			const reason = phpVersionInitializationError(
 				initializationOptions(message),
-				versions
+				reviewedPhpVersions()
 			);
 			queueMicrotask(() =>
 				this.reply({
@@ -382,5 +382,23 @@ describe('PHPantom Monaco lifecycle', () => {
 
 		restoredClient.dispose();
 		expect(monaco.getActive()).toHaveLength(0);
+	});
+
+	it('rejects a PHP release without a reviewed PHPantom artifact even when PHP is supported by the app', async () => {
+		const document = testModel();
+		const monaco = testMonaco(document.model);
+		const worker = new TestWorker();
+
+		await expect(
+			LspClient.connect({
+				worker: worker as unknown as Worker,
+				model: document.model,
+				monaco: monaco.monaco,
+				phpVersion: '8.4',
+				onStatus: vi.fn(),
+			})
+		).rejects.toThrow(/supports PHP versions 7\.4, 8\.0, 8\.3, 8\.5/);
+		expect(monaco.getActive()).toHaveLength(0);
+		expect(worker.terminated).toBe(true);
 	});
 });
