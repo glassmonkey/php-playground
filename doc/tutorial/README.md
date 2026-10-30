@@ -4,9 +4,10 @@ Use the project skill [`php-tutorial-authoring`](../../.agents/skills/php-tutori
 
 ## Versions and URLs
 
-- Bundled PHP/WASM versions are listed in `src/tutorial/config.ts` (currently 5.6, 7.0–7.4, and 8.0–8.5).
-- Fixed lessons use `/tutorial/<version>/<slug>`, for example `/tutorial/8.5/variables`.
-- `/tutorial` and `/tutorial/latest` resolve in the SPA to the explicit `latestTutorialVersion`; the current value is 8.5. It does not advance automatically with the runtime list.
+- Read supported PHP/WASM versions from `tutorialVersions` in `src/tutorial/config.ts` and its runtime registry source. Read lesson availability from `lessonsByVersion` in `src/tutorial/content.ts`.
+- Fixed lessons use `/tutorial/<version>/<slug>/`.
+- `/tutorial/` and `/tutorial/latest/` redirect to the version explicitly selected by `latestTutorialVersion` in `src/tutorial/config.ts`. It does not advance automatically with the runtime list.
+- Adding a runtime also generates its curriculum, URLs, and OGP assets. Verify that version's lessons, feature gates, and output fixtures before publishing; generation alone does not establish compatibility.
 - Updating latest does not redirect fixed-version URLs.
 
 ## Source files

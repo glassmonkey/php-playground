@@ -19,7 +19,7 @@
 
 ## WASM での検証
 
-対象版の実際の PHP WASM worker で、各ケースについて学習者の例と checker を一緒に動かします。checker も PHP ファイルなので、checker 自体を対象 PHP 版で実行します。現行 config の全12 runtime（5.6、7.0–7.4、8.0–8.5）で有効な Lesson solution/checker を実行し、構文、JSON decode、型、例外の扱いを確認します。
+対象版の実際の PHP WASM worker で、各ケースについて学習者の例と checker を一緒に動かします。checker も PHP ファイルなので、checker 自体を対象 PHP 版で実行します。`src/tutorial/config.ts` の `tutorialVersions` と `src/tutorial/content.ts` の `lessonsByVersion` から検証対象を求め、各掲載版の Lesson solution/checker を実行し、構文、JSON decode、型、例外の扱いを確認します。版を追加した際は、新版も検証対象に含まれていることを確認します。
 
 アプリの学習者向け画面はコード編集と手動実行に絞り、ケースの pass / fail 結果は表示しません。採点ロジックは `src/tutorial/authoring/assessment-harness.html` から実際の `src/tutorial/assessment-worker.ts` を使って確認し、`e2e/tutorial-runtime.spec.ts` が harness を実行します。harness は学習者向け route ではありません。
 

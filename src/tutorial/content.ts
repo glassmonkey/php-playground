@@ -1,7 +1,8 @@
-import type { Lesson } from './types';
+import type { Lesson, LessonSource } from './types';
+import { withLearningNotes } from './learning-notes';
 import { tutorialVersions, type TutorialVersion } from './config';
 
-const coreLessons: readonly Lesson[] = [
+const coreLessons: readonly LessonSource[] = [
 	{
 		schemaVersion: 1,
 		slug: 'output',
@@ -146,7 +147,7 @@ const coreLessons: readonly Lesson[] = [
 				blocks: [
 					{
 						type: 'paragraph',
-						text: 'Assign a value to a variable with =. Assigning another value to the same variable replaces its current value.',
+						text: 'Assign a value to a variable with =. Assigning another value to the same variable replaces its current value. In this example, var_dump($price) prints the current value and its type. The float type represents numbers with a fractional part; the next Types lesson explores other types.',
 					},
 					{
 						type: 'paragraph',
@@ -680,7 +681,7 @@ const coreLessons: readonly Lesson[] = [
 		referenceChapterId: 'control-structures',
 		title: 'Repeat work with loops',
 		summary: 'Run code for each item or a set number of times.',
-		goal: 'Use foreach to process every array value.',
+		goal: 'Repeat work over array values and while a condition holds.',
 		programs: {
 			sample: {
 				code: "<?php\n$tasks = ['read', 'practice', 'review'];\nforeach ($tasks as $task) {\n    echo '- ' . $task . PHP_EOL;\n}\n\n$count = 3;\nwhile ($count > 0) {\n    echo $count;\n    if ($count > 1) {\n        echo ', ';\n    }\n    $count--;\n}",
@@ -708,7 +709,7 @@ const coreLessons: readonly Lesson[] = [
 				blocks: [
 					{
 						type: 'paragraph',
-						text: 'Use foreach to process every array value.',
+						text: 'Repeat work over array values and while a condition holds.',
 					},
 					{
 						type: 'paragraph',
@@ -1327,7 +1328,7 @@ const coreLessons: readonly Lesson[] = [
 	},
 ];
 
-const additionalLessons: readonly Lesson[] = [
+const additionalLessons: readonly LessonSource[] = [
 	{
 		schemaVersion: 1,
 		chapterId: 'working-with-values',
@@ -1365,7 +1366,7 @@ const additionalLessons: readonly Lesson[] = [
 					},
 					{
 						type: 'paragraph',
-						text: 'Define a constant with const and read it by name without a dollar sign. Constant names are commonly written in uppercase.',
+						text: 'Define a constant with const and read it by name without a dollar sign. Constant names are commonly written in uppercase. The constant-array Experiment uses a list in square brackets: automatic indexes start at 0, so [1] reads its second element. The Arrays lesson will extend this to updates and named keys.',
 					},
 				],
 			},
@@ -1664,7 +1665,7 @@ const additionalLessons: readonly Lesson[] = [
 	},
 ];
 
-const enumLesson: Lesson = {
+const enumLesson: LessonSource = {
 	schemaVersion: 1,
 	slug: 'enums',
 	chapterId: 'objects-and-state',
@@ -1769,7 +1770,7 @@ const enumLesson: Lesson = {
 	],
 };
 
-const propertyHooksLesson: Lesson = {
+const propertyHooksLesson: LessonSource = {
 	schemaVersion: 1,
 	slug: 'property-hooks',
 	chapterId: 'objects-and-state',
@@ -1893,19 +1894,19 @@ const propertyHooksLesson: Lesson = {
 	],
 };
 
-const lessonsBySlug: Record<string, Lesson> = Object.fromEntries(
+const lessonsBySlug: Record<string, LessonSource> = Object.fromEntries(
 	[...coreLessons, ...additionalLessons, enumLesson, propertyHooksLesson].map(
 		(lesson) => [lesson.slug, lesson]
 	)
 );
 
-function lesson(slug: string): Lesson {
+function lesson(slug: string): LessonSource {
 	const found = lessonsBySlug[slug];
 	if (!found) throw new Error(`Missing tutorial lesson: ${slug}`);
 	return found;
 }
 
-const curriculumOrder: readonly Lesson[] = [
+const curriculumOrder: readonly LessonSource[] = [
 	lesson('output'),
 	lesson('variables'),
 	lesson('types'),
@@ -1934,9 +1935,9 @@ function atLeast(version: TutorialVersion, minimum: string): boolean {
 }
 
 function mapProgramSources(
-	lesson: Lesson,
+	lesson: LessonSource,
 	transform: (programId: string, code: string) => string
-): Lesson {
+): LessonSource {
 	return {
 		...lesson,
 		programs: Object.fromEntries(
@@ -1948,7 +1949,7 @@ function mapProgramSources(
 	};
 }
 
-function preMatchConditionals(lesson: Lesson): Lesson {
+function preMatchConditionals(lesson: LessonSource): LessonSource {
 	const legacyPrograms: Record<string, string> = {
 		sample: `<?php
 $temperature = 18;
@@ -2047,7 +2048,7 @@ if ($day === 'sat' || $day === 'sun') {
 	};
 }
 
-function preScalarTypesFunctions(lesson: Lesson): Lesson {
+function preScalarTypesFunctions(lesson: LessonSource): LessonSource {
 	const replacements: Record<string, string> = {
 		'function greeting(string $name): string': 'function greeting($name)',
 		"function greeting(string $name, string $word = 'Hello'): string":
@@ -2092,7 +2093,7 @@ function preScalarTypesFunctions(lesson: Lesson): Lesson {
 	};
 }
 
-function preScalarTypesFullName(lesson: Lesson): Lesson {
+function preScalarTypesFullName(lesson: LessonSource): LessonSource {
 	return {
 		...mapProgramSources(lesson, (_id, code) =>
 			code.replaceAll(
@@ -2139,9 +2140,9 @@ function classProgramForVersion(
 }
 
 function preTypedPropertiesClasses(
-	lesson: Lesson,
+	lesson: LessonSource,
 	version: TutorialVersion
-): Lesson {
+): LessonSource {
 	const adapted = mapProgramSources(lesson, (_id, code) =>
 		classProgramForVersion(code, version)
 	);
@@ -2166,7 +2167,7 @@ function preTypedPropertiesClasses(
 	};
 }
 
-function preIntdivErrors(lesson: Lesson): Lesson {
+function preIntdivErrors(lesson: LessonSource): LessonSource {
 	return mapProgramSources(lesson, (_id, code) =>
 		code
 			.replaceAll(
@@ -2180,7 +2181,10 @@ function preIntdivErrors(lesson: Lesson): Lesson {
 	);
 }
 
-function checkersForVersion(lesson: Lesson, version: TutorialVersion): Lesson {
+function checkersForVersion(
+	lesson: LessonSource,
+	version: TutorialVersion
+): LessonSource {
 	if (atLeast(version, '8.0')) return lesson;
 	const cases = lesson.exercise.cases.map((test) => ({
 		...test,
@@ -2198,9 +2202,9 @@ function checkersForVersion(lesson: Lesson, version: TutorialVersion): Lesson {
 }
 
 function lessonForVersion(
-	baseLesson: Lesson,
+	baseLesson: LessonSource,
 	version: TutorialVersion
-): Lesson {
+): LessonSource {
 	let adapted = baseLesson;
 	if (baseLesson.slug === 'conditionals' && !atLeast(version, '8.0')) {
 		adapted = preMatchConditionals(adapted);
@@ -2227,7 +2231,9 @@ function curriculumForVersion(version: TutorialVersion): readonly Lesson[] {
 			if (entry.slug === 'property-hooks') return atLeast(version, '8.4');
 			return true;
 		})
-		.map((entry) => lessonForVersion(entry, version));
+		.map((entry) =>
+			withLearningNotes(lessonForVersion(entry, version), version)
+		);
 }
 
 export const lessonsByVersion: Record<TutorialVersion, readonly Lesson[]> =

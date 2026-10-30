@@ -44,6 +44,32 @@ export function validateLesson(value: unknown): string[] {
 		errors.push(
 			'referenceChapterId must reference a known source chapter.'
 		);
+	if (!isRecord(value.learning))
+		errors.push('learning must contain author review notes.');
+	else {
+		if (!isText(value.learning.exampleReason))
+			errors.push('learning.exampleReason must be nonempty.');
+		if (
+			!Array.isArray(value.learning.prerequisiteLessons) ||
+			!value.learning.prerequisiteLessons.every(isText)
+		)
+			errors.push(
+				'learning.prerequisiteLessons must contain lesson slugs.'
+			);
+		if (
+			!Array.isArray(value.learning.misconceptions) ||
+			!value.learning.misconceptions.length ||
+			!value.learning.misconceptions.every(
+				(item) =>
+					isRecord(item) &&
+					isText(item.belief) &&
+					isText(item.correction)
+			)
+		)
+			errors.push(
+				'learning.misconceptions must pair beliefs with corrections.'
+			);
+	}
 	const programs = isRecord(value.programs) ? value.programs : {};
 	if (!isRecord(value.programs) || !Object.keys(programs).length)
 		errors.push('programs must be a nonempty object.');
@@ -84,6 +110,19 @@ export function validateLesson(value: unknown): string[] {
 				ids.add(experiment.id);
 			}
 			reference(experiment.programId, `Experiment ${index} programId`);
+			if (!isRecord(experiment.learning))
+				errors.push(`Experiment ${index} needs learning notes.`);
+			else {
+				if (experiment.learning.goalRef !== 'lesson.goal')
+					errors.push(
+						`Experiment ${index} goalRef must reference lesson.goal.`
+					);
+				for (const key of ['change', 'observe', 'reason'])
+					if (!isText(experiment.learning[key]))
+						errors.push(
+							`Experiment ${index} learning.${key} must be nonempty.`
+						);
+			}
 		});
 	}
 
@@ -207,11 +246,37 @@ export function validateLesson(value: unknown): string[] {
 export function validateLessons(value: unknown): string[] {
 	if (!Array.isArray(value) || !value.length)
 		return ['The curriculum must contain lessons.'];
+	const ordered = chapters.flatMap((chapter) =>
+		value.filter(
+			(lesson) => isRecord(lesson) && lesson.chapterId === chapter.id
+		)
+	);
+	const positions = new Map(
+		ordered.map((lesson, index) => [lesson.slug, index])
+	);
 	const ids = new Set<string>();
 	return value.flatMap((lesson, index) => {
 		const errors = validateLesson(lesson).map(
 			(error) => `Lesson ${index + 1}: ${error}`
 		);
+		if (
+			isRecord(lesson) &&
+			isRecord(lesson.learning) &&
+			Array.isArray(lesson.learning.prerequisiteLessons)
+		) {
+			for (const prerequisite of lesson.learning.prerequisiteLessons) {
+				const before = positions.get(prerequisite);
+				const here = positions.get(lesson.slug);
+				if (
+					before === undefined ||
+					here === undefined ||
+					before >= here
+				)
+					errors.push(
+						`Lesson ${index + 1}: prerequisite ${prerequisite} must be an earlier lesson in this version.`
+					);
+			}
+		}
 		if (isRecord(lesson) && isText(lesson.slug)) {
 			if (ids.has(lesson.slug))
 				errors.push(`Duplicate lesson slug: ${lesson.slug}.`);

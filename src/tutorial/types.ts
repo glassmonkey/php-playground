@@ -37,6 +37,26 @@ export interface LessonSection {
 	title: string;
 	blocks: LessonBlock[];
 }
+export interface ExperimentLearning {
+	/** Refers to the owning lesson goal, without copying its text. */
+	goalRef: 'lesson.goal';
+	change: string;
+	observe: string;
+	reason: string;
+}
+export interface Experiment {
+	id: string;
+	title: string;
+	description: string;
+	programId: string;
+	/** Author/reviewer information; not learner-facing answer text. */
+	learning: ExperimentLearning;
+}
+export interface LessonLearning {
+	prerequisiteLessons: string[];
+	exampleReason: string;
+	misconceptions: { belief: string; correction: string }[];
+}
 export interface Lesson {
 	schemaVersion: 1;
 	chapterId: ChapterId;
@@ -47,12 +67,8 @@ export interface Lesson {
 	goal: string;
 	programs: Record<string, Program>;
 	sampleProgramId: string;
-	experiments: {
-		id: string;
-		title: string;
-		description: string;
-		programId: string;
-	}[];
+	experiments: Experiment[];
+	learning: LessonLearning;
 	sections: LessonSection[];
 	exercise: {
 		starterProgramId: string;
@@ -63,3 +79,8 @@ export interface Lesson {
 	};
 	references: { title: string; url: string }[];
 }
+
+/** Author source before version adaptation and learning-note attachment. */
+export type LessonSource = Omit<Lesson, 'learning' | 'experiments'> & {
+	experiments: Omit<Experiment, 'learning'>[];
+};
