@@ -15,7 +15,7 @@ export default function Header() {
 				</Center>
 				<Center>
 					<Link as={RouterLink} to="/tutorial/" fontStyle="italic">
-						PHP Tutorial
+						Want to learn PHP?
 					</Link>
 				</Center>
 			</Flex>

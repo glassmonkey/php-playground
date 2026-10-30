@@ -82,7 +82,7 @@ test.describe('versioned tutorial routes', () => {
 			await page.setViewportSize(viewport);
 			await page.goto(PAGE);
 			const entry = page.getByRole('link', {
-				name: 'PHP Tutorial',
+				name: 'Want to learn PHP?',
 				exact: true,
 			});
 			await expect(entry).toBeVisible();
