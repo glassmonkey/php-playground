@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { lessonsByVersion } from '../content';
-import { tutorialVersions } from '../config';
+import { tutorialVersions, type TutorialVersion } from '../config';
 import { validateLesson, validateLessons } from '../validate-content';
 
-function lesson(version: '5.6' | '8.5', slug: string) {
+function lesson(version: TutorialVersion, slug: string) {
 	return structuredClone(
 		lessonsByVersion[version].find((entry) => entry.slug === slug)!
 	);
@@ -20,33 +20,56 @@ describe('resolved learning review data', () => {
 			).toEqual([]);
 		}
 	);
-	it('keeps conditional reasons aligned with the selected version syntax', () => {
-		const old = lesson('5.6', 'conditionals');
-		const current = lesson('8.5', 'conditionals');
-		expect(old.programs['exp-match-level'].code).toContain('elseif');
-		expect(old.experiments[0].learning.reason).toContain(
-			'strict equality condition'
-		);
-		expect(old.learning.exampleReason).not.toContain('match');
-		expect(current.programs['exp-match-level'].code).toContain('match (');
-		expect(current.experiments[0].learning.reason).toContain('match');
-	});
-	it('distinguishes legacy division from integer division in review reasons', () => {
-		const old = lesson('5.6', 'errors');
-		const current = lesson('8.5', 'errors');
-		expect(old.programs['exp-successful-division'].code).toContain(
-			'return $left / $right;'
-		);
-		expect(old.experiments[0].learning.reason).toContain(
-			'/ returns the quotient'
-		);
-		expect(current.programs['exp-successful-division'].code).toContain(
-			'return intdiv('
-		);
-		expect(current.experiments[0].learning.reason).toContain(
-			'integer division'
-		);
-	});
+	// These boundary probes guard variant selection; natural-language meaning
+	// still requires source/educational review, not keyword matching alone.
+	it.each([
+		{
+			version: '7.4',
+			variant: 'strict if/elseif branches',
+			syntax: "if ($level === 'beginner')",
+			reason: 'The first strict equality condition that is true supplies the message; else handles the remaining values.',
+		},
+		{
+			version: '8.0',
+			variant: 'strict match arms',
+			syntax: 'match ($level)',
+			reason: 'match returns the arm whose value is strictly identical to the level, or default when none matches.',
+		},
+	] as const)(
+		'selects $variant at the PHP $version boundary',
+		({ version, syntax, reason }) => {
+			const value = lesson(version, 'conditionals');
+			const experiment = value.experiments.find(
+				(entry) => entry.id === 'match-level'
+			)!;
+			expect(value.programs[experiment.programId].code).toContain(syntax);
+			expect(experiment.learning.reason).toBe(reason);
+		}
+	);
+	it.each([
+		{
+			version: '5.6',
+			variant: 'untruncated quotient',
+			syntax: 'return $left / $right;',
+			reason: 'The guard does not throw, so / returns the quotient and catch is skipped. Unlike intdiv, / does not truncate a non-integral quotient.',
+		},
+		{
+			version: '7.0',
+			variant: 'integer division',
+			syntax: 'return intdiv($left, $right);',
+			reason: 'The guard does not throw, so integer division returns a value and catch is skipped.',
+		},
+	] as const)(
+		'selects $variant at the PHP $version boundary',
+		({ version, syntax, reason }) => {
+			const value = lesson(version, 'errors');
+			const experiment = value.experiments.find(
+				(entry) => entry.id === 'successful-division'
+			)!;
+			expect(value.programs[experiment.programId].code).toContain(syntax);
+			expect(experiment.learning.reason).toBe(reason);
+		}
+	);
 	it('rejects a missing explanation instead of accepting only a runnable program', () => {
 		const value = lesson('8.5', 'output');
 		value.experiments[0].learning.reason = '';

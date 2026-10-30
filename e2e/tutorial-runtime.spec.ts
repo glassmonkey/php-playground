@@ -263,6 +263,162 @@ for (const version of tutorialVersions) {
 	});
 }
 
+// Expected outcomes come from the exercise requirements, not its checker code.
+const negativeAnswers = [
+	{
+		slug: 'constants',
+		violation: 'prints EUR instead of USD',
+		code: "<?php const CURRENCY = 'EUR'; echo CURRENCY;",
+		cases: [{ id: 'currency', input: null, status: 'failed' }],
+	},
+	{
+		slug: 'arrays',
+		violation: 'reads the first color instead of the second',
+		code: '<?php echo $input[0];',
+		cases: [
+			{
+				id: 'primary-colors',
+				input: ['red', 'green', 'blue'],
+				status: 'failed',
+			},
+			{
+				id: 'warm-colors',
+				input: ['orange', 'red', 'yellow'],
+				status: 'failed',
+			},
+		],
+	},
+	{
+		slug: 'operators',
+		violation: 'does not convert minutes to seconds',
+		code: '<?php echo $input;',
+		cases: [
+			{ id: 'ninety-minutes', input: 90, status: 'failed' },
+			{ id: 'one-minute', input: 1, status: 'failed' },
+			// Unchanged zero coincides with zero seconds, so this wrong answer passes.
+			{ id: 'zero-minutes', input: 0, status: 'passed' },
+		],
+	},
+	{
+		slug: 'loops',
+		violation: 'omits the inclusive final iteration',
+		code: '<?php for ($i = 1; $i < $input; $i++) { echo $i . PHP_EOL; }',
+		cases: [
+			{ id: 'three-numbers', input: 3, status: 'failed' },
+			{ id: 'one-number', input: 1, status: 'failed' },
+			// No iterations are required at zero, even with the wrong upper bound.
+			{ id: 'zero-numbers', input: 0, status: 'passed' },
+		],
+	},
+	{
+		slug: 'functions',
+		violation: 'returns the number without squaring it',
+		code: '<?php function square($number) { return $number; } echo square($input);',
+		cases: [
+			// Returning zero coincides with its square; nonzero cases distinguish them.
+			{ id: 'zero', input: 0, status: 'passed' },
+			{ id: 'negative', input: -3, status: 'failed' },
+			{ id: 'positive', input: 5, status: 'failed' },
+		],
+	},
+	{
+		slug: 'errors',
+		violation: 'does not reject a negative age',
+		code: '<?php echo $input;',
+		cases: [
+			{ id: 'negative-age', input: -1, status: 'failed' },
+			// The missing guard still produces the required normal-path age.
+			{ id: 'adult-age', input: 18, status: 'passed' },
+		],
+	},
+] as const;
+
+for (const version of tutorialVersions) {
+	test(`PHP ${version}: rejects independently specified wrong answers`, async ({
+		page,
+	}) => {
+		for (const negative of negativeAnswers) {
+			await test.step(`${negative.slug}: ${negative.violation}`, async () => {
+				const lesson = lessonFor(version, negative.slug);
+				expect(
+					lesson.exercise.cases.map(({ id, input }) => ({
+						id,
+						input,
+					}))
+				).toEqual(
+					negative.cases.map(({ id, input }) => ({ id, input }))
+				);
+				const response = await startCheck(
+					page,
+					version,
+					negative.code,
+					lesson.exercise.cases
+				);
+				expect({
+					error: response.error,
+					results: response.results.map(({ id, status }) => ({
+						id,
+						status,
+					})),
+				}).toEqual({
+					error: undefined,
+					results: negative.cases.map(({ id, status }) => ({
+						id,
+						status,
+					})),
+				});
+			});
+		}
+	});
+}
+
+// A control mutation demonstrates that these negative expectations detect an
+// always-passing checker, rather than merely agreeing with the sample solution.
+for (const version of ['5.6', '8.5'] as const) {
+	for (const negative of [
+		{ ...negativeAnswers[0], mutantWant: ['passed'] },
+		{ ...negativeAnswers[1], mutantWant: ['passed', 'passed'] },
+	]) {
+		test(`PHP ${version}: ${negative.slug} negative oracle distinguishes an always-pass checker`, async ({
+			page,
+		}) => {
+			const lesson = lessonFor(version, negative.slug);
+			const original = await startCheck(
+				page,
+				version,
+				negative.code,
+				lesson.exercise.cases
+			);
+			const mutant = await startCheck(
+				page,
+				version,
+				negative.code,
+				lesson.exercise.cases.map((entry) => ({
+					...entry,
+					checkPhp:
+						"<?php return static function ($input, $output, $returnValue) { return ['passed' => true, 'message' => 'Mutant']; };",
+				}))
+			);
+			expect({
+				inputs: lesson.exercise.cases.map(({ id, input }) => ({
+					id,
+					input,
+				})),
+				original: original.results.map((entry) => entry.status),
+				mutant: mutant.results.map((entry) => entry.status),
+				originalError: original.error,
+				mutantError: mutant.error,
+			}).toEqual({
+				inputs: negative.cases.map(({ id, input }) => ({ id, input })),
+				original: negative.cases.map((entry) => entry.status),
+				mutant: negative.mutantWant,
+				originalError: undefined,
+				mutantError: undefined,
+			});
+		});
+	}
+}
+
 test('detects hard-coded and missing-trim answers with input-specific cases', async ({
 	page,
 }) => {

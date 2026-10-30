@@ -32,10 +32,10 @@ const expectOutput = async (
 		.toBe(want);
 };
 test.describe('versioned tutorial routes', () => {
-	for (const path of [
-		'/tutorial/8.5/variables/',
-		'/tutorial/8.5/variables?preview=1',
-		'/tutorial/latest/variables/',
+	for (const { path, version } of [
+		{ path: '/tutorial/8.5/variables/', version: '8.5' },
+		{ path: '/tutorial/8.5/variables?preview=1', version: '8.5' },
+		{ path: '/tutorial/latest/variables/', version: latestTutorialVersion },
 	]) {
 		test(`serves article canonical before JavaScript at ${path}`, async ({
 			request,
@@ -48,7 +48,7 @@ test.describe('versioned tutorial routes', () => {
 					html.matchAll(/<link\s+rel="canonical"\s+href="([^"]+)"/g),
 					(match) => match[1]
 				)
-			).toEqual(['https://php-play.dev/tutorial/8.5/variables/']);
+			).toEqual([`https://php-play.dev/tutorial/${version}/variables/`]);
 		});
 	}
 
@@ -170,11 +170,11 @@ test.describe('versioned tutorial routes', () => {
 		await expect(canonical).toHaveCount(1);
 		await expect(canonical).toHaveAttribute(
 			'href',
-			'https://php-play.dev/tutorial/8.5/variables/'
+			`https://php-play.dev/tutorial/${latestTutorialVersion}/variables/`
 		);
 		await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
 			'content',
-			'https://php-play.dev/tutorial/8.5/variables/'
+			`https://php-play.dev/tutorial/${latestTutorialVersion}/variables/`
 		);
 		await expect(page.locator('meta[name="description"]')).toHaveAttribute(
 			'content',
@@ -187,7 +187,7 @@ test.describe('versioned tutorial routes', () => {
 		await expect(page.locator('meta[property="og:image"]')).toHaveCount(1);
 		await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
 			'content',
-			'https://php-play.dev/tutorial/8.5/variables/og.png'
+			`https://php-play.dev/tutorial/${latestTutorialVersion}/variables/og.png`
 		);
 		await page.getByLabel('Learn with').selectOption('7.4');
 		await expect(canonical).toHaveCount(1);
