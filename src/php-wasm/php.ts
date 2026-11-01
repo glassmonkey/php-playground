@@ -405,7 +405,6 @@ export class PHP {
 
 	/**
 	 * Dispatches a PHP request.
-	 * Cannot be used in conjunction with `cli()`.
 	 *
 	 * @example
 	 * ```js
@@ -465,22 +464,6 @@ export class PHP {
 			);
 		}
 		this.#Runtime.ccall('php_wasm_init', null, [], []);
-	}
-
-	/**
-	 * Starts a PHP CLI session with given arguments.
-	 *
-	 * Can only be used when PHP was compiled with the CLI SAPI.
-	 * Cannot be used in conjunction with `run()`.
-	 *
-	 * @param argv - The arguments to pass to the CLI.
-	 * @returns The exit code of the CLI session.
-	 */
-	cli(argv: string[]): Promise<number> {
-		for (const arg of argv) {
-			this.#Runtime.ccall('wasm_add_cli_arg', null, [STR], [arg]);
-		}
-		return this.#Runtime.ccall('run_cli', null, [], [], { async: true });
 	}
 
 	#getResponseHeaders(): { headers: PHPHeaders; httpStatusCode: number } {

@@ -1,10 +1,5 @@
-# parametaers
+# parameters
 PHP_VERSION := 8.2
-WITH_CLI_SAPI := no
-WITH_MYSQL := no
-WITH_WS_NETWORKING_PROXY := no
-# web or node
-PLATFORM := web
 
 PHP_IMAGE := php-wasm:$(PHP_VERSION)
 
@@ -13,25 +8,14 @@ PHP_VERSIONS := 5.6 7.0 7.1 7.2 7.3 7.4 8.0 8.1 8.2 8.3 8.4 8.5
 
 
 .PHONY: build-image build-wasm build build-all $(addprefix build-,$(PHP_VERSIONS))
-WITH_CACHE :=
-ifeq ($(WITH_CACHE),no)
-	WITH_CACHE := --no-cache
-endif
 
 build-image:
 	cd src/wasm && \
-	docker build $(WITH_CACHE) . --tag=$(PHP_IMAGE) \
-		--build-arg PHP_VERSION=$(PHP_VERSION) \
-		--build-arg WITH_CLI_SAPI=$(WITH_CLI_SAPI) \
-		--build-arg WITH_MYSQL=$(WITH_MYSQL) \
-		--build-arg WITH_WS_NETWORKING_PROXY=$(WITH_WS_NETWORKING_PROXY) \
-		--build-arg EMSCRIPTEN_ENVIRONMENT=$(PLATFORM) && \
+	docker build . --tag=$(PHP_IMAGE) \
+		--build-arg PHP_VERSION=$(PHP_VERSION) && \
 	cd -
 
 CMD_DIST := cp /root/output/php* /output
-ifeq ($(WITH_CLI_SAPI),yes)
-	CMD_DIST += && cp /root/lib/share/terminfo/x/xterm /output/terminfo/x
-endif
 
 build-wasm: build-image
 	docker run --rm -v $(DIST_DIR):/output $(PHP_IMAGE) \

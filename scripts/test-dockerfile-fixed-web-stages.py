@@ -15,7 +15,6 @@ WEB_LIBRARIES = {
     "emscripten-libpng": "WITH_LIBPNG",
     "emscripten-openssl": "WITH_OPENSSL",
 }
-OTHER_FIXED_FEATURES = ("WITH_MBSTRING", "WITH_VRZNO")
 BUILD_COMMAND = re.compile(
     r"\b(?:curl|wget|git clone|autogen\.sh|emconfigure|emcmake|emmake)\b"
 )
@@ -49,13 +48,20 @@ def main() -> None:
         )
         print(f"OK {stage_name}: fixed build and PHP input")
 
-    for flag in OTHER_FIXED_FEATURES:
-        assert f"ARG {flag}" not in dockerfile
-        assert flag not in makefile
+    assert not re.search(r"\bWITH_[A-Z_]+\b", dockerfile + makefile)
+    assert "emscripten-ncurses" not in stages
+    assert "emscripten-libedit" not in stages
+    assert " --disable-cli " in php_stage
+    assert "-s ENVIRONMENT=web" in php_stage
+    assert "EMSCRIPTEN_ENVIRONMENT" not in dockerfile
+    assert "--build-arg PHP_VERSION=$(PHP_VERSION)" in makefile
+    assert "PLATFORM" not in makefile
     assert " --enable-mbstring " in php_stage
     assert "vrzno" not in dockerfile.lower()
     php_bridge = (ROOT / "src/wasm/build-assets/php_wasm.c").read_text()
     assert "vrzno" not in php_bridge.lower()
+    assert "WITH_CLI_SAPI" not in php_bridge
+    assert "run_cli" not in php_bridge
 
 
 if __name__ == "__main__":
