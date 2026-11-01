@@ -2,12 +2,14 @@ name: PHPantom runtime
 
 on:
   push:
-    branches: [gla-115-inrepo-rust]
+    branches: [gla-115-versioned-ui-integration]
     paths:
       - Cargo.toml
       - Cargo.lock
       - rust-toolchain.toml
       - rust/**
+      - scripts/lsp/phpantom/**
+      - Makefile
       - .github/workflows/phpantom-runtime.yml
   pull_request:
     branches: [master]
@@ -16,6 +18,8 @@ on:
       - Cargo.lock
       - rust-toolchain.toml
       - rust/**
+      - scripts/lsp/phpantom/**
+      - Makefile
       - .github/workflows/phpantom-runtime.yml
 
 permissions:

@@ -32,7 +32,7 @@ describe('compiled PHPantom module cache', () => {
 			.mockImplementation(async () => {
 				const url = String(fetchMock.mock.calls.at(-1)?.[0]);
 				return digestBytes(
-					url.includes('/8.5/') ? artifact85Sha : artifactSha
+					url.includes('php-8.5.wasm') ? artifact85Sha : artifactSha
 				);
 			});
 		const compiled = vi
@@ -46,7 +46,7 @@ describe('compiled PHPantom module cache', () => {
 		await expect(first).resolves.toBeInstanceOf(Object);
 		expect(fetchMock).toHaveBeenCalledTimes(1);
 		expect(fetchMock).toHaveBeenCalledWith(
-			`/lsp/phpantom/versioned-preview/7.4/phpantom_lsp.wasm?sha256=${artifactSha}`,
+			`/lsp/phpantom/php-7.4.wasm?sha256=${artifactSha}`,
 			{ cache: 'force-cache' }
 		);
 		expect(digest).toHaveBeenCalledTimes(1);
@@ -57,7 +57,7 @@ describe('compiled PHPantom module cache', () => {
 		await expect(version85).resolves.toBeInstanceOf(Object);
 		expect(fetchMock).toHaveBeenCalledTimes(2);
 		expect(fetchMock).toHaveBeenLastCalledWith(
-			`/lsp/phpantom/versioned-preview/8.5/phpantom_lsp.wasm?sha256=${artifact85Sha}`,
+			`/lsp/phpantom/php-8.5.wasm?sha256=${artifact85Sha}`,
 			{ cache: 'force-cache' }
 		);
 		expect(digest).toHaveBeenCalledTimes(2);

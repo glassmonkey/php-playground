@@ -63,7 +63,7 @@ fingerprint, Cargo and stubs lock hashes, toolchain, Docker identity, and WASM
 hash are written under `build/phpantom-docker-candidates/`. A failed build or
 smoke test leaves the checked-in asset unchanged.
 
-The committed asset is
+The build-only integration asset is
 `assets/lsp/phpantom/phpantom_lsp.wasm` (18,700,209 bytes,
 SHA-256 `605854cd7d868c2432223c73d18002b2e39e86ea2c26e00655181a2345db6c4e`).
 Its Worker URL includes that hash to avoid reusing stale cached bytes. The

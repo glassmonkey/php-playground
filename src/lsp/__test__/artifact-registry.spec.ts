@@ -111,7 +111,7 @@ describe('reviewed PHPantom preview artifact registry', () => {
 		for (const expected of approvedArtifacts) {
 			expect(reviewedArtifactFor(expected.version)).toEqual({
 				phpVersion: expected.version,
-				url: `/lsp/phpantom/versioned-preview/${expected.version}/phpantom_lsp.wasm`,
+				url: `/lsp/phpantom/php-${expected.version}.wasm`,
 				sha256: expected.sha,
 				bytes: 18_504_747,
 				buildIdentity: '49b9a751-phase-b-e12de794',

@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 import { chromium } from '@playwright/test';
 
@@ -62,24 +63,26 @@ const overallBudgetSeconds =
 				0
 			) +
 			(isFullMatrix ? 3 * 90 : 0);
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:4176';
 const batchPath =
 	process.env.PHPANTOM_BATCH_RESULT ??
-	'/private/tmp/gla115-versioned-embedded-wasm-trial/evaluation/all12-ui-matrix/import-approved-batch-result.json';
+	resolve(repoRoot, 'assets/lsp/phpantom/manifest.json');
 const outputPath =
 	process.env.PHPANTOM_MATRIX_OUT ??
-	'/private/tmp/gla115-versioned-embedded-wasm-trial/evaluation/all12-ui-matrix/browser-matrix-result.json';
+	resolve(repoRoot, 'build/phpantom-ui-matrix-result.json');
 const batch = JSON.parse(await readFile(batchPath, 'utf8'));
-if (batch.importedOrMatched !== 12 || batch.rows.length !== 12)
-	throw new Error(
-		'Requires the verified manager batch import result for all 12 targets.'
-	);
-const artifactByVersion = new Map(
-	batch.rows.map((row) => [row.phpVersion, row])
+const rows = Object.entries(batch.artifacts ?? {}).map(
+	([phpVersion, artifact]) => ({ phpVersion, ...artifact })
 );
+if (batch.schemaVersion !== 1 || rows.length !== 12 || typeof batch.buildIdentity !== 'string')
+	throw new Error('Requires a schema version 1 manifest with all 12 target artifacts and a build identity.');
+const artifactByVersion = new Map(rows.map((row) => [row.phpVersion, row]));
+if (artifactByVersion.size !== 12)
+	throw new Error('Artifact manifest contains duplicate or missing PHP targets.');
 if (versions.some((version) => !artifactByVersion.has(version)))
 	throw new Error(
-		'Batch result is missing one or more supported PHP targets.'
+		'Artifact manifest is missing one or more supported PHP targets.'
 	);
 const digest = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const report = {
@@ -196,7 +199,7 @@ try {
 		page.setDefaultTimeout(7_000);
 		page.setDefaultNavigationTimeout(12_000);
 		const wasmResponses = [];
-		await page.route('**/phpantom_lsp.wasm*', async (route) => {
+		await page.route('**/lsp/phpantom/php-*.wasm*', async (route) => {
 			const response = await route.fetch({ timeout: 10_000 });
 			const bytes = await response.body();
 			wasmResponses.push({
@@ -269,6 +272,7 @@ try {
 			bytes: response.bytes,
 			sha256: response.sha256,
 			expectedSha256: artifact.sha256,
+			expectedBuildIdentity: batch.buildIdentity,
 			buildIdentity: initializeResponse.result?.serverInfo?.version,
 			workerUrl: worker.url,
 		};
@@ -297,7 +301,7 @@ try {
 			);
 			requireThat(
 				initializeResponse.result?.serverInfo?.version ===
-					artifact.buildIdentity,
+					batch.buildIdentity,
 				'initialize server build identity mismatch'
 			);
 			return artifactIdentity;
@@ -412,9 +416,8 @@ try {
 					const requests = [];
 					page.on('request', (request) => {
 						if (
-							new URL(request.url()).pathname.endsWith(
-								'/phpantom_lsp.wasm'
-							)
+							new URL(request.url()).pathname ===
+								'/lsp/phpantom/php-8.5.wasm'
 						)
 							requests.push(request.url());
 					});
