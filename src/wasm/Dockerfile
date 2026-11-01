@@ -388,8 +388,6 @@ RUN if [ "$WITH_LIBZIP" = "yes" ]; then \
             apt install -y zlib1g zlib1g-dev; \
             # https://php-legacy-docs.zend.com/manual/php5/en/zlib.installation
             echo -n ' --with-zlib --with-zlib-dir=/root/lib --enable-zip --with-libzip=/root/lib ' >> /root/.php-configure-flags; \
-            echo -n ' -I /root/zlib -I /root/libzip ' >> /root/.emcc-php-wasm-flags; \
-            echo -n ' /root/lib/lib/libzip.a /root/lib/lib/libz.a' >> /root/.emcc-php-wasm-sources; \
             cp /root/lib/lib/libzip/include/zipconf.h /root/lib/lib; \
             cp /root/lib/lib/libzip/include/zipconf.h /root/lib/include; \
             echo '#define LIBZIP_VERSION "1.2.0"' >> /root/lib/include/zipconf.h; \
@@ -397,9 +395,9 @@ RUN if [ "$WITH_LIBZIP" = "yes" ]; then \
         else \
             # https://www.php.net/manual/en/zlib.installation.php
             echo -n ' --with-zlib --with-zlib-dir=/root/lib --with-zip' >> /root/.php-configure-flags; \
-            echo -n ' -I /root/zlib -I /root/libzip' >> /root/.emcc-php-wasm-flags; \
-            echo -n ' /root/lib/lib/libzip.a /root/lib/lib/libz.a' >> /root/.emcc-php-wasm-sources; \
         fi && \
+        echo -n ' -I /root/zlib -I /root/libzip ' >> /root/.emcc-php-wasm-flags && \
+        echo -n ' /root/lib/lib/libzip.a /root/lib/lib/libz.a' >> /root/.emcc-php-wasm-sources && \
         /root/replace.sh 's/pharcmd=pharcmd/pharcmd=/g' /root/php-src/configure && \
         /root/replace.sh 's/pharcmd_install=install-pharcmd/pharcmd_install=/g' /root/php-src/configure; \
     fi;
@@ -450,10 +448,8 @@ RUN if [ "$WITH_SQLITE" = "yes" ]; \
     then \
         bash /root/copy-lib.sh lib-sqlite3 && \
         echo -n ' --with-sqlite3 --enable-pdo --with-pdo-sqlite ' >> /root/.php-configure-flags && \
-        echo -n ' -I ext/pdo_sqlite ' >> /root/.emcc-php-wasm-flags; \
-        if [[ "${PHP_VERSION:0:1}" -eq "7" && "${PHP_VERSION:2:1}" -ge "4" ]] || [ "${PHP_VERSION:0:1}" -eq "8" ]; then \
-            echo -n ' /root/lib/lib/libsqlite3.a ' >> /root/.emcc-php-wasm-flags; \
-        fi; \
+        echo -n ' -I ext/pdo_sqlite ' >> /root/.emcc-php-wasm-flags && \
+        echo -n ' /root/lib/lib/libsqlite3.a ' >> /root/.emcc-php-wasm-sources; \
     fi;
 
 # Add libpng if needed
