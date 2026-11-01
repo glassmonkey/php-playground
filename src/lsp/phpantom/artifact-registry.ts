@@ -41,8 +41,8 @@ const stubsArchiveSha256 =
 	'3ef62542d2f77ad30c7dab7dfa726e57e86dd5e3403780294119cf4f5ca6dcb7';
 const buildIdentity = '49b9a751-phase-b-e12de794';
 
-// Local candidate files are verified against the manager's released batch gate.
-// They remain outside git until the separate UI review approves binary publication.
+// The reviewed versioned artifact bytes are committed under assets/lsp/phpantom
+// and pinned in manifest.json.
 export const reviewedPhpantomArtifacts = {
 	'5.6': {
 		phpVersion: '5.6',
