@@ -405,7 +405,7 @@ describe('PHPantom Monaco lifecycle', () => {
 		expect(monaco.getActive()).toHaveLength(0);
 	});
 
-	it('rejects a PHP release without a reviewed PHPantom artifact even when PHP is supported by the app', async () => {
+	it('rejects a malformed PHP version and cleans up providers', async () => {
 		const document = testModel();
 		const monaco = testMonaco(document.model);
 		const worker = new TestWorker();
@@ -415,10 +415,10 @@ describe('PHPantom Monaco lifecycle', () => {
 				worker: worker as unknown as Worker,
 				model: document.model,
 				monaco: monaco.monaco,
-				phpVersion: '8.4',
+				phpVersion: '8x' as Version,
 				onStatus: vi.fn(),
 			})
-		).rejects.toThrow(/supports PHP versions 7\.4, 8\.0, 8\.3, 8\.5/);
+		).rejects.toThrow(/phpVersion must be a string such as/);
 		expect(monaco.getActive()).toHaveLength(0);
 		expect(worker.terminated).toBe(true);
 	});
