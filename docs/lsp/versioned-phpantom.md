@@ -18,12 +18,16 @@ manifest.
 
 ## Build and verify
 
-The local Rust workspace uses Rust 1.99 and the pinned `phpstorm-stubs` archive.
-Its Docker builder copies only the local Cargo source, toolchain, and build
-entrypoint. It does not download PHPantom source from a separate repository or
-apply a build-time source patch. `make build-phpantom-runtime` creates a
-candidate without replacing the build-only asset; `make test-phpantom-runtime-native`
-runs the public LSP tests.
+The Docker builder downloads the pinned PHPantom source archive, verifies its
+SHA-256, applies the complete reviewed source patch, and checks the changed-file
+manifest before building. The build pins the PHPStorm stubs commit and archive
+SHA-256 and uses the pinned Rust 1.99 image. No PHPantom source is vendored in
+this app repository. Build a candidate with
+`make build-phpantom-runtime PHPANTOM_TARGET_VERSION=8.0`; run the native probe
+with `make test-phpantom-runtime-native`. Candidate artifacts and provenance are
+retained under `build/phpantom-versioned-candidates/`; these commands do not
+replace the checked-in build-only asset. The UI artifacts in the public manifest
+are the exact manager-reviewed batch and are not rebuilt during publication.
 
 To verify the browser build and all 12 selected artifacts:
 

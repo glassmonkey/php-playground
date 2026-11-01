@@ -1,19 +1,12 @@
-# Send only the local Cargo workspace, maintained runtime sources, and entrypoint.
+# The builder only needs the reviewed PHPantom patch, harness, and scripts.
 **
-!Cargo.toml
-!Cargo.lock
-!rust-toolchain.toml
-!rust/
-!rust/**
 !scripts/
 !scripts/lsp/
 !scripts/lsp/phpantom/
-!scripts/lsp/phpantom/build-in-container.sh
+!scripts/lsp/phpantom/**
 
-# Do not include any machine-local compile or dependency caches.
+# Never send generated output or local caches to the Docker build context.
 **/target
 **/target/**
 **/node_modules
 **/node_modules/**
-rust/vendor/phpantom_lsp/stubs
-rust/vendor/phpantom_lsp/stubs/**

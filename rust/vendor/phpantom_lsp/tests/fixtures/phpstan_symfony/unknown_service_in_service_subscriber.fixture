@@ -1,8 +1,0 @@
-// test: A service subscriber's own locator is not the container
-// feature: diagnostics
-// Ported from PHPStan's Symfony extension,
-// ContainerInterfaceUnknownServiceRuleTest::testGetPrivateServiceInLegacyServiceSubscriber.
-// project: phpstan_symfony
-// file: rules/Symfony/ExampleServiceSubscriber.php
-// codes: invalid_symfony_service
----

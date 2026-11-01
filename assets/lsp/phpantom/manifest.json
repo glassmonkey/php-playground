@@ -6,8 +6,7 @@
     "repository": "https://github.com/PHPantom-dev/phpantom_lsp",
     "commit": "49b9a7513ed19cbbfb79d5d08a3f3693ffb2b668",
     "license": "MIT",
-    "licenseFile": "rust/vendor/phpantom_lsp/LICENSE",
-    "licenseUrl": "https://opensource.org/license/mit"
+    "licenseUrl": "https://github.com/PHPantom-dev/phpantom_lsp/blob/49b9a7513ed19cbbfb79d5d08a3f3693ffb2b668/LICENSE"
   },
   "stubs": {
     "name": "JetBrains phpstorm-stubs",
