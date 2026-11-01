@@ -444,15 +444,6 @@ RUN cd /root && \
     fi && \
     touch php-src/patched
 
-# Add VRZNO
-RUN git clone https://github.com/seanmorris/vrzno.git php-src/ext/vrzno \
-            --branch DomAccess \
-            --single-branch    \
-            --depth 1 && \
-        echo -n ' --enable-vrzno' >> /root/.php-configure-flags && \
-        echo -n ' -DWITH_VRZNO=1' >> /root/.emcc-php-wasm-flags && \
-        echo -n ', "_exec_callback", "_del_callback"' >> /root/.EXPORTED_FUNCTIONS
-
 # Install Mysql support if needed
 RUN if [ "$WITH_MYSQL" = "yes" ]; then \
         echo -n ' --enable-mysql --enable-pdo --with-mysql=mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd ' >> /root/.php-configure-flags; \

@@ -53,7 +53,9 @@ def main() -> None:
         assert f"ARG {flag}" not in dockerfile
         assert flag not in makefile
     assert " --enable-mbstring " in php_stage
-    assert " --enable-vrzno" in php_stage
+    assert "vrzno" not in dockerfile.lower()
+    php_bridge = (ROOT / "src/wasm/build-assets/php_wasm.c").read_text()
+    assert "vrzno" not in php_bridge.lower()
 
 
 if __name__ == "__main__":
