@@ -1,0 +1,27 @@
+
+ RUN  v4.1.10 /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure
+
+ ❯ src/workers/__test__/php-worker.spec.ts (308 tests | 1 failed | 307 skipped) 5022ms
+     × version: 7.0 should load wasm file, eval(1+1=2) 5019ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/workers/__test__/php-worker.spec.ts > load wasm files > version: 7.0 should load wasm file, eval(1+1=2)
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/workers/__test__/php-worker.spec.ts:31:18
+     29|
+     30| describe('load wasm files', async function () {
+     31|  it.each(versions)(
+       |                  ^
+     32|   'version: %s should load wasm file, eval(1+1=2)',
+     33|   async function (v) {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 307 skipped (308)
+   Start at  17:00:05
+   Duration  6.23s (transform 4.56s, setup 172ms, import 338ms, tests 5.02s, environment 0ms)
+

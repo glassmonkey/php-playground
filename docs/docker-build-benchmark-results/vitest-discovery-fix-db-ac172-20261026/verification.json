@@ -1,0 +1,97 @@
+{
+  "kind": "vitest-discovery-regression-verification",
+  "based_on_repo_revision": "dbac1726553fbc44cd57dfc5b910650dcd8b7669",
+  "change": {
+    "file": "vitest.config.js",
+    "sha256": "1a9bd5dc9f2c0b9d06590651e2ced9bd64ab546edad34ed367d77eac28ae65b0",
+    "exclude_added": "docs/docker-build-benchmark-results/**",
+    "framework_default_excludes_preserved": true,
+    "archived_evidence_deleted": false
+  },
+  "ci_failure_reference": {
+    "workflow_run_id": "40209686927",
+    "job_id": "121218051605",
+    "step": "make test-ci -> npm run test:ci -> vitest run",
+    "observed_failure": "Archived enabled-library-smoke.test.ts was discovered and its relative import could not resolve exported build assets (MODULE_NOT_FOUND).",
+    "archived_source": "docs/docker-build-benchmark-results/gla96-85-zlib132-openssl111w-18d626d-corrected-base-20261025T154524Z/raw/enabled-library-smoke.test.ts",
+    "archived_source_sha256": "5efea1913644b163fbc3d1e27d37090c15bda2399b444915fa3f14e3c0ad15e2"
+  },
+  "vitest_alignment": {
+    "package_json": "4.1.12",
+    "package_lock": "4.1.12",
+    "installed": "4.1.12",
+    "package_json_sha256": "f647908ae3d7f4d18a243d73c0b8f18a4c53177db4f95c34103e6019c5da7b2b",
+    "package_lock_sha256": "af5f9c2ee4538690d581db91200ad5d8d9d220618ad5e16064d910e9161b3abf"
+  },
+  "commands": [
+    {
+      "command": "npm run test:ci",
+      "exit_code": 0,
+      "summary": "2 test files passed; 313 tests passed",
+      "raw_log": "raw/npm-test-ci-final-tree.log",
+      "raw_log_sha256": "0b51cfc6f6b9600fa8f0f419071f7a12fa6d16127f7103efb97f8c47518f8feb"
+    },
+    {
+      "command": "make test-ci",
+      "exit_code": 0,
+      "summary": "2 test files passed; 313 tests passed; Make printed a non-fatal sysctl permission warning",
+      "raw_log": "raw/make-test-ci-final-tree.log",
+      "raw_log_sha256": "21b213220f10270fd9d2dc9dbcca0ea0e06add81f624bfba33e37e9f68d2a6f8"
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0,
+      "summary": "Production build succeeded; Vite emitted its existing large-chunk advisory",
+      "raw_log": "raw/npm-build-final-tree.log",
+      "raw_log_sha256": "fb50a68156ace08a54bbc709edd45c0e87f59e388f09c09c6289707fbb43a934"
+    },
+    {
+      "command": "npm run lint:js",
+      "exit_code": 0,
+      "raw_log": "raw/npm-lint-final-tree.log",
+      "raw_log_sha256": "bf6a68f1bf9f940d701d73ce7452c40c067b7855f88c8e546f7ec85d7b4b5bbb"
+    },
+    {
+      "command": "npm run build:types",
+      "exit_code": 0,
+      "raw_log": "raw/npm-types-final-tree.log",
+      "raw_log_sha256": "90846c43c59430ffd31ac6ad3c125554fc9d6023d5857543df01338d426c09a6"
+    },
+    {
+      "command": "vitest run src/workers/__test__/php-worker.spec.ts -t 'version: 5.6'",
+      "exit_code": 0,
+      "summary": "2 passed; 307 skipped by the focused name filter",
+      "raw_log": "raw/php56-worker-current-assets.log",
+      "raw_log_sha256": "fec963d0d5bf07963c026fc74c6319e58d20dddb94b55cdef318a4c2fea22e4f"
+    }
+  ],
+  "php56_enabled_output": {
+    "result_json": "../gla96-enabled-5.6-common-pins-db-ac172-escalated-20261025T1606Z/results.json",
+    "result_json_sha256": "d8dc0cce11fa9310690c00df14d07a2319150c4bb81b02762a9a2ab35107813d",
+    "sha256_reconciliation": {
+      "earlier_manager_reported_sha256": "58c7b8dfb3a947c63d2f5d1f1c876d0f4982ae3d21ba48366ef4ef55592fb60f",
+      "earlier_manager_reported_run": "../candidate-5.6-php561dev-srcwasm-manager-elevated-1d8fe66-20261024T1325Z/results.json",
+      "earlier_manager_reported_repo_revision": "1d8fe66af54251de214491ed5e532ca716f36654",
+      "current_worktree_and_committed_git_blob_sha256": "d8dc0cce11fa9310690c00df14d07a2319150c4bb81b02762a9a2ab35107813d",
+      "current_run": "../gla96-enabled-5.6-common-pins-db-ac172-escalated-20261025T1606Z/results.json",
+      "current_repo_revision": "dbac1726553fbc44cd57dfc5b910650dcd8b7669",
+      "action": "The two hashes belong to separate result files/runs, not a mutation of one file. Both files remain preserved and are referenced by their own run directory and repo revision."
+    },
+    "repo_revision": "dbac1726553fbc44cd57dfc5b910650dcd8b7669",
+    "php_source_sha": "05fb10165081cb4fb55a9943b44cab62c627db7a",
+    "php_version": "5.6.41-dev",
+    "raw_js_sha256": "243cd9ff8152947c175295b8c11175b042bb833f49dfc7bb5ceaed7654a6a618",
+    "checked_in_formatted_js_sha256": "186e8db5e2db37f381fd57f20b5784665a10a0a015256b3681616de8ef30eb0f",
+    "wasm_sha256": "572bac7429604eb494a91508b1663f5008e7a2e7a11503a069c2f1b09ea613db",
+    "focused_public_runtime_smoke": {
+      "summary": "PHP 5.6.41-dev; GD PNG bytes, SQLite query, ZIP write/read, OpenSSL encrypt/decrypt and 1.1.1w version, zlib round-trip and 1.3.2 compiled version, XML and mbstring assertions passed",
+      "exit_code": 0,
+      "raw_log": "../gla96-enabled-5.6-common-pins-db-ac172-escalated-20261025T1606Z/raw/runtime-smoke-final.log",
+      "raw_log_sha256": "305cdadb2cd3d5516323a2de76570760acf3b97c62c3c5adbfdeec21a56bd0a1"
+    }
+  },
+  "limitations": [
+    "This verifies test discovery and the listed PHP 5.6 output only; remaining PHP-version builds, final integrated regressions, node/proxy gates, and AC2 comparisons remain outstanding.",
+    "No new Docker build was started for this fix."
+  ]
+}

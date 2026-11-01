@@ -1,0 +1,53 @@
+{
+  "kind": "integration-test-result",
+  "repo_revision": "de2bd42912cae3c861b6b421df61ad140492f2f9",
+  "observed_utc": "2026-10-25T10:14:41Z",
+  "ended_utc": "2026-10-25T10:15:19Z",
+  "exit_code": 0,
+  "summary": {
+    "status": "passed",
+    "tests_passed": 312,
+    "tests_total": 312,
+    "failed": [],
+    "note": "final full standard Vitest after lazy per-version worker loader import"
+  },
+  "command": "./node_modules/.bin/vitest run --exclude docs/docker-build-benchmark-results/**",
+  "locale": {
+    "LANG": "ja_JP.UTF-8",
+    "LC_ALL": "C.UTF-8"
+  },
+  "runtime": {
+    "node": "v24.12.0",
+    "npm": "11.6.2",
+    "vitest": "4.1.10"
+  },
+  "asset_sha256": {
+    "assets/php-5.6.wasm": "8a2b4d9995da99961273631242a852a0657604531ef8b6d86f7ccf9a5ef8d3a6",
+    "assets/php-7.0.wasm": "6696a7f09d0189453e2f945f485a57c4561e900c597a4badefbf4559133a60f0",
+    "assets/php-7.1.wasm": "c9caddf7159ae9fe7375bc4906e7e1356e117f22d623d28a40bed36db04af369",
+    "assets/php-7.2.wasm": "d1c373bb4e7d6ef80f6418dd10df1d71bdb736d2c175ad51dab96b7676023eff",
+    "assets/php-7.3.wasm": "bf23b2656cc5ccb75106caee917785bb1176e3bd6562eb51662d758f5df29488",
+    "assets/php-7.4.wasm": "8588eb04f11695113d8b17bdd1668470872411965f434941059f8812be3309c9",
+    "assets/php-8.0.wasm": "936c858adf8b88a74e30a6717d8aa2856678dad3d385db6c99885b3f62d98a52",
+    "assets/php-8.1.wasm": "4d22107edec0e7954f6e0d9bf86cf069b75e6ed4df4de4868af3eb1ef1c9aca4",
+    "assets/php-8.2.wasm": "a2950a4b4b2bbc5977d1a7e901556e3887ac092a001207060b4c4007583d3805",
+    "assets/php-8.3.wasm": "90f9e8d0b32653b52902581e5631509d7e0b89df9587f2df4f1953825efe2b0d",
+    "assets/php-8.4.wasm": "66719542317a8e5ac4421eb73498799951850faf18e9f6f7d3d46fee695f50f3",
+    "assets/php-8.5.wasm": "c97c6ce083d99c0a74d2c5d1bd0904b066ba700ca838e79a5de457706d435647",
+    "src/wasm-assets/php-5.6.js": "d665b8fe4b6596f879f502019cab87478b1089822fb27014d8329b36ad435033",
+    "src/wasm-assets/php-7.0.js": "305a067a80b2442d07f5f233a2fd77d2ebd8d81f3a2472c3355a5cc1513a2656",
+    "src/wasm-assets/php-7.1.js": "c62cfe816808a87b68f182a362628d89f7743744e7b07a4063caaf7b1db9632c",
+    "src/wasm-assets/php-7.2.js": "66c45f6a82e2603b27195b89e40ed7c93f33db7a223bb3b3df0bb414703e4510",
+    "src/wasm-assets/php-7.3.js": "a9a9bed82ea0daf0f70fad9079158810aaf409718fec3a31b4806ccf73f2a231",
+    "src/wasm-assets/php-7.4.js": "f29c4135f5c9ec572ce46d0c536e75a579f1120dc9e7d9d10335fc1fdc980e70",
+    "src/wasm-assets/php-8.0.js": "3d518a724a3349465b186c520369b9a456aafa1c596097e0b40f9eb769798d78",
+    "src/wasm-assets/php-8.1.js": "e875a381d00bf386dbc7a365ed3ca04e23a1c932e6b04f3445b589e19ebbe80c",
+    "src/wasm-assets/php-8.2.js": "4a29e671653e103251b2bb54ab7b33f8e9e9477df567eb318186ee2565f0f304",
+    "src/wasm-assets/php-8.3.js": "e209c1c4f6f99664fa9d12ca3ddf6484387611004fa09653c338a764025c3447",
+    "src/wasm-assets/php-8.4.js": "b415f9927b4dcb675ab6b28c7617641be31850631ff46124091376edbf53b613",
+    "src/wasm-assets/php-8.5.js": "3965c57c6061b93a914418eca8b54707cce42141052f338507685124c30e8a76"
+  },
+  "temporary_lifecycle_instrumentation": false,
+  "raw_log": "raw/vitest-final.log",
+  "raw_log_sha256": "5a0d28f7f7dcca3759c7d6cb44ea0e6d30c6ce74d74b42c3ab9b03ba4e09c993"
+}

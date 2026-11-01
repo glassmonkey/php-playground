@@ -1,0 +1,54 @@
+{
+  "actual_php_version": "7.1.34-dev",
+  "asset_evidence": {
+    "formatted_js": {
+      "bytes": 147158,
+      "path": "src/wasm-assets/php-7.1.js",
+      "sha256": "c62cfe816808a87b68f182a362628d89f7743744e7b07a4063caaf7b1db9632c"
+    },
+    "installed_wasm": {
+      "bytes": 4226092,
+      "path": "assets/php-7.1.wasm",
+      "sha256": "c9caddf7159ae9fe7375bc4906e7e1356e117f22d623d28a40bed36db04af369"
+    },
+    "raw_js": {
+      "bytes": 110828,
+      "path": "docs/docker-build-benchmark-results/candidate-7.1-correctness-de2bd42-20261025T0802Z/exported-assets/php-7.1.js",
+      "sha256": "5ae99c5263fd8cd069736547beab78e2f829e49f583fdf5761ae536f48e4b293"
+    },
+    "raw_wasm": {
+      "bytes": 4226092,
+      "path": "docs/docker-build-benchmark-results/candidate-7.1-correctness-de2bd42-20261025T0802Z/exported-assets/php-7.1.wasm",
+      "sha256": "c9caddf7159ae9fe7375bc4906e7e1356e117f22d623d28a40bed36db04af369"
+    }
+  },
+  "benchmark_eligible": false,
+  "command": "raw/build-command.txt",
+  "context_tree_sha": "b7c7411be2b1eb0af865952eb0d4961a5a7eb29e",
+  "ended_utc": null,
+  "exit_code": null,
+  "focused_verification": {
+    "focused_worker": {
+      "exit_code": 0,
+      "passed": 2,
+      "result": "load/eval plus phpinfo snapshot pass",
+      "skipped": 306
+    }
+  },
+  "image": {
+    "digest": "sha256:0f03e4d2daddefea537079fd4eeecab5a2b6c034145c6967a9a20b2a2af4a9d1",
+    "tag": "gla96-candidate-php71:de2bd42-branchpin"
+  },
+  "kind": "correctness-build-result",
+  "metadata": "raw/build-metadata.json",
+  "observed_utc": "2026-10-25T08:02:13Z",
+  "php_source_sha": "1d9205b665d898453cdd32036ad9b687cf6278fe",
+  "php_version": "7.1",
+  "raw_log": "raw/build.log",
+  "repo_revision": "de2bd42912cae3c861b6b421df61ad140492f2f9",
+  "summary": {
+    "note": "Terminal output/metadata show image export evidence, and asset runtime tests passed; exact owner command returncode and ended_utc receipt were not retained. Keep both null and do not treat the build terminal status as proven. Correctness evidence only; not benchmark eligible.",
+    "status": "unknown"
+  },
+  "terminal_observed_utc": "2026-10-25T08:17:37Z"
+}

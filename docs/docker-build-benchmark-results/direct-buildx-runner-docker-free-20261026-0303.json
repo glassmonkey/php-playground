@@ -1,0 +1,11 @@
+{
+  "kind": "docker-free-verification",
+  "command": "PYTHONPYCACHEPREFIX=/private/tmp/gla96-pycache python3 -m py_compile scripts/direct-buildx-runner.py scripts/test-direct-buildx-runner.py && python3 scripts/test-direct-buildx-runner.py",
+  "py_compile_exit_code": 0,
+  "test_exit_code": 0,
+  "tests_run": 12,
+  "tests_passed": 12,
+  "buildx_invoked": false,
+  "raw_log": "docs/docker-build-benchmark-results/direct-buildx-runner-docker-free-20261026-0303.log",
+  "raw_log_sha256": "93ce7c7f8f60c0a7530e73a1eb2c74284d883ed7c74a32e1fd8868bf12d7cdd3"
+}

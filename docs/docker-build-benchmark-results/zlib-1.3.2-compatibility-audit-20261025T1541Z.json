@@ -1,0 +1,115 @@
+{
+  "kind": "pinned-native-dependency-compatibility-audit",
+  "observed_at_utc": "2026-10-25T15:41:46Z",
+  "php_sources": {
+    "5.6": "05fb10165081cb4fb55a9943b44cab62c627db7a",
+    "7.4": "004cb827501d1ddaf98daacb185a53e0816f78a7",
+    "8.5": "48b3f94fe2d1055d05b4bfdebd9d84ce6565a73a"
+  },
+  "matrix": [
+    {
+      "dependency": "zlib",
+      "transitive_through": "libzip/GD/PHP zlib",
+      "selected_before": "vendored src/wasm/build-assets/zlib reports zlib.h 1.2.5 and zlib.pc Version:1.2.5",
+      "php_requirements": {
+        "5.6": ">=1.0.9",
+        "7.4": ">=1.2.0.4",
+        "8.5": ">=1.2.11"
+      },
+      "php_source_refs": [
+        "php-src@05fb10165081cb4fb55a9943b44cab62c627db7a:ext/zlib/config0.m4:5",
+        "php-src@004cb827501d1ddaf98daacb185a53e0816f78a7:ext/zlib/config0.m4:4-7",
+        "php-src@48b3f94fe2d1055d05b4bfdebd9d84ce6565a73a:build/php.m4:1900-1908"
+      ],
+      "result": "Confirmed conflict for PHP8.5; previous header/pkg-config both1.2.5. Manager-selected common zlib1.3.2 satisfies all three numeric minima; no upper bound found in these checked configure macros. Build/runtime compatibility remains to be tested.",
+      "selected_candidate": {
+        "url": "https://zlib.net/zlib-1.3.2.tar.gz",
+        "sha256": "bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16",
+        "bytes": 1502830,
+        "archive_path": "/private/tmp/gla96-zlib-1.3.2.tar.gz",
+        "archive_verified_sha256": "bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16",
+        "archive_header_line": "#define ZLIB_VERSION \"1.3.2\"",
+        "pkgconfig_template_line": "Version: @VERSION@"
+      }
+    },
+    {
+      "dependency": "libzip",
+      "selected_by_dockerfile": "1.2.0 for PHP <=7.3 (therefore5.6);1.9.2 for PHP>=7.4",
+      "php_requirements": {
+        "5.6": "libzip >=0.11 if pkg-config path is used; explicit-prefix path also checks /root/lib/include/zip.h",
+        "7.4": "libzip >=0.11; excludes1.3.1 and1.7.0",
+        "8.5": "libzip >=0.11; excludes1.3.1 and1.7.0"
+      },
+      "php_source_refs": [
+        "php-src@05fb10165081cb4fb55a9943b44cab62c627db7a:ext/zip/config.m4:65-72",
+        "php-src@004cb827501d1ddaf98daacb185a53e0816f78a7:ext/zip/config.m4:7",
+        "php-src@48b3f94fe2d1055d05b4bfdebd9d84ce6565a73a:ext/zip/config.m4:7"
+      ],
+      "result": "Selected versions exceed minimum and avoid excluded releases; existing static-target normalization is retained. Runtime tests are separate evidence."
+    },
+    {
+      "dependency": "libxml2",
+      "selected_by_dockerfile": "GNOME libxml2 tag v2.9.10; static install",
+      "php_requirements": {
+        "5.6": ">=2.6.11",
+        "7.4": ">=2.7.6",
+        "8.5": ">=2.9.4"
+      },
+      "php_source_refs": [
+        "php-src@05fb10165081cb4fb55a9943b44cab62c627db7a:acinclude.m4:2535-2564",
+        "php-src@004cb827501d1ddaf98daacb185a53e0816f78a7:build/php.m4:2036-2044",
+        "php-src@48b3f94fe2d1055d05b4bfdebd9d84ce6565a73a:build/php.m4:1863-1871"
+      ],
+      "result": "Selected2.9.10 meets all checked minima; no upper bound found in these configure checks."
+    },
+    {
+      "dependency": "SQLite",
+      "selected_by_dockerfile": "sqlite-autoconf3400100 (3.40.1)",
+      "php_requirements": {
+        "5.6": ">=3.3.9",
+        "7.4": ">3.7.4",
+        "8.5": ">=3.7.17"
+      },
+      "php_source_refs": [
+        "php-src@05fb10165081cb4fb55a9943b44cab62c627db7a:ext/sqlite3/config0.m4:38",
+        "php-src@004cb827501d1ddaf98daacb185a53e0816f78a7:ext/sqlite3/config0.m4:8; ext/pdo_sqlite/config.m4:15",
+        "php-src@48b3f94fe2d1055d05b4bfdebd9d84ce6565a73a:build/php.m4:1888-1894"
+      ],
+      "result": "Selected3.40.1 meets checked minima. Build enables column-metadata and code adds static archive for final link on7.4+; PHP5.6 retains existing compatibility path."
+    },
+    {
+      "dependency": "libpng",
+      "selected_by_dockerfile": "libpng-1.6.39",
+      "php_requirements": {
+        "5.6": "GD checks required symbols; no explicit libpng version minimum/upper bound found in ext/gd/config.m4",
+        "7.4": "PKG_CHECK_MODULES([PNG],[libpng]); no version predicate",
+        "8.5": "PKG_CHECK_MODULES([PNG],[libpng]); no version predicate"
+      },
+      "php_source_refs": [
+        "php-src@05fb10165081cb4fb55a9943b44cab62c627db7a:ext/gd/config.m4",
+        "php-src@004cb827501d1ddaf98daacb185a53e0816f78a7:ext/gd/config.m4:68",
+        "php-src@48b3f94fe2d1055d05b4bfdebd9d84ce6565a73a:ext/gd/config.m4:64"
+      ],
+      "result": "No libpng version conflict found by configure source review; zlib is also required by GD and is covered above."
+    },
+    {
+      "dependency": "OpenSSL",
+      "selected_by_dockerfile": "common1.1.1w; exact archive SHA gate; Configure linux-generic32 no-asm no-shared; PHP5.6 patch retained",
+      "php_requirements": {
+        "5.6": ">=0.9.6, with existing php5.6-openssl1.1.patch",
+        "7.4": ">=1.0.1",
+        "8.5": ">=1.1.1"
+      },
+      "php_source_refs": [
+        "php-src@05fb10165081cb4fb55a9943b44cab62c627db7a:ext/openssl/config0.m4:6; src/wasm/build-assets/php5.6-openssl1.1.patch",
+        "php-src@004cb827501d1ddaf98daacb185a53e0816f78a7:ext/openssl/config0.m4:4",
+        "php-src@48b3f94fe2d1055d05b4bfdebd9d84ce6565a73a:ext/openssl/config0.m4:4"
+      ],
+      "result": "Selected version meets all checked configure minima; source/API/runtime compatibility must still be proven by enabled builds and functional smoke."
+    }
+  ],
+  "confirmed_conflict": "Only zlib1.2.5 vs PHP8.5 minimum1.2.11 is a demonstrated configure conflict. The manager-selected common1.3.2 candidate meets numeric thresholds for5.6/7.4/8.5; compile/pkg-config/runtime validation remains pending. No new PHP-version branch or metadata spoof is proposed.",
+  "source_provenance_caveat": "This is a bounded configure/source-version audit, not proof that all non-zlib installed headers/pkg-config files were read from the failed image. The failed8.5 build did not export final artifacts. Recipe identifies versions; several downloaded sources lack SHA256 gates, which must be made explicit before claiming exact matched performance inputs.",
+  "dockerfile_source_sha256": "a7ed772d1afd1b114da2c41b392502feaeb14ac9959d12ffcca04af04aa681b8",
+  "source_archive_size": 1502830
+}

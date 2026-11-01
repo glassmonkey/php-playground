@@ -1,0 +1,27 @@
+{
+  "kind": "base-image-pin-preflight-test-result",
+  "repo_revision": "ccc68c766ec4f426a23a31f3bbdaa4569b6bb19a",
+  "fixed_base_image": "ubuntu@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+  "checks": [
+    {
+      "argv": [
+        "python3",
+        "scripts/test-direct-buildx-runner.py"
+      ],
+      "started_utc": "2026-10-25T15:55:04.620597+00:00",
+      "ended_utc": "2026-10-25T15:55:05.296902+00:00",
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "python3",
+        "scripts/test-benchmark-docker-build.py"
+      ],
+      "started_utc": "2026-10-25T15:55:05.296926+00:00",
+      "ended_utc": "2026-10-25T15:55:06.991309+00:00",
+      "exit_code": 0
+    }
+  ],
+  "status": "succeeded",
+  "raw_log": "docs/docker-build-benchmark-results/base-pin-preflight-ccc68c7-20261025T1555Z/raw-tests.log"
+}

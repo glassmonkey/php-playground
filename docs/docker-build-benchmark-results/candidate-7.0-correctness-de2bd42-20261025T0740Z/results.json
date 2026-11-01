@@ -1,0 +1,55 @@
+{
+  "actual_php_version": "7.0.33-dev",
+  "asset_evidence": {
+    "formatted_js": {
+      "bytes": 147435,
+      "path": "src/wasm-assets/php-7.0.js",
+      "sha256": "305a067a80b2442d07f5f233a2fd77d2ebd8d81f3a2472c3355a5cc1513a2656"
+    },
+    "installed_wasm": {
+      "bytes": 4111947,
+      "path": "assets/php-7.0.wasm",
+      "sha256": "6696a7f09d0189453e2f945f485a57c4561e900c597a4badefbf4559133a60f0"
+    },
+    "raw_js": {
+      "bytes": 111034,
+      "path": "docs/docker-build-benchmark-results/candidate-7.0-correctness-de2bd42-20261025T0740Z/exported-assets/php-7.0.js",
+      "sha256": "2b655a13aec89dd989c51eec4d1c4f623b866b9eda2b18ed6721c65100a51677"
+    },
+    "raw_wasm": {
+      "bytes": 4111947,
+      "path": "docs/docker-build-benchmark-results/candidate-7.0-correctness-de2bd42-20261025T0740Z/exported-assets/php-7.0.wasm",
+      "sha256": "6696a7f09d0189453e2f945f485a57c4561e900c597a4badefbf4559133a60f0"
+    }
+  },
+  "benchmark_eligible": false,
+  "command": "raw/build-command.txt",
+  "context_tree_sha": "b7c7411be2b1eb0af865952eb0d4961a5a7eb29e",
+  "current_candidate_head": "de2bd42912cae3c861b6b421df61ad140492f2f9",
+  "ended_utc": "2026-10-25T07:57:59Z",
+  "exit_code": 0,
+  "focused_verification": {
+    "load_wasm_eval": {
+      "exit_code": 1,
+      "result": "timed out at existing 5000ms limit on both candidate and exact pre-change committed assets; preserved logs; no timeout changes"
+    },
+    "phpinfo_snapshot": {
+      "result": "runtime output showed 7.0.33-dev and snapshot updated to matching build date; later isolated retest timed out at 5000ms"
+    }
+  },
+  "image": {
+    "digest": "sha256:c8585d286ce0e7726e4cfe033baa888daa75de927f172dbbc6f9955f4596534a",
+    "tag": "gla96-candidate-php70:de2bd42-branchpin"
+  },
+  "kind": "correctness-build-result",
+  "metadata": "raw/build-metadata.json",
+  "observed_utc": "2026-10-25T07:41:38Z",
+  "php_source_sha": "bd289af9630f827728b32360bcd09a614aae8f23",
+  "php_version": "7.0",
+  "raw_log": "raw/build.log",
+  "repo_revision": "aa2446460137ae9ecdca6e739ae5f228dd2f5163",
+  "summary": {
+    "note": "cache-enabled correctness/export build; not a benchmark sample",
+    "status": "succeeded"
+  }
+}

@@ -8,20 +8,22 @@ import {
 	type Version,
 } from '../php-wasm/php';
 
-const phpWasmLoaders = import.meta.glob('../wasm-assets/php-*.js', {
+const phpWasmLoaderUrls = import.meta.glob('../wasm-assets/php-*.js', {
 	eager: true,
-}) as Record<string, PHPLoaderModule>;
+	query: '?url',
+	import: 'default',
+}) as Record<string, string>;
 
-function loadPHPLoaderModule(v: Version): PHPLoaderModule {
-	const loader = phpWasmLoaders[`../wasm-assets/php-${v}.js`];
-	if (!loader) {
+async function loadPHPLoaderModule(v: Version): Promise<PHPLoaderModule> {
+	const url = phpWasmLoaderUrls[`../wasm-assets/php-${v}.js`];
+	if (!url) {
 		throw Error(`PHP ${v} assets not found.`);
 	}
-	return loader;
+	return import(/* @vite-ignore */ url) as Promise<PHPLoaderModule>;
 }
 
 export async function initPHP(v: Version): Promise<PHP> {
-	const PHPLoaderModule = loadPHPLoaderModule(v);
+	const PHPLoaderModule = await loadPHPLoaderModule(v);
 	return startPHP(v, PHPLoaderModule, 'WORKER', {
 		locateFile: (path: string) => {
 			const cleanPath = path.split('?')[0];

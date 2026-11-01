@@ -1,0 +1,53 @@
+{
+  "actual_php_version": "7.2.35-dev",
+  "asset_evidence": {
+    "formatted_js": {
+      "bytes": 147404,
+      "path": "src/wasm-assets/php-7.2.js",
+      "sha256": "66c45f6a82e2603b27195b89e40ed7c93f33db7a223bb3b3df0bb414703e4510"
+    },
+    "installed_wasm": {
+      "bytes": 4328836,
+      "path": "assets/php-7.2.wasm",
+      "sha256": "d1c373bb4e7d6ef80f6418dd10df1d71bdb736d2c175ad51dab96b7676023eff"
+    },
+    "raw_js": {
+      "bytes": 111009,
+      "path": "docs/docker-build-benchmark-results/candidate-7.2-correctness-de2bd42-20261025T0818Z/exported-assets/php-7.2.js",
+      "sha256": "907523155ed30f9028057579b17b23f4f5c65f30811ca0f1322a6e48711b25c0"
+    },
+    "raw_wasm": {
+      "bytes": 4328836,
+      "path": "docs/docker-build-benchmark-results/candidate-7.2-correctness-de2bd42-20261025T0818Z/exported-assets/php-7.2.wasm",
+      "sha256": "d1c373bb4e7d6ef80f6418dd10df1d71bdb736d2c175ad51dab96b7676023eff"
+    }
+  },
+  "benchmark_eligible": false,
+  "command": "raw/build-command.txt",
+  "context_tree_sha": "b7c7411be2b1eb0af865952eb0d4961a5a7eb29e",
+  "ended_utc": "2026-10-25T08:27:30Z",
+  "exit_code": 0,
+  "focused_verification": {
+    "exit_code": 0,
+    "log": "raw/vitest-php72-focused-final.log",
+    "passed": 2,
+    "result": "load/eval and phpinfo snapshot pass",
+    "skipped": 306
+  },
+  "image": {
+    "digest": "sha256:f553e9d144e19fbb948551132a59b154283e28a0149275c8e9035cf8591368c2",
+    "tag": "gla96-candidate-php72:de2bd42-branchpin"
+  },
+  "kind": "correctness-build-result",
+  "metadata": "raw/build-metadata.json",
+  "observed_utc": "2026-10-25T08:19:13Z",
+  "php_source_sha": "2d3d72412a6734e19a38ed10f385227a6238e4a6",
+  "php_version": "7.2",
+  "raw_log": "raw/build.log",
+  "raw_log_sha256": "da70192911933bedd92ac84957957c18aa42605dd21152128178b9683063b5f2",
+  "repo_revision": "de2bd42912cae3c861b6b421df61ad140492f2f9",
+  "summary": {
+    "note": "Cache-enabled correctness/export build; not benchmark eligible.",
+    "status": "succeeded"
+  }
+}

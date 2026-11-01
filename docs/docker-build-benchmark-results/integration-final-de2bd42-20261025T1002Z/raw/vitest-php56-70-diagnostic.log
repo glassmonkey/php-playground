@@ -1,0 +1,49 @@
+started_utc=2026-10-25T09:57:56Z
+command: vitest run php-worker.spec.ts -t version:regex(5.6|7.0) --exclude docs/docker-build-benchmark-results/**
+
+ RUN  v4.1.10 /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure
+
+stderr | src/workers/__test__/php-worker.spec.ts > load wasm files > version: 7.0 should load wasm file, eval(1+1=2)
+[gla96-diag] message 5.6 id-1792922283016-0.5974651990315596
+[gla96-diag] initPHP:start 5.6
+
+stderr | src/workers/__test__/php-worker.spec.ts > load wasm files > version: 7.0 should load wasm file, eval(1+1=2)
+wasm streaming compile failed: TypeError [ERR_INVALID_ARG_TYPE]: The "source" argument must be an instance of Response or an Promise resolving to Response. Received an instance of ResponseMock
+falling back to ArrayBuffer instantiation
+
+stderr | src/workers/__test__/php-worker.spec.ts > load wasm files > version: 7.0 should load wasm file, eval(1+1=2)
+[gla96-diag] initPHP:ready 5.6
+
+stderr | src/workers/__test__/php-worker.spec.ts > load wasm files > version: 7.0 should load wasm file, eval(1+1=2)
+[gla96-diag] module:ready 5.6
+[gla96-diag] runPHP:start 5.6
+[gla96-diag] runPHP:done 5.6 0 1
+
+ ❯ src/workers/__test__/php-worker.spec.ts (308 tests | 2 failed | 304 skipped) 11121ms
+     × version: 5.6 should load wasm file, eval(1+1=2) 5008ms
+     × version: 7.0 should load wasm file, eval(1+1=2) 5003ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/workers/__test__/php-worker.spec.ts > load wasm files > version: 5.6 should load wasm file, eval(1+1=2)
+ FAIL  src/workers/__test__/php-worker.spec.ts > load wasm files > version: 7.0 should load wasm file, eval(1+1=2)
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/workers/__test__/php-worker.spec.ts:31:18
+     29|
+     30| describe('load wasm files', async function () {
+     31|  it.each(versions)(
+       |                  ^
+     32|   'version: %s should load wasm file, eval(1+1=2)',
+     33|   async function (v) {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 2 passed | 304 skipped (308)
+   Start at  18:57:59
+   Duration  14.48s (transform 7.77s, setup 396ms, import 1.59s, tests 11.12s, environment 6ms)
+
+ended_utc=2026-10-25T09:58:14Z
+exit_code=1

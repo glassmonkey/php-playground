@@ -1,0 +1,25 @@
+{
+  "benchmark_eligible": false,
+  "kind": "integration-verification-result",
+  "repo_revision": "aa2446460137ae9ecdca6e739ae5f228dd2f5163",
+  "tests": {
+    "lint_js": {
+      "exit_code": 0,
+      "log": "raw/lint-js.log"
+    },
+    "playwright_chromium": {
+      "exit_code": 0,
+      "log": "raw/playwright-escalated.log",
+      "summary": "86/86 passed; preview server required sandbox escalation after initial listen EPERM"
+    },
+    "typescript": {
+      "exit_code": 0,
+      "log": "raw/types.log"
+    },
+    "vitest_full": {
+      "exit_code": 0,
+      "log": "raw/vitest-full.log",
+      "summary": "312/312 passed; docs/docker-build-benchmark-results excluded"
+    }
+  }
+}

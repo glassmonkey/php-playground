@@ -1,0 +1,105 @@
+{
+  "kind": "correctness-verification-results",
+  "repo_revision": "36233a46fa82c8db2ff8b7655c6d14cadcaa194c",
+  "php_version": "8.5",
+  "generated_asset_sha256": {
+    "php-8.5.js": "19ed0899e30ebe82641348136ecb491cd54acbae2f605067f4b6b1c88bf5b770",
+    "php-8.5.wasm": "c97c6ce083d99c0a74d2c5d1bd0904b066ba700ca838e79a5de457706d435647"
+  },
+  "tests": [
+    {
+      "name": "real-Wasm response behavior",
+      "command": "./node_modules/.bin/vitest run src/php-wasm/__tests__/php-response.test.ts",
+      "status": "passed",
+      "exit_code": 0,
+      "passed": 4,
+      "failed": 0,
+      "raw_log": "raw/vitest-response.log"
+    },
+    {
+      "name": "PHP 8.5 phpinfo snapshot update",
+      "command": "./node_modules/.bin/vitest run --config vitest.locale.config.js -u src/workers/__test__/php-worker.spec.ts -t \"version: 8.5 run phpinfo\"",
+      "status": "passed",
+      "exit_code": 0,
+      "updated_snapshots": 1,
+      "change": "only the regenerated 8.5 Build Date; no behavior assertion or timeout changed",
+      "raw_log": "raw/vitest-phpinfo-snapshot-update.log"
+    },
+    {
+      "name": "full suite before explicit worker-test locale fixture",
+      "command": "npm run test:ci",
+      "status": "failed_environment_mismatch",
+      "exit_code": 1,
+      "passed": 300,
+      "failed": 12,
+      "detail": "Mac Node navigator.language was en-US while snapshots reflected ja-JP; preserved as before-fix evidence.",
+      "raw_log": "raw/vitest-full.log"
+    },
+    {
+      "name": "full suite after per-case worker locale fixture",
+      "command": "npm run test:ci",
+      "status": "passed",
+      "exit_code": 0,
+      "passed": 312,
+      "failed": 0,
+      "test_files_passed": 2,
+      "raw_log": "raw/vitest-standard-after-locale-fixture.log",
+      "exit_record": "raw/vitest-standard-after-locale-fixture.exit"
+    },
+    {
+      "name": "JavaScript lint after worker locale fixture",
+      "command": "npm run lint:js",
+      "status": "passed",
+      "exit_code": 0,
+      "raw_log": "raw/lint-after-locale-fixture.log"
+    },
+    {
+      "name": "TypeScript general check after worker locale fixture",
+      "command": "npm run build:types:general",
+      "status": "passed",
+      "exit_code": 0,
+      "raw_log": "raw/types-after-locale-fixture.log"
+    }
+  ],
+  "runtime_evidence": [
+    {
+      "name": "pinned emcc wasmBinary+longjmp smoke",
+      "status": "passed",
+      "output": "wasmBinary-provided; longjmp=42; main=0",
+      "evidence": "../wasmBinary-smoke-emsdk-6.0.13/results.json"
+    },
+    {
+      "name": "linux Node LANG->navigator mapping",
+      "status": "passed",
+      "node_version": "24.19.0",
+      "output": {
+        "LANG": "ja_JP.UTF-8",
+        "navigator.language": "ja-JP"
+      },
+      "raw_log": "raw/linux-navigator-locale-smoke-sourced.log"
+    }
+  ],
+  "not_yet_verified": [
+    "PHP 5.6-8.4 regenerated assets",
+    "all12-version asset generation and matrix",
+    "cold/warm/version-switch/link-input performance comparison",
+    "Playwright end-to-end checks",
+    "CI for the next published PR head"
+  ],
+  "performance_claim": false,
+  "source_changes": [
+    {
+      "file": "src/workers/__test__/php-worker.spec.ts",
+      "behavior": "Each callPHP test case sets navigator.language to ja-JP only while the worker request runs, then restores the original own-property descriptor (or deletes the temporary own property). Other navigator fields and Worker/fetch globals are untouched."
+    }
+  ],
+  "formatting": {
+    "command": "./node_modules/.bin/prettier --write src/wasm-assets/php-8.5.js",
+    "scope": "only regenerated PHP 8.5 JavaScript asset",
+    "raw_export_sha256": "19ed0899e30ebe82641348136ecb491cd54acbae2f605067f4b6b1c88bf5b770",
+    "formatted_asset_sha256": "3965c57c6061b93a914418eca8b54707cce42141052f338507685124c30e8a76",
+    "before_hashes": "raw/asset-hashes-before-format.txt",
+    "after_hashes": "raw/asset-hashes-after-format.txt",
+    "formatter_log": "raw/prettier-php85.log"
+  }
+}

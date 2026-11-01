@@ -1,0 +1,108 @@
+{
+  "status": "dry-run",
+  "mode": "php-version",
+  "samples": 3,
+  "repo_revision": "3e8396a3a75c068ceaa63d692bcbdba56ea9c9b7",
+  "repo_context_tree_sha": "b7c7411be2b1eb0af865952eb0d4961a5a7eb29e",
+  "linked_input_tree_sha": "4045438bc840a4eedfda94209ded8a19caf2883a",
+  "php_source_sha": "48b3f94fe2d1055d05b4bfdebd9d84ce6565a73a",
+  "emsdk_repo_sha": "d7b4130688bfa348392b921ab04015aa15c4f154",
+  "php_version": "8.5",
+  "emsdk_version": "6.0.13",
+  "base_image": "ubuntu",
+  "base_image_digest": "sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+  "host": "shunsukenoMacBook-Air.local",
+  "host_arch": "arm64",
+  "platform": "linux/arm64",
+  "cpu_allocation": "builder cpuset=0-1; quota=200000/100000",
+  "memory_allocation": "builder=5368709120; build-step=4g; parallelism=1",
+  "build_resources": [
+    "cpuset-cpus=0-1",
+    "memory=4g"
+  ],
+  "builder": "gla96-a3c1",
+  "builder_cpu_set": "0-1",
+  "builder_cpu_quota": 200000,
+  "builder_memory_bytes": 5368709120,
+  "effective_feature_build_args": {
+    "EMSCRIPTEN_ENVIRONMENT": "web",
+    "WITH_CLI_SAPI": "no",
+    "WITH_CURL": "no",
+    "WITH_LIBPNG": "no",
+    "WITH_LIBXML": "no",
+    "WITH_LIBZIP": "no",
+    "WITH_MBSTRING": "yes",
+    "WITH_MYSQL": "no",
+    "WITH_NODEFS": "no",
+    "WITH_OPENSSL": "no",
+    "WITH_SQLITE": "no",
+    "WITH_VRZNO": "yes",
+    "WITH_WS_NETWORKING_PROXY": "no"
+  },
+  "feature_signature_sha256": "561ffdfae0ca6a64876eea1bdb65d048d10459c3bb35a7c08d6d9f20190631eb",
+  "schedule": [
+    {
+      "role": "prime",
+      "phase": "prime-switch",
+      "sample": 1,
+      "php_version": "7.4",
+      "php_source_sha": "004cb827501d1ddaf98daacb185a53e0816f78a7",
+      "repo_revision": "3e8396a3a75c068ceaa63d692bcbdba56ea9c9b7",
+      "no_cache": false,
+      "pair_id": "switch-01"
+    },
+    {
+      "role": "measured",
+      "phase": "measured",
+      "sample": 1,
+      "php_version": "8.5",
+      "php_source_sha": "48b3f94fe2d1055d05b4bfdebd9d84ce6565a73a",
+      "repo_revision": "3e8396a3a75c068ceaa63d692bcbdba56ea9c9b7",
+      "no_cache": false,
+      "pair_id": "switch-01"
+    },
+    {
+      "role": "prime",
+      "phase": "prime-switch",
+      "sample": 2,
+      "php_version": "7.4",
+      "php_source_sha": "004cb827501d1ddaf98daacb185a53e0816f78a7",
+      "repo_revision": "3e8396a3a75c068ceaa63d692bcbdba56ea9c9b7",
+      "no_cache": false,
+      "pair_id": "switch-02"
+    },
+    {
+      "role": "measured",
+      "phase": "measured",
+      "sample": 2,
+      "php_version": "8.5",
+      "php_source_sha": "48b3f94fe2d1055d05b4bfdebd9d84ce6565a73a",
+      "repo_revision": "3e8396a3a75c068ceaa63d692bcbdba56ea9c9b7",
+      "no_cache": false,
+      "pair_id": "switch-02"
+    },
+    {
+      "role": "prime",
+      "phase": "prime-switch",
+      "sample": 3,
+      "php_version": "7.4",
+      "php_source_sha": "004cb827501d1ddaf98daacb185a53e0816f78a7",
+      "repo_revision": "3e8396a3a75c068ceaa63d692bcbdba56ea9c9b7",
+      "no_cache": false,
+      "pair_id": "switch-03"
+    },
+    {
+      "role": "measured",
+      "phase": "measured",
+      "sample": 3,
+      "php_version": "8.5",
+      "php_source_sha": "48b3f94fe2d1055d05b4bfdebd9d84ce6565a73a",
+      "repo_revision": "3e8396a3a75c068ceaa63d692bcbdba56ea9c9b7",
+      "no_cache": false,
+      "pair_id": "switch-03"
+    }
+  ],
+  "link_input_variant_id": null,
+  "output": "/private/tmp/gla96-switch-dry-run",
+  "docker_invoked": false
+}

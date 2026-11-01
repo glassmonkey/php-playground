@@ -10,7 +10,7 @@ export default mergeConfig(ViteConfig, {
       ['src/__test__/**.spec.ts', 'jsdom'],
       ['src/__test__/**.test.ts', 'node'],
     ],
-    exclude: [...configDefaults.exclude, 'e2e/**',],
+    exclude: [...configDefaults.exclude, 'e2e/**', 'docs/docker-build-benchmark-results/**'],
     setupFiles: ['@vitest/web-worker'],
   },
 })

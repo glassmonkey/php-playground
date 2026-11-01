@@ -1,0 +1,72 @@
+{
+  "status": "passed",
+  "dockerfile": "/Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/gla96-enabled-7.4-common-pins-b18897b-20261026T024055Z/contexts/target/Dockerfile",
+  "context": "/Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/gla96-enabled-7.4-common-pins-b18897b-20261026T024055Z/contexts/target",
+  "checks": [
+    {
+      "source": "build-assets/replace.sh",
+      "status": "found",
+      "matches": [
+        "build-assets/replace.sh"
+      ],
+      "instruction": "COPY build-assets/replace.sh /root/replace.sh"
+    },
+    {
+      "source": "build-assets/ncurses.patch",
+      "status": "found",
+      "matches": [
+        "build-assets/ncurses.patch"
+      ],
+      "instruction": "COPY build-assets/ncurses.patch /root/"
+    },
+    {
+      "source": "build-assets/bison27.patch",
+      "status": "found",
+      "matches": [
+        "build-assets/bison27.patch"
+      ],
+      "instruction": "COPY build-assets/bison27.patch /root/bison27.patch"
+    },
+    {
+      "source": "build-assets/php*.patch",
+      "status": "found",
+      "matches": [
+        "build-assets/php5.6-function-signatures.patch",
+        "build-assets/php5.6-openssl1.1.patch",
+        "build-assets/php5.6.patch",
+        "build-assets/php7.0-function-signatures.patch",
+        "build-assets/php7.0.patch",
+        "build-assets/php7.1-function-signatures.patch",
+        "build-assets/php7.1.patch",
+        "build-assets/php7.2-function-signatures.patch",
+        "build-assets/php7.2.patch",
+        "build-assets/php7.3-function-signatures.patch",
+        "build-assets/php7.3.patch",
+        "build-assets/php7.4-function-signatures.patch",
+        "build-assets/php7.4.patch",
+        "build-assets/php8.0.patch",
+        "build-assets/php8.1.patch",
+        "build-assets/php8.2.patch",
+        "build-assets/php8.3.patch",
+        "build-assets/php8.4.patch"
+      ],
+      "instruction": "COPY build-assets/php*.patch /root/"
+    },
+    {
+      "source": "build-assets/php_wasm.c",
+      "status": "found",
+      "matches": [
+        "build-assets/php_wasm.c"
+      ],
+      "instruction": "COPY build-assets/php_wasm.c /root/"
+    },
+    {
+      "source": "build-assets/phpwasm-emscripten-library.js",
+      "status": "found",
+      "matches": [
+        "build-assets/phpwasm-emscripten-library.js"
+      ],
+      "instruction": "COPY build-assets/phpwasm-emscripten-library.js /root/phpwasm-emscripten-library.js"
+    }
+  ]
+}

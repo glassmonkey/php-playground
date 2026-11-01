@@ -1,0 +1,32 @@
+{
+  "kind": "integration-test-result",
+  "repo_revision": "de2bd42912cae3c861b6b421df61ad140492f2f9",
+  "observed_utc": "2026-10-25T10:07:59Z",
+  "ended_utc": "2026-10-25T10:13:42Z",
+  "exit_code": 1,
+  "summary": {
+    "status": "failed",
+    "tests_passed": 309,
+    "tests_total": 312,
+    "failed": [
+      "5.6 load timeout 5000ms",
+      "7.0 load timeout 5000ms",
+      "8.3 load timeout 5000ms"
+    ],
+    "note": "full Vitest with --maxWorkers 1 and temporary lifecycle instrumentation; diagnosed worker startup path"
+  },
+  "command": "./node_modules/.bin/vitest run --maxWorkers 1 --exclude docs/docker-build-benchmark-results/**",
+  "locale": {
+    "LANG": "ja_JP.UTF-8",
+    "LC_ALL": "C.UTF-8"
+  },
+  "runtime": {
+    "node": "v24.12.0",
+    "npm": "11.6.2",
+    "vitest": "4.1.10"
+  },
+  "asset_sha256": {},
+  "temporary_lifecycle_instrumentation": true,
+  "raw_log": "raw/vitest-serial-diagnostic.log",
+  "raw_log_sha256": "c3c0bbf4d128aea54a8b4b9326c721b9feb6cfd36dd32cf9011a6a466572829c"
+}

@@ -1,0 +1,163 @@
+{
+  "kind": "php85-enabled-correctness-validation",
+  "build_result": {
+    "status": "succeeded",
+    "exit_code": 0,
+    "started_utc": "2026-10-25T15:45:35.393027Z",
+    "ended_utc": "2026-10-25T15:56:23.593346Z",
+    "repo_revision": "18d626d39d0ca998414d0183e10dc5f2739e5ca1",
+    "php_source_sha": "48b3f94fe2d1055d05b4bfdebd9d84ce6565a73a",
+    "inputs_sha256": "dbeb63d1f2b0c2117bc5d023492dd28fdf499d479f9384a0825e9e2b4979fd22",
+    "image_digest": null,
+    "raw_log": "raw/build.log",
+    "raw_log_sha256": "0153d14e7122e8b0d14b0bcac72d34ba2a2be5c9fb35a33a9e32939fc82cbbf8"
+  },
+  "actual_build_args": {
+    "build-arg:BASE_IMAGE": "ubuntu@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+    "build-arg:EMSDK_REPO_REF": "d7b4130688bfa348392b921ab04015aa15c4f154",
+    "build-arg:EMSDK_VERSION": "6.0.13",
+    "build-arg:PHP_SOURCE_REF": "48b3f94fe2d1055d05b4bfdebd9d84ce6565a73a",
+    "build-arg:PHP_VERSION": "8.5",
+    "build-arg:WITH_CLI_SAPI": "no",
+    "build-arg:WITH_CURL": "no",
+    "build-arg:WITH_LIBPNG": "yes",
+    "build-arg:WITH_LIBXML": "yes",
+    "build-arg:WITH_LIBZIP": "yes",
+    "build-arg:WITH_MBSTRING": "yes",
+    "build-arg:WITH_MYSQL": "no",
+    "build-arg:WITH_NODEFS": "no",
+    "build-arg:WITH_OPENSSL": "yes",
+    "build-arg:WITH_SQLITE": "yes",
+    "build-arg:WITH_VRZNO": "yes",
+    "build-arg:WITH_WS_NETWORKING_PROXY": "no",
+    "build-arg:ZLIB_SHA256": "bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16",
+    "build-arg:ZLIB_VERSION": "1.3.2"
+  },
+  "runtime": {
+    "php_version": "8.5.13-dev",
+    "response_body_tests": "4/4 pass",
+    "enabled_extension_smoke": {
+      "png": true,
+      "sqlite": true,
+      "zip": true,
+      "openssl": true,
+      "zlib_compress_roundtrip": true,
+      "zlib_version": "1.3.2",
+      "xml": true,
+      "mbstring": true
+    },
+    "worker_load_and_phpinfo": "2/2 pass after updating only actual PHP 8.5 Build Date snapshot"
+  },
+  "snapshot_build_date": "Oct 25 2026 15:55:25",
+  "assets": {
+    "raw_js": {
+      "path": "docs/docker-build-benchmark-results/gla96-85-zlib132-openssl111w-18d626d-corrected-base-20261025T154524Z/exported-assets/php-8.5.js",
+      "sha256": "4d350fe50180417bc1b36a91e1cf9f744c7603375bd2005796b2a113ebe19a31",
+      "bytes": 113945,
+      "side_module_strings": {}
+    },
+    "tracked_js": {
+      "path": "src/wasm-assets/php-8.5.js",
+      "sha256": "40966ab387f22786f0399097df86c3b99e520aa6aadb60b8aabaf2bc44f01295",
+      "bytes": 151344,
+      "side_module_strings": {}
+    },
+    "raw_wasm": {
+      "path": "docs/docker-build-benchmark-results/gla96-85-zlib132-openssl111w-18d626d-corrected-base-20261025T154524Z/exported-assets/php-8.5.wasm",
+      "sha256": "33bf34736caf39872c87b89e07fba4b020fb8efaa262c7f47ad657d6aaa85321",
+      "bytes": 12137985,
+      "side_module_strings": {}
+    },
+    "tracked_wasm": {
+      "path": "assets/php-8.5.wasm",
+      "sha256": "33bf34736caf39872c87b89e07fba4b020fb8efaa262c7f47ad657d6aaa85321",
+      "bytes": 12137985,
+      "side_module_strings": {}
+    }
+  },
+  "logs": [
+    {
+      "path": "raw/runtime-smoke-with-zlib.log",
+      "sha256": "b423f96cb2ba5a81675cb40e7fb83e8ea8cf9d60b20283bcbc34c76726282efb"
+    },
+    {
+      "path": "raw/worker-85-snapshot-update.log",
+      "sha256": "431ee49c026a880071c22ce3e3c81d2fbd3f19cbcb6576417503443811a44d1c"
+    },
+    {
+      "path": "raw/worker-85-runtime-after-snapshot.log",
+      "sha256": "4f345fd2e5aa9d116958cc7c99f94851f9b5b3413cc50660d6875f06e77803e6"
+    },
+    {
+      "path": "raw/runtime-smoke-post-format.log",
+      "sha256": "1a03c7e2adbcd620dbae60e7c4bd0f1da188f7cee8f53e4180b2ed41bd57a2ad"
+    },
+    {
+      "path": "raw/worker-85-runtime-excluded-contexts.log",
+      "sha256": "2002cbfb7b311230ec5cd7c82871eb7e81a863fbdb11b3629dbb5d13de619dd8"
+    },
+    {
+      "path": "raw/runtime-smoke.log",
+      "sha256": "347fe8c63ddbcf24e5f74cba33f6df7c7c755749f312217f7592c966dcc919f3"
+    },
+    {
+      "path": "raw/runtime-smoke-diagnostic.log",
+      "sha256": "13b4a87602a794d5c84ca6c661445b6eadea81be2be5a8113a35bc53daec420f"
+    },
+    {
+      "path": "raw/runtime-smoke-corrected.log",
+      "sha256": "a8f661bc48c886101637d2b8ab262e4121ee3145041db9e5757561e58bc5c11f"
+    }
+  ],
+  "notes": [
+    "The original 65-hex base digest parse failure remains a separate pre-BuildKit failure.",
+    "No candidate timing claim is made from this enabled correctness run.",
+    "An initial smoke fixture used a NUL escape incorrectly and imagedestroy(), deprecated on PHP 8.5; corrected smoke uses chr(0) and omits the obsolete call.",
+    "A worker test command without the benchmark-directory exclusion discovered saved context copies; its failure is retained separately and not used as candidate evidence."
+  ],
+  "build_provenance": {
+    "path": "docs/docker-build-benchmark-results/gla96-85-zlib132-openssl111w-18d626d-corrected-base-20261025T154524Z/exported-assets/provenance.json",
+    "sha256": "9bc599a9acaf9c3c21fab5139366fb85cd025e0f9de41277f78896ba263068d8",
+    "note": "local output-only export attestation; kept outside PR tracking because it embeds expanded BuildKit provenance payload"
+  },
+  "tests": [
+    {
+      "command": "npm run test:ci -- --exclude 'docs/docker-build-benchmark-results/**' src/php-wasm/__tests__/php-response.test.ts src/php-wasm/__tests__/enabled-libs-8.5.transient.test.ts",
+      "exit_code": 0,
+      "raw_log": "raw/runtime-smoke-with-zlib.log"
+    },
+    {
+      "command": "npm run test:ci -- --exclude 'docs/docker-build-benchmark-results/**' src/workers/__test__/php-worker.spec.ts -t 'version: 8.5' -u",
+      "exit_code": 0,
+      "raw_log": "raw/worker-85-snapshot-update.log"
+    },
+    {
+      "command": "npm run test:ci -- --exclude 'docs/docker-build-benchmark-results/**' src/workers/__test__/php-worker.spec.ts -t 'version: 8.5'",
+      "exit_code": 0,
+      "raw_log": "raw/worker-85-runtime-after-snapshot.log"
+    },
+    {
+      "command": "npm run test:ci -- --exclude 'docs/docker-build-benchmark-results/**' src/php-wasm/__tests__/php-response.test.ts src/php-wasm/__tests__/enabled-libs-8.5.transient.test.ts src/workers/__test__/php-worker.spec.ts -t 'PHP response body bytes|enabled extensions through the public runtime API|version: 8.5'",
+      "exit_code": 0,
+      "raw_log": "raw/runtime-smoke-post-format.log"
+    }
+  ],
+  "test_logs": [
+    {
+      "path": "raw/runtime-smoke-with-zlib.log",
+      "sha256": "b423f96cb2ba5a81675cb40e7fb83e8ea8cf9d60b20283bcbc34c76726282efb"
+    },
+    {
+      "path": "raw/worker-85-snapshot-update.log",
+      "sha256": "431ee49c026a880071c22ce3e3c81d2fbd3f19cbcb6576417503443811a44d1c"
+    },
+    {
+      "path": "raw/worker-85-runtime-after-snapshot.log",
+      "sha256": "4f345fd2e5aa9d116958cc7c99f94851f9b5b3413cc50660d6875f06e77803e6"
+    },
+    {
+      "path": "raw/runtime-smoke-post-format.log",
+      "sha256": "1a03c7e2adbcd620dbae60e7c4bd0f1da188f7cee8f53e4180b2ed41bd57a2ad"
+    }
+  ]
+}

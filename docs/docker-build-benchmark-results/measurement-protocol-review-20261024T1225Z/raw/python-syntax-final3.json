@@ -1,0 +1,5 @@
+{
+  "command": "compile() the harness and contract-test source in memory; no pycache write",
+  "exit_code": 0,
+  "stdout": ""
+}

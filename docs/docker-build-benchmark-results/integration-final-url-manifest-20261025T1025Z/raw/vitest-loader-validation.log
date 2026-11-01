@@ -1,0 +1,22 @@
+started_utc=2026-10-25T10:23:57Z
+LANG=ja_JP.UTF-8 LC_ALL=C.UTF-8
+LANG="ja_JP.UTF-8"
+LC_COLLATE="C.UTF-8"
+LC_CTYPE="C.UTF-8"
+LC_MESSAGES="C.UTF-8"
+LC_MONETARY="C.UTF-8"
+LC_NUMERIC="C.UTF-8"
+LC_TIME="C.UTF-8"
+LC_ALL="C.UTF-8"
+command=./node_modules/.bin/vitest run src/workers/__test__/php-worker.spec.ts -t loader-failures-or-load-or-phpinfo --exclude docs/docker-build-benchmark-results/**
+
+ RUN  v4.1.10 /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure
+
+
+ Test Files  1 passed (1)
+      Tests  25 passed | 284 skipped (309)
+   Start at  19:24:01
+   Duration  16.20s (transform 3.58s, setup 154ms, import 557ms, tests 13.88s, environment 1ms)
+
+ended_utc=2026-10-25T10:24:17Z
+exit_code=0

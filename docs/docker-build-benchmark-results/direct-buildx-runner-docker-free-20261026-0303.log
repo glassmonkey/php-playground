@@ -1,0 +1,21 @@
+test_artifact_target_is_output_only_and_default_stage_is_explicit (__main__.DirectBuildxRunnerTest) ... ok
+test_base_image_must_match_the_frozen_digest_before_spawn (__main__.DirectBuildxRunnerTest) ... ok
+test_buildx_metadata_and_local_export_paths_outside_run_dir_reject_before_spawn (__main__.DirectBuildxRunnerTest) ... ok
+test_child_failure_exit_and_end_survive_public_launcher (__main__.DirectBuildxRunnerTest) ... ok
+test_dockerfile_copy_preflight_accepts_src_wasm_context (__main__.DirectBuildxRunnerTest) ... ok
+test_dockerfile_copy_preflight_rejects_repo_root_before_spawn (__main__.DirectBuildxRunnerTest) ... ok
+test_dockerfile_copy_preflight_rejects_unknown_target_before_spawn (__main__.DirectBuildxRunnerTest) ... ok
+test_malformed_base_digest_is_rejected_before_spawn (__main__.DirectBuildxRunnerTest) ... ok
+test_optional_log_hash_reporting_error_keeps_child_terminal (__main__.DirectBuildxRunnerTest) ... {"state": "started", "run_id": "exit-3", "pid": 63569, "started_at_utc": "2026-10-26T03:01:35.671335Z", "raw_log": "/var/folders/3b/w3rr6pw56jsc_9kw6gstj2s80000gn/T/tmpfdouy6p_/raw/build.log"}
+{"state": "terminal", "run_id": "exit-3", "exit_code": 3, "ended_at_utc": "2026-10-26T03:01:35.688410Z", "status": "failed", "results_record": "/var/folders/3b/w3rr6pw56jsc_9kw6gstj2s80000gn/T/tmpfdouy6p_/results.json"}
+ok
+test_pre_spawn_error_keeps_argv_attempt_end_and_error_receipt (__main__.DirectBuildxRunnerTest) ... ok
+test_start_record_reporting_error_does_not_abandon_child (__main__.DirectBuildxRunnerTest) ... {"state": "started", "run_id": "exit-0", "pid": 63572, "started_at_utc": "2026-10-26T03:01:35.742143Z", "raw_log": "/var/folders/3b/w3rr6pw56jsc_9kw6gstj2s80000gn/T/tmp3xw0fbm9/raw/build.log"}
+{"state": "terminal", "run_id": "exit-0", "exit_code": 0, "ended_at_utc": "2026-10-26T03:01:35.758955Z", "status": "succeeded", "results_record": "/var/folders/3b/w3rr6pw56jsc_9kw6gstj2s80000gn/T/tmp3xw0fbm9/results.json"}
+ok
+test_success_exit_and_end_survive_public_launcher (__main__.DirectBuildxRunnerTest) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.604s
+
+OK

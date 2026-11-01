@@ -1,0 +1,69 @@
+{
+  "buildx.build.provenance": {
+    "builder": {
+      "id": ""
+    },
+    "buildType": "https://mobyproject.org/buildkit@v1",
+    "materials": [
+      {
+        "uri": "pkg:docker/ubuntu?digest=sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac\u0026platform=linux%2Farm64",
+        "digest": {
+          "sha256": "68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac"
+        }
+      }
+    ],
+    "invocation": {
+      "configSource": {
+        "entryPoint": "Dockerfile"
+      },
+      "parameters": {
+        "frontend": "dockerfile.v0",
+        "args": {
+          "build-arg:BASE_IMAGE": "ubuntu@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+          "build-arg:EMSDK_REPO_REF": "d7b4130688bfa348392b921ab04015aa15c4f154",
+          "build-arg:EMSDK_VERSION": "6.0.13",
+          "build-arg:PHP_SOURCE_REF": "004cb827501d1ddaf98daacb185a53e0816f78a7",
+          "build-arg:PHP_VERSION": "7.4",
+          "cpusetcpus": "0-1",
+          "memory": "4294967296",
+          "no-cache": ""
+        },
+        "locals": [
+          {
+            "name": "context"
+          },
+          {
+            "name": "dockerfile"
+          }
+        ],
+        "root": {
+          "configSource": {
+            "path": "Dockerfile"
+          },
+          "request": {
+            "args": {
+              "build-arg:BASE_IMAGE": "ubuntu@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+              "build-arg:EMSDK_REPO_REF": "d7b4130688bfa348392b921ab04015aa15c4f154",
+              "build-arg:EMSDK_VERSION": "6.0.13",
+              "build-arg:PHP_SOURCE_REF": "004cb827501d1ddaf98daacb185a53e0816f78a7",
+              "build-arg:PHP_VERSION": "7.4",
+              "cpusetcpus": "0-1",
+              "memory": "4294967296",
+              "no-cache": "",
+              "vcs:localdir:context": "docs/docker-build-benchmark-results/baseline-7.4-cold-contended-20261024T0914Z/contexts/target",
+              "vcs:localdir:dockerfile": "docs/docker-build-benchmark-results/baseline-7.4-cold-contended-20261024T0914Z/contexts/target",
+              "vcs:revision": "832c5de0604fb63b043975c187ca49424785d1dd",
+              "vcs:source": "https://github.com/glassmonkey/php-playground.git"
+            }
+          }
+        },
+        "compatibilityVersion": 30
+      },
+      "environment": {
+        "dockerfileVersion": "1.27.0",
+        "platform": "linux/arm64"
+      }
+    }
+  },
+  "buildx.build.ref": "gla96-a3c1/gla96-a3c10/isr35fpvb6j94cgtqk4v57hcr"
+}

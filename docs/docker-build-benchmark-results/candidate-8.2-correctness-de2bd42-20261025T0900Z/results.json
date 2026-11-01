@@ -1,0 +1,59 @@
+{
+  "actual_php_version": "8.2.36-dev",
+  "asset_evidence": {
+    "formatted_js": {
+      "bytes": 149163,
+      "path": "src/wasm-assets/php-8.2.js",
+      "sha256": "4a29e671653e103251b2bb54ab7b33f8e9e9477df567eb318186ee2565f0f304"
+    },
+    "installed_wasm": {
+      "bytes": 4626482,
+      "path": "assets/php-8.2.wasm",
+      "sha256": "a2950a4b4b2bbc5977d1a7e901556e3887ac092a001207060b4c4007583d3805"
+    },
+    "raw_js": {
+      "bytes": 112324,
+      "path": "docs/docker-build-benchmark-results/candidate-8.2-correctness-de2bd42-20261025T0900Z/exported-assets/php-8.2.js",
+      "sha256": "eae8b84fbeab431b13e9959a8652c9173f3c23030ba3f9f900c6734605b7357f"
+    },
+    "raw_wasm": {
+      "bytes": 4626482,
+      "path": "docs/docker-build-benchmark-results/candidate-8.2-correctness-de2bd42-20261025T0900Z/exported-assets/php-8.2.wasm",
+      "sha256": "a2950a4b4b2bbc5977d1a7e901556e3887ac092a001207060b4c4007583d3805"
+    }
+  },
+  "benchmark_eligible": false,
+  "command": "raw/build-command.txt",
+  "context_tree_sha": "b7c7411be2b1eb0af865952eb0d4961a5a7eb29e",
+  "ended_utc": "2026-10-25T09:15:32Z",
+  "exit_code": 0,
+  "focused_verification": {
+    "exit_code": 0,
+    "log": "raw/vitest-php82-focused-final.log",
+    "passed": 2,
+    "result": "load/eval and phpinfo snapshot pass",
+    "skipped": 306
+  },
+  "image": {
+    "digest": "sha256:406a223955c4766f27a0ddd6fe604c7843950f1676c25cc45e93ae717c8512d0",
+    "tag": "gla96-candidate-php82:de2bd42-branchpin"
+  },
+  "kind": "correctness-build-result",
+  "metadata": "raw/build-metadata.json",
+  "observed_utc": "2026-10-25T09:00:35Z",
+  "php_source_sha": "a640b5288bc97882165631612bd6cb8e75dbf6d5",
+  "php_version": "8.2",
+  "raw_log": "raw/build.log",
+  "raw_log_sha256": "ab8c89f057e0e3e8c07c4ccb483e4a76101b1a83b1ee8ef021f593ad383c3a68",
+  "repo_revision": "de2bd42912cae3c861b6b421df61ad140492f2f9",
+  "source_version_reconciliation": {
+    "observed_runtime_version": "8.2.36-dev",
+    "previous_snapshot_version": "8.2.34-dev",
+    "selected_upstream_source_sha": "a640b5288bc97882165631612bd6cb8e75dbf6d5",
+    "snapshot_update": "record selected branch-head output, not source change"
+  },
+  "summary": {
+    "note": "Cache-enabled correctness/export build; not benchmark eligible.",
+    "status": "succeeded"
+  }
+}

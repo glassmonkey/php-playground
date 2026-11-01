@@ -1,0 +1,2 @@
+docker cp gla96-a3c1-php56-export-36233a4:/root/output/php-5.6.js exported-assets/php-5.6.js
+docker cp gla96-a3c1-php56-export-36233a4:/root/output/php-5.6.wasm exported-assets/php-5.6.wasm

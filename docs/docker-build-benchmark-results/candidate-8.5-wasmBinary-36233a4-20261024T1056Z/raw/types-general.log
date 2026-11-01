@@ -1,0 +1,4 @@
+
+> php-playground@0.1.0 build:types:general
+> tsc -p ./tsconfig.json
+

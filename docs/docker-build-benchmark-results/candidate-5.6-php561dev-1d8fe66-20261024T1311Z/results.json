@@ -1,0 +1,21 @@
+{
+  "benchmark_eligible": false,
+  "command": "raw/build-command.txt",
+  "ended_utc": "2026-10-24T13:11:57Z",
+  "exit_code": 1,
+  "image": {
+    "digest": null,
+    "tag": "gla96-candidate-php56-php561dev:1d8fe66"
+  },
+  "kind": "correctness-build-result",
+  "metadata": "raw/build-metadata.json",
+  "observed_utc": "2026-10-24T13:11:56Z",
+  "php_source_sha": "05fb10165081cb4fb55a9943b44cab62c627db7a",
+  "php_version": "5.6",
+  "raw_log": "raw/build.log",
+  "repo_revision": "1d8fe66af54251de214491ed5e532ca716f36654",
+  "summary": {
+    "note": "cache-enabled correctness/export build; not a benchmark sample",
+    "status": "failed"
+  }
+}

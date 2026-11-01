@@ -1,0 +1,74 @@
+{
+  "status": "dry-run",
+  "mode": "link-input-change",
+  "samples": 1,
+  "repo_revision": "6af266d850c0f8b30d395ee8728d965a41fa1bbf",
+  "repo_context_tree_sha": "ad2af158258a26cfa5bec9ddec62041f14a2f3ad",
+  "linked_input_tree_sha": "24c2eed59da195531e7985387729c478339a1ce4",
+  "php_source_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "emsdk_repo_sha": "d7b4130688bfa348392b921ab04015aa15c4f154",
+  "php_version": "7.4",
+  "emsdk_version": "6.0.13",
+  "base_image": "ubuntu",
+  "base_image_digest": "sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+  "host": "shunsukenoMacBook-Air.local",
+  "host_arch": "arm64",
+  "platform": "linux/arm64",
+  "cpu_allocation": "builder cpuset=0-1; quota=200000/100000",
+  "memory_allocation": "builder=5368709120; build-step=4g; parallelism=1",
+  "build_resources": [
+    "cpuset-cpus=0-1",
+    "memory=4g"
+  ],
+  "builder": "gla96-a3c1",
+  "builder_cpu_set": "0-1",
+  "builder_cpu_quota": 200000,
+  "builder_memory_bytes": 5368709120,
+  "effective_feature_build_args": {
+    "EMSCRIPTEN_ENVIRONMENT": "web",
+    "WITH_CLI_SAPI": "no",
+    "WITH_CURL": "no",
+    "WITH_LIBPNG": "no",
+    "WITH_LIBXML": "no",
+    "WITH_LIBZIP": "no",
+    "WITH_MBSTRING": "yes",
+    "WITH_MYSQL": "no",
+    "WITH_NODEFS": "no",
+    "WITH_OPENSSL": "no",
+    "WITH_SQLITE": "no",
+    "WITH_VRZNO": "yes",
+    "WITH_WS_NETWORKING_PROXY": "no"
+  },
+  "feature_signature_sha256": "561ffdfae0ca6a64876eea1bdb65d048d10459c3bb35a7c08d6d9f20190631eb",
+  "schedule": [
+    {
+      "role": "prime",
+      "phase": "prime-parent",
+      "sample": 1,
+      "php_version": "7.4",
+      "php_source_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "repo_revision": "7172b1f12b611e736a6e4b58b565cf6160e6d549",
+      "no_cache": false,
+      "variant_id": "smoke-variant-01"
+    },
+    {
+      "role": "measured",
+      "phase": "measured",
+      "sample": 1,
+      "php_version": "7.4",
+      "php_source_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "repo_revision": "6af266d850c0f8b30d395ee8728d965a41fa1bbf",
+      "no_cache": false,
+      "variant_id": "smoke-variant-01"
+    }
+  ],
+  "link_input_variant_id": "smoke-variant-01",
+  "linked_input_change": {
+    "path": "src/wasm/build-assets/php_wasm.c",
+    "parent_blob_sha": "b391c6a992209f4c98c99e60eea6c45fc2f90c43",
+    "target_blob_sha": "20a41a196158f69ae275768ae304104521e24820",
+    "change_patch_id": "59316534ba469ce10ac87003108b41b2dd9de461"
+  },
+  "output": "/private/tmp/gla96-link-variant-dry-run-final",
+  "docker_invoked": false
+}

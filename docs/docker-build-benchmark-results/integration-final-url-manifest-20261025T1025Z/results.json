@@ -1,0 +1,108 @@
+{
+  "kind": "integration-test-result",
+  "repo_revision": "de2bd42912cae3c861b6b421df61ad140492f2f9",
+  "implementation": "php-worker URL-manifest with per-version runtime import; keeps classic/IIFE worker format",
+  "benchmark_eligible": false,
+  "observed_utc": "2026-10-25T10:26:09Z",
+  "ended_utc": "2026-10-25T10:31:32Z",
+  "exit_code": 0,
+  "summary": {
+    "status": "succeeded",
+    "vitest": "313/313 passed",
+    "playwright": "87/87 Chromium passed",
+    "lint": "exit0",
+    "typescript": "exit0",
+    "version_loader_focus": "25/25 passed: all12 versions load+phpinfo and missing-loader rejection",
+    "failed_import_e2e": "1/1 passed: aborted loader module request surfaced Error to preview"
+  },
+  "environment": {
+    "LANG": "ja_JP.UTF-8",
+    "LC_ALL": "C.UTF-8",
+    "node": "v24.12.0",
+    "npm": "11.6.2",
+    "vitest": "4.1.10",
+    "playwright": "1.64.1"
+  },
+  "asset_sha256": {
+    "assets/php-5.6.wasm": "8a2b4d9995da99961273631242a852a0657604531ef8b6d86f7ccf9a5ef8d3a6",
+    "assets/php-7.0.wasm": "6696a7f09d0189453e2f945f485a57c4561e900c597a4badefbf4559133a60f0",
+    "assets/php-7.1.wasm": "c9caddf7159ae9fe7375bc4906e7e1356e117f22d623d28a40bed36db04af369",
+    "assets/php-7.2.wasm": "d1c373bb4e7d6ef80f6418dd10df1d71bdb736d2c175ad51dab96b7676023eff",
+    "assets/php-7.3.wasm": "bf23b2656cc5ccb75106caee917785bb1176e3bd6562eb51662d758f5df29488",
+    "assets/php-7.4.wasm": "8588eb04f11695113d8b17bdd1668470872411965f434941059f8812be3309c9",
+    "assets/php-8.0.wasm": "936c858adf8b88a74e30a6717d8aa2856678dad3d385db6c99885b3f62d98a52",
+    "assets/php-8.1.wasm": "4d22107edec0e7954f6e0d9bf86cf069b75e6ed4df4de4868af3eb1ef1c9aca4",
+    "assets/php-8.2.wasm": "a2950a4b4b2bbc5977d1a7e901556e3887ac092a001207060b4c4007583d3805",
+    "assets/php-8.3.wasm": "90f9e8d0b32653b52902581e5631509d7e0b89df9587f2df4f1953825efe2b0d",
+    "assets/php-8.4.wasm": "66719542317a8e5ac4421eb73498799951850faf18e9f6f7d3d46fee695f50f3",
+    "assets/php-8.5.wasm": "c97c6ce083d99c0a74d2c5d1bd0904b066ba700ca838e79a5de457706d435647",
+    "src/wasm-assets/php-5.6.js": "d665b8fe4b6596f879f502019cab87478b1089822fb27014d8329b36ad435033",
+    "src/wasm-assets/php-7.0.js": "305a067a80b2442d07f5f233a2fd77d2ebd8d81f3a2472c3355a5cc1513a2656",
+    "src/wasm-assets/php-7.1.js": "c62cfe816808a87b68f182a362628d89f7743744e7b07a4063caaf7b1db9632c",
+    "src/wasm-assets/php-7.2.js": "66c45f6a82e2603b27195b89e40ed7c93f33db7a223bb3b3df0bb414703e4510",
+    "src/wasm-assets/php-7.3.js": "a9a9bed82ea0daf0f70fad9079158810aaf409718fec3a31b4806ccf73f2a231",
+    "src/wasm-assets/php-7.4.js": "f29c4135f5c9ec572ce46d0c536e75a579f1120dc9e7d9d10335fc1fdc980e70",
+    "src/wasm-assets/php-8.0.js": "3d518a724a3349465b186c520369b9a456aafa1c596097e0b40f9eb769798d78",
+    "src/wasm-assets/php-8.1.js": "e875a381d00bf386dbc7a365ed3ca04e23a1c932e6b04f3445b589e19ebbe80c",
+    "src/wasm-assets/php-8.2.js": "4a29e671653e103251b2bb54ab7b33f8e9e9477df567eb318186ee2565f0f304",
+    "src/wasm-assets/php-8.3.js": "e209c1c4f6f99664fa9d12ca3ddf6484387611004fa09653c338a764025c3447",
+    "src/wasm-assets/php-8.4.js": "b415f9927b4dcb675ab6b28c7617641be31850631ff46124091376edbf53b613",
+    "src/wasm-assets/php-8.5.js": "3965c57c6061b93a914418eca8b54707cce42141052f338507685124c30e8a76"
+  },
+  "source_sha256": {
+    "src/workers/php-worker.ts": "ddd687fe3c972637221075789cfafb1fba0fb131c3a81b171262eac55ff5760d",
+    "src/workers/__test__/php-worker.spec.ts": "22aa9ac8b6264100825283ff6689211534f9b000eb06606b343021a3338365a5",
+    "src/workers/__test__/__snapshots__/php-worker.spec.ts.snap": "ebc7a5668c4e103ef333079dfb4be01287e794cb98151b18efd1157501791333",
+    "e2e/e2e.spec.ts": "e44add0b5022179e6c31875b2ce4d4f332ff3e93b1eaad064dc83f882bab7305"
+  },
+  "commands": [
+    {
+      "command": "npm run build",
+      "exit_code": 0,
+      "log": "../integration-final-lazy-import-de2bd42-20261025T1015Z/raw/vite-build-url-import.log",
+      "log_sha256": "e4ba12b0fdc1c4ac8b15f2e49f4f18de34e894c5be0e116acc18726ae51989db"
+    },
+    {
+      "command": "./node_modules/.bin/vitest run --exclude docs/docker-build-benchmark-results/**",
+      "exit_code": 0,
+      "log": "raw/vitest-final.log",
+      "log_sha256": "927f741f21f960e4c7ca3e6edd6ad943959f8c4caa53d211d4d523d8d7fdc72e"
+    },
+    {
+      "command": "npm run test:e2e -- --reporter=line",
+      "exit_code": 0,
+      "log": "raw/playwright-final.log",
+      "log_sha256": "57bdb49b63a51aeb85af7eefcae3cc992106d2b216a14793e7d070a5491bc525"
+    },
+    {
+      "command": "npm run lint:js",
+      "exit_code": 0,
+      "log": "raw/lint-js.log",
+      "log_sha256": "fd0cc4ba157c61707a9b72b1492a8f8e1a96abb1b556e62923d1bc5090b012e0"
+    },
+    {
+      "command": "npm run build:types:general",
+      "exit_code": 0,
+      "log": "raw/typescript.log",
+      "log_sha256": "dd82f2883b3110533b1bb5795a917fda4eaa5c57a6a889efd2756db3c3cf055a"
+    },
+    {
+      "command": "./node_modules/.bin/vitest run src/workers/__test__/php-worker.spec.ts -t 'worker loader failures|should load wasm file|run phpinfo' --exclude docs/docker-build-benchmark-results/**",
+      "exit_code": 0,
+      "log": "raw/vitest-loader-validation.log",
+      "log_sha256": "e5f41007694f1302e0cd8b5290b931cd1e4ec083e63d2a81caf806d667703cfc"
+    },
+    {
+      "command": "npx playwright test e2e/e2e.spec.ts -g 'failed PHP loader import' --reporter=line",
+      "exit_code": 0,
+      "log": "raw/playwright-loader-error.log",
+      "log_sha256": "6b20fb35b0f7703a0488fdc56a485f339b2202a29dbccd7a655e0f05417527fd"
+    }
+  ],
+  "limitations": [
+    "Correctness evidence only; AC2 comparative Docker measurements remain pending.",
+    "No performance claim from these tests.",
+    "Node/proxy affected-configuration gate and CLI-enabled PHP smoke remain pending.",
+    "7.1 build exit/end remain unknown unless an original retained receipt is recovered."
+  ]
+}

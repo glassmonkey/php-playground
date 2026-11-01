@@ -1,0 +1,91 @@
+{
+  "kind": "measurement-protocol-verification",
+  "review_source": "/Users/glassmonkey/src/github.com/glassmonkey/cmux-dash/data/herdr-reports/a3c1961b-be89-41a9-a392-9c3128f4eccb/measurement-protocol-review-20261024T1225.json",
+  "changes": [
+    "Added Makefile default WITH_LIBZIP=no and passed it to build-image.",
+    "Harness requires explicit identical web feature args and records their effective map and SHA-256.",
+    "php-version schedules an excluded other-version prime before every measured target and records ordered pair/cache-state metadata.",
+    "link-input-change accepts one sample per immutable variant, requires a variant ID, primes the unchanged parent, and records the pair.",
+    "Failed prime records are retained and suppress a successful summary/median.",
+    "Linked-input protocol now verifies that only php_wasm.c changed under the configured build-input directory, and records its parent/target blob IDs and stable patch ID.",
+    "Link-input validation checks all changes under the build-assets input tree and records the exact php_wasm.c blob pair plus stable patch ID."
+  ],
+  "checks": [
+    {
+      "name": "in-memory Python syntax compile",
+      "status": "passed",
+      "exit_code": 0,
+      "exit_record": "raw/python-syntax-final3.json"
+    },
+    {
+      "name": "first invalid dry-run invocation",
+      "status": "failed_input",
+      "note": "The supplied abbreviated repo SHA was not a Git commit; this was a dry-run input error and invoked no Docker build. The erroneous text is preserved separately.",
+      "evidence": "raw/dry-run-input-rejections.json"
+    },
+    {
+      "name": "py_compile",
+      "status": "failed_environment",
+      "note": "Python 3.9 tried writing its cache under protected ~/Library/Caches; the follow-up in-memory compile passed. No source syntax error was reported."
+    },
+    {
+      "name": "harness contract tests",
+      "status": "passed",
+      "exit_code": 0,
+      "passed": 11,
+      "failed": 0,
+      "raw_log": "raw/contract-tests-final3.log"
+    },
+    {
+      "name": "Makefile web build dry-run",
+      "status": "passed",
+      "exit_code": 0,
+      "verified": [
+        "WITH_LIBZIP=no",
+        "EMSCRIPTEN_ENVIRONMENT=web"
+      ],
+      "raw_log": "raw/make-build-image-dry-run.log"
+    },
+    {
+      "name": "php-version protocol dry-run",
+      "status": "passed",
+      "docker_invoked": false,
+      "prime_target_pairs": 3,
+      "feature_signature_sha256": "561ffdfae0ca6a64876eea1bdb65d048d10459c3bb35a7c08d6d9f20190631eb",
+      "raw_log": "raw/php-version-dry-run.json"
+    },
+    {
+      "name": "link-input-change CLI dry-run fixture",
+      "status": "passed",
+      "docker_invoked": false,
+      "variant_id": "smoke-variant-01",
+      "verified": [
+        "ordered unchanged-parent prime then changed target",
+        "parent and target blob ids",
+        "stable change patch id"
+      ],
+      "raw_log": "raw/link-input-dry-run-final.json",
+      "metadata": "raw/link-input-dry-run-fixture-metadata.json"
+    },
+    {
+      "name": "link-input same-tree rejection",
+      "status": "passed_input_validation",
+      "docker_invoked": false,
+      "detail": "Candidate and c23b4382d2146fe2ef5f001981e8ed3ac302ef8d had the same linked-input tree; harness rejected the non-change before any build.",
+      "evidence": "raw/dry-run-input-rejections.json"
+    },
+    {
+      "name": "intermediate contract-test attempt",
+      "status": "failed_test_harness_fixture",
+      "detail": "A test helper referenced an undefined temporary-directory alias; corrected to linked.parent. The final contract run passed.",
+      "raw_log": "raw/contract-tests-final2.log"
+    }
+  ],
+  "not_yet_verified": [
+    "actual immutable comment-only variant refs and their exported context hashes",
+    "cold/warm/version-switch/linked-input paired measurements",
+    "all12 generated assets",
+    "final full regressions after all12 assets"
+  ],
+  "benchmark_claim": false
+}

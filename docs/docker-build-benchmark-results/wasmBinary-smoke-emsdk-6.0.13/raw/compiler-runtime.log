@@ -1,0 +1,11 @@
+Setting up EMSDK environment (suppress these messages with EMSDK_QUIET=1)
+Adding directories to PATH:
+PATH += /root/emsdk
+PATH += /root/emsdk/upstream/emscripten
+PATH += /root/emsdk/node/24.19.0_64bit/bin
+
+Setting environment variables:
+PATH = /root/emsdk:/root/emsdk/upstream/emscripten:/root/emsdk/node/24.19.0_64bit/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+EMSDK = /root/emsdk
+EMSDK_NODE = /root/emsdk/node/24.19.0_64bit/bin/node
+wasmBinary-provided; longjmp=42; main=0

@@ -1,0 +1,543 @@
+{
+  "schema_version": 1,
+  "run_id": "7d78bc5f-4e33-493d-91d4-0816bd79d706",
+  "created_at": "2026-10-24T10:24:10.221232+00:00",
+  "mode": "cold",
+  "inputs": {
+    "repo_revision": "cdbb0fdff6549fbfa5ea67976c2e4de27bafc119",
+    "context_tree_sha": "02023ca82acf2f3bc23633c1f265b8b6b7e1e0c0",
+    "context_archive": "contexts/target.tar",
+    "context_archive_sha256": "784f5c6ef2667fcee34487e54eab374639f66179f073f6fb47459312fa5c6eb4",
+    "linked_input_tree_sha": "4045438bc840a4eedfda94209ded8a19caf2883a",
+    "php_source_sha": "004cb827501d1ddaf98daacb185a53e0816f78a7",
+    "emsdk_repo_sha": "d7b4130688bfa348392b921ab04015aa15c4f154",
+    "php_version": "7.4",
+    "emsdk_version": "6.0.13",
+    "base_image": "ubuntu",
+    "base_image_digest": "sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+    "context": "/Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/baseline-7.4-cold-contended-20261024T0914Z/contexts/target",
+    "dockerfile": "/Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/baseline-7.4-cold-contended-20261024T0914Z/contexts/target/Dockerfile"
+  },
+  "environment": {
+    "docker_version": "29.6.2-rd",
+    "buildx_version": "github.com/docker/buildx v0.35.0 a319e5b15052cf6557ceb666eb8ff6e32380b782",
+    "host": "shunsukenoMacBook-Air.local",
+    "host_arch": "arm64",
+    "platform": "linux/arm64",
+    "cpu_allocation": "Docker VM=2 CPUs; builder cpuset=0-1; quota=200000/100000",
+    "memory_allocation": "VM=6209429504 bytes; builder=5368709120 bytes; build-step=4g; parallelism=1",
+    "build_resources": [
+      "cpuset-cpus=0-1",
+      "memory=4g"
+    ],
+    "builder": "gla96-a3c1",
+    "emsdk_version": "6.0.13",
+    "base_image_digest": "sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+    "builder_inspect_sha256": "7b3f6a2ea85d1c76fff3202e8c3e98b853b5895fdb86a2842fd3df8927e447c1",
+    "docker_vm_cpu_count": 2,
+    "docker_vm_memory_bytes": 6209429504,
+    "builder_container_limits": {
+      "cpuset_cpus": "0-1",
+      "cpu_quota": 200000,
+      "cpu_period": 100000,
+      "memory_bytes": 5368709120,
+      "memory_swap_bytes": 5368709120
+    },
+    "builder_container_inspect_sha256": "d873cac961a3f5a419bee73de1a90ce1809481cd1a11f2149cd2b21d41d1ec54"
+  },
+  "runs": [
+    {
+      "id": "measured-01",
+      "phase": "measured",
+      "sample": 1,
+      "status": "succeeded",
+      "exit_code": 0,
+      "started_at": "2026-10-24T09:15:02.839637+00:00",
+      "duration_seconds": 4146.93,
+      "cache_policy": "disabled",
+      "php_version": "7.4",
+      "repo_revision": "cdbb0fdff6549fbfa5ea67976c2e4de27bafc119",
+      "context_tree_sha": "02023ca82acf2f3bc23633c1f265b8b6b7e1e0c0",
+      "context_archive_sha256": "784f5c6ef2667fcee34487e54eab374639f66179f073f6fb47459312fa5c6eb4",
+      "input_tree_sha": "4045438bc840a4eedfda94209ded8a19caf2883a",
+      "php_source_sha": "004cb827501d1ddaf98daacb185a53e0816f78a7",
+      "context": "/Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/baseline-7.4-cold-contended-20261024T0914Z/contexts/target",
+      "tag": "php-playground-build-bench:7d78bc5f-4e3-measured-01",
+      "command": "docker buildx build --builder gla96-a3c1 --progress=plain --provenance=mode=max --platform linux/arm64 --file /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/baseline-7.4-cold-contended-20261024T0914Z/contexts/target/Dockerfile --tag php-playground-build-bench:7d78bc5f-4e3-measured-01 --metadata-file /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/baseline-7.4-cold-contended-20261024T0914Z/raw/measured-01.metadata.json --no-cache --resource cpuset-cpus=0-1 --resource memory=4g --build-arg BASE_IMAGE=ubuntu@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac --build-arg PHP_VERSION=7.4 --build-arg PHP_SOURCE_REF=004cb827501d1ddaf98daacb185a53e0816f78a7 --build-arg EMSDK_VERSION=6.0.13 --build-arg EMSDK_REPO_REF=d7b4130688bfa348392b921ab04015aa15c4f154 /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/baseline-7.4-cold-contended-20261024T0914Z/contexts/target",
+      "raw_log": "raw/measured-01.log",
+      "metadata_file": "raw/measured-01.metadata.json",
+      "events": [
+        {
+          "step": 1,
+          "detail": "DONE 0.1s",
+          "state": "done"
+        },
+        {
+          "step": 2,
+          "detail": "DONE 1.5s",
+          "state": "done"
+        },
+        {
+          "step": 3,
+          "detail": "DONE 0.0s",
+          "state": "done"
+        },
+        {
+          "step": 4,
+          "detail": "DONE 0.0s",
+          "state": "done"
+        },
+        {
+          "step": 5,
+          "detail": "CACHED",
+          "state": "cached"
+        },
+        {
+          "step": 6,
+          "detail": "DONE 0.2s",
+          "state": "done"
+        },
+        {
+          "step": 7,
+          "detail": "DONE 0.3s",
+          "state": "done"
+        },
+        {
+          "step": 8,
+          "detail": "DONE 103.5s",
+          "state": "done"
+        },
+        {
+          "step": 9,
+          "detail": "DONE 0.6s",
+          "state": "done"
+        },
+        {
+          "step": 10,
+          "detail": "DONE 120.0s",
+          "state": "done"
+        },
+        {
+          "step": 11,
+          "detail": "DONE 1.2s",
+          "state": "done"
+        },
+        {
+          "step": 12,
+          "detail": "DONE 0.3s",
+          "state": "done"
+        },
+        {
+          "step": 13,
+          "detail": "DONE 0.3s",
+          "state": "done"
+        },
+        {
+          "step": 14,
+          "detail": "DONE 0.2s",
+          "state": "done"
+        },
+        {
+          "step": 15,
+          "detail": "DONE 0.4s",
+          "state": "done"
+        },
+        {
+          "step": 16,
+          "detail": "DONE 0.5s",
+          "state": "done"
+        },
+        {
+          "step": 17,
+          "detail": "DONE 0.2s",
+          "state": "done"
+        },
+        {
+          "step": 18,
+          "detail": "DONE 13.5s",
+          "state": "done"
+        },
+        {
+          "step": 19,
+          "detail": "DONE 0.1s",
+          "state": "done"
+        },
+        {
+          "step": 20,
+          "detail": "DONE 271.7s",
+          "state": "done"
+        },
+        {
+          "step": 21,
+          "detail": "DONE 0.2s",
+          "state": "done"
+        },
+        {
+          "step": 22,
+          "detail": "DONE 0.3s",
+          "state": "done"
+        },
+        {
+          "step": 23,
+          "detail": "DONE 900.8s",
+          "state": "done"
+        },
+        {
+          "step": 24,
+          "detail": "DONE 170.6s",
+          "state": "done"
+        },
+        {
+          "step": 25,
+          "detail": "DONE 124.5s",
+          "state": "done"
+        },
+        {
+          "step": 26,
+          "detail": "DONE 29.9s",
+          "state": "done"
+        },
+        {
+          "step": 27,
+          "detail": "DONE 1.9s",
+          "state": "done"
+        },
+        {
+          "step": 28,
+          "detail": "DONE 0.1s",
+          "state": "done"
+        },
+        {
+          "step": 29,
+          "detail": "DONE 10.3s",
+          "state": "done"
+        },
+        {
+          "step": 30,
+          "detail": "DONE 5.9s",
+          "state": "done"
+        },
+        {
+          "step": 31,
+          "detail": "DONE 0.5s",
+          "state": "done"
+        },
+        {
+          "step": 32,
+          "detail": "DONE 0.6s",
+          "state": "done"
+        },
+        {
+          "step": 33,
+          "detail": "DONE 0.2s",
+          "state": "done"
+        },
+        {
+          "step": 34,
+          "detail": "DONE 183.5s",
+          "state": "done"
+        },
+        {
+          "step": 35,
+          "detail": "DONE 426.6s",
+          "state": "done"
+        },
+        {
+          "step": 36,
+          "detail": "DONE 6.5s",
+          "state": "done"
+        },
+        {
+          "step": 37,
+          "detail": "DONE 937.3s",
+          "state": "done"
+        },
+        {
+          "step": 38,
+          "detail": "DONE 3.0s",
+          "state": "done"
+        },
+        {
+          "step": 39,
+          "detail": "DONE 0.5s",
+          "state": "done"
+        },
+        {
+          "step": 40,
+          "detail": "DONE 0.5s",
+          "state": "done"
+        },
+        {
+          "step": 41,
+          "detail": "DONE 0.1s",
+          "state": "done"
+        },
+        {
+          "step": 42,
+          "detail": "DONE 132.7s",
+          "state": "done"
+        },
+        {
+          "step": 43,
+          "detail": "DONE 69.9s",
+          "state": "done"
+        },
+        {
+          "step": 44,
+          "detail": "DONE 86.6s",
+          "state": "done"
+        },
+        {
+          "step": 45,
+          "detail": "DONE 39.9s",
+          "state": "done"
+        },
+        {
+          "step": 46,
+          "detail": "DONE 5.7s",
+          "state": "done"
+        },
+        {
+          "step": 47,
+          "detail": "DONE 3.3s",
+          "state": "done"
+        },
+        {
+          "step": 48,
+          "detail": "DONE 0.1s",
+          "state": "done"
+        },
+        {
+          "step": 49,
+          "detail": "DONE 0.2s",
+          "state": "done"
+        },
+        {
+          "step": 50,
+          "detail": "DONE 1.9s",
+          "state": "done"
+        },
+        {
+          "step": 51,
+          "detail": "DONE 1.0s",
+          "state": "done"
+        },
+        {
+          "step": 52,
+          "detail": "DONE 0.1s",
+          "state": "done"
+        },
+        {
+          "step": 53,
+          "detail": "DONE 0.2s",
+          "state": "done"
+        },
+        {
+          "step": 54,
+          "detail": "DONE 0.1s",
+          "state": "done"
+        },
+        {
+          "step": 55,
+          "detail": "DONE 0.1s",
+          "state": "done"
+        },
+        {
+          "step": 56,
+          "detail": "DONE 0.1s",
+          "state": "done"
+        },
+        {
+          "step": 57,
+          "detail": "DONE 0.1s",
+          "state": "done"
+        },
+        {
+          "step": 58,
+          "detail": "DONE 0.1s",
+          "state": "done"
+        },
+        {
+          "step": 59,
+          "detail": "DONE 0.9s",
+          "state": "done"
+        },
+        {
+          "step": 60,
+          "detail": "DONE 0.2s",
+          "state": "done"
+        },
+        {
+          "step": 61,
+          "detail": "DONE 0.1s",
+          "state": "done"
+        },
+        {
+          "step": 62,
+          "detail": "DONE 6.9s",
+          "state": "done"
+        },
+        {
+          "step": 63,
+          "detail": "DONE 0.2s",
+          "state": "done"
+        },
+        {
+          "step": 64,
+          "detail": "DONE 0.1s",
+          "state": "done"
+        },
+        {
+          "step": 65,
+          "detail": "DONE 0.1s",
+          "state": "done"
+        },
+        {
+          "step": 66,
+          "detail": "DONE 0.2s",
+          "state": "done"
+        },
+        {
+          "step": 67,
+          "detail": "DONE 0.3s",
+          "state": "done"
+        },
+        {
+          "step": 68,
+          "detail": "DONE 0.2s",
+          "state": "done"
+        },
+        {
+          "step": 69,
+          "detail": "DONE 0.1s",
+          "state": "done"
+        },
+        {
+          "step": 70,
+          "detail": "DONE 144.1s",
+          "state": "done"
+        },
+        {
+          "step": 71,
+          "detail": "DONE 0.1s",
+          "state": "done"
+        },
+        {
+          "step": 72,
+          "detail": "DONE 0.2s",
+          "state": "done"
+        },
+        {
+          "step": 73,
+          "detail": "DONE 0.2s",
+          "state": "done"
+        },
+        {
+          "step": 74,
+          "detail": "DONE 0.2s",
+          "state": "done"
+        },
+        {
+          "step": 75,
+          "detail": "DONE 0.2s",
+          "state": "done"
+        },
+        {
+          "step": 76,
+          "detail": "DONE 0.2s",
+          "state": "done"
+        },
+        {
+          "step": 77,
+          "detail": "DONE 0.1s",
+          "state": "done"
+        },
+        {
+          "step": 78,
+          "detail": "DONE 0.1s",
+          "state": "done"
+        },
+        {
+          "step": 79,
+          "detail": "DONE 0.1s",
+          "state": "done"
+        },
+        {
+          "step": 80,
+          "detail": "DONE 0.1s",
+          "state": "done"
+        },
+        {
+          "step": 81,
+          "detail": "DONE 259.3s",
+          "state": "done"
+        },
+        {
+          "step": 82,
+          "detail": "DONE 0.2s",
+          "state": "done"
+        },
+        {
+          "step": 83,
+          "detail": "DONE 0.2s",
+          "state": "done"
+        },
+        {
+          "step": 84,
+          "detail": "DONE 0.1s",
+          "state": "done"
+        },
+        {
+          "step": 85,
+          "detail": "DONE 0.1s",
+          "state": "done"
+        },
+        {
+          "step": 86,
+          "detail": "DONE 0.1s",
+          "state": "done"
+        },
+        {
+          "step": 87,
+          "detail": "DONE 0.1s",
+          "state": "done"
+        },
+        {
+          "step": 88,
+          "detail": "DONE 0.0s",
+          "state": "done"
+        },
+        {
+          "step": 89,
+          "detail": "DONE 66.5s",
+          "state": "done"
+        },
+        {
+          "step": 90,
+          "detail": "DONE 0.4s",
+          "state": "done"
+        },
+        {
+          "step": 91,
+          "detail": "DONE 0.8s",
+          "state": "done"
+        },
+        {
+          "step": 92,
+          "detail": "DONE 0.4s",
+          "state": "done"
+        }
+      ],
+      "cache_hits": 1,
+      "completed_steps": 91
+    }
+  ],
+  "summary": {
+    "status": "succeeded",
+    "sample_count": 1,
+    "median_duration_seconds": 4146.93,
+    "median_cache_hits": 1,
+    "median_completed_steps": 91
+  },
+  "raw_log_manifest_sha256": "a28c1d9db8fe073f735735c4ac1258caea7f6e30bb3eea0ec6ca51997f6980c8"
+}

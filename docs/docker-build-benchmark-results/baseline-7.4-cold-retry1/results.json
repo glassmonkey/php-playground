@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "run_id": "639cfd8c-39d7-4150-a74e-11ea8ab1e666",
+  "created_at": "2026-10-24T06:06:21.949629+00:00",
+  "mode": "cold",
+  "inputs": {
+    "repo_revision": "4b79f60c202b47132fbd12f0ed9c397db56fbcb9",
+    "context_tree_sha": "e658a70a1951162573bb95921fb5cdbcdb16d6c8",
+    "context_archive": "contexts/target.tar",
+    "context_archive_sha256": "99c949bc479e8a2882e5f343ac0daca5e4e0e696aefbef8b603dd47b0cbc4f61",
+    "linked_input_tree_sha": "4045438bc840a4eedfda94209ded8a19caf2883a",
+    "php_source_sha": "004cb827501d1ddaf98daacb185a53e0816f78a7",
+    "emsdk_repo_sha": "d7b4130688bfa348392b921ab04015aa15c4f154",
+    "php_version": "7.4",
+    "emsdk_version": "6.0.13",
+    "base_image": "ubuntu",
+    "base_image_digest": "sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+    "context": "/Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/baseline-7.4-cold-retry1/contexts/target",
+    "dockerfile": "/Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/baseline-7.4-cold-retry1/contexts/target/Dockerfile"
+  },
+  "environment": {
+    "docker_version": "29.6.2-rd",
+    "buildx_version": "github.com/docker/buildx v0.35.0 a319e5b15052cf6557ceb666eb8ff6e32380b782",
+    "host": "shunsukenoMacBook-Air.local",
+    "host_arch": "arm64",
+    "platform": "linux/arm64",
+    "cpu_allocation": "Docker VM=2 CPUs; builder cpuset=0-1; quota=200000/100000",
+    "memory_allocation": "VM=6209429504 bytes; builder=5368709120 bytes; build-step=4g; parallelism=1",
+    "build_resources": [
+      "cpuset-cpus=0-1",
+      "memory=4g"
+    ],
+    "builder": "gla96-a3c1",
+    "emsdk_version": "6.0.13",
+    "base_image_digest": "sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+    "builder_inspect_sha256": "edc1b396d9fc1b45ed33ba76340de4aa4d7f684255162dc0ae6657eefef3a2de",
+    "docker_vm_cpu_count": 2,
+    "docker_vm_memory_bytes": 6209429504,
+    "builder_container_limits": {
+      "cpuset_cpus": "0-1",
+      "cpu_quota": 200000,
+      "cpu_period": 100000,
+      "memory_bytes": 5368709120,
+      "memory_swap_bytes": 5368709120
+    },
+    "builder_container_inspect_sha256": "9833ca4cc698fa4f27545558cc4eaa85770904b60a3a3509050680fa6eb6d330"
+  },
+  "runs": [
+    {
+      "id": "measured-01",
+      "phase": "measured",
+      "sample": 1,
+      "status": "failed",
+      "exit_code": 1,
+      "started_at": "2026-10-24T06:04:02.411699+00:00",
+      "duration_seconds": 139.528,
+      "cache_policy": "disabled",
+      "php_version": "7.4",
+      "repo_revision": "4b79f60c202b47132fbd12f0ed9c397db56fbcb9",
+      "context_tree_sha": "e658a70a1951162573bb95921fb5cdbcdb16d6c8",
+      "context_archive_sha256": "99c949bc479e8a2882e5f343ac0daca5e4e0e696aefbef8b603dd47b0cbc4f61",
+      "input_tree_sha": "4045438bc840a4eedfda94209ded8a19caf2883a",
+      "php_source_sha": "004cb827501d1ddaf98daacb185a53e0816f78a7",
+      "context": "/Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/baseline-7.4-cold-retry1/contexts/target",
+      "tag": "php-playground-build-bench:639cfd8c-39d-measured-01",
+      "command": "docker buildx build --builder gla96-a3c1 --progress=plain --provenance=mode=max --platform linux/arm64 --file /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/baseline-7.4-cold-retry1/contexts/target/Dockerfile --tag php-playground-build-bench:639cfd8c-39d-measured-01 --metadata-file /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/baseline-7.4-cold-retry1/raw/measured-01.metadata.json --no-cache --resource cpuset-cpus=0-1 --resource memory=4g --build-arg WITH_VRZNO=yes --build-arg WITH_LIBXML=no --build-arg WITH_LIBPNG=no --build-arg WITH_MBSTRING=yes --build-arg WITH_CLI_SAPI=no --build-arg WITH_OPENSSL=no --build-arg WITH_NODEFS=no --build-arg WITH_CURL=no --build-arg WITH_SQLITE=no --build-arg WITH_MYSQL=no --build-arg WITH_WS_NETWORKING_PROXY=no --build-arg EMSCRIPTEN_ENVIRONMENT=web --build-arg BASE_IMAGE=ubuntu@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac --build-arg PHP_VERSION=7.4 --build-arg PHP_SOURCE_REF=004cb827501d1ddaf98daacb185a53e0816f78a7 --build-arg EMSDK_VERSION=6.0.13 --build-arg EMSDK_REPO_REF=d7b4130688bfa348392b921ab04015aa15c4f154 /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure/docs/docker-build-benchmark-results/baseline-7.4-cold-retry1/contexts/target",
+      "raw_log": "raw/measured-01.log",
+      "metadata_file": "raw/measured-01.metadata.json",
+      "events": [
+        {
+          "step": 1,
+          "detail": "DONE 0.0s",
+          "state": "done"
+        },
+        {
+          "step": 2,
+          "detail": "DONE 3.3s",
+          "state": "done"
+        },
+        {
+          "step": 3,
+          "detail": "DONE 0.0s",
+          "state": "done"
+        },
+        {
+          "step": 4,
+          "detail": "DONE 0.0s",
+          "state": "done"
+        },
+        {
+          "step": 5,
+          "detail": "DONE 0.1s",
+          "state": "done"
+        },
+        {
+          "step": 4,
+          "detail": "DONE 3.8s",
+          "state": "done"
+        },
+        {
+          "step": 6,
+          "detail": "DONE 0.4s",
+          "state": "done"
+        },
+        {
+          "step": 7,
+          "detail": "DONE 0.3s",
+          "state": "done"
+        },
+        {
+          "step": 8,
+          "detail": "DONE 66.6s",
+          "state": "done"
+        },
+        {
+          "step": 9,
+          "detail": "DONE 0.6s",
+          "state": "done"
+        }
+      ],
+      "cache_hits": 0,
+      "completed_steps": 10
+    }
+  ],
+  "summary": {
+    "status": "failed",
+    "reason": "one or more measured builds failed",
+    "failed_runs": [
+      "measured-01"
+    ]
+  },
+  "raw_log_manifest_sha256": "a28c1d9db8fe073f735735c4ac1258caea7f6e30bb3eea0ec6ca51997f6980c8"
+}

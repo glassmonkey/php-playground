@@ -1,0 +1,13 @@
+
+> php-playground@0.1.0 test:ci
+> vitest run
+
+
+ RUN  v4.1.10 /Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/issue-gla-96-pr405-measure
+
+
+ Test Files  2 passed (2)
+      Tests  312 passed (312)
+   Start at  21:17:34
+   Duration  61.29s (transform 1.99s, setup 109ms, import 621ms, tests 60.89s, environment 0ms)
+

@@ -1,0 +1,2 @@
+docker cp gla96-a3c1-php74-export-aa244646-20261025T0724Z:/root/output/php-7.4.js docs/docker-build-benchmark-results/candidate-7.4-correctness-aa244646-20261025T0724Z/exported-assets/php-7.4.js
+docker cp gla96-a3c1-php74-export-aa244646-20261025T0724Z:/root/output/php-7.4.wasm docs/docker-build-benchmark-results/candidate-7.4-correctness-aa244646-20261025T0724Z/exported-assets/php-7.4.wasm
