@@ -35,18 +35,10 @@ RUN set -euxo pipefail;\
 # Install Emscripten from the repository. We'd use the official
 # Docker image, but there is no arm64 image available which makes
 # the build take forever on Apple Silicon.
-#
-# The version is pinned because newer releases break this build:
-# * 5.0.4+ runs --fpcast-emu before --post-emscripten, which makes
-#   wasm-opt crash for PHP < 8.0 (EMULATE_FUNCTION_POINTER_CASTS).
-# * 6.0.3+ already emits stream.stream_ops?.poll and 6.0.13+ no longer
-#   emits the ENVIRONMENT_IS_* variables, so the php.js post-processing
-#   step below finds nothing to replace and fails.
-ARG EMSDK_VERSION=4.0.22
 RUN ln -s /usr/bin/python3 /usr/bin/python
 RUN git clone https://github.com/emscripten-core/emsdk.git && \
-    ./emsdk/emsdk install $EMSDK_VERSION && \
-    /root/emsdk/emsdk activate $EMSDK_VERSION
+    ./emsdk/emsdk install latest && \
+    /root/emsdk/emsdk activate latest
 
 RUN mkdir -p /root/lib/lib /root/lib/include /root/lib/share /root/lib/bin
 
@@ -525,7 +517,9 @@ RUN echo 'extern int wasm_close(int fd);' >> /root/php-src/main/php_config.h;
 
 RUN source /root/emsdk/emsdk_env.sh && \
     # We're compiling PHP as emscripten's side module...
-    EMCC_FLAGS=" -sSIDE_MODULE -Dsetsockopt=wasm_setsockopt -Dpopen=wasm_popen -Dpclose=wasm_pclose " \
+    # setjmp/longjmp (zend_try and zend_bailout) is handled inside wasm instead of
+    # going through JS. This must match SUPPORT_LONGJMP in the final link below.
+    EMCC_FLAGS=" -sSIDE_MODULE -sSUPPORT_LONGJMP=wasm -Dsetsockopt=wasm_setsockopt -Dpopen=wasm_popen -Dpclose=wasm_pclose " \
     # ...which means we must skip all the libraries - they will be provided in the final linking step.
     EMCC_SKIP="-lz -ledit -ldl -lncurses -lzip -lpng16 -lssl -lcrypto -lxml2 -lc -lm -lsqlite3 /root/lib/lib/libxml2.a /root/lib/lib/libsqlite3.so /root/lib/lib/libsqlite3.a /root/lib/lib/libpng16.so" \
     emmake make -j8
@@ -541,17 +535,6 @@ RUN if [ "$EMSCRIPTEN_ENVIRONMENT" = "node" ]; then \
         # Preserve symbol names in node.js build – the bundle size doesn't matter as much
         # as on the web, and this makes debugging **much** easier.
         echo -n ' -g2 ' >> /root/.emcc-php-wasm-flags; \
-    fi
-
-# PHP < 8.0 errors out with "null function or function signature mismatch"
-# unless EMULATE_FUNCTION_POINTER_CASTS is enabled. The error originates in
-# the rc_dtor_func which traces back to calling the zend_list_free function.
-# The signatures are the same on the face value, but the wasm runtime is not
-# happy somehow. This can probably be patched in PHP, but for now we just
-# enable the flag and pay the price of the additional overhead.
-# https://emscripten.org/docs/porting/guidelines/function_pointer_issues.html
-RUN if [ "${PHP_VERSION:0:1}" -lt "8" ]; then \
-        echo -n ' -s EMULATE_FUNCTION_POINTER_CASTS=1' >> /root/.emcc-php-wasm-flags; \
     fi
 
 # Add ws networking proxy support if needed
@@ -846,10 +829,6 @@ RUN if [ "$WITH_WS_NETWORKING_PROXY" = "yes" ]; \
 "zim_ReflectionMethod_invokeArgs",\
 "zim_reflection_method_invoke",\
 "zim_reflection_method_invokeArgs"'; \
-    # If pointer casts are enabled, we need to asyncify both the prefixed and unprefixed names
-    if [ "${PHP_VERSION:0:1}" -lt "8" ]; then \
-        export ASYNCIFY_ONLY="$ASYNCIFY_ONLY,"$(echo "$ASYNCIFY_ONLY" | sed -E $'s/"([a-zA-Z])/"byn$fpcast-emu$\1/g'); \
-    fi; \
     echo -n ' -s ASYNCIFY_ONLY=['$ASYNCIFY_ONLY_UNPREFIXED$ASYNCIFY_ONLY'] '| tr -d "\n" >> /root/.emcc-php-wasm-flags; \
 fi;
 
@@ -898,6 +877,7 @@ RUN source /root/emsdk/emsdk_env.sh && \
     -s ERROR_ON_UNDEFINED_SYMBOLS=0  \
     -s INVOKE_RUN=0                  \
     -s EXIT_RUNTIME=1                \
+    -s SUPPORT_LONGJMP=wasm          \
         /root/lib/libphp.a \
         /root/php_wasm.c \
         $(cat /root/.emcc-php-wasm-sources) \
@@ -942,11 +922,6 @@ RUN \
         fi; \
     # Make the php.wasm URL configurable via the dependencyFilename loader argument:
         /root/replace.sh $'s/["\']php\.wasm[\'"]/dependencyFilename/g' /root/output/php.js && \
-    # Patch a "property undefined" error
-        # Emscripten produces an if that checkes a stream.stream_ops.poll property. However,
-        # stream.stream_ops is sometimes undefined and the check fails. Let's adjust it to
-        # tolerate a null stream.stream_ops value.
-        /root/replace.sh "s/if\s*\(stream\.stream_ops\.poll\)/if (stream.stream_ops?.poll)/g" /root/output/php.js && \
     # Make Emscripten websockets configurable
         # Emscripten makes the Websocket proxy connect to a fixed URL.
         # This assumes the traffic is always forwarded to the same target.
@@ -975,18 +950,7 @@ RUN \
             /root/replace.sh 's/recvmsg:\s*function\(sock,\s*length\)/recvmsg: function(sock, length, flags)/g' /root/output/php.js && \
             /root/replace.sh 's/if\s*\(sock\.type\s*===\s*1\s*&&\s*bytesRead\s*<\s*queuedLength\)/if (flags&2) {bytesRead = 0;} if (sock.type === 1 && bytesRead < queuedLength)/g' /root/output/php.js; \
         fi ; \
-    # Replace the hardcoded ENVIRONMENT variable with a dynamic computation
-        #
-        # The JavaScript code of the web loader and web worker loader is identical,
-        # but Emscripten forces running different code paths by setting
-        #
-        # ENVIRONMENT_IS_WEB = true; ENVIRONMENT_IS_WORKER = false
-        #
-        # This project supports both environments and would have to maintain two
-        # separate copies of the code. Instead, we use a dynamic computation of the
-        # environment, based on the `RuntimeName` variable, which is an argument to the
-        # wrapper function.
-        /root/replace.sh $'s/ENVIRONMENT_IS_([A-Z]+)\s*=\s*(true|false)/ENVIRONMENT_IS_$1=RuntimeName==="$1"/g' /root/output/php.js && \
+    # Let PHPLoader.ENV provide the initial environment variables
         /root/replace.sh 's/var ENV\s*=\s*\{\}/var ENV = PHPLoader.ENV || {}/g' /root/output/php.js && \
     # Turn the php.js file into an ES module
         # Manually turn the output into a esm module instead of relying on -s MODULARIZE=1.
