@@ -88,6 +88,36 @@ type Script = {
 // WebAssembly; build-assets/php*-function-signatures.patch fixes them.
 const scripts: Script[] = [
 	{
+		name: 'SimpleXML parses an element',
+		code: `echo (string) simplexml_load_string('<root><item>ok</item></root>')->item;`,
+		want: 'ok',
+	},
+	{
+		name: 'ZipArchive writes and reads an entry',
+		code: `$zip = new ZipArchive(); $zip->open('/tmp/gla96.zip', ZipArchive::CREATE); $zip->addFromString('item.txt', 'zip-ok'); $zip->close(); $zip->open('/tmp/gla96.zip'); echo $zip->getFromName('item.txt'); $zip->close();`,
+		want: 'zip-ok',
+	},
+	{
+		name: 'GD creates an image with the requested dimensions',
+		code: `$image = imagecreatetruecolor(2, 3); echo imagesx($image) . 'x' . imagesy($image);`,
+		want: '2x3',
+	},
+	{
+		name: 'mbstring counts UTF-8 characters',
+		code: `echo mb_strlen('雪だるま', 'UTF-8');`,
+		want: '4',
+	},
+	{
+		name: 'SQLite stores and queries a value',
+		code: `$db = new SQLite3(':memory:'); $db->exec('CREATE TABLE items (value INTEGER)'); $db->exec('INSERT INTO items VALUES (42)'); echo $db->querySingle('SELECT value FROM items'); $db->close();`,
+		want: '42',
+	},
+	{
+		name: 'OpenSSL computes a SHA-256 digest',
+		code: `echo openssl_digest('abc', 'sha256');`,
+		want: 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad',
+	},
+	{
 		name: 'date with a timezone',
 		code: `date_default_timezone_set('UTC'); echo date('Y', 0);`,
 		want: '1970',
