@@ -1,0 +1,729 @@
+{
+  "cliVersion": "8.5.11",
+  "versions": {
+    "5.6": {
+      "output": {
+        "personalized-greeting": "Hello, Mina!",
+        "two-line-welcome": "Hello, Ada!\nWelcome to PHP!"
+      },
+      "variables": {
+        "reassign-price": "float(12.5)\n",
+        "reassign-name": "Mina\nLee"
+      },
+      "operators": {
+        "subtract-discount": "31",
+        "compare-threshold": "bool(true)\n"
+      },
+      "conditionals": {
+        "match-level": "Start here",
+        "group-match-values": "Weekend"
+      },
+      "types": {
+        "scalar-values": "int(3)\nfloat(12.5)\nbool(true)\nstring(8) \"Notebook\"\nNULL\n",
+        "null-zero": "NULL\nint(0)\n"
+      },
+      "arrays": {
+        "nested-address": "Lee lives in Osaka.",
+        "numbered-scores": "8, 10, 9"
+      },
+      "loops": {
+        "even-countdown": "4\n2\n",
+        "count-with-for": "1\n2\n3\n"
+      },
+      "functions": {
+        "default-greeting": "Hello, Sam!\nWelcome, Mina!",
+        "greet-each-name": "Hello, Sam!\nHello, Mina!\n"
+      },
+      "format-full-name": {
+        "whitespace-first-name": "Hopper",
+        "empty-name-parts": "[]"
+      },
+      "errors": {
+        "successful-division": "4",
+        "finally-message": "The divisor must not be zero.\nDone."
+      },
+      "classes": {
+        "two-counters": "5, 14",
+        "reset-counter": "0"
+      },
+      "constants": {
+        "currency-constant": "USD",
+        "constant-array": "green"
+      },
+      "expressions": {
+        "precedence": "18",
+        "combine-results": "30"
+      },
+      "string-functions": {
+        "uppercase-ascii": "PHP",
+        "trim-and-uppercase": "PHP STRINGS"
+      }
+    },
+    "7.0": {
+      "output": {
+        "personalized-greeting": "Hello, Mina!",
+        "two-line-welcome": "Hello, Ada!\nWelcome to PHP!"
+      },
+      "variables": {
+        "reassign-price": "float(12.5)\n",
+        "reassign-name": "Mina\nLee"
+      },
+      "operators": {
+        "subtract-discount": "31",
+        "compare-threshold": "bool(true)\n"
+      },
+      "conditionals": {
+        "match-level": "Start here",
+        "group-match-values": "Weekend"
+      },
+      "types": {
+        "scalar-values": "int(3)\nfloat(12.5)\nbool(true)\nstring(8) \"Notebook\"\nNULL\n",
+        "null-zero": "NULL\nint(0)\n"
+      },
+      "arrays": {
+        "nested-address": "Lee lives in Osaka.",
+        "numbered-scores": "8, 10, 9"
+      },
+      "loops": {
+        "even-countdown": "4\n2\n",
+        "count-with-for": "1\n2\n3\n"
+      },
+      "functions": {
+        "default-greeting": "Hello, Sam!\nWelcome, Mina!",
+        "greet-each-name": "Hello, Sam!\nHello, Mina!\n"
+      },
+      "format-full-name": {
+        "whitespace-first-name": "Hopper",
+        "empty-name-parts": "[]"
+      },
+      "errors": {
+        "successful-division": "4",
+        "finally-message": "The divisor must not be zero.\nDone."
+      },
+      "classes": {
+        "two-counters": "5, 14",
+        "reset-counter": "0"
+      },
+      "constants": {
+        "currency-constant": "USD",
+        "constant-array": "green"
+      },
+      "expressions": {
+        "precedence": "18",
+        "combine-results": "30"
+      },
+      "string-functions": {
+        "uppercase-ascii": "PHP",
+        "trim-and-uppercase": "PHP STRINGS"
+      }
+    },
+    "7.1": {
+      "output": {
+        "personalized-greeting": "Hello, Mina!",
+        "two-line-welcome": "Hello, Ada!\nWelcome to PHP!"
+      },
+      "variables": {
+        "reassign-price": "float(12.5)\n",
+        "reassign-name": "Mina\nLee"
+      },
+      "operators": {
+        "subtract-discount": "31",
+        "compare-threshold": "bool(true)\n"
+      },
+      "conditionals": {
+        "match-level": "Start here",
+        "group-match-values": "Weekend"
+      },
+      "types": {
+        "scalar-values": "int(3)\nfloat(12.5)\nbool(true)\nstring(8) \"Notebook\"\nNULL\n",
+        "null-zero": "NULL\nint(0)\n"
+      },
+      "arrays": {
+        "nested-address": "Lee lives in Osaka.",
+        "numbered-scores": "8, 10, 9"
+      },
+      "loops": {
+        "even-countdown": "4\n2\n",
+        "count-with-for": "1\n2\n3\n"
+      },
+      "functions": {
+        "default-greeting": "Hello, Sam!\nWelcome, Mina!",
+        "greet-each-name": "Hello, Sam!\nHello, Mina!\n"
+      },
+      "format-full-name": {
+        "whitespace-first-name": "Hopper",
+        "empty-name-parts": "[]"
+      },
+      "errors": {
+        "successful-division": "4",
+        "finally-message": "The divisor must not be zero.\nDone."
+      },
+      "classes": {
+        "two-counters": "5, 14",
+        "reset-counter": "0"
+      },
+      "constants": {
+        "currency-constant": "USD",
+        "constant-array": "green"
+      },
+      "expressions": {
+        "precedence": "18",
+        "combine-results": "30"
+      },
+      "string-functions": {
+        "uppercase-ascii": "PHP",
+        "trim-and-uppercase": "PHP STRINGS"
+      }
+    },
+    "7.2": {
+      "output": {
+        "personalized-greeting": "Hello, Mina!",
+        "two-line-welcome": "Hello, Ada!\nWelcome to PHP!"
+      },
+      "variables": {
+        "reassign-price": "float(12.5)\n",
+        "reassign-name": "Mina\nLee"
+      },
+      "operators": {
+        "subtract-discount": "31",
+        "compare-threshold": "bool(true)\n"
+      },
+      "conditionals": {
+        "match-level": "Start here",
+        "group-match-values": "Weekend"
+      },
+      "types": {
+        "scalar-values": "int(3)\nfloat(12.5)\nbool(true)\nstring(8) \"Notebook\"\nNULL\n",
+        "null-zero": "NULL\nint(0)\n"
+      },
+      "arrays": {
+        "nested-address": "Lee lives in Osaka.",
+        "numbered-scores": "8, 10, 9"
+      },
+      "loops": {
+        "even-countdown": "4\n2\n",
+        "count-with-for": "1\n2\n3\n"
+      },
+      "functions": {
+        "default-greeting": "Hello, Sam!\nWelcome, Mina!",
+        "greet-each-name": "Hello, Sam!\nHello, Mina!\n"
+      },
+      "format-full-name": {
+        "whitespace-first-name": "Hopper",
+        "empty-name-parts": "[]"
+      },
+      "errors": {
+        "successful-division": "4",
+        "finally-message": "The divisor must not be zero.\nDone."
+      },
+      "classes": {
+        "two-counters": "5, 14",
+        "reset-counter": "0"
+      },
+      "constants": {
+        "currency-constant": "USD",
+        "constant-array": "green"
+      },
+      "expressions": {
+        "precedence": "18",
+        "combine-results": "30"
+      },
+      "string-functions": {
+        "uppercase-ascii": "PHP",
+        "trim-and-uppercase": "PHP STRINGS"
+      }
+    },
+    "7.3": {
+      "output": {
+        "personalized-greeting": "Hello, Mina!",
+        "two-line-welcome": "Hello, Ada!\nWelcome to PHP!"
+      },
+      "variables": {
+        "reassign-price": "float(12.5)\n",
+        "reassign-name": "Mina\nLee"
+      },
+      "operators": {
+        "subtract-discount": "31",
+        "compare-threshold": "bool(true)\n"
+      },
+      "conditionals": {
+        "match-level": "Start here",
+        "group-match-values": "Weekend"
+      },
+      "types": {
+        "scalar-values": "int(3)\nfloat(12.5)\nbool(true)\nstring(8) \"Notebook\"\nNULL\n",
+        "null-zero": "NULL\nint(0)\n"
+      },
+      "arrays": {
+        "nested-address": "Lee lives in Osaka.",
+        "numbered-scores": "8, 10, 9"
+      },
+      "loops": {
+        "even-countdown": "4\n2\n",
+        "count-with-for": "1\n2\n3\n"
+      },
+      "functions": {
+        "default-greeting": "Hello, Sam!\nWelcome, Mina!",
+        "greet-each-name": "Hello, Sam!\nHello, Mina!\n"
+      },
+      "format-full-name": {
+        "whitespace-first-name": "Hopper",
+        "empty-name-parts": "[]"
+      },
+      "errors": {
+        "successful-division": "4",
+        "finally-message": "The divisor must not be zero.\nDone."
+      },
+      "classes": {
+        "two-counters": "5, 14",
+        "reset-counter": "0"
+      },
+      "constants": {
+        "currency-constant": "USD",
+        "constant-array": "green"
+      },
+      "expressions": {
+        "precedence": "18",
+        "combine-results": "30"
+      },
+      "string-functions": {
+        "uppercase-ascii": "PHP",
+        "trim-and-uppercase": "PHP STRINGS"
+      }
+    },
+    "7.4": {
+      "output": {
+        "personalized-greeting": "Hello, Mina!",
+        "two-line-welcome": "Hello, Ada!\nWelcome to PHP!"
+      },
+      "variables": {
+        "reassign-price": "float(12.5)\n",
+        "reassign-name": "Mina\nLee"
+      },
+      "operators": {
+        "subtract-discount": "31",
+        "compare-threshold": "bool(true)\n"
+      },
+      "conditionals": {
+        "match-level": "Start here",
+        "group-match-values": "Weekend"
+      },
+      "types": {
+        "scalar-values": "int(3)\nfloat(12.5)\nbool(true)\nstring(8) \"Notebook\"\nNULL\n",
+        "null-zero": "NULL\nint(0)\n"
+      },
+      "arrays": {
+        "nested-address": "Lee lives in Osaka.",
+        "numbered-scores": "8, 10, 9"
+      },
+      "loops": {
+        "even-countdown": "4\n2\n",
+        "count-with-for": "1\n2\n3\n"
+      },
+      "functions": {
+        "default-greeting": "Hello, Sam!\nWelcome, Mina!",
+        "greet-each-name": "Hello, Sam!\nHello, Mina!\n"
+      },
+      "format-full-name": {
+        "whitespace-first-name": "Hopper",
+        "empty-name-parts": "[]"
+      },
+      "errors": {
+        "successful-division": "4",
+        "finally-message": "The divisor must not be zero.\nDone."
+      },
+      "classes": {
+        "two-counters": "5, 14",
+        "reset-counter": "0"
+      },
+      "constants": {
+        "currency-constant": "USD",
+        "constant-array": "green"
+      },
+      "expressions": {
+        "precedence": "18",
+        "combine-results": "30"
+      },
+      "string-functions": {
+        "uppercase-ascii": "PHP",
+        "trim-and-uppercase": "PHP STRINGS"
+      }
+    },
+    "8.0": {
+      "output": {
+        "personalized-greeting": "Hello, Mina!",
+        "two-line-welcome": "Hello, Ada!\nWelcome to PHP!"
+      },
+      "variables": {
+        "reassign-price": "float(12.5)\n",
+        "reassign-name": "Mina\nLee"
+      },
+      "operators": {
+        "subtract-discount": "31",
+        "compare-threshold": "bool(true)\n"
+      },
+      "conditionals": {
+        "match-level": "Start here",
+        "group-match-values": "Weekend"
+      },
+      "types": {
+        "scalar-values": "int(3)\nfloat(12.5)\nbool(true)\nstring(8) \"Notebook\"\nNULL\n",
+        "null-zero": "NULL\nint(0)\n"
+      },
+      "arrays": {
+        "nested-address": "Lee lives in Osaka.",
+        "numbered-scores": "8, 10, 9"
+      },
+      "loops": {
+        "even-countdown": "4\n2\n",
+        "count-with-for": "1\n2\n3\n"
+      },
+      "functions": {
+        "default-greeting": "Hello, Sam!\nWelcome, Mina!",
+        "greet-each-name": "Hello, Sam!\nHello, Mina!\n"
+      },
+      "format-full-name": {
+        "whitespace-first-name": "Hopper",
+        "empty-name-parts": "[]"
+      },
+      "errors": {
+        "successful-division": "4",
+        "finally-message": "The divisor must not be zero.\nDone."
+      },
+      "classes": {
+        "two-counters": "5, 14",
+        "reset-counter": "0"
+      },
+      "constants": {
+        "currency-constant": "USD",
+        "constant-array": "green"
+      },
+      "expressions": {
+        "precedence": "18",
+        "combine-results": "30"
+      },
+      "string-functions": {
+        "uppercase-ascii": "PHP",
+        "trim-and-uppercase": "PHP STRINGS"
+      }
+    },
+    "8.1": {
+      "output": {
+        "personalized-greeting": "Hello, Mina!",
+        "two-line-welcome": "Hello, Ada!\nWelcome to PHP!"
+      },
+      "variables": {
+        "reassign-price": "float(12.5)\n",
+        "reassign-name": "Mina\nLee"
+      },
+      "operators": {
+        "subtract-discount": "31",
+        "compare-threshold": "bool(true)\n"
+      },
+      "conditionals": {
+        "match-level": "Start here",
+        "group-match-values": "Weekend"
+      },
+      "types": {
+        "scalar-values": "int(3)\nfloat(12.5)\nbool(true)\nstring(8) \"Notebook\"\nNULL\n",
+        "null-zero": "NULL\nint(0)\n"
+      },
+      "arrays": {
+        "nested-address": "Lee lives in Osaka.",
+        "numbered-scores": "8, 10, 9"
+      },
+      "loops": {
+        "even-countdown": "4\n2\n",
+        "count-with-for": "1\n2\n3\n"
+      },
+      "functions": {
+        "default-greeting": "Hello, Sam!\nWelcome, Mina!",
+        "greet-each-name": "Hello, Sam!\nHello, Mina!\n"
+      },
+      "format-full-name": {
+        "whitespace-first-name": "Hopper",
+        "empty-name-parts": "[]"
+      },
+      "errors": {
+        "successful-division": "4",
+        "finally-message": "The divisor must not be zero.\nDone."
+      },
+      "classes": {
+        "two-counters": "5, 14",
+        "reset-counter": "0"
+      },
+      "constants": {
+        "currency-constant": "USD",
+        "constant-array": "green"
+      },
+      "expressions": {
+        "precedence": "18",
+        "combine-results": "30"
+      },
+      "enums": {
+        "match-enum-cases": "Complete",
+        "list-enum-cases": "todo\ndone\n"
+      },
+      "string-functions": {
+        "uppercase-ascii": "PHP",
+        "trim-and-uppercase": "PHP STRINGS"
+      }
+    },
+    "8.2": {
+      "output": {
+        "personalized-greeting": "Hello, Mina!",
+        "two-line-welcome": "Hello, Ada!\nWelcome to PHP!"
+      },
+      "variables": {
+        "reassign-price": "float(12.5)\n",
+        "reassign-name": "Mina\nLee"
+      },
+      "operators": {
+        "subtract-discount": "31",
+        "compare-threshold": "bool(true)\n"
+      },
+      "conditionals": {
+        "match-level": "Start here",
+        "group-match-values": "Weekend"
+      },
+      "types": {
+        "scalar-values": "int(3)\nfloat(12.5)\nbool(true)\nstring(8) \"Notebook\"\nNULL\n",
+        "null-zero": "NULL\nint(0)\n"
+      },
+      "arrays": {
+        "nested-address": "Lee lives in Osaka.",
+        "numbered-scores": "8, 10, 9"
+      },
+      "loops": {
+        "even-countdown": "4\n2\n",
+        "count-with-for": "1\n2\n3\n"
+      },
+      "functions": {
+        "default-greeting": "Hello, Sam!\nWelcome, Mina!",
+        "greet-each-name": "Hello, Sam!\nHello, Mina!\n"
+      },
+      "format-full-name": {
+        "whitespace-first-name": "Hopper",
+        "empty-name-parts": "[]"
+      },
+      "errors": {
+        "successful-division": "4",
+        "finally-message": "The divisor must not be zero.\nDone."
+      },
+      "classes": {
+        "two-counters": "5, 14",
+        "reset-counter": "0"
+      },
+      "constants": {
+        "currency-constant": "USD",
+        "constant-array": "green"
+      },
+      "expressions": {
+        "precedence": "18",
+        "combine-results": "30"
+      },
+      "enums": {
+        "match-enum-cases": "Complete",
+        "list-enum-cases": "todo\ndone\n"
+      },
+      "string-functions": {
+        "uppercase-ascii": "PHP",
+        "trim-and-uppercase": "PHP STRINGS"
+      }
+    },
+    "8.3": {
+      "output": {
+        "personalized-greeting": "Hello, Mina!",
+        "two-line-welcome": "Hello, Ada!\nWelcome to PHP!"
+      },
+      "variables": {
+        "reassign-price": "float(12.5)\n",
+        "reassign-name": "Mina\nLee"
+      },
+      "operators": {
+        "subtract-discount": "31",
+        "compare-threshold": "bool(true)\n"
+      },
+      "conditionals": {
+        "match-level": "Start here",
+        "group-match-values": "Weekend"
+      },
+      "types": {
+        "scalar-values": "int(3)\nfloat(12.5)\nbool(true)\nstring(8) \"Notebook\"\nNULL\n",
+        "null-zero": "NULL\nint(0)\n"
+      },
+      "arrays": {
+        "nested-address": "Lee lives in Osaka.",
+        "numbered-scores": "8, 10, 9"
+      },
+      "loops": {
+        "even-countdown": "4\n2\n",
+        "count-with-for": "1\n2\n3\n"
+      },
+      "functions": {
+        "default-greeting": "Hello, Sam!\nWelcome, Mina!",
+        "greet-each-name": "Hello, Sam!\nHello, Mina!\n"
+      },
+      "format-full-name": {
+        "whitespace-first-name": "Hopper",
+        "empty-name-parts": "[]"
+      },
+      "errors": {
+        "successful-division": "4",
+        "finally-message": "The divisor must not be zero.\nDone."
+      },
+      "classes": {
+        "two-counters": "5, 14",
+        "reset-counter": "0"
+      },
+      "constants": {
+        "currency-constant": "USD",
+        "constant-array": "green"
+      },
+      "expressions": {
+        "precedence": "18",
+        "combine-results": "30"
+      },
+      "enums": {
+        "match-enum-cases": "Complete",
+        "list-enum-cases": "todo\ndone\n"
+      },
+      "string-functions": {
+        "uppercase-ascii": "PHP",
+        "trim-and-uppercase": "PHP STRINGS"
+      }
+    },
+    "8.4": {
+      "output": {
+        "personalized-greeting": "Hello, Mina!",
+        "two-line-welcome": "Hello, Ada!\nWelcome to PHP!"
+      },
+      "variables": {
+        "reassign-price": "float(12.5)\n",
+        "reassign-name": "Mina\nLee"
+      },
+      "operators": {
+        "subtract-discount": "31",
+        "compare-threshold": "bool(true)\n"
+      },
+      "conditionals": {
+        "match-level": "Start here",
+        "group-match-values": "Weekend"
+      },
+      "types": {
+        "scalar-values": "int(3)\nfloat(12.5)\nbool(true)\nstring(8) \"Notebook\"\nNULL\n",
+        "null-zero": "NULL\nint(0)\n"
+      },
+      "arrays": {
+        "nested-address": "Lee lives in Osaka.",
+        "numbered-scores": "8, 10, 9"
+      },
+      "loops": {
+        "even-countdown": "4\n2\n",
+        "count-with-for": "1\n2\n3\n"
+      },
+      "functions": {
+        "default-greeting": "Hello, Sam!\nWelcome, Mina!",
+        "greet-each-name": "Hello, Sam!\nHello, Mina!\n"
+      },
+      "format-full-name": {
+        "whitespace-first-name": "Hopper",
+        "empty-name-parts": "[]"
+      },
+      "errors": {
+        "successful-division": "4",
+        "finally-message": "The divisor must not be zero.\nDone."
+      },
+      "classes": {
+        "two-counters": "5, 14",
+        "reset-counter": "0"
+      },
+      "constants": {
+        "currency-constant": "USD",
+        "constant-array": "green"
+      },
+      "expressions": {
+        "precedence": "18",
+        "combine-results": "30"
+      },
+      "enums": {
+        "match-enum-cases": "Complete",
+        "list-enum-cases": "todo\ndone\n"
+      },
+      "property-hooks": {
+        "prefix-on-set": "Label: New",
+        "bracket-on-get": "[New]"
+      },
+      "string-functions": {
+        "uppercase-ascii": "PHP",
+        "trim-and-uppercase": "PHP STRINGS"
+      }
+    },
+    "8.5": {
+      "output": {
+        "personalized-greeting": "Hello, Mina!",
+        "two-line-welcome": "Hello, Ada!\nWelcome to PHP!"
+      },
+      "variables": {
+        "reassign-price": "float(12.5)\n",
+        "reassign-name": "Mina\nLee"
+      },
+      "operators": {
+        "subtract-discount": "31",
+        "compare-threshold": "bool(true)\n"
+      },
+      "conditionals": {
+        "match-level": "Start here",
+        "group-match-values": "Weekend"
+      },
+      "types": {
+        "scalar-values": "int(3)\nfloat(12.5)\nbool(true)\nstring(8) \"Notebook\"\nNULL\n",
+        "null-zero": "NULL\nint(0)\n"
+      },
+      "arrays": {
+        "nested-address": "Lee lives in Osaka.",
+        "numbered-scores": "8, 10, 9"
+      },
+      "loops": {
+        "even-countdown": "4\n2\n",
+        "count-with-for": "1\n2\n3\n"
+      },
+      "functions": {
+        "default-greeting": "Hello, Sam!\nWelcome, Mina!",
+        "greet-each-name": "Hello, Sam!\nHello, Mina!\n"
+      },
+      "format-full-name": {
+        "whitespace-first-name": "Hopper",
+        "empty-name-parts": "[]"
+      },
+      "errors": {
+        "successful-division": "4",
+        "finally-message": "The divisor must not be zero.\nDone."
+      },
+      "classes": {
+        "two-counters": "5, 14",
+        "reset-counter": "0"
+      },
+      "constants": {
+        "currency-constant": "USD",
+        "constant-array": "green"
+      },
+      "expressions": {
+        "precedence": "18",
+        "combine-results": "30"
+      },
+      "enums": {
+        "match-enum-cases": "Complete",
+        "list-enum-cases": "todo\ndone\n"
+      },
+      "property-hooks": {
+        "prefix-on-set": "Label: New",
+        "bracket-on-get": "[New]"
+      },
+      "string-functions": {
+        "uppercase-ascii": "PHP",
+        "trim-and-uppercase": "PHP STRINGS"
+      }
+    }
+  }
+}

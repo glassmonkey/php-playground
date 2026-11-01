@@ -609,7 +609,11 @@ test.describe('select version', () => {
 })
 
 test('reports a failed PHP loader import to the preview', async ({page, context}) => {
-  await context.route('**/php-5.6-*.js', (route) => route.abort());
+  let blockedImports = 0;
+  await context.route(/\/php-5\.6(?:-[^/?]+)?\.js(?:\?import)?$/, (route) => {
+    blockedImports += 1;
+    return route.abort();
+  });
   await page.goto(`${PAGE}/?c=DwfgUEA&v=5.6`);
 
   const editor = page.getByRole('code');
@@ -617,5 +621,6 @@ test('reports a failed PHP loader import to the preview', async ({page, context}
   await page.keyboard.type(' echo(1+1);');
   await page.getByTestId('checkbox-format').uncheck();
 
+  await expect.poll(() => blockedImports).toBeGreaterThan(0);
   await expect(page.getByTestId('preview-console')).toContainText('Error:');
 });

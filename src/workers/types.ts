@@ -5,6 +5,8 @@ export interface PHPResultMessage {
 	requestId: string;
 	result: string;
 	error?: string;
+	errors?: string;
+	exitCode?: number;
 }
 
 // Message from Main Thread to Web Worker

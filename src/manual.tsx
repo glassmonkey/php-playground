@@ -1,5 +1,6 @@
 import { Box, Heading, Highlight, Link, Text, Flex } from '@chakra-ui/react';
 import React from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 
 export default function Manual() {
 	return (
@@ -21,6 +22,25 @@ export default function Manual() {
 						The code you write can be immediately shared with your
 						friends via URL.
 					</Text>
+				</Box>
+			</Flex>
+
+			<Flex as="section" direction="column" gap="8px">
+				<Heading as="h3">Learn PHP</Heading>
+				<Box>
+					<Text as="p">
+						New to PHP? Learn step by step with interactive lessons
+						for your selected PHP version. Edit an Example or try an
+						Experiment, predict what will happen, then press Run to
+						see the result in your browser.
+					</Text>
+					<Link
+						as={RouterLink}
+						to="/tutorial/"
+						textDecoration="underline"
+					>
+						Start the PHP tutorial
+					</Link>
 				</Box>
 			</Flex>
 

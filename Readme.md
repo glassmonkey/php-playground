@@ -9,6 +9,10 @@ https://php-play.dev
 
 ![demo](doc/demo.gif)
 
+# PHP tutorial
+
+The versioned tutorial content and reusable authoring prompts are documented in [`doc/tutorial/`](doc/tutorial/README.md). Tutorial URLs use `/tutorial/<PHP-version>/<lesson-slug>`; `/tutorial` and `/tutorial/latest` resolve to the version explicitly selected in the tutorial configuration.
+
 # usage build
 build web assembly
 ```

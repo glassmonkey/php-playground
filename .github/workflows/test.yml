@@ -16,6 +16,8 @@ jobs:
           node-version-file: .node-version
           cache: 'npm'
       - run: npm ci
+      - name: Install Chromium for independent image decoding
+        run: npx playwright install --with-deps chromium
       - run: make lint
       - run: make test-ci
         env:
