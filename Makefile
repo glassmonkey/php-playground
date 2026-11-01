@@ -1,13 +1,6 @@
 # parametaers
 PHP_VERSION := 8.2
-WITH_VRZNO := yes
-WITH_LIBXML := yes
-WITH_LIBPNG := yes
-WITH_LIBZIP := yes
-WITH_MBSTRING := yes
 WITH_CLI_SAPI := no
-WITH_OPENSSL := yes
-WITH_SQLITE := yes
 WITH_MYSQL := no
 WITH_WS_NETWORKING_PROXY := no
 # web or node
@@ -29,14 +22,7 @@ build-image:
 	cd src/wasm && \
 	docker build $(WITH_CACHE) . --tag=$(PHP_IMAGE) \
 		--build-arg PHP_VERSION=$(PHP_VERSION) \
-		--build-arg WITH_VRZNO=$(WITH_VRZNO) \
-		--build-arg WITH_LIBXML=$(WITH_LIBXML) \
-		--build-arg WITH_LIBPNG=$(WITH_LIBPNG) \
-		--build-arg WITH_LIBZIP=$(WITH_LIBZIP) \
-		--build-arg WITH_MBSTRING=$(WITH_MBSTRING) \
 		--build-arg WITH_CLI_SAPI=$(WITH_CLI_SAPI) \
-		--build-arg WITH_OPENSSL=$(WITH_OPENSSL) \
-		--build-arg WITH_SQLITE=$(WITH_SQLITE) \
 		--build-arg WITH_MYSQL=$(WITH_MYSQL) \
 		--build-arg WITH_WS_NETWORKING_PROXY=$(WITH_WS_NETWORKING_PROXY) \
 		--build-arg EMSCRIPTEN_ENVIRONMENT=$(PLATFORM) && \
