@@ -1,24 +1,38 @@
-export const dependenciesTotalSize = 8549361;
+export const dependenciesTotalSize = 8548541;
 export const dependencyFilename =
-	'php-7.3.wasm?9c5d240a1673f9a38ba4309304e150f4';
+	'php-7.3.wasm?3e8594e17ba43661dead282af5161ac0';
 export default function (RuntimeName, PHPLoader, EnvVariables) {
 	var Module = typeof PHPLoader !== 'undefined' ? PHPLoader : {};
+	var ENVIRONMENT_IS_WEB = !!globalThis.window;
+	var ENVIRONMENT_IS_WORKER = !!globalThis.WorkerGlobalScope;
+	var ENVIRONMENT_IS_NODE =
+		globalThis.process?.versions?.node &&
+		globalThis.process?.type != 'renderer';
 	var thisProgram = './this.program';
 	var quit_ = (status, toThrow) => {
 		throw toThrow;
 	};
 	var _scriptName = globalThis.document?.currentScript?.src;
+	if (ENVIRONMENT_IS_WORKER) _scriptName = self.location.href;
 	var scriptDirectory = '';
 	function locateFile(path) {
 		if (Module['locateFile'])
 			return Module['locateFile'](path, scriptDirectory);
 		return scriptDirectory + path;
 	}
-	var readAsync;
-	if (true) {
+	var readAsync, readBinary;
+	if (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) {
 		try {
 			scriptDirectory = new URL('.', _scriptName).href;
 		} catch {}
+		if (ENVIRONMENT_IS_WORKER)
+			readBinary = (url) => {
+				var xhr = new XMLHttpRequest();
+				xhr.open('GET', url, false);
+				xhr.responseType = 'arraybuffer';
+				xhr.send(null);
+				return new Uint8Array(xhr.response);
+			};
 		readAsync = async (url) => {
 			var response = await fetch(url, { credentials: 'same-origin' });
 			if (response.ok) return response.arrayBuffer();
@@ -61,7 +75,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		if (!Module['noFSInit'] && !FS.initialized) FS.init();
 		TTY.init();
 		PIPEFS.root = FS.mount(PIPEFS, {}, null);
-		wasmExports['Wa']();
+		wasmExports['Ua']();
 		FS.ignorePermissions = false;
 	}
 	function exitRuntime() {
@@ -94,7 +108,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 	function getBinarySync(file) {
 		if (file == wasmBinaryFile && wasmBinary)
 			return new Uint8Array(wasmBinary);
-		if (void 0) return (void 0)(file);
+		if (readBinary) return readBinary(file);
 		throw 'both async and sync fetching of the wasm failed';
 	}
 	async function getWasmBinary(binaryFile) {
@@ -1925,7 +1939,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				);
 			else
 				try {
-					obj.contents = (void 0)(obj.url);
+					obj.contents = readBinary(obj.url);
 				} catch (e) {
 					throw new FS.ErrnoError(29);
 				}
@@ -2034,7 +2048,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				}
 			}
 			if (globalThis.XMLHttpRequest) {
-				if (true)
+				if (!ENVIRONMENT_IS_WORKER)
 					abort(
 						'Cannot do synchronous binary XHRs outside webworkers in modern browsers. Use --embed-file or --preload-file in emcc'
 					);
@@ -2462,7 +2476,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				sock.connecting = true;
 			},
 			listen(sock, backlog) {
-				if (true) throw new FS.ErrnoError(138);
+				if (!ENVIRONMENT_IS_NODE) throw new FS.ErrnoError(138);
 			},
 			accept(listensock) {
 				if (listensock.error) {
@@ -3410,14 +3424,6 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		}
 		return newDate;
 	};
-	function _vrzno_del_callback() {
-		abort('missing function: vrzno_del_callback');
-	}
-	_vrzno_del_callback.stub = true;
-	function _vrzno_exec_callback() {
-		abort('missing function: vrzno_exec_callback');
-	}
-	_vrzno_exec_callback.stub = true;
 	var getCFunc = (ident) => {
 		var func = Module['_' + ident];
 		return func;
@@ -3527,46 +3533,44 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		wasmMemory,
 		wasmTable;
 	function assignWasmExports(wasmExports) {
-		Module['_wasm_popen'] = wasmExports['Xa'];
-		Module['_wasm_pclose'] = wasmExports['Ya'];
-		Module['_php_pollfd_for'] = wasmExports['Za'];
-		_malloc = wasmExports['$a'];
-		_fflush = wasmExports['ab'];
-		_htons = wasmExports['bb'];
-		_ntohs = wasmExports['cb'];
-		_htonl = wasmExports['db'];
-		Module['_wasm_set_phpini_path'] = wasmExports['eb'];
-		Module['_wasm_set_phpini_entries'] = wasmExports['fb'];
-		Module['_wasm_add_SERVER_entry'] = wasmExports['gb'];
-		Module['_wasm_add_uploaded_file'] = wasmExports['hb'];
-		Module['_wasm_set_query_string'] = wasmExports['ib'];
-		Module['_wasm_set_path_translated'] = wasmExports['jb'];
-		Module['_wasm_set_skip_shebang'] = wasmExports['kb'];
-		Module['_wasm_set_request_uri'] = wasmExports['lb'];
-		Module['_wasm_set_request_method'] = wasmExports['mb'];
-		Module['_wasm_set_request_host'] = wasmExports['nb'];
-		Module['_wasm_set_content_type'] = wasmExports['ob'];
-		Module['_wasm_set_request_body'] = wasmExports['pb'];
-		Module['_wasm_set_content_length'] = wasmExports['qb'];
-		Module['_wasm_set_cookies'] = wasmExports['rb'];
-		Module['_wasm_set_php_code'] = wasmExports['sb'];
-		Module['_wasm_set_request_port'] = wasmExports['tb'];
-		Module['_phpwasm_init_uploaded_files_hash'] = wasmExports['ub'];
-		Module['_phpwasm_register_uploaded_file'] = wasmExports['vb'];
-		Module['_phpwasm_destroy_uploaded_files_hash'] = wasmExports['wb'];
-		Module['_wasm_sapi_handle_request'] = wasmExports['xb'];
-		Module['_php_wasm_init'] = wasmExports['yb'];
-		Module['_exec_callback'] = wasmExports['zb'];
-		Module['_del_callback'] = wasmExports['Ab'];
-		___funcs_on_exit = wasmExports['Bb'];
-		_emscripten_builtin_memalign = wasmExports['Cb'];
-		__emscripten_timeout = wasmExports['Db'];
-		_setThrew = wasmExports['Eb'];
-		__emscripten_stack_restore = wasmExports['Fb'];
-		__emscripten_stack_alloc = wasmExports['Gb'];
-		_emscripten_stack_get_current = wasmExports['Hb'];
-		wasmMemory = wasmExports['Va'];
-		wasmTable = wasmExports['_a'];
+		Module['_wasm_popen'] = wasmExports['Va'];
+		Module['_wasm_pclose'] = wasmExports['Wa'];
+		Module['_php_pollfd_for'] = wasmExports['Xa'];
+		_malloc = wasmExports['Za'];
+		_fflush = wasmExports['_a'];
+		_htons = wasmExports['$a'];
+		_ntohs = wasmExports['ab'];
+		_htonl = wasmExports['bb'];
+		Module['_wasm_set_phpini_path'] = wasmExports['cb'];
+		Module['_wasm_set_phpini_entries'] = wasmExports['db'];
+		Module['_wasm_add_SERVER_entry'] = wasmExports['eb'];
+		Module['_wasm_add_uploaded_file'] = wasmExports['fb'];
+		Module['_wasm_set_query_string'] = wasmExports['gb'];
+		Module['_wasm_set_path_translated'] = wasmExports['hb'];
+		Module['_wasm_set_skip_shebang'] = wasmExports['ib'];
+		Module['_wasm_set_request_uri'] = wasmExports['jb'];
+		Module['_wasm_set_request_method'] = wasmExports['kb'];
+		Module['_wasm_set_request_host'] = wasmExports['lb'];
+		Module['_wasm_set_content_type'] = wasmExports['mb'];
+		Module['_wasm_set_request_body'] = wasmExports['nb'];
+		Module['_wasm_set_content_length'] = wasmExports['ob'];
+		Module['_wasm_set_cookies'] = wasmExports['pb'];
+		Module['_wasm_set_php_code'] = wasmExports['qb'];
+		Module['_wasm_set_request_port'] = wasmExports['rb'];
+		Module['_phpwasm_init_uploaded_files_hash'] = wasmExports['sb'];
+		Module['_phpwasm_register_uploaded_file'] = wasmExports['tb'];
+		Module['_phpwasm_destroy_uploaded_files_hash'] = wasmExports['ub'];
+		Module['_wasm_sapi_handle_request'] = wasmExports['vb'];
+		Module['_php_wasm_init'] = wasmExports['wb'];
+		___funcs_on_exit = wasmExports['xb'];
+		_emscripten_builtin_memalign = wasmExports['yb'];
+		__emscripten_timeout = wasmExports['zb'];
+		_setThrew = wasmExports['Ab'];
+		__emscripten_stack_restore = wasmExports['Bb'];
+		__emscripten_stack_alloc = wasmExports['Cb'];
+		_emscripten_stack_get_current = wasmExports['Db'];
+		wasmMemory = wasmExports['Ta'];
+		wasmTable = wasmExports['Ya'];
 	}
 	var wasmImports = {
 		D: (condition, filename, line, func) =>
@@ -3621,7 +3625,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		K: function (path, mode) {
+		L: function (path, mode) {
 			try {
 				path = SYSCALLS.getStr(path);
 				FS.chmod(path, mode);
@@ -3711,7 +3715,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		J: function (dirfd, path, owner, group, flags) {
+		K: function (dirfd, path, owner, group, flags) {
 			try {
 				path = SYSCALLS.getStr(path);
 				var nofollow = flags & 256;
@@ -4087,7 +4091,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		G: function (fds, nfds) {
+		H: function (fds, nfds) {
 			try {
 				var count = doPollSync(fds, nfds);
 				return count;
@@ -4152,7 +4156,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		F: function (path) {
+		G: function (path) {
 			try {
 				path = SYSCALLS.getStr(path);
 				FS.rmdir(path);
@@ -4192,7 +4196,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		N: function (domain, type, protocol) {
+		E: function (domain, type, protocol) {
 			try {
 				var sock = SOCKFS.createSocket(domain, type, protocol);
 				return sock.stream.fd;
@@ -4430,7 +4434,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		E: (which, timeout_ms) => {
+		F: (which, timeout_ms) => {
 			if (timers[which]) {
 				clearTimeout(timers[which].id);
 				delete timers[which];
@@ -4484,7 +4488,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			HEAP64[ptime >> 3] = BigInt(nsec);
 			return 0;
 		},
-		I: _emscripten_date_now,
+		J: _emscripten_date_now,
 		ca: () => getHeapMax(),
 		s: _emscripten_get_now,
 		_: (requestedSize) => {
@@ -4541,7 +4545,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return e.errno;
 			}
 		},
-		H: function (fd, pbuf) {
+		I: function (fd, pbuf) {
 			try {
 				var stream = SYSCALLS.getStreamFromFD(fd);
 				var type = stream.tty
@@ -4562,7 +4566,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return e.errno;
 			}
 		},
-		L: function (fd, iov, iovcnt, pnum) {
+		M: function (fd, iov, iovcnt, pnum) {
 			try {
 				var stream = SYSCALLS.getStreamFromFD(fd);
 				var num = doReadv(stream, iov, iovcnt);
@@ -4613,7 +4617,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return e.errno;
 			}
 		},
-		M: (node, service, hint, out) => {
+		N: (node, service, hint, out) => {
 			var addr = 0;
 			var port = 0;
 			var flags = 0;
@@ -4731,13 +4735,13 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return write(DNS.lookup_addr(addr));
 			return write(null);
 		},
-		Ta: (name) => {
+		Ra: (name) => {
 			name = UTF8ToString(name);
 			_setprotoent(true);
 			var result = Protocols.map[name];
 			return result;
 		},
-		Sa: (number) => {
+		Qa: (number) => {
 			_setprotoent(true);
 			var result = Protocols.map[number];
 			return result;
@@ -4812,7 +4816,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				_setThrew(1, 0);
 			}
 		},
-		Qa: function (index, a1, a2, a3, a4, a5, a6, a7, a8, a9) {
+		Oa: function (index, a1, a2, a3, a4, a5, a6, a7, a8, a9) {
 			var sp = stackSave();
 			try {
 				return getWasmTableEntry(index)(
@@ -4922,7 +4926,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				_setThrew(1, 0);
 			}
 		},
-		Ua: function (command, mode, exitCodePtr) {
+		Sa: function (command, mode, exitCodePtr) {
 			if (!command) return 1;
 			const cmdstr = UTF8ToString(command);
 			if (!cmdstr.length) return 0;
@@ -4942,7 +4946,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			return _W_EXITCODE(0, 2);
 		},
 		Ka: _proc_exit,
-		Ra: (buf, format, tm) => {
+		Pa: (buf, format, tm) => {
 			var pattern = UTF8ToString(format);
 			for (var i = 0; i < 25; ++i)
 				pattern = pattern.replace(
@@ -5178,8 +5182,6 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			}
 			return 0;
 		},
-		Oa: _vrzno_del_callback,
-		Pa: _vrzno_exec_callback,
 		O: function (socketd, events, timeout) {
 			return Asyncify.handleSleep((wakeUp) => {
 				const sock = getSocketFromFD(socketd);

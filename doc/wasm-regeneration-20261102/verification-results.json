@@ -1,0 +1,54 @@
+{
+  "vitest": {
+    "command": "npm run test:ci",
+    "passed": true,
+    "test_count": 539,
+    "log_path": "/private/tmp/gla96-regeneration/vitest-final.log",
+    "log_sha256": "76aad3b18ef2f8b662c6d1b14b82c68aaacbf931ab1f3bebcf29bcc93f87d41a"
+  },
+  "chromium": {
+    "command": "npx playwright test --project chromium --reporter line",
+    "passed": true,
+    "test_count": 254,
+    "log_path": "/private/tmp/gla96-regeneration/playwright-final.log",
+    "log_sha256": "6fc67b6e230876ac036e907abef327ed5ed2b5849d71f499237c292070eedd5d"
+  },
+  "lint": {
+    "command": "npm run lint:js",
+    "passed": true,
+    "test_count": null,
+    "log_path": "/private/tmp/gla96-regeneration/lint-final.log",
+    "log_sha256": "bf6a68f1bf9f940d701d73ce7452c40c067b7855f88c8e546f7ec85d7b4b5bbb"
+  },
+  "types": {
+    "command": "npm run build:types",
+    "passed": true,
+    "test_count": null,
+    "log_path": "/private/tmp/gla96-regeneration/types-final.log",
+    "log_sha256": "90846c43c59430ffd31ac6ad3c125554fc9d6023d5857543df01338d426c09a6"
+  },
+  "build": {
+    "command": "npm run build",
+    "passed": true,
+    "test_count": null,
+    "log_path": "/private/tmp/gla96-regeneration/build-final.log",
+    "log_sha256": "7f9fb425d03173270bfeaff6ab8d00367cde3aff00d2d748d7cf20494416df55"
+  },
+  "asset_audit": {
+    "command": "python3 scripts/audit-wasm-assets.py",
+    "passed": true,
+    "versions": 12,
+    "script_sha256": "01b64620d15fa85f948874494245b51f5dd96ba327ab5923f0602acbccdb0cfd"
+  },
+  "browser_lazy_file": {
+    "passed": true,
+    "versions": 12,
+    "web_negative_tests": 12,
+    "real_worker_create_and_read_tests": 12,
+    "included_in": "chromium"
+  },
+  "builder_active": {
+    "running_builds": 0,
+    "log_path": "/private/tmp/gla96-regeneration/final-builder-active.txt"
+  }
+}

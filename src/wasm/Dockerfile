@@ -1,6 +1,6 @@
 # Originally forked from https://github.com/WordPress/wordpress-playground
 # ubuntu:noble supports amd64 and arm64 (Apple Silicon)
-ARG BASE_IMAGE=ubuntu:noble
+ARG BASE_IMAGE=ubuntu@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac
 FROM ${BASE_IMAGE} as emscripten
 
 SHELL ["/bin/bash", "-c"]
@@ -234,7 +234,7 @@ RUN if [ -n "$PHP_SOURCE_REF" ]; then \
     else \
         git clone https://github.com/php/php-src.git php-src --branch PHP-$PHP_VERSION --single-branch --depth 1; \
     fi && \
-    echo "PHP_SOURCE_SHA=$(git -C php-src rev-parse HEAD)"
+    echo "PHP_SOURCE_SHA=$(git -C /root/php-src rev-parse HEAD)"
 
 
 # Build PHP
@@ -488,7 +488,7 @@ RUN source /root/emsdk/emsdk_env.sh && \
         /root/lib/libphp.a \
         /root/php_wasm.c \
         $(cat /root/.emcc-php-wasm-sources) \
-    -s ENVIRONMENT=web \
+    -s ENVIRONMENT=web,worker \
     -s FORCE_FILESYSTEM=1 \
     -s EXPORT_NAME="'PHPLoader'"
 RUN ls /root/output/

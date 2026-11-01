@@ -52,7 +52,7 @@ def main() -> None:
     assert "emscripten-ncurses" not in stages
     assert "emscripten-libedit" not in stages
     assert " --disable-cli " in php_stage
-    assert "-s ENVIRONMENT=web" in php_stage
+    assert "-s ENVIRONMENT=web,worker" in php_stage
     assert "EMSCRIPTEN_ENVIRONMENT" not in dockerfile
     assert "--build-arg PHP_VERSION=$(PHP_VERSION)" in makefile
     assert "PLATFORM" not in makefile

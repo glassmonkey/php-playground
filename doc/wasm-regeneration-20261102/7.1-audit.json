@@ -1,0 +1,688 @@
+{
+  "base": "ba63d9b04c321ebb1cef7e306127479392c03d77",
+  "versions": [
+    {
+      "version": "7.1",
+      "wasm_bytes": 8526060,
+      "wasm_md5": "f4832b503e1313fecda18b274de90b9d",
+      "wasm_sha256": "283484cb692f1225e4fbd841173c7f2bba5928427d76960f734d13a8ce049470",
+      "js_sha256": "9faca0ae0d3fc72093510acbe113daa6e752a63961be91eead3642b33d018a45",
+      "worker_guard": "WorkerGlobalScope; lazy file guarded by !ENVIRONMENT_IS_WORKER",
+      "removed_callbacks": {
+        "exec_callback": {
+          "base_export": "yb",
+          "base_function_index": 10605,
+          "base_body_hex": "002000105d41b0959a0128020010e6041a0b",
+          "body_absent": true
+        },
+        "del_callback": {
+          "base_export": "zb",
+          "base_function_index": 10604,
+          "base_body_hex": "002000105c0b",
+          "body_absent": true
+        }
+      },
+      "wasm_imports": [
+        {
+          "module": "a",
+          "name": "a",
+          "signature": 3
+        },
+        {
+          "module": "a",
+          "name": "b",
+          "signature": 6
+        },
+        {
+          "module": "a",
+          "name": "c",
+          "signature": 1
+        },
+        {
+          "module": "a",
+          "name": "d",
+          "signature": 2
+        },
+        {
+          "module": "a",
+          "name": "e",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "f",
+          "signature": 16
+        },
+        {
+          "module": "a",
+          "name": "g",
+          "signature": 5
+        },
+        {
+          "module": "a",
+          "name": "h",
+          "signature": 12
+        },
+        {
+          "module": "a",
+          "name": "i",
+          "signature": 0
+        },
+        {
+          "module": "a",
+          "name": "j",
+          "signature": 7
+        },
+        {
+          "module": "a",
+          "name": "k",
+          "signature": 8
+        },
+        {
+          "module": "a",
+          "name": "l",
+          "signature": 14
+        },
+        {
+          "module": "a",
+          "name": "m",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "n",
+          "signature": 11
+        },
+        {
+          "module": "a",
+          "name": "o",
+          "signature": 7
+        },
+        {
+          "module": "a",
+          "name": "p",
+          "signature": 11
+        },
+        {
+          "module": "a",
+          "name": "q",
+          "signature": 1
+        },
+        {
+          "module": "a",
+          "name": "r",
+          "signature": 0
+        },
+        {
+          "module": "a",
+          "name": "s",
+          "signature": 15
+        },
+        {
+          "module": "a",
+          "name": "t",
+          "signature": 34
+        },
+        {
+          "module": "a",
+          "name": "u",
+          "signature": 11
+        },
+        {
+          "module": "a",
+          "name": "v",
+          "signature": 5
+        },
+        {
+          "module": "a",
+          "name": "w",
+          "signature": 5
+        },
+        {
+          "module": "a",
+          "name": "x",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "y",
+          "signature": 44
+        },
+        {
+          "module": "a",
+          "name": "z",
+          "signature": 9
+        },
+        {
+          "module": "a",
+          "name": "A",
+          "signature": 9
+        },
+        {
+          "module": "a",
+          "name": "B",
+          "signature": 45
+        },
+        {
+          "module": "a",
+          "name": "C",
+          "signature": 0
+        },
+        {
+          "module": "a",
+          "name": "D",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "E",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "F",
+          "signature": 2
+        },
+        {
+          "module": "a",
+          "name": "G",
+          "signature": 34
+        },
+        {
+          "module": "a",
+          "name": "H",
+          "signature": 7
+        },
+        {
+          "module": "a",
+          "name": "I",
+          "signature": 2
+        },
+        {
+          "module": "a",
+          "name": "J",
+          "signature": 5
+        },
+        {
+          "module": "a",
+          "name": "K",
+          "signature": 15
+        },
+        {
+          "module": "a",
+          "name": "L",
+          "signature": 8
+        },
+        {
+          "module": "a",
+          "name": "M",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "N",
+          "signature": 9
+        },
+        {
+          "module": "a",
+          "name": "O",
+          "signature": 9
+        },
+        {
+          "module": "a",
+          "name": "P",
+          "signature": 9
+        },
+        {
+          "module": "a",
+          "name": "Q",
+          "signature": 9
+        },
+        {
+          "module": "a",
+          "name": "R",
+          "signature": 9
+        },
+        {
+          "module": "a",
+          "name": "S",
+          "signature": 9
+        },
+        {
+          "module": "a",
+          "name": "T",
+          "signature": 9
+        },
+        {
+          "module": "a",
+          "name": "U",
+          "signature": 9
+        },
+        {
+          "module": "a",
+          "name": "V",
+          "signature": 9
+        },
+        {
+          "module": "a",
+          "name": "W",
+          "signature": 9
+        },
+        {
+          "module": "a",
+          "name": "X",
+          "signature": 10
+        },
+        {
+          "module": "a",
+          "name": "Y",
+          "signature": 0
+        },
+        {
+          "module": "a",
+          "name": "Z",
+          "signature": 5
+        },
+        {
+          "module": "a",
+          "name": "_",
+          "signature": 0
+        },
+        {
+          "module": "a",
+          "name": "$",
+          "signature": 0
+        },
+        {
+          "module": "a",
+          "name": "aa",
+          "signature": 11
+        },
+        {
+          "module": "a",
+          "name": "ba",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "ca",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "da",
+          "signature": 5
+        },
+        {
+          "module": "a",
+          "name": "ea",
+          "signature": 5
+        },
+        {
+          "module": "a",
+          "name": "fa",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "ga",
+          "signature": 3
+        },
+        {
+          "module": "a",
+          "name": "ha",
+          "signature": 10
+        },
+        {
+          "module": "a",
+          "name": "ia",
+          "signature": 2
+        },
+        {
+          "module": "a",
+          "name": "ja",
+          "signature": 2
+        },
+        {
+          "module": "a",
+          "name": "ka",
+          "signature": 58
+        },
+        {
+          "module": "a",
+          "name": "la",
+          "signature": 48
+        },
+        {
+          "module": "a",
+          "name": "ma",
+          "signature": 35
+        },
+        {
+          "module": "a",
+          "name": "na",
+          "signature": 35
+        },
+        {
+          "module": "a",
+          "name": "oa",
+          "signature": 23
+        },
+        {
+          "module": "a",
+          "name": "pa",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "qa",
+          "signature": 24
+        },
+        {
+          "module": "a",
+          "name": "ra",
+          "signature": 7
+        },
+        {
+          "module": "a",
+          "name": "sa",
+          "signature": 11
+        },
+        {
+          "module": "a",
+          "name": "ta",
+          "signature": 2
+        },
+        {
+          "module": "a",
+          "name": "ua",
+          "signature": 19
+        },
+        {
+          "module": "a",
+          "name": "va",
+          "signature": 0
+        },
+        {
+          "module": "a",
+          "name": "wa",
+          "signature": 2
+        },
+        {
+          "module": "a",
+          "name": "xa",
+          "signature": 5
+        },
+        {
+          "module": "a",
+          "name": "ya",
+          "signature": 2
+        },
+        {
+          "module": "a",
+          "name": "za",
+          "signature": 2
+        },
+        {
+          "module": "a",
+          "name": "Aa",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "Ba",
+          "signature": 2
+        },
+        {
+          "module": "a",
+          "name": "Ca",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "Da",
+          "signature": 0
+        },
+        {
+          "module": "a",
+          "name": "Ea",
+          "signature": 21
+        },
+        {
+          "module": "a",
+          "name": "Fa",
+          "signature": 0
+        },
+        {
+          "module": "a",
+          "name": "Ga",
+          "signature": 5
+        },
+        {
+          "module": "a",
+          "name": "Ha",
+          "signature": 10
+        },
+        {
+          "module": "a",
+          "name": "Ia",
+          "signature": 1
+        },
+        {
+          "module": "a",
+          "name": "Ja",
+          "signature": 8
+        },
+        {
+          "module": "a",
+          "name": "Ka",
+          "signature": 2
+        },
+        {
+          "module": "a",
+          "name": "La",
+          "signature": 2
+        },
+        {
+          "module": "a",
+          "name": "Ma",
+          "signature": 36
+        },
+        {
+          "module": "a",
+          "name": "Na",
+          "signature": 5
+        },
+        {
+          "module": "a",
+          "name": "Oa",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "Pa",
+          "signature": 0
+        },
+        {
+          "module": "a",
+          "name": "Qa",
+          "signature": 0
+        },
+        {
+          "module": "a",
+          "name": "Ra",
+          "signature": 4
+        }
+      ],
+      "wasm_exports": {
+        "Sa": {
+          "kind": 2,
+          "index": 0
+        },
+        "Ta": {
+          "kind": 0,
+          "index": 11688
+        },
+        "Ua": {
+          "kind": 0,
+          "index": 2293
+        },
+        "Va": {
+          "kind": 0,
+          "index": 2789
+        },
+        "Wa": {
+          "kind": 0,
+          "index": 1025
+        },
+        "Xa": {
+          "kind": 1,
+          "index": 0
+        },
+        "Ya": {
+          "kind": 0,
+          "index": 173
+        },
+        "Za": {
+          "kind": 0,
+          "index": 5264
+        },
+        "_a": {
+          "kind": 0,
+          "index": 5264
+        },
+        "$a": {
+          "kind": 0,
+          "index": 10554
+        },
+        "ab": {
+          "kind": 0,
+          "index": 631
+        },
+        "bb": {
+          "kind": 0,
+          "index": 10626
+        },
+        "cb": {
+          "kind": 0,
+          "index": 10625
+        },
+        "db": {
+          "kind": 0,
+          "index": 10624
+        },
+        "eb": {
+          "kind": 0,
+          "index": 10623
+        },
+        "fb": {
+          "kind": 0,
+          "index": 10622
+        },
+        "gb": {
+          "kind": 0,
+          "index": 10621
+        },
+        "hb": {
+          "kind": 0,
+          "index": 10620
+        },
+        "ib": {
+          "kind": 0,
+          "index": 10619
+        },
+        "jb": {
+          "kind": 0,
+          "index": 10618
+        },
+        "kb": {
+          "kind": 0,
+          "index": 10617
+        },
+        "lb": {
+          "kind": 0,
+          "index": 10616
+        },
+        "mb": {
+          "kind": 0,
+          "index": 10615
+        },
+        "nb": {
+          "kind": 0,
+          "index": 10614
+        },
+        "ob": {
+          "kind": 0,
+          "index": 10613
+        },
+        "pb": {
+          "kind": 0,
+          "index": 10612
+        },
+        "qb": {
+          "kind": 0,
+          "index": 10611
+        },
+        "rb": {
+          "kind": 0,
+          "index": 10610
+        },
+        "sb": {
+          "kind": 0,
+          "index": 10609
+        },
+        "tb": {
+          "kind": 0,
+          "index": 10608
+        },
+        "ub": {
+          "kind": 0,
+          "index": 10604
+        },
+        "vb": {
+          "kind": 0,
+          "index": 10602
+        },
+        "wb": {
+          "kind": 0,
+          "index": 10568
+        },
+        "xb": {
+          "kind": 0,
+          "index": 5216
+        },
+        "yb": {
+          "kind": 0,
+          "index": 5241
+        },
+        "zb": {
+          "kind": 0,
+          "index": 10536
+        },
+        "Ab": {
+          "kind": 0,
+          "index": 10534
+        },
+        "Bb": {
+          "kind": 0,
+          "index": 10533
+        },
+        "Cb": {
+          "kind": 0,
+          "index": 10532
+        }
+      },
+      "defined_function_count": 11591,
+      "base_defined_function_count": 11593,
+      "preexisting_issues": {
+        "missing_function_stubs": [],
+        "base_missing_function_stubs": [
+          "vrzno_del_callback",
+          "vrzno_exec_callback"
+        ],
+        "asyncify_handleSleep_without_definition": true,
+        "abortPHP_target_absent_in_base_and_current": true
+      }
+    }
+  ]
+}

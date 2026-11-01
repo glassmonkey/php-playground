@@ -1,0 +1,106 @@
+{
+  "version": "7.3",
+  "source_sha": "7d92153182f86722f83963d6fb054609c40bed8d",
+  "command": [
+    "docker",
+    "--context",
+    "rancher-desktop",
+    "buildx",
+    "build",
+    "--builder",
+    "gla96-a3c1",
+    "--platform",
+    "linux/arm64",
+    "--progress",
+    "plain",
+    "--target",
+    "php-artifacts",
+    "--output",
+    "type=local,dest=/private/tmp/gla96-regeneration/7.3",
+    "--metadata-file",
+    "/private/tmp/gla96-regeneration/7.3-metadata.json",
+    "--build-arg",
+    "BASE_IMAGE=ubuntu@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+    "--build-arg",
+    "PHP_VERSION=7.3",
+    "--build-arg",
+    "PHP_SOURCE_REF=7d92153182f86722f83963d6fb054609c40bed8d",
+    "src/wasm"
+  ],
+  "started": "2026-11-01T23:31:10.991295+00:00",
+  "input_manifest_sha256": "ec069883677cfad755b9fb44a87c824807ac575636a3356f026a487c9fab666d",
+  "exit_code": 0,
+  "finished": "2026-11-01T23:34:10.851451+00:00",
+  "log_sha256": "c0719b77f987b4f597a066081d4aab8112b380061732d3b8e349a5c4c554277d",
+  "log_path": "/private/tmp/gla96-regeneration/7.3-build.log",
+  "raw_artifacts": {
+    "php-7.3.wasm": "cb3ed5edf3dc2b75910140163939ebfaba1ff13e7091594f4b0cbe1dba9ec6ef",
+    "php-7.3.js": "221c5f95185f0faf9cab851484a2673de430260b0dce60684e6d172edb07708f"
+  },
+  "metadata": {
+    "buildx.build.provenance": {
+      "builder": {
+        "id": ""
+      },
+      "buildType": "https://mobyproject.org/buildkit@v1",
+      "materials": [
+        {
+          "uri": "pkg:docker/ubuntu?digest=sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac&platform=linux%2Farm64",
+          "digest": {
+            "sha256": "68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac"
+          }
+        }
+      ],
+      "invocation": {
+        "configSource": {
+          "entryPoint": "Dockerfile"
+        },
+        "parameters": {
+          "frontend": "dockerfile.v0",
+          "args": {
+            "build-arg:BASE_IMAGE": "ubuntu@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+            "build-arg:PHP_SOURCE_REF": "7d92153182f86722f83963d6fb054609c40bed8d",
+            "build-arg:PHP_VERSION": "7.3",
+            "target": "php-artifacts"
+          },
+          "locals": [
+            {
+              "name": "context"
+            },
+            {
+              "name": "dockerfile"
+            }
+          ],
+          "root": {
+            "configSource": {
+              "path": "Dockerfile"
+            },
+            "request": {
+              "args": {
+                "build-arg:BASE_IMAGE": "ubuntu@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac",
+                "build-arg:PHP_SOURCE_REF": "7d92153182f86722f83963d6fb054609c40bed8d",
+                "build-arg:PHP_VERSION": "7.3",
+                "target": "php-artifacts",
+                "vcs:localdir:context": "src/wasm",
+                "vcs:localdir:dockerfile": "src/wasm",
+                "vcs:revision": "ba63d9b04c321ebb1cef7e306127479392c03d77",
+                "vcs:source": "https://github.com/glassmonkey/php-playground.git"
+              }
+            }
+          },
+          "compatibilityVersion": 30
+        },
+        "environment": {
+          "dockerfileVersion": "1.27.0",
+          "platform": "linux/arm64"
+        }
+      }
+    },
+    "buildx.build.ref": "gla96-a3c1/gla96-a3c10/45x535acdrul37zddmr1wixze"
+  },
+  "metadata_sha256": "a9ad3ff032a4ef186de9c296695c95e9162bf8fe411a50957c5a70c1f79aa42f",
+  "tracked_artifacts": {
+    "/Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/gla96-pr437-recovery-20261102/src/wasm-assets/php-7.3.js": "6391826bfad82161f63e69a1cbf794a7417341b4eeb99275fb15b25850bac465",
+    "/Users/glassmonkey/src/github.com/glassmonkey/php-playground-wt/gla96-pr437-recovery-20261102/assets/php-7.3.wasm": "cb3ed5edf3dc2b75910140163939ebfaba1ff13e7091594f4b0cbe1dba9ec6ef"
+  }
+}

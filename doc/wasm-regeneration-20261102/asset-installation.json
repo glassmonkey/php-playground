@@ -1,0 +1,12 @@
+{
+  "node_version": "v24.12.0",
+  "requested_node_version": "24.12.0",
+  "prettier_version": "3.5.3",
+  "files": {
+    ".prettierrc.json": "234e033541cf33c8cecde4886f1a6670b377216c569b1a45cd3a5305eb45083e",
+    "package-lock.json": "6c29434cc29b634cdd73e799a1fee873d146561ec9b0ded26dc373c484e86659",
+    "scripts/install-wasm-assets.py": "115cb6fc1375ced7ec2ca6a26d4ad5d47a6f016cb77bede2dfa9b61ea06af17c"
+  },
+  "transform": "prettier --config .prettierrc.json --write <generated-js>; size/MD5 pair verification; copy to tracked targets",
+  "installed_mode": "0644 (JS and Wasm data files)"
+}

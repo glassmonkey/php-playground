@@ -1,4 +1,13 @@
-import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
+import {
+	afterAll,
+	afterEach,
+	beforeAll,
+	beforeEach,
+	describe,
+	it,
+	expect,
+	vi,
+} from 'vitest';
 import '@vitest/web-worker';
 import { convertCodeToPhpPlayground, runPHPInWorker } from '../client';
 import fs from 'fs';
@@ -6,9 +15,23 @@ import { mockFetch } from 'vi-fetch';
 import 'vi-fetch/setup';
 import { Version, versions } from '../../php-wasm/php';
 
+// The Vitest worker proxy lacks these browser Worker globals. The generated
+// Emscripten loader uses them to select its worker fetch path.
+beforeAll(() => {
+	vi.stubGlobal('WorkerGlobalScope', class WorkerGlobalScope {});
+	vi.stubGlobal('location', new URL('http://localhost:3000/'));
+});
+
+afterAll(() => {
+	vi.unstubAllGlobals();
+});
+
 async function callPHP(v: Version, code: string) {
 	const navigator = globalThis.navigator;
-	const originalLanguage = Object.getOwnPropertyDescriptor(navigator, 'language');
+	const originalLanguage = Object.getOwnPropertyDescriptor(
+		navigator,
+		'language'
+	);
 	Object.defineProperty(navigator, 'language', {
 		configurable: true,
 		value: 'ja-JP',
@@ -70,6 +93,11 @@ describe('show phpinfo()', async function () {
 		actual = actual.replace(
 			/(<tr>.+?REQUEST_TIME.+?<td.+?>)([\d.]+)(<\/td><\/tr>)/g,
 			'$1--$3'
+		);
+		// Rebuilding the same source changes only this timestamp, not the API.
+		actual = actual.replace(
+			/(<tr><td class="e">Build Date <\/td><td class="v">)[^<]+(<\/td><\/tr>)/g,
+			'$1--$2'
 		);
 		expect(actual).toMatchSnapshot();
 	});

@@ -1,24 +1,38 @@
-export const dependenciesTotalSize = 8915954;
+export const dependenciesTotalSize = 8914969;
 export const dependencyFilename =
-	'php-8.1.wasm?f5b124e53befb5f16934490d220eaf27';
+	'php-8.1.wasm?fd6e00d59de37dbf7801faf079e95caa';
 export default function (RuntimeName, PHPLoader, EnvVariables) {
 	var Module = typeof PHPLoader !== 'undefined' ? PHPLoader : {};
+	var ENVIRONMENT_IS_WEB = !!globalThis.window;
+	var ENVIRONMENT_IS_WORKER = !!globalThis.WorkerGlobalScope;
+	var ENVIRONMENT_IS_NODE =
+		globalThis.process?.versions?.node &&
+		globalThis.process?.type != 'renderer';
 	var thisProgram = './this.program';
 	var quit_ = (status, toThrow) => {
 		throw toThrow;
 	};
 	var _scriptName = globalThis.document?.currentScript?.src;
+	if (ENVIRONMENT_IS_WORKER) _scriptName = self.location.href;
 	var scriptDirectory = '';
 	function locateFile(path) {
 		if (Module['locateFile'])
 			return Module['locateFile'](path, scriptDirectory);
 		return scriptDirectory + path;
 	}
-	var readAsync;
-	if (true) {
+	var readAsync, readBinary;
+	if (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) {
 		try {
 			scriptDirectory = new URL('.', _scriptName).href;
 		} catch {}
+		if (ENVIRONMENT_IS_WORKER)
+			readBinary = (url) => {
+				var xhr = new XMLHttpRequest();
+				xhr.open('GET', url, false);
+				xhr.responseType = 'arraybuffer';
+				xhr.send(null);
+				return new Uint8Array(xhr.response);
+			};
 		readAsync = async (url) => {
 			var response = await fetch(url, { credentials: 'same-origin' });
 			if (response.ok) return response.arrayBuffer();
@@ -61,7 +75,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		if (!Module['noFSInit'] && !FS.initialized) FS.init();
 		TTY.init();
 		PIPEFS.root = FS.mount(PIPEFS, {}, null);
-		wasmExports['$a']();
+		wasmExports['Za']();
 		FS.ignorePermissions = false;
 	}
 	function exitRuntime() {
@@ -94,7 +108,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 	function getBinarySync(file) {
 		if (file == wasmBinaryFile && wasmBinary)
 			return new Uint8Array(wasmBinary);
-		if (void 0) return (void 0)(file);
+		if (readBinary) return readBinary(file);
 		throw 'both async and sync fetching of the wasm failed';
 	}
 	async function getWasmBinary(binaryFile) {
@@ -1925,7 +1939,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				);
 			else
 				try {
-					obj.contents = (void 0)(obj.url);
+					obj.contents = readBinary(obj.url);
 				} catch (e) {
 					throw new FS.ErrnoError(29);
 				}
@@ -2034,7 +2048,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				}
 			}
 			if (globalThis.XMLHttpRequest) {
-				if (true)
+				if (!ENVIRONMENT_IS_WORKER)
 					abort(
 						'Cannot do synchronous binary XHRs outside webworkers in modern browsers. Use --embed-file or --preload-file in emcc'
 					);
@@ -2462,7 +2476,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				sock.connecting = true;
 			},
 			listen(sock, backlog) {
-				if (true) throw new FS.ErrnoError(138);
+				if (!ENVIRONMENT_IS_NODE) throw new FS.ErrnoError(138);
 			},
 			accept(listensock) {
 				if (listensock.error) {
@@ -3422,14 +3436,6 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		abort('missing function: swapcontext');
 	}
 	_swapcontext.stub = true;
-	function _vrzno_del_callback() {
-		abort('missing function: vrzno_del_callback');
-	}
-	_vrzno_del_callback.stub = true;
-	function _vrzno_exec_callback() {
-		abort('missing function: vrzno_exec_callback');
-	}
-	_vrzno_exec_callback.stub = true;
 	var getCFunc = (ident) => {
 		var func = Module['_' + ident];
 		return func;
@@ -3539,46 +3545,44 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 		wasmMemory,
 		wasmTable;
 	function assignWasmExports(wasmExports) {
-		Module['_wasm_popen'] = wasmExports['ab'];
-		Module['_wasm_pclose'] = wasmExports['bb'];
-		Module['_php_pollfd_for'] = wasmExports['cb'];
-		_malloc = wasmExports['eb'];
-		_fflush = wasmExports['fb'];
-		_htons = wasmExports['gb'];
-		_ntohs = wasmExports['hb'];
-		_htonl = wasmExports['ib'];
-		Module['_wasm_set_phpini_path'] = wasmExports['jb'];
-		Module['_wasm_set_phpini_entries'] = wasmExports['kb'];
-		Module['_wasm_add_SERVER_entry'] = wasmExports['lb'];
-		Module['_wasm_add_uploaded_file'] = wasmExports['mb'];
-		Module['_wasm_set_query_string'] = wasmExports['nb'];
-		Module['_wasm_set_path_translated'] = wasmExports['ob'];
-		Module['_wasm_set_skip_shebang'] = wasmExports['pb'];
-		Module['_wasm_set_request_uri'] = wasmExports['qb'];
-		Module['_wasm_set_request_method'] = wasmExports['rb'];
-		Module['_wasm_set_request_host'] = wasmExports['sb'];
-		Module['_wasm_set_content_type'] = wasmExports['tb'];
-		Module['_wasm_set_request_body'] = wasmExports['ub'];
-		Module['_wasm_set_content_length'] = wasmExports['vb'];
-		Module['_wasm_set_cookies'] = wasmExports['wb'];
-		Module['_wasm_set_php_code'] = wasmExports['xb'];
-		Module['_wasm_set_request_port'] = wasmExports['yb'];
-		Module['_phpwasm_init_uploaded_files_hash'] = wasmExports['zb'];
-		Module['_phpwasm_register_uploaded_file'] = wasmExports['Ab'];
-		Module['_phpwasm_destroy_uploaded_files_hash'] = wasmExports['Bb'];
-		Module['_wasm_sapi_handle_request'] = wasmExports['Cb'];
-		Module['_php_wasm_init'] = wasmExports['Db'];
-		Module['_exec_callback'] = wasmExports['Eb'];
-		Module['_del_callback'] = wasmExports['Fb'];
-		___funcs_on_exit = wasmExports['Gb'];
-		_emscripten_builtin_memalign = wasmExports['Hb'];
-		__emscripten_timeout = wasmExports['Ib'];
-		_setThrew = wasmExports['Jb'];
-		__emscripten_stack_restore = wasmExports['Kb'];
-		__emscripten_stack_alloc = wasmExports['Lb'];
-		_emscripten_stack_get_current = wasmExports['Mb'];
-		wasmMemory = wasmExports['_a'];
-		wasmTable = wasmExports['db'];
+		Module['_wasm_popen'] = wasmExports['_a'];
+		Module['_wasm_pclose'] = wasmExports['$a'];
+		Module['_php_pollfd_for'] = wasmExports['ab'];
+		_malloc = wasmExports['cb'];
+		_fflush = wasmExports['db'];
+		_htons = wasmExports['eb'];
+		_ntohs = wasmExports['fb'];
+		_htonl = wasmExports['gb'];
+		Module['_wasm_set_phpini_path'] = wasmExports['hb'];
+		Module['_wasm_set_phpini_entries'] = wasmExports['ib'];
+		Module['_wasm_add_SERVER_entry'] = wasmExports['jb'];
+		Module['_wasm_add_uploaded_file'] = wasmExports['kb'];
+		Module['_wasm_set_query_string'] = wasmExports['lb'];
+		Module['_wasm_set_path_translated'] = wasmExports['mb'];
+		Module['_wasm_set_skip_shebang'] = wasmExports['nb'];
+		Module['_wasm_set_request_uri'] = wasmExports['ob'];
+		Module['_wasm_set_request_method'] = wasmExports['pb'];
+		Module['_wasm_set_request_host'] = wasmExports['qb'];
+		Module['_wasm_set_content_type'] = wasmExports['rb'];
+		Module['_wasm_set_request_body'] = wasmExports['sb'];
+		Module['_wasm_set_content_length'] = wasmExports['tb'];
+		Module['_wasm_set_cookies'] = wasmExports['ub'];
+		Module['_wasm_set_php_code'] = wasmExports['vb'];
+		Module['_wasm_set_request_port'] = wasmExports['wb'];
+		Module['_phpwasm_init_uploaded_files_hash'] = wasmExports['xb'];
+		Module['_phpwasm_register_uploaded_file'] = wasmExports['yb'];
+		Module['_phpwasm_destroy_uploaded_files_hash'] = wasmExports['zb'];
+		Module['_wasm_sapi_handle_request'] = wasmExports['Ab'];
+		Module['_php_wasm_init'] = wasmExports['Bb'];
+		___funcs_on_exit = wasmExports['Cb'];
+		_emscripten_builtin_memalign = wasmExports['Db'];
+		__emscripten_timeout = wasmExports['Eb'];
+		_setThrew = wasmExports['Fb'];
+		__emscripten_stack_restore = wasmExports['Gb'];
+		__emscripten_stack_alloc = wasmExports['Hb'];
+		_emscripten_stack_get_current = wasmExports['Ib'];
+		wasmMemory = wasmExports['Ya'];
+		wasmTable = wasmExports['bb'];
 	}
 	var wasmImports = {
 		D: (condition, filename, line, func) =>
@@ -3590,8 +3594,8 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 						func ? UTF8ToString(func) : 'unknown function',
 					]
 			),
-		ea: (fp, sig) => getWasmTableEntry(fp)(sig),
-		U: function (fd, addr, len) {
+		ga: (fp, sig) => getWasmTableEntry(fp)(sig),
+		W: function (fd, addr, len) {
 			try {
 				var sock = getSocketFromFD(fd);
 				var newsock = sock.sock_ops.accept(sock);
@@ -3610,7 +3614,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		T: function (fd, addr, len) {
+		V: function (fd, addr, len) {
 			try {
 				var sock = getSocketFromFD(fd);
 				var info = getSocketAddress(addr, len);
@@ -3622,7 +3626,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		Fa: function (path) {
+		Ha: function (path) {
 			try {
 				path = SYSCALLS.getStr(path);
 				FS.chdir(path);
@@ -3644,7 +3648,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		S: function (fd, addr, len) {
+		U: function (fd, addr, len) {
 			try {
 				var sock = getSocketFromFD(fd);
 				var info = getSocketAddress(addr, len);
@@ -3656,7 +3660,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		Da: function (fd) {
+		Fa: function (fd) {
 			try {
 				var old = SYSCALLS.getStreamFromFD(fd);
 				return FS.dupStream(old).fd;
@@ -3666,7 +3670,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		Ca: function (fd, newfd, flags) {
+		Ea: function (fd, newfd, flags) {
 			try {
 				if (fd === newfd) return -28;
 				if (flags & -524289) return -28;
@@ -3683,7 +3687,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		Ga: function (dirfd, path, amode) {
+		Ia: function (dirfd, path, amode) {
 			try {
 				path = SYSCALLS.getStr(path);
 				path = SYSCALLS.calculateAt(dirfd, path);
@@ -3703,7 +3707,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		ga: function (fd, mode, offset, len) {
+		ia: function (fd, mode, offset, len) {
 			offset = bigintToI53Checked(offset);
 			len = bigintToI53Checked(len);
 			try {
@@ -3721,7 +3725,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		Ba: function (fd, mode) {
+		Da: function (fd, mode) {
 			try {
 				FS.fchmod(fd, mode);
 				return 0;
@@ -3731,7 +3735,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		Aa: function (fd, owner, group) {
+		Ca: function (fd, owner, group) {
 			try {
 				FS.fchown(fd, owner, group);
 				return 0;
@@ -3792,7 +3796,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		za: function (fd) {
+		Ba: function (fd) {
 			try {
 				SYSCALLS.getStreamFromFD(fd);
 				return 0;
@@ -3802,7 +3806,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		ya: function (fd, buf) {
+		Aa: function (fd, buf) {
 			try {
 				return SYSCALLS.writeStat(buf, FS.fstat(fd));
 			} catch (e) {
@@ -3811,7 +3815,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		ta: function (fd, length) {
+		va: function (fd, length) {
 			length = bigintToI53Checked(length);
 			try {
 				if (isNaN(length)) return -22;
@@ -3823,7 +3827,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		sa: function (buf, size) {
+		ua: function (buf, size) {
 			try {
 				if (!size) return -28;
 				var cwd = FS.cwd();
@@ -3837,7 +3841,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		da: function (fd, dirp, count) {
+		fa: function (fd, dirp, count) {
 			try {
 				var stream = SYSCALLS.getStreamFromFD(fd);
 				stream.getdents ||= FS.readdir(stream.path);
@@ -3893,10 +3897,10 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		ra: () => 0,
+		ta: () => 0,
 		y: () => 0,
 		p: () => 0,
-		R: function (fd, addr, len) {
+		T: function (fd, addr, len) {
 			try {
 				var sock = getSocketFromFD(fd);
 				if (!sock.daddr) return -53;
@@ -3908,7 +3912,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		Q: function (fd, addr, len) {
+		S: function (fd, addr, len) {
 			try {
 				var sock = getSocketFromFD(fd);
 				writeSockaddr(
@@ -3925,7 +3929,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		Ya: function (fd, level, optname, optval, optlen) {
+		R: function (fd, level, optname, optval, optlen) {
 			try {
 				var sock = getSocketFromFD(fd);
 				if (level === 1)
@@ -4030,7 +4034,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		qa: function (olddirfd, oldpath, newdirfd, newpath, flags) {
+		sa: function (olddirfd, oldpath, newdirfd, newpath, flags) {
 			try {
 				oldpath = SYSCALLS.getStr(oldpath);
 				newpath = SYSCALLS.getStr(newpath);
@@ -4044,7 +4048,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		Xa: function (fd, backlog) {
+		Q: function (fd, backlog) {
 			try {
 				var sock = getSocketFromFD(fd);
 				sock.sock_ops.listen(sock, backlog);
@@ -4055,7 +4059,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		va: function (path, buf) {
+		xa: function (path, buf) {
 			try {
 				path = SYSCALLS.getStr(path);
 				return SYSCALLS.writeStat(buf, FS.lstat(path));
@@ -4065,7 +4069,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		oa: function (dirfd, path, mode) {
+		qa: function (dirfd, path, mode) {
 			try {
 				path = SYSCALLS.getStr(path);
 				path = SYSCALLS.calculateAt(dirfd, path);
@@ -4078,7 +4082,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		wa: function (dirfd, path, buf, flags) {
+		ya: function (dirfd, path, buf, flags) {
 			try {
 				path = SYSCALLS.getStr(path);
 				var nofollow = flags & 256;
@@ -4109,7 +4113,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		ia: function (fdPtr, flags) {
+		ka: function (fdPtr, flags) {
 			try {
 				if (fdPtr == 0) throw new FS.ErrnoError(21);
 				if (flags & -526337) throw new FS.ErrnoError(138);
@@ -4137,7 +4141,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		ha: function (fds, nfds) {
+		ja: function (fds, nfds) {
 			try {
 				return doPollSync(fds, nfds);
 			} catch (e) {
@@ -4146,7 +4150,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		ca: function (dirfd, path, buf, bufsize) {
+		ea: function (dirfd, path, buf, bufsize) {
 			try {
 				path = SYSCALLS.getStr(path);
 				path = SYSCALLS.calculateAt(dirfd, path);
@@ -4178,7 +4182,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		ba: function (olddirfd, oldpath, newdirfd, newpath) {
+		da: function (olddirfd, oldpath, newdirfd, newpath) {
 			try {
 				oldpath = SYSCALLS.getStr(oldpath);
 				newpath = SYSCALLS.getStr(newpath);
@@ -4242,7 +4246,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		xa: function (path, buf) {
+		za: function (path, buf) {
 			try {
 				path = SYSCALLS.getStr(path);
 				return SYSCALLS.writeStat(buf, FS.stat(path));
@@ -4252,7 +4256,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		aa: function (path, size, buf) {
+		ca: function (path, size, buf) {
 			try {
 				SYSCALLS.writeStatFs(buf, FS.statfs(SYSCALLS.getStr(path)));
 				return 0;
@@ -4262,7 +4266,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		$: function (target, dirfd, linkpath) {
+		ba: function (target, dirfd, linkpath) {
 			try {
 				target = SYSCALLS.getStr(target);
 				linkpath = SYSCALLS.getStr(linkpath);
@@ -4275,7 +4279,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		Z: function (mask) {
+		$: function (mask) {
 			try {
 				var old = SYSCALLS.currentUmask;
 				SYSCALLS.currentUmask = mask;
@@ -4286,7 +4290,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		Y: (buf) => {
+		_: (buf) => {
 			if (!buf) return -21;
 			var copyString = (offset, value) =>
 				stringToUTF8(value, buf + offset, 65);
@@ -4311,7 +4315,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		X: function (dirfd, path, times, flags) {
+		Z: function (dirfd, path, times, flags) {
 			try {
 				var nofollow = flags & 256;
 				path = SYSCALLS.getStr(path);
@@ -4342,15 +4346,15 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		Ha: () => abort(''),
-		fa: () => {
+		Ja: () => abort(''),
+		ha: () => {
 			noExitRuntime = false;
 			runtimeKeepaliveCounter = 0;
 		},
-		V: () => {
+		X: () => {
 			throw new EmscriptenSjLj();
 		},
-		la: function (time, tmPtr) {
+		na: function (time, tmPtr) {
 			time = bigintToI53Checked(time);
 			var date = new Date(time * 1e3);
 			if (isNaN(date.getTime())) return 1;
@@ -4366,7 +4370,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			HEAP32[(tmPtr + 28) >> 2] = yday;
 			return 0;
 		},
-		ma: function (time, tmPtr) {
+		oa: function (time, tmPtr) {
 			time = bigintToI53Checked(time);
 			var date = new Date(time * 1e3);
 			if (isNaN(date.getTime())) return 1;
@@ -4394,7 +4398,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			HEAP32[(tmPtr + 32) >> 2] = dst;
 			return 0;
 		},
-		na: function (tmPtr) {
+		pa: function (tmPtr) {
 			var ret = (() => {
 				var date = new Date(
 					HEAP32[(tmPtr + 20) >> 2] + 1900,
@@ -4443,7 +4447,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			})();
 			return BigInt(ret);
 		},
-		ja: function (len, prot, flags, fd, offset, allocated, addr) {
+		la: function (len, prot, flags, fd, offset, allocated, addr) {
 			offset = bigintToI53Checked(offset);
 			try {
 				var stream = SYSCALLS.getStreamFromFD(fd);
@@ -4458,7 +4462,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return -e.errno;
 			}
 		},
-		ka: function (addr, len, prot, flags, fd, offset) {
+		ma: function (addr, len, prot, flags, fd, offset) {
 			offset = bigintToI53Checked(offset);
 			try {
 				var stream = SYSCALLS.getStreamFromFD(fd);
@@ -4487,7 +4491,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			timers[which] = { id, timeout_ms };
 			return 0;
 		},
-		Ja: (timezone, daylight, std_name, dst_name) => {
+		La: (timezone, daylight, std_name, dst_name) => {
 			var currentYear = new Date().getFullYear();
 			var winter = new Date(currentYear, 0, 1);
 			var summer = new Date(currentYear, 6, 1);
@@ -4513,7 +4517,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				stringToUTF8(summerName, std_name, 17);
 			}
 		},
-		Ea: function (clk_id, ignored_precision, ptime) {
+		Ga: function (clk_id, ignored_precision, ptime) {
 			ignored_precision = bigintToI53Checked(ignored_precision);
 			if (!checkWasiClock(clk_id)) return 28;
 			var now;
@@ -4525,9 +4529,9 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			return 0;
 		},
 		I: _emscripten_date_now,
-		_: () => getHeapMax(),
+		aa: () => getHeapMax(),
 		u: _emscripten_get_now,
-		W: (requestedSize) => {
+		Y: (requestedSize) => {
 			var oldSize = HEAPU8.length;
 			requestedSize >>>= 0;
 			var maxHeapSize = getHeapMax();
@@ -4550,7 +4554,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			}
 			return false;
 		},
-		Ka: (__environ, environ_buf) => {
+		Ma: (__environ, environ_buf) => {
 			var bufSize = 0;
 			var envp = 0;
 			for (var string of getEnvStrings()) {
@@ -4561,7 +4565,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			}
 			return 0;
 		},
-		La: (penviron_count, penviron_buf_size) => {
+		Na: (penviron_count, penviron_buf_size) => {
 			var strings = getEnvStrings();
 			HEAPU32[penviron_count >> 2] = strings.length;
 			var bufSize = 0;
@@ -4614,7 +4618,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return e.errno;
 			}
 		},
-		pa: function (fd, offset, whence, newOffset) {
+		ra: function (fd, offset, whence, newOffset) {
 			offset = bigintToI53Checked(offset);
 			try {
 				if (isNaN(offset)) return 22;
@@ -4630,7 +4634,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				return e.errno;
 			}
 		},
-		ua: function (fd) {
+		wa: function (fd) {
 			try {
 				var stream = SYSCALLS.getStreamFromFD(fd);
 				var rtn = stream.stream_ops?.fsync?.(stream);
@@ -4963,7 +4967,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 				_setThrew(1, 0);
 			}
 		},
-		Za: function (command, mode, exitCodePtr) {
+		Xa: function (command, mode, exitCodePtr) {
 			if (!command) return 1;
 			const cmdstr = UTF8ToString(command);
 			if (!cmdstr.length) return 0;
@@ -4983,7 +4987,7 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			return _W_EXITCODE(0, 2);
 		},
 		Pa: _makecontext,
-		Ia: _proc_exit,
+		Ka: _proc_exit,
 		Ra: (buf, format, tm) => {
 			var pattern = UTF8ToString(format);
 			for (var i = 0; i < 25; ++i)
@@ -5221,8 +5225,6 @@ export default function (RuntimeName, PHPLoader, EnvVariables) {
 			return 0;
 		},
 		Oa: _swapcontext,
-		Ma: _vrzno_del_callback,
-		Na: _vrzno_exec_callback,
 		P: function (socketd, events, timeout) {
 			return Asyncify.handleSleep((wakeUp) => {
 				const sock = getSocketFromFD(socketd);

@@ -1,0 +1,698 @@
+{
+  "base": "ba63d9b04c321ebb1cef7e306127479392c03d77",
+  "versions": [
+    {
+      "version": "5.6",
+      "wasm_bytes": 8080492,
+      "wasm_md5": "18611e41d16bef71deedf00f82cb6b19",
+      "wasm_sha256": "1574d555e9c4846e763201905750dfb2933ee25bf2790f7ce0d920901bd35688",
+      "js_sha256": "8e711ddfe900ad008ab1d02420a012324c1cb94bb953bffa7804502f20dc2942",
+      "worker_guard": "WorkerGlobalScope; lazy file guarded by !ENVIRONMENT_IS_WORKER",
+      "removed_callbacks": {
+        "exec_callback": {
+          "base_export": "Ab",
+          "base_function_index": 10572,
+          "base_body_hex": "002000105b41a0bf980128020010e0031a0b",
+          "body_absent": true
+        },
+        "del_callback": {
+          "base_export": "Bb",
+          "base_function_index": 10571,
+          "base_body_hex": "002000105a0b",
+          "body_absent": true
+        }
+      },
+      "wasm_imports": [
+        {
+          "module": "a",
+          "name": "a",
+          "signature": 7
+        },
+        {
+          "module": "a",
+          "name": "b",
+          "signature": 6
+        },
+        {
+          "module": "a",
+          "name": "c",
+          "signature": 1
+        },
+        {
+          "module": "a",
+          "name": "d",
+          "signature": 1
+        },
+        {
+          "module": "a",
+          "name": "e",
+          "signature": 2
+        },
+        {
+          "module": "a",
+          "name": "f",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "g",
+          "signature": 17
+        },
+        {
+          "module": "a",
+          "name": "h",
+          "signature": 5
+        },
+        {
+          "module": "a",
+          "name": "i",
+          "signature": 8
+        },
+        {
+          "module": "a",
+          "name": "j",
+          "signature": 9
+        },
+        {
+          "module": "a",
+          "name": "k",
+          "signature": 0
+        },
+        {
+          "module": "a",
+          "name": "l",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "m",
+          "signature": 14
+        },
+        {
+          "module": "a",
+          "name": "n",
+          "signature": 12
+        },
+        {
+          "module": "a",
+          "name": "o",
+          "signature": 12
+        },
+        {
+          "module": "a",
+          "name": "p",
+          "signature": 3
+        },
+        {
+          "module": "a",
+          "name": "q",
+          "signature": 0
+        },
+        {
+          "module": "a",
+          "name": "r",
+          "signature": 33
+        },
+        {
+          "module": "a",
+          "name": "s",
+          "signature": 9
+        },
+        {
+          "module": "a",
+          "name": "t",
+          "signature": 12
+        },
+        {
+          "module": "a",
+          "name": "u",
+          "signature": 5
+        },
+        {
+          "module": "a",
+          "name": "v",
+          "signature": 5
+        },
+        {
+          "module": "a",
+          "name": "w",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "x",
+          "signature": 34
+        },
+        {
+          "module": "a",
+          "name": "y",
+          "signature": 10
+        },
+        {
+          "module": "a",
+          "name": "z",
+          "signature": 10
+        },
+        {
+          "module": "a",
+          "name": "A",
+          "signature": 45
+        },
+        {
+          "module": "a",
+          "name": "B",
+          "signature": 0
+        },
+        {
+          "module": "a",
+          "name": "C",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "D",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "E",
+          "signature": 2
+        },
+        {
+          "module": "a",
+          "name": "F",
+          "signature": 33
+        },
+        {
+          "module": "a",
+          "name": "G",
+          "signature": 8
+        },
+        {
+          "module": "a",
+          "name": "H",
+          "signature": 2
+        },
+        {
+          "module": "a",
+          "name": "I",
+          "signature": 5
+        },
+        {
+          "module": "a",
+          "name": "J",
+          "signature": 16
+        },
+        {
+          "module": "a",
+          "name": "K",
+          "signature": 13
+        },
+        {
+          "module": "a",
+          "name": "L",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "M",
+          "signature": 10
+        },
+        {
+          "module": "a",
+          "name": "N",
+          "signature": 10
+        },
+        {
+          "module": "a",
+          "name": "O",
+          "signature": 10
+        },
+        {
+          "module": "a",
+          "name": "P",
+          "signature": 10
+        },
+        {
+          "module": "a",
+          "name": "Q",
+          "signature": 10
+        },
+        {
+          "module": "a",
+          "name": "R",
+          "signature": 10
+        },
+        {
+          "module": "a",
+          "name": "S",
+          "signature": 10
+        },
+        {
+          "module": "a",
+          "name": "T",
+          "signature": 10
+        },
+        {
+          "module": "a",
+          "name": "U",
+          "signature": 10
+        },
+        {
+          "module": "a",
+          "name": "V",
+          "signature": 10
+        },
+        {
+          "module": "a",
+          "name": "W",
+          "signature": 11
+        },
+        {
+          "module": "a",
+          "name": "X",
+          "signature": 0
+        },
+        {
+          "module": "a",
+          "name": "Y",
+          "signature": 5
+        },
+        {
+          "module": "a",
+          "name": "Z",
+          "signature": 0
+        },
+        {
+          "module": "a",
+          "name": "_",
+          "signature": 0
+        },
+        {
+          "module": "a",
+          "name": "$",
+          "signature": 12
+        },
+        {
+          "module": "a",
+          "name": "aa",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "ba",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "ca",
+          "signature": 5
+        },
+        {
+          "module": "a",
+          "name": "da",
+          "signature": 5
+        },
+        {
+          "module": "a",
+          "name": "ea",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "fa",
+          "signature": 7
+        },
+        {
+          "module": "a",
+          "name": "ga",
+          "signature": 11
+        },
+        {
+          "module": "a",
+          "name": "ha",
+          "signature": 2
+        },
+        {
+          "module": "a",
+          "name": "ia",
+          "signature": 2
+        },
+        {
+          "module": "a",
+          "name": "ja",
+          "signature": 55
+        },
+        {
+          "module": "a",
+          "name": "ka",
+          "signature": 46
+        },
+        {
+          "module": "a",
+          "name": "la",
+          "signature": 35
+        },
+        {
+          "module": "a",
+          "name": "ma",
+          "signature": 35
+        },
+        {
+          "module": "a",
+          "name": "na",
+          "signature": 25
+        },
+        {
+          "module": "a",
+          "name": "oa",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "pa",
+          "signature": 20
+        },
+        {
+          "module": "a",
+          "name": "qa",
+          "signature": 8
+        },
+        {
+          "module": "a",
+          "name": "ra",
+          "signature": 12
+        },
+        {
+          "module": "a",
+          "name": "sa",
+          "signature": 2
+        },
+        {
+          "module": "a",
+          "name": "ta",
+          "signature": 19
+        },
+        {
+          "module": "a",
+          "name": "ua",
+          "signature": 0
+        },
+        {
+          "module": "a",
+          "name": "va",
+          "signature": 2
+        },
+        {
+          "module": "a",
+          "name": "wa",
+          "signature": 5
+        },
+        {
+          "module": "a",
+          "name": "xa",
+          "signature": 2
+        },
+        {
+          "module": "a",
+          "name": "ya",
+          "signature": 2
+        },
+        {
+          "module": "a",
+          "name": "za",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "Aa",
+          "signature": 2
+        },
+        {
+          "module": "a",
+          "name": "Ba",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "Ca",
+          "signature": 0
+        },
+        {
+          "module": "a",
+          "name": "Da",
+          "signature": 23
+        },
+        {
+          "module": "a",
+          "name": "Ea",
+          "signature": 0
+        },
+        {
+          "module": "a",
+          "name": "Fa",
+          "signature": 5
+        },
+        {
+          "module": "a",
+          "name": "Ga",
+          "signature": 11
+        },
+        {
+          "module": "a",
+          "name": "Ha",
+          "signature": 1
+        },
+        {
+          "module": "a",
+          "name": "Ia",
+          "signature": 9
+        },
+        {
+          "module": "a",
+          "name": "Ja",
+          "signature": 2
+        },
+        {
+          "module": "a",
+          "name": "Ka",
+          "signature": 2
+        },
+        {
+          "module": "a",
+          "name": "La",
+          "signature": 13
+        },
+        {
+          "module": "a",
+          "name": "Ma",
+          "signature": 36
+        },
+        {
+          "module": "a",
+          "name": "Na",
+          "signature": 5
+        },
+        {
+          "module": "a",
+          "name": "Oa",
+          "signature": 4
+        },
+        {
+          "module": "a",
+          "name": "Pa",
+          "signature": 8
+        },
+        {
+          "module": "a",
+          "name": "Qa",
+          "signature": 21
+        },
+        {
+          "module": "a",
+          "name": "Ra",
+          "signature": 0
+        },
+        {
+          "module": "a",
+          "name": "Sa",
+          "signature": 0
+        },
+        {
+          "module": "a",
+          "name": "Ta",
+          "signature": 4
+        }
+      ],
+      "wasm_exports": {
+        "Ua": {
+          "kind": 2,
+          "index": 0
+        },
+        "Va": {
+          "kind": 0,
+          "index": 11008
+        },
+        "Wa": {
+          "kind": 0,
+          "index": 2129
+        },
+        "Xa": {
+          "kind": 0,
+          "index": 2604
+        },
+        "Ya": {
+          "kind": 0,
+          "index": 945
+        },
+        "Za": {
+          "kind": 0,
+          "index": 138
+        },
+        "_a": {
+          "kind": 1,
+          "index": 0
+        },
+        "$a": {
+          "kind": 0,
+          "index": 5008
+        },
+        "ab": {
+          "kind": 0,
+          "index": 5008
+        },
+        "bb": {
+          "kind": 0,
+          "index": 10515
+        },
+        "cb": {
+          "kind": 0,
+          "index": 490
+        },
+        "db": {
+          "kind": 0,
+          "index": 10594
+        },
+        "eb": {
+          "kind": 0,
+          "index": 10593
+        },
+        "fb": {
+          "kind": 0,
+          "index": 10592
+        },
+        "gb": {
+          "kind": 0,
+          "index": 10591
+        },
+        "hb": {
+          "kind": 0,
+          "index": 10590
+        },
+        "ib": {
+          "kind": 0,
+          "index": 10589
+        },
+        "jb": {
+          "kind": 0,
+          "index": 10587
+        },
+        "kb": {
+          "kind": 0,
+          "index": 10586
+        },
+        "lb": {
+          "kind": 0,
+          "index": 10585
+        },
+        "mb": {
+          "kind": 0,
+          "index": 10584
+        },
+        "nb": {
+          "kind": 0,
+          "index": 10583
+        },
+        "ob": {
+          "kind": 0,
+          "index": 10582
+        },
+        "pb": {
+          "kind": 0,
+          "index": 10581
+        },
+        "qb": {
+          "kind": 0,
+          "index": 10580
+        },
+        "rb": {
+          "kind": 0,
+          "index": 10579
+        },
+        "sb": {
+          "kind": 0,
+          "index": 10578
+        },
+        "tb": {
+          "kind": 0,
+          "index": 10576
+        },
+        "ub": {
+          "kind": 0,
+          "index": 10575
+        },
+        "vb": {
+          "kind": 0,
+          "index": 10574
+        },
+        "wb": {
+          "kind": 0,
+          "index": 10571
+        },
+        "xb": {
+          "kind": 0,
+          "index": 10569
+        },
+        "yb": {
+          "kind": 0,
+          "index": 10531
+        },
+        "zb": {
+          "kind": 0,
+          "index": 4963
+        },
+        "Ab": {
+          "kind": 0,
+          "index": 4988
+        },
+        "Bb": {
+          "kind": 0,
+          "index": 10490
+        },
+        "Cb": {
+          "kind": 0,
+          "index": 10486
+        },
+        "Db": {
+          "kind": 0,
+          "index": 10485
+        },
+        "Eb": {
+          "kind": 0,
+          "index": 10484
+        }
+      },
+      "defined_function_count": 10909,
+      "base_defined_function_count": 10911,
+      "preexisting_issues": {
+        "missing_function_stubs": [],
+        "base_missing_function_stubs": [
+          "vrzno_del_callback",
+          "vrzno_exec_callback"
+        ],
+        "asyncify_handleSleep_without_definition": true,
+        "abortPHP_target_absent_in_base_and_current": true
+      }
+    }
+  ]
+}
