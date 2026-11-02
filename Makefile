@@ -20,7 +20,9 @@ CMD_DIST := cp /root/output/php* /output
 build-wasm: build-image
 	docker run --rm -v $(DIST_DIR):/output $(PHP_IMAGE) \
 		sh -c '$(CMD_DIST)';
-	python3 scripts/install-wasm-assets.py $(PHP_VERSION) $(DIST_DIR)
+	mv $(DIST_DIR)/php-$(PHP_VERSION).js src/wasm-assets/;
+	./node_modules/.bin/prettier --write src/wasm-assets/php-$(PHP_VERSION).js
+	mv $(DIST_DIR)/php-$(PHP_VERSION).wasm assets/;
 
 ifeq ($(shell uname), Darwin)
 JOBS := $(shell sysctl -n hw.ncpu)
