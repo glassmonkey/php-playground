@@ -20,11 +20,12 @@ elif [[ -n "$php_target" ]]; then
 fi
 
 repo_root="$(cd "$(dirname "$0")/../../.." && pwd -P)"
-script_dir="$repo_root/scripts/lsp/phpantom"
+script_dir="$repo_root/src/lsp/phpantom"
 docker_bin="${DOCKER:-docker}"
 output_root="${PHPANTOM_DOCKER_OUTPUT_DIR:-$repo_root/build/phpantom-docker-candidates}"
 matrix_cache="${PHPANTOM_DOCKER_MATRIX_CACHE_DIR:-$output_root/shared-rust1.99-cache}"
-candidate_root="$repo_root/build/phpantom-versioned-candidates"
+candidate_root="${PHPANTOM_CANDIDATE_DIR:-$repo_root/build/phpantom-versioned-candidates}"
+build_output_root="${PHPANTOM_BUILD_OUTPUT_DIR:-$repo_root/build/phpantom-runtime}"
 image_tag="phpantom-runtime-builder:$version-rust1.99.0-phase-b"
 attempt_id="$(date -u +%Y%m%dT%H%M%SZ)"
 
@@ -199,7 +200,7 @@ for existing_artifact in "$candidate_root"/*/*/phpantom_lsp.wasm; do
 	fi
 done
 
-if node "$repo_root/scripts/lsp/phpantom/versioned-wasi-test.mjs" "$candidate_dir/provenance.json" \
+if node "$repo_root/src/lsp/phpantom/versioned-wasi-test.mjs" "$candidate_dir/provenance.json" \
 	>"$candidate_dir/versioned-wasi-test.log" 2>&1; then
 	wasi_test_status=0
 	printf '%s\n' "$wasi_test_status" >"$candidate_dir/versioned-wasi-test.exit"
@@ -210,6 +211,20 @@ else
 	printf 'Required WASI behavior failed for PHP %s; candidate retained at %s\n' "$php_target" "$candidate_dir" >&2
 	exit 1
 fi
+
+# Export only after all candidate and WASI gates pass. Asset placement belongs to Makefile.
+build_output="$build_output_root/$php_target"
+mkdir -p "$build_output"
+cp "$artifact" "$build_output/php-$php_target.wasm"
+python3 - "$provenance" "$build_output/php-$php_target.provenance.json" "$php_target" <<'PYOUT'
+import json
+import sys
+from pathlib import Path
+manifest = json.loads(Path(sys.argv[1]).read_text())
+manifest["artifact"]["path"] = f"php-{sys.argv[3]}.wasm"
+Path(sys.argv[2]).write_text(json.dumps(manifest, indent=2) + "\n")
+PYOUT
+printf 'Verified PHP %s build output: %s/php-%s.wasm\n' "$php_target" "$build_output" "$php_target"
 
 printf 'PHP %s Docker build succeeded.\n' "$php_target"
 printf 'Candidate WASM: %s\n' "$artifact"

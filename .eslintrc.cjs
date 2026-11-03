@@ -30,6 +30,11 @@ module.exports = {
 		"src/wasm/build-assets/*.js",
 		"src/wasm-assets/*.js"
 	],
+	// These explicit Node CLIs live beside browser runtime sources.
+	overrides: [{
+		files: ['src/lsp/phpantom/smoke-test.mjs', 'src/lsp/phpantom/versioned-wasi-test.mjs'],
+		env: { node: true, browser: false },
+	}],
 	plugins: ['react', '@typescript-eslint'],
 	rules: {
 		'no-inner-declarations': 0,
