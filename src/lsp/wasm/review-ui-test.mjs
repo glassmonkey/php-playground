@@ -86,6 +86,9 @@ async function run(name, action) {
 			status:
 				error instanceof FixtureError ? 'invalid-fixture' : 'failed',
 			error: String(error),
+			acceptance: await page
+				.evaluate(() => window.__reviewAcceptance)
+				.catch(() => null),
 			workers: await page
 				.evaluate(() => window.__reviewWorkers)
 				.catch(() => []),
@@ -295,15 +298,38 @@ async function accept(page, label, suffix) {
 		};
 	}, position);
 	const rows = page.locator('.suggest-widget .monaco-list-row');
-	const row = rows
-		.filter({
-			has: page
-				.locator('.label-name')
-				.filter({ hasText: new RegExp(`^${label}$`) }),
-		})
-		.first();
-	await row.waitFor({ state: 'visible' });
+	const matching = rows.filter({
+		has: page
+			.locator('.label-name')
+			.filter({ hasText: new RegExp(`^${label}$`) }),
+	});
+	await matching.first().waitFor({ state: 'visible' });
 	const displayed = await rows.allTextContents();
+	const identities = await matching.evaluateAll((elements) =>
+		elements.map((e) => ({
+			text: e.textContent,
+			aria: e.getAttribute('aria-label'),
+			html: e.outerHTML,
+			detail: e.querySelector('.details-label')?.textContent,
+		}))
+	);
+	await page.evaluate(
+		(value) => {
+			window.__reviewAcceptance = value;
+		},
+		{ before, after, protocol, displayed, identities }
+	);
+	let row = matching.first();
+	if (label === 'DateTime' && identities.length > 1) {
+		const globalIndex = identities.findIndex(
+			(e) => e.detail?.trim() === 'DateTime'
+		);
+		if (globalIndex < 0)
+			throw new FixtureError(
+				`global DateTime row is ambiguous: ${JSON.stringify(identities)}`
+			);
+		row = matching.nth(globalIndex);
+	}
 	await row.click();
 	await page.keyboard.press('Escape');
 	return {
