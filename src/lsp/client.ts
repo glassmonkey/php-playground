@@ -465,6 +465,8 @@ export class LspClient {
 						} catch (error) {
 							if (error instanceof CompletionResolutionCancelled)
 								throw error;
+							if (token.isCancellationRequested && isCurrent())
+								throw new CompletionResolutionCancelled();
 							return isCurrent()
 								? item
 								: { ...item, additionalTextEdits: undefined };

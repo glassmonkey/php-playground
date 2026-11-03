@@ -384,11 +384,27 @@ describe('PHPantom Monaco lifecycle', () => {
 	);
 
 	it.each([
-		{ initial: true, label: 'DateTime', imported: 'DateTime' },
-		{ initial: false, label: 'Widget', imported: 'Foo\\Widget' },
+		{
+			initial: true,
+			label: 'DateTime',
+			imported: 'DateTime',
+			backendFailure: false,
+		},
+		{
+			initial: false,
+			label: 'Widget',
+			imported: 'Foo\\Widget',
+			backendFailure: false,
+		},
+		{
+			initial: true,
+			label: 'DateTime',
+			imported: 'DateTime',
+			backendFailure: true,
+		},
 	])(
-		'rejects focus cancellation and refocus resolves $label imports (initial=$initial)',
-		async ({ initial, label, imported }) => {
+		'rejects focus cancellation and refocus resolves $label imports (initial=$initial, backendFailure=$backendFailure)',
+		async ({ initial, label, imported, backendFailure }) => {
 			// Arrange
 			const document = testModel();
 			const monaco = testMonaco(document.model);
@@ -430,6 +446,15 @@ describe('PHPantom Monaco lifecycle', () => {
 				provider.resolveCompletionItem!(item, firstToken.token)
 			).catch((error) => error);
 			const oldRequest = worker.lastResolve!;
+			if (backendFailure)
+				worker.reply({
+					jsonrpc: '2.0',
+					id: oldRequest.id,
+					error: {
+						code: -32603,
+						message: 'backend failed just before cancellation',
+					},
+				});
 			firstToken.cancel();
 			const cancellation = await cancelled;
 			worker.delayResolves = false;
