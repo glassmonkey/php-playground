@@ -42,8 +42,6 @@
     "build-*/**/*",
     "build-types/**/*",
     "src/wasm/**/*",
-    "src/lsp/phpantom/smoke-test.mjs",
-    "src/lsp/phpantom/versioned-wasi-test.mjs",
-    "src/lsp/phpantom/versioned-ui-test.mjs"
+    "src/lsp/wasm/**/*"
   ]
 }

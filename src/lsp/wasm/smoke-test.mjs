@@ -5,7 +5,7 @@ import { ConsoleStdout, File, OpenFile, WASI } from '@bjorn3/browser_wasi_shim';
 import {
 	isStaleDocumentVersion,
 	phpVersionInitializationError,
-} from './php-version.mjs';
+} from '../phpantom/php-version.mjs';
 
 const supportedVersions = [
 	'5.6',

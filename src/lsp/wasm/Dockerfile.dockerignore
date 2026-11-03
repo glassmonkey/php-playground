@@ -2,8 +2,8 @@
 **
 !src/
 !src/lsp/
-!src/lsp/phpantom/
-!src/lsp/phpantom/**
+!src/lsp/wasm/
+!src/lsp/wasm/**
 
 # Never send generated output or local caches to the Docker build context.
 **/target

@@ -7,14 +7,14 @@ on:
       - Makefile
       - .github/workflows/phpantom-runtime.yml
       - docs/lsp/phpantom.md
-      - src/lsp/phpantom/**
+      - src/lsp/wasm/**
   pull_request:
     branches: [master]
     paths:
       - Makefile
       - .github/workflows/phpantom-runtime.yml
       - docs/lsp/phpantom.md
-      - src/lsp/phpantom/**
+      - src/lsp/wasm/**
 
 permissions:
   contents: read
