@@ -57,9 +57,15 @@ fn record(failures: &mut Vec<String>, label: &str, passed: bool, actual: impl st
 }
 
 fn finish(failures: &[String]) {
+    // Emit only after every request/assertion in this test has completed.
+    eprintln!(
+        "PHPANTOM_NATIVE_FINISH {} failures={}",
+        std::thread::current().name().expect("named test thread"),
+        failures.len()
+    );
     assert!(
         failures.is_empty(),
-        "{} failed native checks: {failures:#?}",
+        "PHPANTOM_NATIVE_ASSERTIONS_FAILED: {} failed native checks: {failures:#?}",
         failures.len()
     );
 }
@@ -290,6 +296,7 @@ async fn named_argument_case(major: u8, minor: u8, expected: bool) {
         expected,
         "PHP {major}.{minor} named-argument completion: {params:?}"
     );
+    finish(&[]);
 }
 
 #[tokio::test]

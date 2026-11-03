@@ -181,14 +181,11 @@ elif [[ "$provenance_check" != "$expected_stubs_tree_sha256" ]]; then
 fi
 
 candidate_dir="$candidate_root/$php_target/$wasm_sha256"
-mkdir -p "$(dirname "$candidate_dir")"
-if ! mkdir "$candidate_dir"; then
-	printf 'Immutable candidate already exists; refusing overwrite: %s\n' "$candidate_dir" >&2
-	exit 1
+candidate_exists=false
+if [[ -e "$candidate_dir" ]]; then
+	python3 "$script_dir/verify-candidate.py" "$candidate_dir" "$attempt_dir/output"
+	candidate_exists=true
 fi
-cp "$artifact" "$candidate_dir/phpantom_lsp.wasm"
-cp "$provenance" "$candidate_dir/provenance.json"
-cp "$artifact_sha_file" "$candidate_dir/phpantom_lsp.wasm.sha256"
 for existing_artifact in "$candidate_root"/*/*/phpantom_lsp.wasm; do
 	[[ -f "$existing_artifact" ]] || continue
 	existing_sha256="$(shasum -a 256 "$existing_artifact" | awk '{print $1}')"
@@ -200,16 +197,24 @@ for existing_artifact in "$candidate_root"/*/*/phpantom_lsp.wasm; do
 	fi
 done
 
-if node "$repo_root/src/lsp/wasm/versioned-wasi-test.mjs" "$candidate_dir/provenance.json" \
-	>"$candidate_dir/versioned-wasi-test.log" 2>&1; then
+if node "$repo_root/src/lsp/wasm/versioned-wasi-test.mjs" "$provenance" \
+	>"$attempt_dir/output/versioned-wasi-test.log" 2>&1; then
 	wasi_test_status=0
-	printf '%s\n' "$wasi_test_status" >"$candidate_dir/versioned-wasi-test.exit"
+	printf '%s\n' "$wasi_test_status" >"$attempt_dir/output/versioned-wasi-test.exit"
 else
 	wasi_test_status=$?
-	printf '%s\n' "$wasi_test_status" >"$candidate_dir/versioned-wasi-test.exit"
-	tail -n 60 "$candidate_dir/versioned-wasi-test.log" >&2
+	printf '%s\n' "$wasi_test_status" >"$attempt_dir/output/versioned-wasi-test.exit"
+	tail -n 60 "$attempt_dir/output/versioned-wasi-test.log" >&2
 	printf 'Required WASI behavior failed for PHP %s; candidate retained at %s\n' "$php_target" "$candidate_dir" >&2
 	exit 1
+fi
+
+# Keep the original immutable proof and its logs untouched on repeat builds.
+if [[ "$candidate_exists" == false ]]; then
+	mkdir -p "$(dirname "$candidate_dir")"
+	mkdir "$candidate_dir"
+	cp "$artifact" "$provenance" "$artifact_sha_file" "$candidate_dir/"
+	cp "$attempt_dir/output/versioned-wasi-test.log" "$attempt_dir/output/versioned-wasi-test.exit" "$candidate_dir/"
 fi
 
 # Export only after all candidate and WASI gates pass. Asset placement belongs to Makefile.
@@ -230,7 +235,8 @@ printf 'PHP %s Docker build succeeded.\n' "$php_target"
 printf 'Candidate WASM: %s\n' "$artifact"
 printf 'Provenance: %s\n' "$provenance"
 printf 'WASM SHA-256: %s\n' "$wasm_sha256"
-printf 'Immutable candidate and WASI log: %s\n' "$candidate_dir"
+printf 'Immutable candidate: %s\n' "$candidate_dir"
+printf 'This attempt WASI log: %s/output/versioned-wasi-test.log\n' "$attempt_dir"
 printf 'Verified shared stubs tree SHA-256: %s\n' "$provenance_check"
 printf 'Builder: %s (%s, %s)\n' "$image_tag" "$image_id" "$image_platform"
 printf 'Docker context: %s (%s), server %s\n' "$docker_context" "$docker_endpoint" "$docker_server_version"

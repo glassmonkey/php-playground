@@ -32,6 +32,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Check native classifier and immutable candidate regressions
+        run: node --test src/lsp/wasm/test-build-tools.mjs
       - name: Run native regression probe
         run: make test-phpantom-runtime-native
       - name: Build and test selected WASI version boundaries

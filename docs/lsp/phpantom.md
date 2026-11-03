@@ -64,7 +64,12 @@ make install-phpantom-runtime PHPANTOM_TARGET_VERSION=8.0 PHPANTOM_ASSET_DIR=/tm
 
 Installation depends on a successful build, then copies the versioned WASM and
 provenance. `PHPANTOM_BUILD_DIR` overrides the build output root;
-`PHPANTOM_CANDIDATE_DIR` can isolate immutable candidate records during validation.
+`PHPANTOM_CANDIDATE_DIR` can isolate candidate records during validation.
+Repeating a build or running build then install reuses an existing immutable
+candidate only after its bytes, checksum and stable source/stubs/build provenance
+match the new build. The original candidate and its logs remain untouched; each
+attempt retains its own WASI result. Corruption or a pin mismatch fails before
+asset placement.
 The provenance artifact path matches the installed versioned filename. The UI
 owner must update its registry/manifest and hashes together when adopting these
 bytes; this command does not update UI metadata or deploy a site. The legacy
@@ -72,7 +77,10 @@ bytes; this command does not update UI metadata or deploy a site. The legacy
 
 The native probe records `nativeRawExit`, `nativePassed`, `nativeFailed`,
 `knownLimitMatched`, and `unexpectedFailures` in `native-test.json`; the raw
-behavior result is also retained in `native-probe-result.json`. It accepts a
+behavior result is also retained in `native-probe-result.json`. Classification
+requires all seven test outcomes and finish sentinels, emitted only after each
+test's last request/assertion. The known failure must end in the exact final
+assertion panic; a later unwrap panic or truncated log is rejected. It accepts a
 clean 7/7 run or the recorded baseline failure: assertion `PHP 7.4 same-name
 user documentation marker (known baseline)` in test
 `php74_same_name_user_function_and_local_symbols_survive`, with raw exit 101,
@@ -85,3 +93,9 @@ CI builds the 7.4, 8.0, 8.3, and 8.5 boundaries in sequence on one runner
 after the native probe, reusing the verified local Cargo cache safely. The accepted all-12-target matrix and per-artifact hashes are retained
 in the manager's review evidence. The focused CI does not claim browser or
 Monaco verification, parser-version parity, or production asset readiness.
+
+Run the same production classifier/verifier regression cases used by CI:
+
+```sh
+node --test src/lsp/wasm/test-build-tools.mjs
+```

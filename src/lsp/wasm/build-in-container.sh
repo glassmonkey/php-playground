@@ -135,89 +135,27 @@ if [[ "$build_mode" == native-test ]]; then
 	fi
 
 	behavior_log='/output/native-versioned-embedded.log'
-	expected_failure='PHP 7.4 same-name user documentation marker (known baseline)'
-	expected_test='    php74_same_name_user_function_and_local_symbols_survive'
 	behavior_started="$SECONDS"
 	set +e
 	PHPANTOM_TARGET_PHP_VERSION=7.4 cargo test --locked \
 		--manifest-path "$native_probe/Cargo.toml" \
-		--test native_versioned_embedded -- --nocapture >"$behavior_log" 2>&1
+		--test native_versioned_embedded -- --show-output >"$behavior_log" 2>&1
 	behavior_exit=$?
 	set -e
-	failure_count="$(grep -c '^FAIL ' "$behavior_log" || true)"
-	expected_failure_count="$(grep -Ec '^FAIL PHP 7\.4 same-name user documentation marker \(known baseline\): actual=' "$behavior_log" || true)"
-	expected_test_count="$(grep -Fxc "$expected_test" "$behavior_log" || true)"
-	test_counts="$(sed -nE 's/^test result: (ok|FAILED)\. ([0-9]+) passed; ([0-9]+) failed;.*/\2 \3/p' "$behavior_log" | tail -n 1)"
-	if [[ "$test_counts" =~ ^([0-9]+)[[:space:]]+([0-9]+)$ ]]; then
-		native_passed="${BASH_REMATCH[1]}"
-		native_failed="${BASH_REMATCH[2]}"
-	else
-		native_passed=0
-		native_failed=0
+	if ! python3 /opt/phpantom/classify-native.py "$behavior_log" "$behavior_exit" /output/native-probe-result.json; then
+		tail -n 100 "$behavior_log" >&2
+		cat /output/native-probe-result.json >&2
+		printf 'Native public probe had an unexpected or incomplete outcome.\n' >&2
+		exit 1
 	fi
-	known_limit_matched=0
-	if [[ "$expected_failure_count" -eq 1 && "$expected_test_count" -eq 1 ]]; then
-		known_limit_matched=1
-	fi
-	unexpected_assertions="$((failure_count - known_limit_matched))"
-	unexpected_test_failures="$((native_failed - expected_test_count))"
-	if [[ "$unexpected_assertions" -lt 0 ]]; then unexpected_assertions=0; fi
-	if [[ "$unexpected_test_failures" -lt 0 ]]; then unexpected_test_failures=0; fi
-	unexpected_failures="$unexpected_assertions"
-	if [[ "$unexpected_test_failures" -gt "$unexpected_failures" ]]; then
-		unexpected_failures="$unexpected_test_failures"
-	fi
-	export PHPANTOM_NATIVE_RAW_EXIT="$behavior_exit"
-	export PHPANTOM_NATIVE_PASSED="$native_passed"
-	export PHPANTOM_NATIVE_FAILED="$native_failed"
-	export PHPANTOM_NATIVE_KNOWN_LIMIT_MATCHED="$known_limit_matched"
-	export PHPANTOM_NATIVE_UNEXPECTED_FAILURES="$unexpected_failures"
-	python3 - <<'PYRESULT'
-import json
-import os
-from pathlib import Path
-
-result = {
-    "nativeRawExit": int(os.environ["PHPANTOM_NATIVE_RAW_EXIT"]),
-    "nativePassed": int(os.environ["PHPANTOM_NATIVE_PASSED"]),
-    "nativeFailed": int(os.environ["PHPANTOM_NATIVE_FAILED"]),
-    "knownLimitMatched": os.environ["PHPANTOM_NATIVE_KNOWN_LIMIT_MATCHED"] == "1",
-    "unexpectedFailures": int(os.environ["PHPANTOM_NATIVE_UNEXPECTED_FAILURES"]),
-    "knownLimitAssertion": "PHP 7.4 same-name user documentation marker (known baseline)",
-    "knownLimitTest": "php74_same_name_user_function_and_local_symbols_survive",
-}
-Path("/output/native-probe-result.json").write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
-PYRESULT
-	expected_baseline=false
-	if [[ "$behavior_exit" -eq 101 && "$native_passed" -eq 6 && "$native_failed" -eq 1 \
-		&& "$failure_count" -eq 1 && "$known_limit_matched" -eq 1 \
-		&& "$unexpected_failures" -eq 0 ]]; then
-		expected_baseline=true
-	fi
-	clean_pass=false
-	if [[ "$behavior_exit" -eq 0 && "$native_passed" -eq 7 && "$native_failed" -eq 0 \
-		&& "$failure_count" -eq 0 && "$unexpected_failures" -eq 0 ]]; then
-		clean_pass=true
-	fi
-	if [[ "$expected_baseline" != true && "$clean_pass" != true \
-		&& "$unexpected_failures" -eq 0 ]]; then
-		unexpected_failures=1
-		export PHPANTOM_NATIVE_UNEXPECTED_FAILURES="$unexpected_failures"
+	read -r native_passed native_failed known_limit_matched unexpected_failures < <(
 		python3 - <<'PYRESULT'
 import json
 from pathlib import Path
-path = Path("/output/native-probe-result.json")
-result = json.loads(path.read_text())
-result["unexpectedFailures"] = 1
-path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
+result = json.loads(Path('/output/native-probe-result.json').read_text())
+print(result['nativePassed'], result['nativeFailed'], int(result['knownLimitMatched']), result['unexpectedFailures'])
 PYRESULT
-	fi
-	if [[ "$expected_baseline" != true && "$clean_pass" != true ]]; then
-		tail -n 100 "$behavior_log" >&2
-		cat /output/native-probe-result.json >&2
-		printf 'Native public probe had an unexpected outcome; see native-probe-result.json.\n' >&2
-		exit 1
-	fi
+	)
 
 	guard_log='/output/native-profile-guards.log'
 	PHPANTOM_TARGET_PHP_VERSION=7.4 cargo test --locked \
@@ -276,7 +214,7 @@ summary = {
     "native_probe": {
         "php_target": "7.4",
         "build_identity": os.environ["PHPANTOM_BUILD_IDENTITY"],
-        "command": "cargo test --locked --manifest-path <native-probe>/Cargo.toml --test native_versioned_embedded -- --nocapture",
+        "command": "cargo test --locked --manifest-path <native-probe>/Cargo.toml --test native_versioned_embedded -- --show-output",
         "result": "raw counts and known-limit classification are recorded in top-level native fields",
         "log": "native-versioned-embedded.log",
     },
