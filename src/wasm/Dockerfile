@@ -1,6 +1,24 @@
 # Originally forked from https://github.com/WordPress/wordpress-playground
 # ubuntu:noble supports amd64 and arm64 (Apple Silicon)
 ARG BASE_IMAGE=ubuntu@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac
+
+# Keep dependency pins together so update tooling can read and change them.
+ARG EMSDK_VERSION=6.0.13
+ARG EMSDK_REPO_REF=d7b4130688bfa348392b921ab04015aa15c4f154
+ARG ZLIB_VERSION=1.3.2
+ARG ZLIB_SHA256=bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16
+ARG LIBZIP_VERSION=1.9.2
+ARG LIBXML2_VERSION=2.9.10
+ARG SQLITE_AUTOCONF_VERSION=3400100
+ARG SQLITE_RELEASE_YEAR=2022
+ARG OPENSSL_VERSION=1.1.1w
+ARG OPENSSL_SHA256=cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8
+ARG OPENSSL_RELEASE_SERIES=1.1.1
+ARG LIBPNG_VERSION=1.6.39
+
+# PHP <= 7.3 needs these older dependency versions.
+ARG LIBZIP_LEGACY_VERSION=1.2.0
+ARG BISON_LEGACY_VERSION=2.7
 FROM ${BASE_IMAGE} as emscripten
 
 SHELL ["/bin/bash", "-c"]
@@ -36,8 +54,8 @@ RUN set -euxo pipefail;\
 # Install Emscripten from the repository. We'd use the official
 # Docker image, but there is no arm64 image available which makes
 # the build take forever on Apple Silicon.
-ARG EMSDK_VERSION=6.0.13
-ARG EMSDK_REPO_REF=d7b4130688bfa348392b921ab04015aa15c4f154
+ARG EMSDK_VERSION
+ARG EMSDK_REPO_REF
 RUN ln -s /usr/bin/python3 /usr/bin/python
 RUN git clone https://github.com/emscripten-core/emsdk.git && \
     if [ -n "$EMSDK_REPO_REF" ]; then \
@@ -97,8 +115,8 @@ fi\n\
 
 # Compile libz
 FROM emscripten AS emscripten-libz
-ARG ZLIB_VERSION=1.3.2
-ARG ZLIB_SHA256=bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16
+ARG ZLIB_VERSION
+ARG ZLIB_SHA256
 RUN set -euxo pipefail && \
     source /root/emsdk/emsdk_env.sh && \
     wget -O zlib-$ZLIB_VERSION.tar.gz https://zlib.net/zlib-$ZLIB_VERSION.tar.gz && \
@@ -112,15 +130,15 @@ RUN set -euxo pipefail && \
 # Compile libzip
 FROM emscripten AS emscripten-libzip
 ARG PHP_VERSION
+ARG LIBZIP_VERSION
+ARG LIBZIP_LEGACY_VERSION
 COPY --from=emscripten-libz /root/lib /root/lib-libz
 # Older libzip releases hard-code the zip target as SHARED and do not consume
 # BUILD_SHARED_LIBS. Normalize that source declaration so the existing OFF
 # setting selects a static archive, without a PHP-version condition.
 RUN /root/copy-lib.sh lib-libz
 RUN if [[ "${PHP_VERSION:0:1}" -le "7" && "${PHP_VERSION:2:1}" -le "3" ]] || [ "${PHP_VERSION:0:1}" -le "5" ]; then \
-            export LIBZIP_VERSION=1.2.0; \
-        else \
-            export LIBZIP_VERSION=1.9.2; \
+            export LIBZIP_VERSION="$LIBZIP_LEGACY_VERSION"; \
         fi && \
         cd /root && \
         curl -k https://libzip.org/download/libzip-$LIBZIP_VERSION.tar.gz -o libzip-$LIBZIP_VERSION.tar.gz && \
@@ -146,9 +164,10 @@ RUN cd libzip/build && source /root/emsdk/emsdk_env.sh && EMCC_SKIP="-lz" emmake
 
 # Compile Libxml2
 FROM emscripten AS emscripten-libxml
+ARG LIBXML2_VERSION
 RUN source /root/emsdk/emsdk_env.sh && \
     env GIT_SSL_NO_VERIFY=true git clone https://gitlab.gnome.org/GNOME/libxml2.git libxml2 \
-        --branch v2.9.10 \
+        --branch v$LIBXML2_VERSION \
         --single-branch     \
         --depth 1 && \
     cd libxml2 && \
@@ -158,12 +177,13 @@ RUN source /root/emsdk/emsdk_env.sh && \
     emmake make install
 
 # Compile Bison 2.7 (for PHP  <=7.3)
-FROM emscripten AS emscripten-bison-2-7
+FROM emscripten AS emscripten-bison-legacy
+ARG BISON_LEGACY_VERSION
 COPY build-assets/bison27.patch /root/bison27.patch
-RUN wget http://ftp.gnu.org/gnu/bison/bison-2.7.tar.gz && \
-    tar -xvf bison-2.7.tar.gz && \
-    rm bison-2.7.tar.gz && \
-    cd bison-2.7 && \
+RUN wget http://ftp.gnu.org/gnu/bison/bison-$BISON_LEGACY_VERSION.tar.gz && \
+    tar -xvf bison-$BISON_LEGACY_VERSION.tar.gz && \
+    rm bison-$BISON_LEGACY_VERSION.tar.gz && \
+    cd bison-$BISON_LEGACY_VERSION && \
     git apply --no-index /root/bison27.patch && \
     ./configure --prefix=/usr/local/bison --with-libiconv-prefix=/usr/local/libiconv/ && \
     make && \
@@ -173,10 +193,12 @@ RUN wget http://ftp.gnu.org/gnu/bison/bison-2.7.tar.gz && \
 FROM emscripten AS emscripten-sqlite3
 COPY --from=emscripten-libz /root/lib /root/lib-libz
 RUN /root/copy-lib.sh lib-libz
+ARG SQLITE_AUTOCONF_VERSION
+ARG SQLITE_RELEASE_YEAR
 RUN set -euxo pipefail &&\
-        wget --no-check-certificate https://www.sqlite.org/2022/sqlite-autoconf-3400100.tar.gz && \
-        tar -xzvf sqlite-autoconf-3400100.tar.gz && \
-        cd sqlite-autoconf-3400100 && \
+        wget --no-check-certificate https://www.sqlite.org/$SQLITE_RELEASE_YEAR/sqlite-autoconf-$SQLITE_AUTOCONF_VERSION.tar.gz && \
+        tar -xzvf sqlite-autoconf-$SQLITE_AUTOCONF_VERSION.tar.gz && \
+        cd sqlite-autoconf-$SQLITE_AUTOCONF_VERSION && \
         source /root/emsdk/emsdk_env.sh && \
         emconfigure ./configure \
             --build i386-pc-linux-gnu \
@@ -190,17 +212,20 @@ RUN set -euxo pipefail &&\
 FROM emscripten AS emscripten-openssl
 COPY --from=emscripten-libz /root/lib /root/lib-libz
 RUN /root/copy-lib.sh lib-libz
+ARG OPENSSL_VERSION
+ARG OPENSSL_SHA256
+ARG OPENSSL_RELEASE_SERIES
+# Generate headers before compiling the libraries in parallel.
 RUN set -euxo pipefail && \
     source /root/emsdk/emsdk_env.sh && \
-    export OPENSSL_VERSION=1.1.1w && \
-    export OPENSSL_SHA256=cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8 && \
-    wget -O openssl-$OPENSSL_VERSION.tar.gz https://www.openssl.org/source/old/1.1.1/openssl-$OPENSSL_VERSION.tar.gz && \
+    wget -O openssl-$OPENSSL_VERSION.tar.gz https://www.openssl.org/source/old/$OPENSSL_RELEASE_SERIES/openssl-$OPENSSL_VERSION.tar.gz && \
     echo "$OPENSSL_SHA256  openssl-$OPENSSL_VERSION.tar.gz" | sha256sum -c - && \
     tar xf openssl-$OPENSSL_VERSION.tar.gz && \
     cd openssl-$OPENSSL_VERSION && \
     emconfigure ./Configure linux-generic32 no-asm no-shared -DHAVE_FORK=0 -DOPENSSL_NO_AFALGENG=1 no-threads --prefix=/root/lib && \
     sed -i 's|^CROSS_COMPILE.*$|CROSS_COMPILE=|g' Makefile && \
-    EMCC_FLAGS=" -sSIDE_MODULE " EMCC_SKIP="-lz" emmake make -j 12 build_generated libssl.a libcrypto.a && \
+    emmake make build_generated && \
+    EMCC_FLAGS=" -sSIDE_MODULE " EMCC_SKIP="-lz" emmake make -j 12 libssl.a libcrypto.a && \
     cp -RL include/openssl /root/lib/include && \
     cp libcrypto.a libssl.a /root/lib/lib && \
     EMCC_FLAGS=" -sSIDE_MODULE " EMCC_SKIP="-lz" emmake make install
@@ -209,9 +234,10 @@ RUN set -euxo pipefail && \
 FROM emscripten AS emscripten-libpng
 COPY --from=emscripten-libz /root/lib /root/lib-libz
 RUN /root/copy-lib.sh lib-libz
-RUN wget http://prdownloads.sourceforge.net/libpng/libpng-1.6.39.tar.gz?download -O libpng-1.6.39.tar.gz
-RUN tar -xzf libpng-1.6.39.tar.gz
-WORKDIR /root/libpng-1.6.39
+ARG LIBPNG_VERSION
+RUN wget http://prdownloads.sourceforge.net/libpng/libpng-$LIBPNG_VERSION.tar.gz?download -O libpng-$LIBPNG_VERSION.tar.gz
+RUN tar -xzf libpng-$LIBPNG_VERSION.tar.gz
+WORKDIR /root/libpng-${LIBPNG_VERSION}
 RUN source /root/emsdk/emsdk_env.sh && \
         CPPFLAGS="-I/root/lib/include " \
         LDFLAGS="-L/root/lib/lib " \
@@ -259,6 +285,7 @@ COPY --from=emscripten-php-src /root/php-src /root/php-src
 RUN cd php-src && ./buildconf --force
 
 # Add libzip and zlib files
+ARG LIBZIP_LEGACY_VERSION
 COPY --from=emscripten-libz /root/lib /root/lib-libz
 COPY --from=emscripten-libzip /root/lib /root/lib-libzip
 RUN /root/copy-lib.sh lib-libz && \
@@ -272,7 +299,7 @@ RUN /root/copy-lib.sh lib-libz && \
             echo -n ' --with-zlib --with-zlib-dir=/root/lib --enable-zip --with-libzip=/root/lib ' >> /root/.php-configure-flags; \
             cp /root/lib/lib/libzip/include/zipconf.h /root/lib/lib; \
             cp /root/lib/lib/libzip/include/zipconf.h /root/lib/include; \
-            echo '#define LIBZIP_VERSION "1.2.0"' >> /root/lib/include/zipconf.h; \
+            echo "#define LIBZIP_VERSION \"$LIBZIP_LEGACY_VERSION\"" >> /root/lib/include/zipconf.h; \
             cp /root/lib/include/*.h /root/php-src; \
         else \
             # https://www.php.net/manual/en/zlib.installation.php
@@ -322,7 +349,7 @@ RUN bash /root/copy-lib.sh lib-openssl && \
 
 # PHP <= 7.3 requires Bison 2.7
 # PHP >= 7.4 and Bison 3.0
-COPY --from=emscripten-bison-2-7 /usr/local/bison /root/linked-bison-27
+COPY --from=emscripten-bison-legacy /usr/local/bison /root/linked-bison-27
 RUN if [[ "${PHP_VERSION:0:1}" -le "7" && "${PHP_VERSION:2:1}" -le "3" ]] || [ "${PHP_VERSION:0:1}" -le "5" ]; then \
         mv /root/linked-bison-27 /usr/local/bison && \
         ln -s /usr/local/bison/bin/bison /usr/bin/bison && \
