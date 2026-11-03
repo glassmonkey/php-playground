@@ -164,13 +164,13 @@ async function focusEnd(page) {
 	await page
 		.locator('.monaco-editor .view-lines')
 		.click({ position: { x: 24, y: 14 } });
-	await page.keyboard.press('Control+End');
-	// Monaco selects its platform shortcut from browser environment.
 	const mac = await page
 		.locator('.monaco-editor')
 		.evaluate((e) => e.classList.contains('mac'));
-	if (mac) await page.keyboard.press('Meta+End');
+	await page.keyboard.press(mac ? 'Meta+A' : 'Control+A');
+	await page.keyboard.press('ArrowRight');
 }
+
 async function accept(page, label, suffix) {
 	await focusEnd(page);
 	await page.keyboard.type(suffix, { delay: 40 });
