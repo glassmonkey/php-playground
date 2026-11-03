@@ -6,6 +6,14 @@ PHP_IMAGE := php-wasm:$(PHP_VERSION)
 DIST_DIR := $(PWD)/dist
 PHP_VERSIONS := 5.6 7.0 7.1 7.2 7.3 7.4 8.0 8.1 8.2 8.3 8.4 8.5
 
+PHPANTOM_TARGET_VERSION ?= 8.5
+
+.PHONY: build-phpantom-runtime test-phpantom-runtime-native
+build-phpantom-runtime:
+	./scripts/lsp/phpantom/build-wasm.sh artifact $(PHPANTOM_TARGET_VERSION)
+
+test-phpantom-runtime-native:
+	./scripts/lsp/phpantom/build-wasm.sh native-test
 
 .PHONY: build-image build-wasm build build-all $(addprefix build-,$(PHP_VERSIONS))
 

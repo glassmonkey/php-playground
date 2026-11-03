@@ -12,6 +12,7 @@ cmake-build-debug
 
 # production
 /build
+/target/
 
 /public
 
