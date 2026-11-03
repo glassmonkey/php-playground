@@ -332,7 +332,56 @@ async function accept(page, label, suffix) {
 	}
 	await row.click();
 	await page.keyboard.press('Escape');
+	const expectedFqn =
+		label === 'DateTime'
+			? 'DateTime'
+			: label === 'Widget'
+				? 'Foo\\Widget'
+				: undefined;
+	let acceptedResolve;
+	if (expectedFqn) {
+		await page.waitForFunction((fqn) => {
+			const worker = window.__reviewWorkers
+				.filter(
+					(w) =>
+						!w.terminated &&
+						w.sent.some((m) => m.type === 'phpantom:bootstrap')
+				)
+				.at(-1);
+			return worker.sent.some(
+				(m) =>
+					m.method === 'completionItem/resolve' &&
+					m.params.data?.m === fqn &&
+					worker.received.some((r) => r.id === m.id)
+			);
+		}, expectedFqn);
+		acceptedResolve = await page.evaluate((fqn) => {
+			const worker = window.__reviewWorkers
+				.filter(
+					(w) =>
+						!w.terminated &&
+						w.sent.some((m) => m.type === 'phpantom:bootstrap')
+				)
+				.at(-1);
+			const request = worker.sent
+				.filter(
+					(m) =>
+						m.method === 'completionItem/resolve' &&
+						m.params.data?.m === fqn
+				)
+				.at(-1);
+			return {
+				request,
+				response: worker.received.find((m) => m.id === request.id),
+			};
+		}, expectedFqn);
+		expect({
+			symbol: acceptedResolve.request.params.data.m,
+			detail: acceptedResolve.request.params.detail,
+		}).toEqual({ symbol: expectedFqn, detail: expectedFqn });
+	}
 	return {
+		acceptedResolve,
 		beforeKey: before,
 		afterKey: after,
 		protocol,

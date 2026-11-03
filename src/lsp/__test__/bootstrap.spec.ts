@@ -11,6 +11,7 @@ import { createWorker } from '../phpantom';
 describe('PHPantom worker bootstrap', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		loader.compile.mockReset();
 	});
 	afterEach(() => {
 		vi.unstubAllGlobals();
