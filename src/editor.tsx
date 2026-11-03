@@ -46,21 +46,28 @@ function PhpEditor(params: {
 	React.useEffect(() => {
 		if (!params.autoComplete || !lspBinding) return;
 
-		const worker = createWorker(params.version);
+		const controller = new AbortController();
 		let client: LspClient | undefined;
 		let cancelled = false;
 
-		void LspClient.connect({
-			worker,
-			model: lspBinding.model,
-			monaco: lspBinding.monaco,
-			phpVersion: params.version,
-			onStatus: (status, message) => {
-				if (status === 'error') {
-					console.error('PHPantom completion failed:', message);
-				}
-			},
-		})
+		void createWorker(params.version, { signal: controller.signal })
+			.then((worker) =>
+				LspClient.connect({
+					worker,
+					signal: controller.signal,
+					model: lspBinding.model,
+					monaco: lspBinding.monaco,
+					phpVersion: params.version,
+					onStatus: (status, message) => {
+						if (status === 'error') {
+							console.error(
+								'PHPantom completion failed:',
+								message
+							);
+						}
+					},
+				})
+			)
 			.then((connectedClient) => {
 				if (cancelled) {
 					connectedClient.dispose();
@@ -70,16 +77,19 @@ function PhpEditor(params: {
 			})
 			.catch((error: unknown) => {
 				if (!cancelled) {
-					console.error('Could not start PHPantom completion:', error);
+					console.error(
+						'Could not start PHPantom completion:',
+						error
+					);
 				}
 			});
 
 		return () => {
 			cancelled = true;
+			controller.abort();
 			void lspBinding.editor.getAction('hideSuggestWidget')?.run();
 			void lspBinding.editor.getAction('editor.action.hideHover')?.run();
 			if (client) client.dispose();
-			else worker.terminate();
 		};
 	}, [params.autoComplete, params.version, lspBinding]);
 

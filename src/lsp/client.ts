@@ -33,6 +33,7 @@ type LspCompletionItem = {
 	insertText?: string;
 	insertTextFormat?: number;
 	textEdit?: LspTextEdit;
+	additionalTextEdits?: Array<{ range: LspRange; newText: string }>;
 	command?: LspCommand;
 };
 type LspCompletionList = {
@@ -68,6 +69,7 @@ type ClientOptions = {
 	monaco: typeof Monaco;
 	phpVersion: Version;
 	onStatus: (status: ClientStatus, message?: string) => void;
+	signal?: AbortSignal;
 };
 
 const REQUEST_TIMEOUT_MS = 15_000;
@@ -155,7 +157,7 @@ export class LspClient {
 	>();
 	private readonly completionData = new WeakMap<
 		Monaco.languages.CompletionItem,
-		LspCompletionItem
+		{ item: LspCompletionItem; version: number }
 	>();
 	private readonly disposables: Monaco.IDisposable[] = [];
 	private readonly uri: string;
@@ -170,7 +172,11 @@ export class LspClient {
 
 	static async connect(options: ClientOptions): Promise<LspClient> {
 		const client = new LspClient(options);
+		const cancel = () => client.dispose();
+		options.signal?.addEventListener('abort', cancel, { once: true });
 		try {
+			if (options.signal?.aborted)
+				throw new Error('LSP connection cancelled.');
 			await client.request('initialize', {
 				processId: null,
 				rootUri: null,
@@ -193,6 +199,8 @@ export class LspClient {
 		} catch (error) {
 			client.dispose();
 			throw error;
+		} finally {
+			options.signal?.removeEventListener('abort', cancel);
 		}
 	}
 
@@ -367,11 +375,23 @@ export class LspClient {
 															.InsertAsSnippet
 													: undefined,
 											range: insertRange,
+											additionalTextEdits:
+												item.additionalTextEdits?.map(
+													(edit) => ({
+														range: lspRangeToMonaco(
+															edit.range
+														),
+														text: edit.newText,
+													})
+												),
 											command: item.command as
 												| Monaco.languages.Command
 												| undefined,
 										};
-									this.completionData.set(suggestion, item);
+									this.completionData.set(suggestion, {
+										item,
+										version,
+									});
 									return [suggestion];
 								}
 							);
@@ -388,22 +408,48 @@ export class LspClient {
 							return { suggestions: [] };
 						}
 					},
-					resolveCompletionItem: async (item) => {
+					resolveCompletionItem: async (item, token) => {
 						const data = this.completionData.get(item);
 						if (data === undefined) return item;
+						const isCurrent = () =>
+							!this.disposed &&
+							this.options.model.getVersionId() === data.version;
+						if (!isCurrent())
+							return { ...item, additionalTextEdits: undefined };
 						try {
-							const resolved =
-								await this.request<LspCompletionItem>(
+							const resolved = await raceCancellation(
+								this.request<LspCompletionItem>(
 									'completionItem/resolve',
-									data
-								);
-							item.detail = resolved.detail ?? item.detail;
-							item.documentation =
-								documentationText(resolved.documentation) ??
-								item.documentation;
-							return item;
+									data.item
+								),
+								token
+							);
+							if (resolved === REQUEST_CANCELLED || !isCurrent())
+								return {
+									...item,
+									additionalTextEdits: undefined,
+								};
+							const completion = {
+								...item,
+								detail: resolved.detail ?? item.detail,
+								documentation:
+									documentationText(resolved.documentation) ??
+									item.documentation,
+								// Replace rather than concatenate imports already supplied initially.
+								additionalTextEdits:
+									resolved.additionalTextEdits?.map(
+										(edit) => ({
+											range: lspRangeToMonaco(edit.range),
+											text: edit.newText,
+										})
+									) ?? item.additionalTextEdits,
+							};
+							this.completionData.set(completion, data);
+							return completion;
 						} catch {
-							return item;
+							return isCurrent()
+								? item
+								: { ...item, additionalTextEdits: undefined };
 						}
 					},
 				}

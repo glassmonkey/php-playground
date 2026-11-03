@@ -7,7 +7,10 @@ function cacheKey(version: Version, sha256: string) {
 	return `${version}:${sha256}`;
 }
 
-async function loadModule(version: Version): Promise<WebAssembly.Module> {
+async function fetchModule(
+	version: Version,
+	signal: AbortSignal
+): Promise<WebAssembly.Module> {
 	const artifact = reviewedArtifactFor(version);
 	if (!artifact) {
 		throw new Error(
@@ -17,6 +20,7 @@ async function loadModule(version: Version): Promise<WebAssembly.Module> {
 
 	const response = await fetch(`${artifact.url}?sha256=${artifact.sha256}`, {
 		cache: 'force-cache',
+		signal,
 	});
 	if (!response.ok) {
 		throw new Error(
@@ -39,6 +43,29 @@ async function loadModule(version: Version): Promise<WebAssembly.Module> {
 		);
 	}
 	return WebAssembly.compile(bytes);
+}
+
+// Loading includes download, integrity verification and compilation, not RPC work.
+const MODULE_LOAD_TIMEOUT_MS = 60_000;
+async function loadModule(version: Version): Promise<WebAssembly.Module> {
+	const controller = new AbortController();
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	const timeout = new Promise<never>((_, reject) => {
+		timer = setTimeout(() => {
+			controller.abort();
+			reject(
+				new Error(`PHPantom PHP ${version} WASM loading timed out.`)
+			);
+		}, MODULE_LOAD_TIMEOUT_MS);
+	});
+	try {
+		return await Promise.race([
+			fetchModule(version, controller.signal),
+			timeout,
+		]);
+	} finally {
+		clearTimeout(timer);
+	}
 }
 
 export function compiledPhpantomModule(

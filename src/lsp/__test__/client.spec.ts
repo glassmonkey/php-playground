@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type * as Monaco from 'monaco-editor';
 import type { Version } from '../../php-wasm/php';
 import { LspClient } from '../client';
@@ -33,6 +33,9 @@ class TestWorker {
 	delayCompletions = false;
 	lastCompletion: RpcMessage | undefined;
 	completionResult: unknown = { items: [{ label: 'fresh' }] };
+	resolveResult: unknown = {};
+	delayResolves = false;
+	lastResolve: RpcMessage | undefined;
 
 	addEventListener(type: string, listener: EventListener): void {
 		this.listeners.set(type, [
@@ -66,6 +69,16 @@ class TestWorker {
 						: { result: { capabilities: {} } }),
 				})
 			);
+		} else if (message.method === 'completionItem/resolve') {
+			this.lastResolve = message;
+			if (!this.delayResolves)
+				queueMicrotask(() =>
+					this.reply({
+						jsonrpc: '2.0',
+						id: message.id,
+						result: this.resolveResult,
+					})
+				);
 		} else if (message.method === 'textDocument/completion') {
 			this.lastCompletion = message;
 			if (!this.delayCompletions) {
@@ -197,7 +210,242 @@ function testCancellationToken() {
 }
 
 describe('PHPantom Monaco lifecycle', () => {
-	afterEach(() => vi.restoreAllMocks());
+	beforeEach(() => vi.clearAllMocks());
+	afterEach(() => {
+		vi.restoreAllMocks();
+		vi.useRealTimers();
+	});
+
+	it.each([
+		{ label: 'DateTime', imported: 'DateTime', initial: true },
+		{ label: 'Widget', imported: 'Vendor\\Widget', initial: false },
+		{ label: 'Widget', imported: 'Vendor\\Widget', initial: true },
+	])(
+		'maps initial=$initial and resolved imports for $label without duplication',
+		async ({ label, imported, initial }) => {
+			// Arrange
+			const document = testModel();
+			const monaco = testMonaco(document.model);
+			const worker = new TestWorker();
+			const edits = [
+				{
+					range: {
+						start: { line: 2, character: 0 },
+						end: { line: 2, character: 0 },
+					},
+					newText: `\nuse ${imported};\n`,
+				},
+			];
+			const raw = {
+				label,
+				kind: 7,
+				insertText: `${label}()$0`,
+				insertTextFormat: 2,
+				data: { uri: 'file:///app.php', symbol: imported },
+				...(initial ? { additionalTextEdits: edits } : {}),
+			};
+			worker.completionResult = { items: [raw] };
+			worker.resolveResult = {
+				...raw,
+				additionalTextEdits: edits,
+				detail: imported,
+			};
+			const sut = await LspClient.connect({
+				worker: worker as unknown as Worker,
+				model: document.model,
+				monaco: monaco.monaco,
+				phpVersion: '8.5',
+				onStatus: vi.fn(),
+			});
+			const provider = monaco.getActive()[0]
+				.provider as Monaco.languages.CompletionItemProvider;
+			const token = testCancellationToken().token;
+			const wantEdit = {
+				range: {
+					startLineNumber: 3,
+					startColumn: 1,
+					endLineNumber: 3,
+					endColumn: 1,
+				},
+				text: `\nuse ${imported};\n`,
+			};
+			const wantItem = {
+				label,
+				kind: 6,
+				detail: undefined,
+				documentation: undefined,
+				filterText: undefined,
+				sortText: undefined,
+				insertText: `${label}()$0`,
+				insertTextRules: 4,
+				range: {
+					startLineNumber: 3,
+					startColumn: 6,
+					endLineNumber: 3,
+					endColumn: 10,
+				},
+				additionalTextEdits: initial ? [wantEdit] : undefined,
+				command: undefined,
+			};
+			// Act
+			const completion = await provider.provideCompletionItems(
+				document.model,
+				{ lineNumber: 3, column: 10 } as Monaco.Position,
+				{ triggerKind: 1 },
+				token
+			);
+			const item = completion!.suggestions[0];
+			const resolved = await provider.resolveCompletionItem!(item, token);
+			const resolvedAgain = await provider.resolveCompletionItem!(
+				item,
+				token
+			);
+			const got = {
+				completion,
+				resolved,
+				resolvedAgain,
+				resolveRequest: worker.lastResolve?.params,
+			};
+			// Assert
+			expect(got).toEqual({
+				completion: { suggestions: [wantItem], incomplete: false },
+				resolved: {
+					...wantItem,
+					detail: imported,
+					additionalTextEdits: [wantEdit],
+				},
+				resolvedAgain: {
+					...wantItem,
+					detail: imported,
+					additionalTextEdits: [wantEdit],
+				},
+				resolveRequest: raw,
+			});
+			sut.dispose();
+		}
+	);
+
+	it.each(['change', 'cancel', 'dispose'] as const)(
+		'discards additional edits when resolve becomes stale through %s',
+		async (reason) => {
+			// Arrange
+			const document = testModel();
+			const monaco = testMonaco(document.model);
+			const worker = new TestWorker();
+			worker.completionResult = {
+				items: [
+					{
+						label: 'DateTime',
+						additionalTextEdits: [
+							{
+								range: {
+									start: { line: 0, character: 0 },
+									end: { line: 0, character: 0 },
+								},
+								newText: 'use DateTime;',
+							},
+						],
+					},
+				],
+			};
+			worker.delayResolves = true;
+			const sut = await LspClient.connect({
+				worker: worker as unknown as Worker,
+				model: document.model,
+				monaco: monaco.monaco,
+				phpVersion: '8.5',
+				onStatus: vi.fn(),
+			});
+			const provider = monaco.getActive()[0]
+				.provider as Monaco.languages.CompletionItemProvider;
+			const token = testCancellationToken();
+			const completion = await provider.provideCompletionItems(
+				document.model,
+				{ lineNumber: 1, column: 5 } as Monaco.Position,
+				{ triggerKind: 1 },
+				token.token
+			);
+			const item = completion!.suggestions[0];
+			// Act
+			const pending = provider.resolveCompletionItem!(item, token.token);
+			if (reason === 'change') document.change();
+			if (reason === 'cancel') token.cancel();
+			if (reason === 'dispose') sut.dispose();
+			worker.reply({
+				jsonrpc: '2.0',
+				id: worker.lastResolve?.id,
+				result: { label: 'DateTime', additionalTextEdits: [] },
+			});
+			const got = await pending;
+			// Assert
+			expect(got).toEqual({ ...item, additionalTextEdits: undefined });
+			sut.dispose();
+		}
+	);
+
+	it('retains the 15-second deadline for an unresponsive initialized worker', async () => {
+		// Arrange
+		vi.useFakeTimers();
+		const document = testModel();
+		const monaco = testMonaco(document.model);
+		const worker = new TestWorker();
+		vi.spyOn(worker, 'postMessage').mockImplementation(() => undefined);
+		// Act
+		const pending = LspClient.connect({
+			worker: worker as unknown as Worker,
+			model: document.model,
+			monaco: monaco.monaco,
+			phpVersion: '8.5',
+			onStatus: vi.fn(),
+		}).catch((error) => error);
+		await vi.advanceTimersByTimeAsync(15_000);
+		const got = await pending;
+		// Assert
+		expect({
+			error: got,
+			terminated: worker.terminated,
+			active: monaco.getActive(),
+		}).toEqual({
+			error: new Error('PHPantom timed out while handling initialize.'),
+			terminated: true,
+			active: [],
+		});
+	});
+
+	it('aborts pending initialization without publishing providers', async () => {
+		// Arrange
+		const document = testModel();
+		const monaco = testMonaco(document.model);
+		const worker = new TestWorker();
+		vi.spyOn(worker, 'postMessage').mockImplementation(() => undefined);
+		const controller = new AbortController();
+		const onStatus = vi.fn();
+		// Act
+		const pending = LspClient.connect({
+			worker: worker as unknown as Worker,
+			model: document.model,
+			monaco: monaco.monaco,
+			phpVersion: '8.5',
+			onStatus,
+			signal: controller.signal,
+		});
+		controller.abort();
+		const got = await pending.catch((error) => error);
+		// Assert
+		expect({
+			error: got,
+			active: monaco.getActive(),
+			terminated: worker.terminated,
+			status: onStatus.mock.calls,
+			listeners: [...worker.listeners.values()].flat(),
+		}).toEqual({
+			error: expect.any(Error),
+			active: [],
+			terminated: true,
+			status: [],
+			listeners: [],
+		});
+	});
 
 	it('preserves PHPantom snippet and variable edit completion shapes', async () => {
 		// Arrange

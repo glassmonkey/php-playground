@@ -1,7 +1,7 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Version } from '../../php-wasm/php';
 import { reviewedArtifactFor } from '../phpantom/artifact-registry';
-import { compiledPhpantomModule } from '../phpantom/wasm-module-cache';
+let compiledPhpantomModule: typeof import('../phpantom/wasm-module-cache').compiledPhpantomModule;
 
 const artifactSha =
 	'176d7c61743098b0e4ba6ce74751716e7154e1d9c9885b3788096a426e159bf3';
@@ -20,7 +20,52 @@ function digestBytes(hex: string): ArrayBuffer {
 }
 
 describe('compiled PHPantom module cache', () => {
-	afterEach(() => vi.restoreAllMocks());
+	beforeEach(async () => {
+		vi.resetModules();
+		({ compiledPhpantomModule } = await import(
+			'../phpantom/wasm-module-cache'
+		));
+	});
+	afterEach(() => {
+		vi.restoreAllMocks();
+		vi.useRealTimers();
+	});
+
+	it('bounds a stuck download and evicts it for a later attempt', async () => {
+		// Arrange
+		vi.useFakeTimers();
+		const fetchMock = vi
+			.spyOn(globalThis, 'fetch')
+			.mockImplementation(() => new Promise(() => undefined));
+		// Act
+		const pending = compiledPhpantomModule('8.5');
+		const got = pending.catch((error) => error);
+		await vi.advanceTimersByTimeAsync(60_000);
+		const error = await got;
+		const signal = fetchMock.mock.calls[0][1]?.signal;
+		fetchMock.mockResolvedValue({
+			ok: true,
+			arrayBuffer: async () => new ArrayBuffer(artifactSize),
+		} as Response);
+		vi.spyOn(crypto.subtle, 'digest').mockResolvedValue(
+			digestBytes(artifact85Sha)
+		);
+		const module = {} as WebAssembly.Module;
+		vi.spyOn(WebAssembly, 'compile').mockResolvedValue(module);
+		const retried = await compiledPhpantomModule('8.5');
+		// Assert
+		expect({
+			error,
+			aborted: signal?.aborted,
+			retried,
+			attempts: fetchMock.mock.calls.length,
+		}).toEqual({
+			error: new Error('PHPantom PHP 8.5 WASM loading timed out.'),
+			aborted: true,
+			retried: module,
+			attempts: 2,
+		});
+	});
 
 	it('shares a verified immutable module by PHP version and artifact SHA', async () => {
 		const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
@@ -47,7 +92,7 @@ describe('compiled PHPantom module cache', () => {
 		expect(fetchMock).toHaveBeenCalledTimes(1);
 		expect(fetchMock).toHaveBeenCalledWith(
 			`/lsp/phpantom/php-7.4.wasm?sha256=${artifactSha}`,
-			{ cache: 'force-cache' }
+			{ cache: 'force-cache', signal: expect.any(AbortSignal) }
 		);
 		expect(digest).toHaveBeenCalledTimes(1);
 		expect(compiled).toHaveBeenCalledTimes(1);
@@ -58,7 +103,7 @@ describe('compiled PHPantom module cache', () => {
 		expect(fetchMock).toHaveBeenCalledTimes(2);
 		expect(fetchMock).toHaveBeenLastCalledWith(
 			`/lsp/phpantom/php-8.5.wasm?sha256=${artifact85Sha}`,
-			{ cache: 'force-cache' }
+			{ cache: 'force-cache', signal: expect.any(AbortSignal) }
 		);
 		expect(digest).toHaveBeenCalledTimes(2);
 		expect(compiled).toHaveBeenCalledTimes(2);
