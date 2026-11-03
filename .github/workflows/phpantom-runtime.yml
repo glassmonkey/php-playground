@@ -9,7 +9,6 @@ on:
       - docs/lsp/phpantom.md
       - src/lsp/wasm/**
   pull_request:
-    branches: [master]
     paths:
       - Makefile
       - .github/workflows/phpantom-runtime.yml
