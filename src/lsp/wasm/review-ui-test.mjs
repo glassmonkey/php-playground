@@ -15,7 +15,17 @@ const report = { baseURL, startedAt: new Date().toISOString(), cases: [] };
 await mkdir(dirname(output), { recursive: true });
 const browser = await chromium.launch({ headless: true, timeout: 10_000 });
 const persist = () => writeFile(output, JSON.stringify(report, null, 2) + '\n');
+class FixtureError extends Error {}
+const selection = process.env.PHPANTOM_REVIEW_CASE ?? 'all';
+if (!['all', 'DateTime', 'Widget', 'startup'].includes(selection))
+	throw new Error('Unknown review case selection');
 async function run(name, action) {
+	const group = name.startsWith('namespaced DateTime')
+		? 'DateTime'
+		: name.startsWith('namespaced project')
+			? 'Widget'
+			: 'startup';
+	if (selection !== 'all' && selection !== group) return;
 	console.log(`START ${name}`);
 	const context = await browser.newContext();
 	const page = await context.newPage();
@@ -73,7 +83,8 @@ async function run(name, action) {
 	} catch (error) {
 		report.cases.push({
 			name,
-			status: 'failed',
+			status:
+				error instanceof FixtureError ? 'invalid-fixture' : 'failed',
 			error: String(error),
 			workers: await page
 				.evaluate(() => window.__reviewWorkers)
@@ -94,6 +105,9 @@ async function open(page, source = '<?php\nstr', version = '8.5', ac = '1') {
 	});
 	await page.goto(`${baseURL}/?${params}`, { timeout: 15_000 });
 	await page.locator('.monaco-editor .view-lines').waitFor();
+	await page.evaluate((source) => {
+		window.__reviewFixture = source;
+	}, source);
 }
 async function ready(page, version, after = -1) {
 	await page.waitForFunction(
@@ -171,9 +185,115 @@ async function focusEnd(page) {
 	await page.keyboard.press('ArrowRight');
 }
 
+async function modelSnapshot(page) {
+	return page.evaluate(() => {
+		const monaco =
+			window.monaco ?? window.require?.('vs/editor/editor.main');
+		const editor = monaco?.editor
+			.getEditors()
+			.find((e) => e.hasTextFocus());
+		if (!editor) return null;
+		return {
+			text: editor.getValue(),
+			version: editor.getModel().getVersionId(),
+			cursor: editor.getPosition(),
+			selection: editor.getSelection(),
+			fixture: window.__reviewFixture,
+		};
+	});
+}
 async function accept(page, label, suffix) {
 	await focusEnd(page);
+	const before = await modelSnapshot(page);
+	if (!before || before.text !== before.fixture)
+		throw new FixtureError(
+			`before-key model mismatch: ${JSON.stringify(before)}`
+		);
+	const lines = before.fixture.split('\n');
+	const cursor = {
+		lineNumber: lines.length,
+		column: lines.at(-1).length + 1,
+	};
+	if (
+		before.cursor.lineNumber !== cursor.lineNumber ||
+		before.cursor.column !== cursor.column ||
+		before.selection.startLineNumber !== cursor.lineNumber ||
+		before.selection.startColumn !== cursor.column ||
+		before.selection.endLineNumber !== cursor.lineNumber ||
+		before.selection.endColumn !== cursor.column
+	)
+		throw new FixtureError(
+			`before-key cursor/selection mismatch: ${JSON.stringify(before)}`
+		);
+	const expected = before.fixture + suffix;
 	await page.keyboard.type(suffix, { delay: 40 });
+	try {
+		await expect
+			.poll(async () => (await modelSnapshot(page))?.text)
+			.toBe(expected);
+		await expect.poll(() => text(page)).toBe(expected);
+	} catch (error) {
+		throw new FixtureError(
+			`latest didChange does not match actual input: ${error}; observed=${JSON.stringify(await modelSnapshot(page))}`
+		);
+	}
+	const after = await modelSnapshot(page);
+	if (after.version <= before.version)
+		throw new FixtureError('model version did not advance');
+	const position = {
+		line: cursor.lineNumber - 1,
+		character: cursor.column - 1 + suffix.length,
+	};
+	await page.waitForFunction(
+		(position) => {
+			const worker = window.__reviewWorkers
+				.filter(
+					(w) =>
+						!w.terminated &&
+						w.sent.some((m) => m.type === 'phpantom:bootstrap')
+				)
+				.at(-1);
+			const changeIndex = worker?.sent.findLastIndex(
+				(m) => m.method === 'textDocument/didChange'
+			);
+			return worker?.sent.some(
+				(m, i) =>
+					i > changeIndex &&
+					m.method === 'textDocument/completion' &&
+					m.params.position.line === position.line &&
+					m.params.position.character === position.character &&
+					worker.received.some((r) => r.id === m.id)
+			);
+		},
+		position,
+		{ timeout: 10_000 }
+	);
+	const protocol = await page.evaluate((position) => {
+		const worker = window.__reviewWorkers
+			.filter(
+				(w) =>
+					!w.terminated &&
+					w.sent.some((m) => m.type === 'phpantom:bootstrap')
+			)
+			.at(-1);
+		const change = worker.sent
+			.filter((m) => m.method === 'textDocument/didChange')
+			.at(-1);
+		const request = worker.sent
+			.filter(
+				(m) =>
+					m.method === 'textDocument/completion' &&
+					m.params.position.line === position.line &&
+					m.params.position.character === position.character
+			)
+			.at(-1);
+		return {
+			workerId: worker.id,
+			change,
+			request,
+			response: worker.received.find((m) => m.id === request.id),
+		};
+	}, position);
 	const rows = page.locator('.suggest-widget .monaco-list-row');
 	const row = rows
 		.filter({
@@ -186,8 +306,15 @@ async function accept(page, label, suffix) {
 	const displayed = await rows.allTextContents();
 	await row.click();
 	await page.keyboard.press('Escape');
-	return displayed;
+	return {
+		beforeKey: before,
+		afterKey: after,
+		protocol,
+		displayed,
+		documentAfterAcceptance: await text(page),
+	};
 }
+
 async function selectVersion(page, version) {
 	await page.locator('#select-input-php').fill(version);
 	await page.keyboard.press('Tab');
@@ -385,7 +512,10 @@ report.finishedAt = new Date().toISOString();
 report.summary = {
 	passed: report.cases.filter((c) => c.status === 'passed').length,
 	failed: report.cases.filter((c) => c.status === 'failed').length,
+	invalidFixture: report.cases.filter((c) => c.status === 'invalid-fixture')
+		.length,
 };
 await persist();
 console.log(JSON.stringify(report.summary));
-if (report.summary.failed) process.exitCode = 1;
+if (report.summary.failed || report.summary.invalidFixture)
+	process.exitCode = 1;
