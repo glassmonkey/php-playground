@@ -1,0 +1,18 @@
+diff --git a/php-src/Zend/zend_builtin_functions.c b/php-src/Zend/zend_builtin_functions.c
+index b7496ab..94b3981 100644
+--- a/php-src/Zend/zend_builtin_functions.c
++++ b/php-src/Zend/zend_builtin_functions.c
+@@ -2189,11 +2189,11 @@ static int add_extension_info(zval *item, void *arg) /* {{{ */
+ }
+ /* }}} */
+ 
+-static int add_zendext_info(zend_extension *ext, void *arg) /* {{{ */
++/* Called through llist_apply_with_arg_func_t, which returns void. */
++static void add_zendext_info(zend_extension *ext, void *arg) /* {{{ */
+ {
+ 	zval *name_array = (zval *)arg;
+ 	add_next_index_string(name_array, ext->name);
+-	return 0;
+ }
+ /* }}} */
+ 

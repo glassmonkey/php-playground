@@ -1,6 +1,25 @@
 # Originally forked from https://github.com/WordPress/wordpress-playground
 # ubuntu:noble supports amd64 and arm64 (Apple Silicon)
-FROM ubuntu:noble as emscripten
+ARG BASE_IMAGE=ubuntu@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac
+
+# Keep dependency pins together so update tooling can read and change them.
+ARG EMSDK_VERSION=6.0.13
+ARG EMSDK_REPO_REF=d7b4130688bfa348392b921ab04015aa15c4f154
+ARG ZLIB_VERSION=1.3.2
+ARG ZLIB_SHA256=bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16
+ARG LIBZIP_VERSION=1.9.2
+ARG LIBXML2_VERSION=2.9.10
+ARG SQLITE_AUTOCONF_VERSION=3400100
+ARG SQLITE_RELEASE_YEAR=2022
+ARG OPENSSL_VERSION=1.1.1w
+ARG OPENSSL_SHA256=cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8
+ARG OPENSSL_RELEASE_SERIES=1.1.1
+ARG LIBPNG_VERSION=1.6.39
+
+# PHP <= 7.3 needs these older dependency versions.
+ARG LIBZIP_LEGACY_VERSION=1.2.0
+ARG BISON_LEGACY_VERSION=2.7
+FROM ${BASE_IMAGE} as emscripten
 
 SHELL ["/bin/bash", "-c"]
 
@@ -35,18 +54,19 @@ RUN set -euxo pipefail;\
 # Install Emscripten from the repository. We'd use the official
 # Docker image, but there is no arm64 image available which makes
 # the build take forever on Apple Silicon.
-#
-# The version is pinned because newer releases break this build:
-# * 5.0.4+ runs --fpcast-emu before --post-emscripten, which makes
-#   wasm-opt crash for PHP < 8.0 (EMULATE_FUNCTION_POINTER_CASTS).
-# * 6.0.3+ already emits stream.stream_ops?.poll and 6.0.13+ no longer
-#   emits the ENVIRONMENT_IS_* variables, so the php.js post-processing
-#   step below finds nothing to replace and fails.
-ARG EMSDK_VERSION=4.0.22
+ARG EMSDK_VERSION
+ARG EMSDK_REPO_REF
 RUN ln -s /usr/bin/python3 /usr/bin/python
 RUN git clone https://github.com/emscripten-core/emsdk.git && \
+    if [ -n "$EMSDK_REPO_REF" ]; then \
+        cd emsdk && git fetch --depth 1 origin "$EMSDK_REPO_REF" && git checkout --detach FETCH_HEAD && \
+        test "$(git rev-parse HEAD)" = "$EMSDK_REPO_REF" && cd /root; \
+    fi && \
+    echo "EMSDK_REPO_SHA=$(git -C /root/emsdk rev-parse HEAD)" && \
     ./emsdk/emsdk install $EMSDK_VERSION && \
-    /root/emsdk/emsdk activate $EMSDK_VERSION
+    /root/emsdk/emsdk activate $EMSDK_VERSION && \
+    source /root/emsdk/emsdk_env.sh && \
+    emcc --version
 
 RUN mkdir -p /root/lib/lib /root/lib/include /root/lib/share /root/lib/bin
 
@@ -95,106 +115,59 @@ fi\n\
 
 # Compile libz
 FROM emscripten AS emscripten-libz
-COPY build-assets/zlib /root/zlib
-RUN source /root/emsdk/emsdk_env.sh && \
-    cd /root/zlib && \
-    emconfigure ./configure --prefix=/root/lib && \
-    # emmake make fails, but only after it builds the library files.
-    # Let's just ignore the errors and proceed with the built libraries.
-    (EMCC_FLAGS="-fPIC" emmake make || true) && \
+ARG ZLIB_VERSION
+ARG ZLIB_SHA256
+RUN set -euxo pipefail && \
+    source /root/emsdk/emsdk_env.sh && \
+    wget -O zlib-$ZLIB_VERSION.tar.gz https://zlib.net/zlib-$ZLIB_VERSION.tar.gz && \
+    echo "$ZLIB_SHA256  zlib-$ZLIB_VERSION.tar.gz" | sha256sum -c - && \
+    tar -xzf zlib-$ZLIB_VERSION.tar.gz && \
+    cd zlib-$ZLIB_VERSION && \
+    emconfigure ./configure --static --prefix=/root/lib && \
+    EMCC_FLAGS="-fPIC" emmake make -j 2 libz.a && \
     EMCC_FLAGS="-fPIC" emmake make install
 
 # Compile libzip
 FROM emscripten AS emscripten-libzip
 ARG PHP_VERSION
+ARG LIBZIP_VERSION
+ARG LIBZIP_LEGACY_VERSION
 COPY --from=emscripten-libz /root/lib /root/lib-libz
+# Older libzip releases hard-code the zip target as SHARED and do not consume
+# BUILD_SHARED_LIBS. Normalize that source declaration so the existing OFF
+# setting selects a static archive, without a PHP-version condition.
 RUN /root/copy-lib.sh lib-libz
-RUN     if [[ "${PHP_VERSION:0:1}" -le "7" && "${PHP_VERSION:2:1}" -le "3" ]] || [ "${PHP_VERSION:0:1}" -le "5" ]; then \
-            export LIBZIP_VERSION=1.2.0; \
-        else \
-            export LIBZIP_VERSION=1.9.2; \
+RUN if [[ "${PHP_VERSION:0:1}" -le "7" && "${PHP_VERSION:2:1}" -le "3" ]] || [ "${PHP_VERSION:0:1}" -le "5" ]; then \
+            export LIBZIP_VERSION="$LIBZIP_LEGACY_VERSION"; \
         fi && \
         cd /root && \
         curl -k https://libzip.org/download/libzip-$LIBZIP_VERSION.tar.gz -o libzip-$LIBZIP_VERSION.tar.gz && \
         tar -xzf libzip-$LIBZIP_VERSION.tar.gz && \
-        mv libzip-$LIBZIP_VERSION libzip;
+        mv libzip-$LIBZIP_VERSION libzip && \
+        shared_target_count=$(grep -Fc 'ADD_LIBRARY(zip SHARED ' libzip/lib/CMakeLists.txt || true) && \
+        if [ "$shared_target_count" = "1" ]; then \
+            sed -i 's/ADD_LIBRARY(zip SHARED /ADD_LIBRARY(zip /' libzip/lib/CMakeLists.txt; \
+        elif [ "$shared_target_count" != "0" ]; then \
+            echo "Expected at most one explicit shared libzip target; found $shared_target_count" >&2; exit 1; \
+        fi
 RUN mkdir -p libzip/build
 RUN cd libzip/build && \
         source /root/emsdk/emsdk_env.sh && \
         emcmake cmake \
             -DCMAKE_INSTALL_PREFIX=/root/lib \
+            -DBUILD_SHARED_LIBS=OFF \
             -DZLIB_LIBRARY=/root/lib/lib/libz.a \
             -DZLIB_INCLUDE_DIR=/root/lib/include \
             ..
-RUN cd libzip/build && source /root/emsdk/emsdk_env.sh && EMCC_SKIP="-lz" EMCC_FLAGS=" -sSIDE_MODULE " emmake make
-RUN cd libzip/build && source /root/emsdk/emsdk_env.sh && EMCC_SKIP="-lz" EMCC_FLAGS=" -sSIDE_MODULE " emmake make install
-
-# Compile ncurses
-FROM emscripten AS emscripten-ncurses
-COPY build-assets/ncurses.patch /root/
-RUN     set -euxo pipefail &&\
-        # Install libncurses
-        wget https://ftp.gnu.org/gnu/ncurses/ncurses-6.2.tar.gz && \
-        tar -xzf ncurses-6.2.tar.gz && \
-        # https://github.com/jamesbiv/ncurses-emscripten
-        # https://github.com/ilyaigpetrov/ncurses-for-emscripten/blob/27fefcd3784e7375212b75f444def4518ddabc21/COMPILE.md
-        cd ncurses-6.2 && \
-        ./configure \
-            PKG_CONFIG_PATH=$PKG_CONFIG_PATH \
-            --build i386-pc-linux-gnu \
-            --prefix=/root/lib/ \
-            --enable-database && \
-        make && \
-        make install  && \
-        cd ncurses  && \
-        cp make_hash make_hash_x86  && \
-        cp make_keys make_keys_x86  && \
-        cp report_offsets report_offsets_x86   && \
-        cd /root/ncurses-6.2 && \
-        make clean && \
-        git apply --ignore-space-change --ignore-whitespace --no-index /root/ncurses.patch && \
-        source /root/emsdk/emsdk_env.sh && \
-        emconfigure ./configure \
-            PKG_CONFIG_PATH=$PKG_CONFIG_PATH \
-            --build i386-pc-linux-gnu \
-            --prefix=/root/lib && \
-        /root/replace.sh $'s/^\s+cd man.*$//g' Makefile && \
-        /root/replace.sh $'s/^\s+cd progs.*$//g' Makefile && \
-        /root/replace.sh $'s/^\s+cd test.*$//g' Makefile && \
-        /root/replace.sh $'s/^\s+cd misc.*$//g' Makefile && \
-        /root/replace.sh $'s/^\s+cd c\+\+.*$//g' Makefile && \
-        emmake make && \
-        emmake make install
-
-# Compile libedit (readline alternative)
-FROM emscripten AS emscripten-libedit
-COPY --from=emscripten-ncurses /root/lib /root/lib-ncurses
-RUN /root/copy-lib.sh lib-ncurses
-RUN     wget https://www.thrysoee.dk/editline/libedit-20221030-3.1.tar.gz && \
-        tar -xzf libedit-20221030-3.1.tar.gz  && \
-        source /root/emsdk/emsdk_env.sh && \
-        cd libedit-20221030-3.1 && \
-        CFLAGS="-I/root/lib/include -I/root/lib/include/ncurses -I/root/lib/include/termcap " \
-        CPPFLAGS="-I/root/lib/include -I/root/lib/include/ncurses -I/root/lib/include/termcap " \
-        LDFLAGS="-L/root/lib/lib " emconfigure ./configure \
-            PKG_CONFIG_PATH=$PKG_CONFIG_PATH \
-            --build i386-pc-linux-gnu \
-            --prefix=/root/lib/ && \
-        # -D__STDC_ISO_10646__=201103L is needed because
-        # Libedit build fails when __STDC_ISO_10646__ is not defined, and that is
-        # the case when compiling with musl toolchains.
-        # Musl is ISO 10646 compliant but doesn't define __STDC_ISO_10646__, so
-        # let's define it manually. Learn more at:
-        # http://lists.busybox.net/pipermail/buildroot/2016-January/149100.html
-        EMCC_SKIP="-lc -lncurses " EMCC_FLAGS=" -sSIDE_MODULE -D__STDC_ISO_10646__=201103L " \
-        emmake make && \
-        emmake make install
+RUN cd libzip/build && source /root/emsdk/emsdk_env.sh && EMCC_SKIP="-lz" emmake make
+RUN cd libzip/build && source /root/emsdk/emsdk_env.sh && EMCC_SKIP="-lz" emmake make install
 
 # Compile Libxml2
 FROM emscripten AS emscripten-libxml
+ARG LIBXML2_VERSION
 RUN source /root/emsdk/emsdk_env.sh && \
     env GIT_SSL_NO_VERIFY=true git clone https://gitlab.gnome.org/GNOME/libxml2.git libxml2 \
-        --branch v2.9.10 \
+        --branch v$LIBXML2_VERSION \
         --single-branch     \
         --depth 1 && \
     cd libxml2 && \
@@ -204,12 +177,13 @@ RUN source /root/emsdk/emsdk_env.sh && \
     emmake make install
 
 # Compile Bison 2.7 (for PHP  <=7.3)
-FROM emscripten AS emscripten-bison-2-7
+FROM emscripten AS emscripten-bison-legacy
+ARG BISON_LEGACY_VERSION
 COPY build-assets/bison27.patch /root/bison27.patch
-RUN wget http://ftp.gnu.org/gnu/bison/bison-2.7.tar.gz && \
-    tar -xvf bison-2.7.tar.gz && \
-    rm bison-2.7.tar.gz && \
-    cd bison-2.7 && \
+RUN wget http://ftp.gnu.org/gnu/bison/bison-$BISON_LEGACY_VERSION.tar.gz && \
+    tar -xvf bison-$BISON_LEGACY_VERSION.tar.gz && \
+    rm bison-$BISON_LEGACY_VERSION.tar.gz && \
+    cd bison-$BISON_LEGACY_VERSION && \
     git apply --no-index /root/bison27.patch && \
     ./configure --prefix=/usr/local/bison --with-libiconv-prefix=/usr/local/libiconv/ && \
     make && \
@@ -219,10 +193,12 @@ RUN wget http://ftp.gnu.org/gnu/bison/bison-2.7.tar.gz && \
 FROM emscripten AS emscripten-sqlite3
 COPY --from=emscripten-libz /root/lib /root/lib-libz
 RUN /root/copy-lib.sh lib-libz
-RUN     set -euxo pipefail &&\
-        wget --no-check-certificate https://www.sqlite.org/2022/sqlite-autoconf-3400100.tar.gz && \
-        tar -xzvf sqlite-autoconf-3400100.tar.gz && \
-        cd sqlite-autoconf-3400100 && \
+ARG SQLITE_AUTOCONF_VERSION
+ARG SQLITE_RELEASE_YEAR
+RUN set -euxo pipefail &&\
+        wget --no-check-certificate https://www.sqlite.org/$SQLITE_RELEASE_YEAR/sqlite-autoconf-$SQLITE_AUTOCONF_VERSION.tar.gz && \
+        tar -xzvf sqlite-autoconf-$SQLITE_AUTOCONF_VERSION.tar.gz && \
+        cd sqlite-autoconf-$SQLITE_AUTOCONF_VERSION && \
         source /root/emsdk/emsdk_env.sh && \
         emconfigure ./configure \
             --build i386-pc-linux-gnu \
@@ -234,30 +210,35 @@ RUN     set -euxo pipefail &&\
 # Compile OpenSSL
 # Inspired by: https://github.com/TrueBitFoundation/wasm-ports/blob/79aac7272729baaf131ca0c49cc3b684eedff835/openssl.sh
 FROM emscripten AS emscripten-openssl
-ARG PHP_VERSION
 COPY --from=emscripten-libz /root/lib /root/lib-libz
 RUN /root/copy-lib.sh lib-libz
+ARG OPENSSL_VERSION
+ARG OPENSSL_SHA256
+ARG OPENSSL_RELEASE_SERIES
+# Generate headers before compiling the libraries in parallel.
 RUN set -euxo pipefail && \
     source /root/emsdk/emsdk_env.sh && \
-    export OPENSSL_VERSION=1.1.0h && \
-    wget https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz && \
+    wget -O openssl-$OPENSSL_VERSION.tar.gz https://www.openssl.org/source/old/$OPENSSL_RELEASE_SERIES/openssl-$OPENSSL_VERSION.tar.gz && \
+    echo "$OPENSSL_SHA256  openssl-$OPENSSL_VERSION.tar.gz" | sha256sum -c - && \
     tar xf openssl-$OPENSSL_VERSION.tar.gz && \
     cd openssl-$OPENSSL_VERSION && \
-    emconfigure ./Configure dist -DHAVE_FORK=0 -DOPENSSL_NO_AFALGENG=1 no-threads --prefix=/root/lib && \
+    emconfigure ./Configure linux-generic32 no-asm no-shared -DHAVE_FORK=0 -DOPENSSL_NO_AFALGENG=1 no-threads --prefix=/root/lib && \
     sed -i 's|^CROSS_COMPILE.*$|CROSS_COMPILE=|g' Makefile && \
-    EMCC_FLAGS=" -sSIDE_MODULE " EMCC_SKIP="-lz" emmake make -j 12 build_generated libssl.a libcrypto.a; \
+    emmake make build_generated && \
+    EMCC_FLAGS=" -sSIDE_MODULE " EMCC_SKIP="-lz" emmake make -j 12 libssl.a libcrypto.a && \
     cp -RL include/openssl /root/lib/include && \
     cp libcrypto.a libssl.a /root/lib/lib && \
-    EMCC_FLAGS=" -sSIDE_MODULE " EMCC_SKIP="-lz" emmake make install;
+    EMCC_FLAGS=" -sSIDE_MODULE " EMCC_SKIP="-lz" emmake make install
 
 # Compile libpng
 FROM emscripten AS emscripten-libpng
 COPY --from=emscripten-libz /root/lib /root/lib-libz
 RUN /root/copy-lib.sh lib-libz
-RUN wget http://prdownloads.sourceforge.net/libpng/libpng-1.6.39.tar.gz?download -O libpng-1.6.39.tar.gz
-RUN tar -xzf libpng-1.6.39.tar.gz
-WORKDIR /root/libpng-1.6.39
-RUN     source /root/emsdk/emsdk_env.sh && \
+ARG LIBPNG_VERSION
+RUN wget http://prdownloads.sourceforge.net/libpng/libpng-$LIBPNG_VERSION.tar.gz?download -O libpng-$LIBPNG_VERSION.tar.gz
+RUN tar -xzf libpng-$LIBPNG_VERSION.tar.gz
+WORKDIR /root/libpng-${LIBPNG_VERSION}
+RUN source /root/emsdk/emsdk_env.sh && \
         CPPFLAGS="-I/root/lib/include " \
         LDFLAGS="-L/root/lib/lib " \
         emconfigure ./configure \
@@ -271,10 +252,15 @@ RUN source /root/emsdk/emsdk_env.sh && emmake make install
 # Clone PHP
 FROM emscripten AS emscripten-php-src
 ARG PHP_VERSION
-RUN git clone https://github.com/php/php-src.git php-src \
-    --branch PHP-$PHP_VERSION   \
-    --single-branch          \
-    --depth 1;
+ARG PHP_SOURCE_REF=
+RUN if [ -n "$PHP_SOURCE_REF" ]; then \
+        git init php-src && cd php-src && git remote add origin https://github.com/php/php-src.git && \
+        git fetch --depth 1 origin "$PHP_SOURCE_REF" && git checkout --detach FETCH_HEAD && \
+        test "$(git rev-parse HEAD)" = "$PHP_SOURCE_REF"; \
+    else \
+        git clone https://github.com/php/php-src.git php-src --branch PHP-$PHP_VERSION --single-branch --depth 1; \
+    fi && \
+    echo "PHP_SOURCE_SHA=$(git -C /root/php-src rev-parse HEAD)"
 
 
 # Build PHP
@@ -288,21 +274,7 @@ FROM emscripten AS emscripten-php
 # but just "7" is invalid because there's no branch PHP-7.
 ARG PHP_VERSION
 
-# The PHP extensions to build:
-ARG WITH_VRZNO
-ARG WITH_LIBXML
-ARG WITH_LIBZIP
-ARG WITH_LIBPNG
-ARG WITH_MBSTRING
-ARG WITH_CLI_SAPI
-ARG WITH_SQLITE
-ARG WITH_MYSQL
-ARG WITH_OPENSSL
-ARG WITH_WS_NETWORKING_PROXY
-
-# The platform to build for: web or node
-ARG EMSCRIPTEN_ENVIRONMENT=web
-
+# The optional PHP extensions to build:
 RUN touch /root/.configure-flags && \
     touch /root/.emcc-php-wasm-flags && \
     touch /root/.emcc-php-wasm-sources && \
@@ -312,11 +284,11 @@ RUN touch /root/.configure-flags && \
 COPY --from=emscripten-php-src /root/php-src /root/php-src
 RUN cd php-src && ./buildconf --force
 
-# Add libzip and zlib files if needed
+# Add libzip and zlib files
+ARG LIBZIP_LEGACY_VERSION
 COPY --from=emscripten-libz /root/lib /root/lib-libz
 COPY --from=emscripten-libzip /root/lib /root/lib-libzip
-RUN if [ "$WITH_LIBZIP" = "yes" ]; then \
-        /root/copy-lib.sh lib-libz; \
+RUN /root/copy-lib.sh lib-libz && \
         /root/copy-lib.sh lib-libzip && \
         if [ "${PHP_VERSION:0:1}" -le "5" ]; then \
             /root/replace.sh 's/ZEND_MODULE_GLOBALS_CTOR_N/(void (*)(void *))ZEND_MODULE_GLOBALS_CTOR_N/g' /root/php-src/ext/zlib/zlib.c; \
@@ -325,47 +297,25 @@ RUN if [ "$WITH_LIBZIP" = "yes" ]; then \
             apt install -y zlib1g zlib1g-dev; \
             # https://php-legacy-docs.zend.com/manual/php5/en/zlib.installation
             echo -n ' --with-zlib --with-zlib-dir=/root/lib --enable-zip --with-libzip=/root/lib ' >> /root/.php-configure-flags; \
-            echo -n ' -I /root/zlib -I /root/libzip ' >> /root/.emcc-php-wasm-flags; \
-            echo -n ' /root/lib/lib/libzip.a /root/lib/lib/libz.a' >> /root/.emcc-php-wasm-sources; \
             cp /root/lib/lib/libzip/include/zipconf.h /root/lib/lib; \
             cp /root/lib/lib/libzip/include/zipconf.h /root/lib/include; \
-            echo '#define LIBZIP_VERSION "1.2.0"' >> /root/lib/include/zipconf.h; \
+            echo "#define LIBZIP_VERSION \"$LIBZIP_LEGACY_VERSION\"" >> /root/lib/include/zipconf.h; \
             cp /root/lib/include/*.h /root/php-src; \
         else \
             # https://www.php.net/manual/en/zlib.installation.php
             echo -n ' --with-zlib --with-zlib-dir=/root/lib --with-zip' >> /root/.php-configure-flags; \
-            echo -n ' -I /root/zlib -I /root/libzip' >> /root/.emcc-php-wasm-flags; \
-            echo -n ' /root/lib/lib/libzip.a /root/lib/lib/libz.a' >> /root/.emcc-php-wasm-sources; \
         fi && \
+        echo -n ' -I /root/zlib -I /root/libzip ' >> /root/.emcc-php-wasm-flags && \
+        echo -n ' /root/lib/lib/libzip.a /root/lib/lib/libz.a' >> /root/.emcc-php-wasm-sources && \
         /root/replace.sh 's/pharcmd=pharcmd/pharcmd=/g' /root/php-src/configure && \
-        /root/replace.sh 's/pharcmd_install=install-pharcmd/pharcmd_install=/g' /root/php-src/configure; \
-    fi;
+        /root/replace.sh 's/pharcmd_install=install-pharcmd/pharcmd_install=/g' /root/php-src/configure
 
-# Add ncurses if needed and libedit if needed
-COPY --from=emscripten-libedit /root/lib /root/lib-libedit
-COPY --from=emscripten-ncurses /root/lib /root/lib-ncurses
-RUN if [ "$WITH_CLI_SAPI" = "yes" ]; \
-    then \
-        /root/copy-lib.sh lib-ncurses && \
-        /root/copy-lib.sh lib-libedit && \
-        # Configure build flags
-        echo -n ' --enable-phar --enable-cli=static --enable-readline --with-libedit=/root/lib ' >> /root/.php-configure-flags && \
-        echo -n ' sapi/cli/php_cli_process_title.c sapi/cli/ps_title.c sapi/cli/php_http_parser.c sapi/cli/php_cli_server.c sapi/cli/php_cli.c ' \
-            >> /root/.emcc-php-wasm-sources && \
-        echo -n ', "_run_cli", "_wasm_add_cli_arg"' >> /root/.EXPORTED_FUNCTIONS && \
-        echo -n ' -DWITH_CLI_SAPI=1 -lncurses -ledit ' >> /root/.emcc-php-wasm-flags && \
-        # Disable dlopen() in the readline PHP extension
-        echo '#undef COMPILE_DL_READLINE' >> /root/php-src/main/php_config.h && \
-        /root/replace.sh 's/GET_SHELL_CB\(cb\);/(cb) = php_cli_get_shell_callbacks();/g' /root/php-src/ext/readline/readline_cli.c; \
-    else \
-        echo -n ' --disable-cli ' >> /root/.php-configure-flags; \
-    fi;
+# The Web SAPI does not include PHP CLI or terminal libraries.
+RUN echo -n ' --disable-cli ' >> /root/.php-configure-flags
 
-# Add Libxml2 if needed
+# Add Libxml2
 COPY --from=emscripten-libxml /root/lib /root/lib-libxml
-RUN if [ "$WITH_LIBXML" = "yes" ]; \
-    then \
-        set -euxo pipefail;\
+RUN set -euxo pipefail;\
         bash /root/copy-lib.sh lib-libxml && \
         echo -n ' --enable-libxml --with-libxml --with-libxml-dir=/root/lib --enable-dom --enable-xml --enable-simplexml --enable-xmlwriter' >> /root/.php-configure-flags && \
         echo -n ' -I /root/libxml2 -lxml2' >> /root/.emcc-php-wasm-flags && \
@@ -376,44 +326,30 @@ RUN if [ "$WITH_LIBXML" = "yes" ]; \
         # On PHP < 7.1.0, the dom_iterators.c file implicitly converts *char to const *char causing emcc error
         if [[ "${PHP_VERSION:0:1}" -le "7" && "${PHP_VERSION:2:1}" -le "0" ]] || [ "${PHP_VERSION:0:1}" -le "5" ]; then \
             /root/replace.sh 's/xmlHashScan\(ht, itemHashScanner, iter\);/xmlHashScan(ht, (xmlHashScanner)itemHashScanner, iter);/g' /root/php-src/ext/dom/dom_iterators.c; \
-        fi; \
-    else \
-        echo -n ' --disable-libxml --without-libxml --disable-dom --disable-xml --disable-simplexml --disable-xmlwriter' >> /root/.php-configure-flags; \
-    fi
+        fi
 
-# Add sqlite3 if needed
+# Add sqlite3
 COPY --from=emscripten-sqlite3 /root/lib /root/lib-sqlite3
-RUN if [ "$WITH_SQLITE" = "yes" ]; \
-    then \
-        bash /root/copy-lib.sh lib-sqlite3 && \
+RUN bash /root/copy-lib.sh lib-sqlite3 && \
         echo -n ' --with-sqlite3 --enable-pdo --with-pdo-sqlite ' >> /root/.php-configure-flags && \
-        echo -n ' -I ext/pdo_sqlite ' >> /root/.emcc-php-wasm-flags; \
-        if [[ "${PHP_VERSION:0:1}" -eq "7" && "${PHP_VERSION:2:1}" -ge "4" ]] || [ "${PHP_VERSION:0:1}" -eq "8" ]; then \
-            echo -n ' -lsqlite3 ' >> /root/.emcc-php-wasm-flags; \
-        fi; \
-    fi;
+        echo -n ' -I ext/pdo_sqlite ' >> /root/.emcc-php-wasm-flags && \
+        echo -n ' /root/lib/lib/libsqlite3.a ' >> /root/.emcc-php-wasm-sources
 
-# Add libpng if needed
+# Add libpng
 COPY --from=emscripten-libpng /root/lib /root/lib-libpng
-RUN if [ "$WITH_LIBPNG" = "yes" ]; \
-    then \
-        bash /root/copy-lib.sh lib-libpng && \
+RUN bash /root/copy-lib.sh lib-libpng && \
         echo -n ' --with-png-dir=/root/lib --with-gd --enable-gd ' >> /root/.php-configure-flags && \
-        echo -n ' -I /root/zlib -I /root/libpng16 -lz -lpng16 ' >> /root/.emcc-php-wasm-flags; \
-    fi;
+        echo -n ' -I /root/zlib -I /root/libpng16 -lz /root/lib/lib/libpng16.a ' >> /root/.emcc-php-wasm-flags
 
-# Add openssl if needed
+# Add openssl
 COPY --from=emscripten-openssl /root/lib /root/lib-openssl
-RUN if [ "$WITH_OPENSSL" = "yes" ]; \
-    then \
-        bash /root/copy-lib.sh lib-openssl; \
-        echo -n ' --with-openssl --with-openssl-dir=/root/lib ' >> /root/.php-configure-flags; \
-        echo -n ' -lssl -lcrypto ' >> /root/.emcc-php-wasm-flags; \
-    fi;
+RUN bash /root/copy-lib.sh lib-openssl && \
+    echo -n ' --with-openssl --with-openssl-dir=/root/lib ' >> /root/.php-configure-flags && \
+    echo -n ' -lssl -lcrypto ' >> /root/.emcc-php-wasm-flags
 
 # PHP <= 7.3 requires Bison 2.7
 # PHP >= 7.4 and Bison 3.0
-COPY --from=emscripten-bison-2-7 /usr/local/bison /root/linked-bison-27
+COPY --from=emscripten-bison-legacy /usr/local/bison /root/linked-bison-27
 RUN if [[ "${PHP_VERSION:0:1}" -le "7" && "${PHP_VERSION:2:1}" -le "3" ]] || [ "${PHP_VERSION:0:1}" -le "5" ]; then \
         mv /root/linked-bison-27 /usr/local/bison && \
         ln -s /usr/local/bison/bin/bison /usr/bin/bison && \
@@ -422,11 +358,8 @@ RUN if [[ "${PHP_VERSION:0:1}" -le "7" && "${PHP_VERSION:2:1}" -le "3" ]] || [ "
         apt install -y bison; \
     fi;
 
-# Add mbstring if needed
-RUN if [ "$WITH_MBSTRING" = "yes" ]; \
-    then echo -n ' --enable-mbstring ' >> /root/.php-configure-flags; \
-    else echo -n ' --disable-mbstring ' >> /root/.php-configure-flags; \
-    fi;
+# Add mbstring
+RUN echo -n ' --enable-mbstring ' >> /root/.php-configure-flags
 
 # Disable JIT on wasm target (opcache build pulls JIT headers otherwise)
 RUN if [ "${PHP_VERSION:0:1}" -ge "8" ]; then \
@@ -443,25 +376,19 @@ RUN cd /root && \
     fi && \
     touch php-src/patched
 
-# Add VRZNO if needed
-RUN if [ "$WITH_VRZNO" = "yes" ]; \
-    then \
-        git clone https://github.com/seanmorris/vrzno.git php-src/ext/vrzno \
-            --branch DomAccess \
-            --single-branch    \
-            --depth 1; \
-        echo -n ' --enable-vrzno' >> /root/.php-configure-flags; \
-        echo -n ' -DWITH_VRZNO=1' >> /root/.emcc-php-wasm-flags; \
-        echo -n ', "_exec_callback", "_del_callback"' >> /root/.EXPORTED_FUNCTIONS; \
-    fi
-
-# Install Mysql support if needed
-RUN if [ "$WITH_MYSQL" = "yes" ]; then \
-        echo -n ' --enable-mysql --enable-pdo --with-mysql=mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd ' >> /root/.php-configure-flags; \
-    fi
-
 # Build the patched PHP
 WORKDIR /root/php-src
+# Emscripten configure checks execute their test modules under Node from this
+# working directory. Make linked side modules discoverable from the test CWD.
+RUN set -eu; \
+    for library in /root/lib/lib/*.so; do \
+        [ -f "$library" ] || continue; \
+        module="/root/php-src/${library##*/}"; \
+        if [ ! -e "$module" ] && [ ! -L "$module" ]; then \
+            ln -s "$library" "$module"; \
+        fi; \
+    done
+
 RUN source /root/emsdk/emsdk_env.sh && \
     emconfigure ./configure \
     PKG_CONFIG_PATH=$PKG_CONFIG_PATH \
@@ -525,9 +452,11 @@ RUN echo 'extern int wasm_close(int fd);' >> /root/php-src/main/php_config.h;
 
 RUN source /root/emsdk/emsdk_env.sh && \
     # We're compiling PHP as emscripten's side module...
-    EMCC_FLAGS=" -sSIDE_MODULE -Dsetsockopt=wasm_setsockopt -Dpopen=wasm_popen -Dpclose=wasm_pclose " \
+    # Use the common JavaScript longjmp implementation for every PHP version.
+    # This must match SUPPORT_LONGJMP in the final link below.
+    EMCC_FLAGS=" -sSIDE_MODULE -sSUPPORT_LONGJMP=emscripten -Dsetsockopt=wasm_setsockopt -Dpopen=wasm_popen -Dpclose=wasm_pclose " \
     # ...which means we must skip all the libraries - they will be provided in the final linking step.
-    EMCC_SKIP="-lz -ledit -ldl -lncurses -lzip -lpng16 -lssl -lcrypto -lxml2 -lc -lm -lsqlite3 /root/lib/lib/libxml2.a /root/lib/lib/libsqlite3.so /root/lib/lib/libsqlite3.a /root/lib/lib/libpng16.so" \
+    EMCC_SKIP="-lz -ldl -lzip -lpng16 -lssl -lcrypto -lxml2 -lc -lm -lsqlite3 /root/lib/lib/libxml2.a /root/lib/lib/libsqlite3.so /root/lib/lib/libsqlite3.a /root/lib/lib/libpng16.so" \
     emmake make -j8
 
 RUN cp -v /root/php-src/.libs/libphp*.la /root/lib/libphp.la
@@ -535,327 +464,10 @@ RUN cp -v /root/php-src/.libs/libphp*.a /root/lib/libphp.a
 
 COPY build-assets/php_wasm.c /root/
 
-RUN if [ "$EMSCRIPTEN_ENVIRONMENT" = "node" ]; then \
-        # Add nodefs when building for node.js
-        echo -n ' -lnoderawfs.js -s NODERAWFS=1 ' >> /root/.emcc-php-wasm-flags; \
-        # Preserve symbol names in node.js build – the bundle size doesn't matter as much
-        # as on the web, and this makes debugging **much** easier.
-        echo -n ' -g2 ' >> /root/.emcc-php-wasm-flags; \
-    fi
-
-# PHP < 8.0 errors out with "null function or function signature mismatch"
-# unless EMULATE_FUNCTION_POINTER_CASTS is enabled. The error originates in
-# the rc_dtor_func which traces back to calling the zend_list_free function.
-# The signatures are the same on the face value, but the wasm runtime is not
-# happy somehow. This can probably be patched in PHP, but for now we just
-# enable the flag and pay the price of the additional overhead.
-# https://emscripten.org/docs/porting/guidelines/function_pointer_issues.html
-RUN if [ "${PHP_VERSION:0:1}" -lt "8" ]; then \
-        echo -n ' -s EMULATE_FUNCTION_POINTER_CASTS=1' >> /root/.emcc-php-wasm-flags; \
-    fi
-
-# Add ws networking proxy support if needed
-RUN if [ "$WITH_WS_NETWORKING_PROXY" = "yes" ]; \
-    then \
-        echo -n ' -lwebsocket.js -s ASYNCIFY=1 -s ASYNCIFY_IGNORE_INDIRECT=1 ' >> /root/.emcc-php-wasm-flags; \
-        # Emscripten supports yielding from sync functions to JavaScript event loop, but all
-        # the synchronous functions doing that must be explicitly listed here. This is an
-        # exhaustive list that was created by compiling PHP with ASYNCIFY, running code that
-        # uses networking, observing the error, and listing the missing functions.
-        #
-        # If you a get an error similar to the one below, you need to add all the function on
-        # the stack to the "ASYNCIFY_ONLY" list below (in this case, it's php_mysqlnd_net_open_tcp_or_unix_pub):
-        #
-        # RuntimeError: unreachable
-        # at php_mysqlnd_net_open_tcp_or_unix_pub (<anonymous>:wasm-function[9341]:0x5e42b8)
-        # at byn$fpcast-emu$php_mysqlnd_net_open_tcp_or_unix_pub (<anonymous>:wasm-function[17222]:0x7795e9)
-        # at php_mysqlnd_net_connect_ex_pub (<anonymous>:wasm-function[9338]:0x5e3f02)
-        #
-        # Node cuts the trace short by default so use the --stack-trace-limit=50 CLI flag
-        # to get the entire stack.
-        export ASYNCIFY_IMPORTS=$'["_dlopen_js",\n\
-"invoke_i",\n\
-"invoke_ii",\n\
-"invoke_iii",\n\
-"invoke_iiii",\n\
-"invoke_iiiii",\n\
-"invoke_iiiiii",\n\
-"invoke_iiiiiii",\n\
-"invoke_iiiiiiii",\n\
-"invoke_iiiiiiiiii",\n\
-"invoke_v",\n\
-"invoke_vi",\n\
-"invoke_vii",\n\
-"invoke_viidii",\n\
-"invoke_viii",\n\
-"invoke_viiii",\n\
-"invoke_viiiii",\n\
-"invoke_viiiiii",\n\
-"invoke_viiiiiii",\n\
-"invoke_viiiiiiiii",\n\
-"wasm_poll_socket",\n\
-"wasm_shutdown"]'; \
-        echo -n " -s ASYNCIFY_IMPORTS=$ASYNCIFY_IMPORTS " | tr -d "\n" >> /root/.emcc-php-wasm-flags; \
-    export ASYNCIFY_ONLY_UNPREFIXED=$'"dynCall_dd",\
-"dynCall_i",\
-"dynCall_ii",\
-"dynCall_iidiiii",\
-"dynCall_iii",\
-"dynCall_iiid",\
-"dynCall_iiii",\
-"dynCall_iiiii",\
-"dynCall_iiiiii",\
-"dynCall_iiiiiii",\
-"dynCall_iiiiiiii",\
-"dynCall_iiiiiiiii",\
-"dynCall_iiiiiiiiii",\
-"dynCall_iiij",\
-"dynCall_iiiji",\
-"dynCall_ji",\
-"dynCall_jii",\
-"dynCall_jiiiji",\
-"dynCall_jiij",\
-"dynCall_jiiji",\
-"dynCall_jiji",\
-"dynCall_jj",\
-"dynCall_v",\
-"dynCall_vi",\
-"dynCall_vii",\
-"dynCall_viidii",\
-"dynCall_viii",\
-"dynCall_viiii",\
-"dynCall_viiiii",\
-"dynCall_viiiiiii",\
-"dynCall_viiiiiiii",'; \
-    export ASYNCIFY_ONLY=$'"ZEND_DO_FCALL_BY_NAME_SPEC_HANDLER",\
-"ZEND_DO_FCALL_BY_NAME_SPEC_OBSERVER_HANDLER",\
-"ZEND_DO_FCALL_BY_NAME_SPEC_RETVAL_UNUSED_HANDLER",\
-"ZEND_DO_FCALL_BY_NAME_SPEC_RETVAL_USED_HANDLER",\
-"ZEND_DO_FCALL_SPEC_CONST_HANDLER",\
-"ZEND_DO_FCALL_SPEC_HANDLER",\
-"ZEND_DO_FCALL_SPEC_OBSERVER_HANDLER",\
-"ZEND_DO_FCALL_SPEC_RETVAL_UNUSED_HANDLER",\
-"ZEND_DO_FCALL_SPEC_RETVAL_USED_HANDLER",\
-"ZEND_DO_ICALL_SPEC_HANDLER",\
-"ZEND_DO_ICALL_SPEC_RETVAL_UNUSED_HANDLER",\
-"ZEND_DO_ICALL_SPEC_RETVAL_USED_HANDLER",\
-"ZEND_DO_UCALL_SPEC_OBSERVER_HANDLER",\
-"ZEND_FETCH_OBJ_FUNC_ARG_SPEC_CV_CONST_HANDLER",\
-"ZEND_FETCH_OBJ_R_SPEC_CV_CONST_HANDLER",\
-"ZEND_FETCH_OBJ_R_SPEC_TMPVAR_CONST_HANDLER",\
-"ZEND_ISSET_ISEMPTY_PROP_OBJ_SPEC_CV_CONST_HANDLER",\
-"ZEND_ISSET_ISEMPTY_PROP_OBJ_SPEC_CV_HANDLER",\
-"ZEND_ISSET_ISEMPTY_PROP_OBJ_SPEC_CV_TMPVAR_HANDLER",\
-"ZEND_ISSET_ISEMPTY_PROP_OBJ_SPEC_TMPVAR_CONST_HANDLER",\
-"ZEND_ISSET_ISEMPTY_PROP_OBJ_SPEC_TMPVAR_HANDLER",\
-"cli",\
-"_mysqlnd_run_command",\
-"_php_stream_copy_to_mem",\
-"_php_stream_eof",\
-"_php_stream_fill_read_buffer",\
-"_php_stream_get_line",\
-"_php_stream_open_wrapper_ex",\
-"_php_stream_read",\
-"_php_stream_set_option",\
-"_php_stream_write",\
-"_php_stream_xport_create",\
-"do_cli",\
-"do_cli_server",\
-"execute_ex",\
-"main",\
-"mysql_handle_begin",\
-"mysql_handle_closer",\
-"mysql_handle_commit",\
-"mysql_handle_doer",\
-"mysql_handle_preparer",\
-"mysql_handle_quoter",\
-"mysql_handle_rollback",\
-"mysql_stmt_execute",\
-"mysqli_commit_or_rollback_libmysql",\
-"mysqli_common_connect",\
-"mysqlnd_com_handshake_run",\
-"mysqlnd_com_init_db_run",\
-"mysqlnd_com_stmt_execute_run",\
-"mysqlnd_com_stmt_prepare_run",\
-"mysqlnd_connect",\
-"mysqlnd_connection_connect",\
-"mysqlnd_mysqlnd_command_handshake_pub",\
-"mysqlnd_mysqlnd_command_init_db_pub",\
-"mysqlnd_mysqlnd_command_reap_result_pub",\
-"mysqlnd_mysqlnd_conn_connect_pub",\
-"mysqlnd_mysqlnd_conn_data_connect_handshake_pub",\
-"mysqlnd_mysqlnd_conn_data_connect_pub",\
-"mysqlnd_mysqlnd_conn_data_next_result_pub",\
-"mysqlnd_mysqlnd_conn_data_query_pub",\
-"mysqlnd_mysqlnd_conn_data_reap_query_pub",\
-"mysqlnd_mysqlnd_conn_data_select_db_pub",\
-"mysqlnd_mysqlnd_conn_data_set_charset_pub",\
-"mysqlnd_mysqlnd_conn_data_store_result_pub",\
-"mysqlnd_mysqlnd_conn_data_tx_commit_or_rollback_pub",\
-"mysqlnd_mysqlnd_pfc_receive_pub",\
-"mysqlnd_mysqlnd_pfc_send_pub",\
-"mysqlnd_mysqlnd_protocol_send_command_handle_OK_pub",\
-"mysqlnd_mysqlnd_protocol_send_command_handle_response_pub",\
-"mysqlnd_mysqlnd_protocol_send_command_pub",\
-"mysqlnd_mysqlnd_res_store_result_fetch_data_pub",\
-"mysqlnd_mysqlnd_res_store_result_pub",\
-"mysqlnd_mysqlnd_stmt_execute_pub",\
-"mysqlnd_mysqlnd_stmt_prepare_pub",\
-"mysqlnd_mysqlnd_stmt_send_execute_pub",\
-"mysqlnd_mysqlnd_vio_connect_pub",\
-"mysqlnd_mysqlnd_vio_network_read_pub",\
-"mysqlnd_mysqlnd_vio_network_write_pub",\
-"mysqlnd_mysqlnd_vio_open_tcp_or_unix_pub",\
-"mysqlnd_query_read_result_set_header",\
-"mysqlnd_read_body_name",\
-"mysqlnd_read_buffer",\
-"mysqlnd_read_buffer_is_empty",\
-"mysqlnd_read_header",\
-"mysqlnd_read_header_name",\
-"mysqlnd_read_packet_header_and_body",\
-"mysqlnd_run_authentication",\
-"mysqlnd_stmt_execute",\
-"mysqlnd_stmt_execute_parse_response",\
-"pdo_mysql_handle_factory",\
-"pdo_mysql_stmt_col_meta",\
-"pdo_mysql_stmt_describe",\
-"pdo_mysql_stmt_execute",\
-"pdo_mysql_stmt_execute_prepared",\
-"pdo_mysql_stmt_fetch",\
-"pdo_mysql_stmt_get_col",\
-"phar_file_get_contents",\
-"phar_fopen",\
-"php_cli_server_do_event_for_each_fd_callback",\
-"php_cli_server_poller_poll",\
-"php_cli_server_recv_event_read_request",\
-"php_execute_script",\
-"php_fsockopen_stream",\
-"php_getimagesize_from_any",\
-"php_mysqlnd_auth_response_read",\
-"php_mysqlnd_cmd_write",\
-"php_mysqlnd_conn_connect_pub",\
-"php_mysqlnd_conn_data_connect_handshake_pub",\
-"php_mysqlnd_conn_data_connect_pub",\
-"php_mysqlnd_conn_data_next_result_pub",\
-"php_mysqlnd_conn_data_query_pub",\
-"php_mysqlnd_conn_data_reap_query_pub",\
-"php_mysqlnd_conn_data_select_db_pub",\
-"php_mysqlnd_conn_data_set_charset_pub",\
-"php_mysqlnd_conn_data_simple_command_pub",\
-"php_mysqlnd_conn_data_simple_command_send_request_pub",\
-"php_mysqlnd_conn_data_store_result_pub",\
-"php_mysqlnd_conn_data_tx_commit_or_rollback_pub",\
-"php_mysqlnd_eof_read",\
-"php_mysqlnd_greet_read",\
-"php_mysqlnd_net_connect_ex_pub",\
-"php_mysqlnd_net_network_read_ex_pub",\
-"php_mysqlnd_net_network_write_ex_pub",\
-"php_mysqlnd_net_open_tcp_or_unix_pub",\
-"php_mysqlnd_net_receive_ex_pub",\
-"php_mysqlnd_net_send_ex_pub",\
-"php_mysqlnd_ok_read",\
-"php_mysqlnd_prepare_read",\
-"php_mysqlnd_res_meta_read_metadata_pub",\
-"php_mysqlnd_res_read_result_metadata_pub",\
-"php_mysqlnd_res_store_result_fetch_data_pub",\
-"php_mysqlnd_res_store_result_pub",\
-"php_mysqlnd_rowp_read",\
-"php_mysqlnd_rset_field_read",\
-"php_mysqlnd_rset_header_read",\
-"php_mysqlnd_stmt_execute_pub",\
-"php_mysqlnd_stmt_prepare_pub",\
-"php_network_accept_incoming",\
-"php_network_connect_socket",\
-"php_network_connect_socket_to_host",\
-"php_openssl_enable_crypto",\
-"php_openssl_sockop_close",\
-"php_openssl_sockop_io",\
-"php_openssl_sockop_read",\
-"php_openssl_sockop_set_option",\
-"php_openssl_sockop_write",\
-"php_pollfd_for",\
-"php_replace_in_subject_func",\
-"php_sock_stream_wait_for_data",\
-"php_sockop_read",\
-"php_sockop_read_close",\
-"php_sockop_set_option",\
-"php_sockop_write",\
-"php_stream_read_to_str",\
-"php_stream_url_wrap_http",\
-"php_stream_url_wrap_http_ex",\
-"php_stream_xport_crypto_enable",\
-"php_tcp_sockop_set_option",\
-"php_tcp_sockop_set_option",\
-"preg_replace_func_impl",\
-"readline_shell_run",\
-"reflection_method_invoke",\
-"run_cli",\
-"wasm_select",\
-"zend_call_function",\
-"zend_call_known_function",\
-"zend_do_fcall_common_helper_SPEC",\
-"zend_eval_string_ex",\
-"zend_eval_stringl",\
-"zend_execute",\
-"zend_execute_scripts",\
-"zend_std_call_getter",\
-"zend_std_has_property",\
-"zend_std_read_property",\
-"zif_array_map",\
-"zif_array_reduce",\
-"zif_call_user_func",\
-"zif_call_user_func_array",\
-"zif_fclose",\
-"zif_feof",\
-"zif_file_get_contents",\
-"zif_fopen",\
-"zif_fread",\
-"zif_fsockopen",\
-"zif_getimagesize",\
-"zif_mysqli_begin_transaction",\
-"zif_mysqli_connect",\
-"zif_mysqli_data_seek",\
-"zif_mysqli_errno",\
-"zif_mysqli_error",\
-"zif_mysqli_fetch_fields",\
-"zif_mysqli_fetch_object",\
-"zif_mysqli_fetch_row",\
-"zif_mysqli_get_charset",\
-"zif_mysqli_multi_query",\
-"zif_mysqli_next_result",\
-"zif_mysqli_prepare",\
-"zif_mysqli_query",\
-"zif_mysqli_real_connect",\
-"zif_mysqli_reap_async_query",\
-"zif_mysqli_select_db",\
-"zif_mysqli_set_charset",\
-"zif_mysqli_stmt_execute",\
-"zif_mysqli_stmt_fetch",\
-"zif_preg_replace_callback",\
-"zif_stream_socket_client",\
-"zim_PDOStatement_execute",\
-"zim_PDO___construct",\
-"zim_PDO_beginTransaction",\
-"zim_PDO_commit",\
-"zim_PDO_commitTransaction",\
-"zim_PDO_dbh_constructor",\
-"zim_PDO_exec",\
-"zim_PDO_query",\
-"zim_PDO_rollBack",\
-"zim_ReflectionMethod_invoke",\
-"zim_ReflectionMethod_invokeArgs",\
-"zim_reflection_method_invoke",\
-"zim_reflection_method_invokeArgs"'; \
-    # If pointer casts are enabled, we need to asyncify both the prefixed and unprefixed names
-    if [ "${PHP_VERSION:0:1}" -lt "8" ]; then \
-        export ASYNCIFY_ONLY="$ASYNCIFY_ONLY,"$(echo "$ASYNCIFY_ONLY" | sed -E $'s/"([a-zA-Z])/"byn$fpcast-emu$\1/g'); \
-    fi; \
-    echo -n ' -s ASYNCIFY_ONLY=['$ASYNCIFY_ONLY_UNPREFIXED$ASYNCIFY_ONLY'] '| tr -d "\n" >> /root/.emcc-php-wasm-flags; \
-fi;
-
 # Build the final .wasm file
 RUN mkdir /root/output
 COPY build-assets/phpwasm-emscripten-library.js /root/phpwasm-emscripten-library.js
+# Keep emsdk 6.0.13's incoming API and add optional wasmBinary for Node callers.
 RUN source /root/emsdk/emsdk_env.sh && \
     export EXPORTED_FUNCTIONS=$'["_php_wasm_init", \n\
 "_phpwasm_destroy_uploaded_files_hash", \n\
@@ -898,106 +510,34 @@ RUN source /root/emsdk/emsdk_env.sh && \
     -s ERROR_ON_UNDEFINED_SYMBOLS=0  \
     -s INVOKE_RUN=0                  \
     -s EXIT_RUNTIME=1                \
+    -s SUPPORT_LONGJMP=emscripten    \
+    -s 'INCOMING_MODULE_JS_API=["ENVIRONMENT","arguments","canvas","dynamicLibraries","elementPointerLock","instantiateWasm","locateFile","monitorRunDependencies","noExitRuntime","noInitialRun","onAbort","onExit","onRuntimeInitialized","postRun","preInit","preRun","print","printErr","setStatus","statusMessage","stderr","stdin","stdout","thisProgram","wasm","websocket","wasmBinary"]' \
         /root/lib/libphp.a \
         /root/php_wasm.c \
         $(cat /root/.emcc-php-wasm-sources) \
-    -s ENVIRONMENT=$EMSCRIPTEN_ENVIRONMENT \
+    -s ENVIRONMENT=web,worker \
     -s FORCE_FILESYSTEM=1 \
     -s EXPORT_NAME="'PHPLoader'"
-    # Emscripten complains it can't find some Asyncify functions
-    # listed in ASYNCIFY_IMPORTS. The culprit is those functions
-    # are actually used and delisting them breaks php_pollfd_for().
-    # Sooo... just ignore Emscripten's warnings.
-
 RUN ls /root/output/
-# # At the moment terminfo is baked into the repository in
-# # src/php-cli/terminfo, but if we ever need to update it, we can
-# # use the terminfo database produced by the ncurses make script:
-# RUN if [ "$EMSCRIPTEN_ENVIRONMENT" = "node" ]; then \
-#         mkdir -p /root/output/terminfo/x && \
-#         cp -v /root/lib/share/terminfo/x/xterm* /root/output/terminfo/x/; \
-#     fi
+# Wrap the Web build as an ES module and version its Wasm URL.
+RUN set -eu; \
+    FILE_SIZE=$(stat -c%s /root/output/php.wasm); \
+    FILENAME_PREFIX="php-${PHP_VERSION:0:3}"; \
+    WASM_FILENAME="${FILENAME_PREFIX}.wasm"; \
+    CACHE_BUSTER=$(md5sum /root/output/php.wasm | awk '{print $1}'); \
+    WASM_URL="$WASM_FILENAME?$CACHE_BUSTER"; \
+    /root/replace.sh $'s/["\']php\.wasm[\'"]/dependencyFilename/g' /root/output/php.js ; \
+    /root/replace.sh 's/var ENV\s*=\s*\{\}/var ENV = PHPLoader.ENV || {}/g' /root/output/php.js ; \
+    echo "export const dependenciesTotalSize = $FILE_SIZE; export const dependencyFilename = '$WASM_URL'; export default function(RuntimeName, PHPLoader, EnvVariables) {" >> /root/output/php-module.js; \
+    cat /root/output/php.js >> /root/output/php-module.js; \
+    echo " return PHPLoader; }" >> /root/output/php-module.js; \
+    rm /root/output/php.js; \
+    mv /root/output/php-module.js "/root/output/${FILENAME_PREFIX}.js"; \
+    mv /root/output/php.wasm "/root/output/$WASM_FILENAME"
 
-# Postprocess the build php.js module:
-RUN \
-    # Figure out the target file names and URLs
-        # The .js and .wasm filenames should reflect the build configuration, e.g.:
-        # * `php-7.4.node.js` and `php-7.4.node.wasm`
-        # * `php-8.0.js` and `php-8.0.wasm`
-        # In addition, the `.wasm` file URL should have a "cache busting" query string on the
-        # web, so that web browsers will reload it when the file contents change.
-    # Precompute export variables:
-        export FILE_SIZE=$(stat -c%s "/root/output/php.wasm") && \
-        export FILENAME_PREFIX="php-${PHP_VERSION:0:3}"; \
-        if [ "$EMSCRIPTEN_ENVIRONMENT" = "node" ]; then export EXT_PREFIX=".node"; \
-        else export EXT_PREFIX=""; fi; \
-        export JS_FILENAME="${FILENAME_PREFIX}${EXT_PREFIX}.js"; \
-        export WASM_FILENAME="${FILENAME_PREFIX}${EXT_PREFIX}.wasm"; \
-    # Handle cache busting:
-        if [ "$EMSCRIPTEN_ENVIRONMENT" = "web" ]; then \
-            export CACHE_BUSTER=$(md5sum /root/output/php.wasm | awk '{print $1}'); \
-            export WASM_URL="$WASM_FILENAME?$CACHE_BUSTER"; \
-        else \
-            export WASM_URL="$WASM_FILENAME"; \
-        fi; \
-    # Make the php.wasm URL configurable via the dependencyFilename loader argument:
-        /root/replace.sh $'s/["\']php\.wasm[\'"]/dependencyFilename/g' /root/output/php.js && \
-    # Patch a "property undefined" error
-        # Emscripten produces an if that checkes a stream.stream_ops.poll property. However,
-        # stream.stream_ops is sometimes undefined and the check fails. Let's adjust it to
-        # tolerate a null stream.stream_ops value.
-        /root/replace.sh "s/if\s*\(stream\.stream_ops\.poll\)/if (stream.stream_ops?.poll)/g" /root/output/php.js && \
-    # Make Emscripten websockets configurable
-        # Emscripten makes the Websocket proxy connect to a fixed URL.
-        # This assumes the traffic is always forwarded to the same target.
-        # However, we want to support arbitrary targets, so we need to
-        # replace the hardcoded websocket target URL with a dynamic callback.
-        /root/replace.sh $'s/if\s*\(\s*["\']string["\']\s*===\s*typeof Module\[["\']websocket["\']\]\[["\']url["\']\]\s*\)/if("function"===typeof Module["websocket"]["url"]) {\nurl = Module["websocket"]["url"](...arguments);\n}else if ("string" === typeof Module["websocket"]["url"])/g' \
-            /root/output/php.js && \
-        # Enable custom WebSocket constructors to support socket options.
-        /root/replace.sh "s/ws\s*=\s*new WebSocketConstructor/if (Module['websocket']['decorator']) {WebSocketConstructor = Module['websocket']['decorator'](WebSocketConstructor);}ws = new WebSocketConstructor/g" /root/output/php.js && \
-        if [ "$WITH_WS_NETWORKING_PROXY" = "yes" ]; then \
-            /root/replace.sh "s/sock\.server\s*=\s*new WebSocketServer/if (Module['websocket']['serverDecorator']) {WebSocketServer = Module['websocket']['serverDecorator'](WebSocketServer);}sock.server = new WebSocketServer/g" /root/output/php.js; \
-        fi; \
-    # Add MSG_PEEK flag support in recvfrom
-        #
-        # Emscripten ignores the flags argument to ___syscall_recvfrom.
-        # However, PHP relies on passing the MSG_PEEK (== integer 2) flag when polling
-        # the stream for data.
-        # MSG_PEEK enables reading bytes without moving the stream pointer forward.
-        # Without the patch below, PHP consumes the first byte from the top of the
-        # response stream, typically "H" in "HTTP/1.1 200 OK", and then fails after
-        # reading the remaining "TTP/1.1 200 OK" and not recognizing it as a valid
-        # status line.
-        # We need to patch the syscall to support the MSG_PEEK flag.
-        if [ "$WITH_WS_NETWORKING_PROXY" = "yes" ]; then \
-            /root/replace.sh 's/sock\.sock_ops\.recvmsg\(sock,\s*len\);/sock.sock_ops.recvmsg(sock, len, typeof flags !== "undefined" ? flags : 0);/g' /root/output/php.js && \
-            /root/replace.sh 's/recvmsg:\s*function\(sock,\s*length\)/recvmsg: function(sock, length, flags)/g' /root/output/php.js && \
-            /root/replace.sh 's/if\s*\(sock\.type\s*===\s*1\s*&&\s*bytesRead\s*<\s*queuedLength\)/if (flags&2) {bytesRead = 0;} if (sock.type === 1 && bytesRead < queuedLength)/g' /root/output/php.js; \
-        fi ; \
-    # Replace the hardcoded ENVIRONMENT variable with a dynamic computation
-        #
-        # The JavaScript code of the web loader and web worker loader is identical,
-        # but Emscripten forces running different code paths by setting
-        #
-        # ENVIRONMENT_IS_WEB = true; ENVIRONMENT_IS_WORKER = false
-        #
-        # This project supports both environments and would have to maintain two
-        # separate copies of the code. Instead, we use a dynamic computation of the
-        # environment, based on the `RuntimeName` variable, which is an argument to the
-        # wrapper function.
-        /root/replace.sh $'s/ENVIRONMENT_IS_([A-Z]+)\s*=\s*(true|false)/ENVIRONMENT_IS_$1=RuntimeName==="$1"/g' /root/output/php.js && \
-        /root/replace.sh 's/var ENV\s*=\s*\{\}/var ENV = PHPLoader.ENV || {}/g' /root/output/php.js && \
-    # Turn the php.js file into an ES module
-        # Manually turn the output into a esm module instead of relying on -s MODULARIZE=1.
-        # which pollutes the global namespace and does not play well with import() mechanics.
-        echo "export const dependenciesTotalSize = $FILE_SIZE; export const dependencyFilename = '$WASM_URL'; export default function(RuntimeName, PHPLoader, EnvVariables) {" >> /root/output/php-module.js && \
-        cat /root/output/php.js >> /root/output/php-module.js && \
-        echo " return PHPLoader; }" >> /root/output/php-module.js && \
-        \
-        # Remove the old php.js file
-        rm /root/output/php.js && \
-        \
-        # Rename the build files to their final names
-        mv /root/output/php-module.js "/root/output/$JS_FILENAME" && \
-        mv /root/output/php.wasm "/root/output/$WASM_FILENAME"
+# Export generated JS/Wasm artifacts without copying the toolchain filesystem.
+FROM scratch AS php-artifacts
+COPY --from=emscripten-php /root/output/ /
+
+# Keep the default build target and its complete image filesystem unchanged.
+FROM emscripten-php AS default
