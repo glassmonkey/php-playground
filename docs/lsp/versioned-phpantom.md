@@ -25,9 +25,18 @@ SHA-256 and uses the pinned Rust 1.99 image. No PHPantom source is vendored in
 this app repository. Build a candidate with
 `make build-phpantom-runtime PHPANTOM_TARGET_VERSION=8.0`; run the native probe
 with `make test-phpantom-runtime-native`. Candidate artifacts and provenance are
-retained under `build/phpantom-versioned-candidates/`; these commands do not
-replace the checked-in build-only asset. The UI artifacts in the public manifest
-are the exact manager-reviewed batch and are not rebuilt during publication.
+retained under `build/phpantom-versioned-candidates/`. The module generates and
+verifies output; the repository Makefile owns distribution through the explicit
+`make install-phpantom-runtime PHPANTOM_TARGET_VERSION=8.0` target, which copies
+the selected versioned WASM and provenance into `PHPANTOM_ASSET_DIR`
+(default: `assets/lsp/phpantom`).
+
+This reorganization keeps all 12 reviewed UI assets, the public manifest, and the
+TypeScript registry unchanged. Installing different bytes for UI use requires a
+manual, reviewed update of the matching version row in both the manifest and
+registry, including its hash, size, build identity and provenance. Installation
+does not approve new metadata automatically. Use an isolated destination to
+check distribution without replacing the reviewed assets.
 
 To verify the browser build and all 12 selected artifacts:
 
@@ -39,7 +48,7 @@ npm run build
 npx vite preview --host 127.0.0.1 --port 4176
 ```
 
-In another terminal, run `node e2e/versioned-wasm-matrix.mjs`. It reads the
+In another terminal, run `node src/lsp/phpantom/versioned-ui-test.mjs`. It reads the
 committed manifest by default. `PLAYWRIGHT_BASE_URL` selects another preview
 URL, `PHPANTOM_MATRIX_VERSIONS` selects a comma-separated subset, and
 `PHPANTOM_MATRIX_OUT` sets the report path. Named-argument behavior is checked

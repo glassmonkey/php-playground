@@ -63,7 +63,7 @@ const overallBudgetSeconds =
 				0
 			) +
 			(isFullMatrix ? 3 * 90 : 0);
-const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:4176';
 const batchPath =
 	process.env.PHPANTOM_BATCH_RESULT ??
@@ -1100,8 +1100,8 @@ async function signatureCase(page, version, shouldHaveThirdParameter) {
 		text,
 		{ timeout: 10_000 }
 	);
-	const latest = await latestWorker(page);
-	const { worker, request } = await waitForRequest(
+	await latestWorker(page);
+	const { request } = await waitForRequest(
 		page,
 		'textDocument/signatureHelp',
 		beforeCount,
@@ -1196,7 +1196,7 @@ async function hoverSignatureCase(page, version, shouldHaveThirdParameter) {
 	).length;
 	await page.mouse.move(position.x - 6, position.y);
 	await page.mouse.move(position.x, position.y);
-	const { worker, request } = await waitForRequest(
+	const { request } = await waitForRequest(
 		page,
 		'textDocument/hover',
 		beforeCount
