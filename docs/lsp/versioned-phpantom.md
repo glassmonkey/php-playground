@@ -48,7 +48,7 @@ npm run build
 npx vite preview --host 127.0.0.1 --port 4176
 ```
 
-In another terminal, run `node src/lsp/phpantom/versioned-ui-test.mjs`. It reads the
+In another terminal, run `node src/lsp/wasm/versioned-ui-test.mjs`. It reads the
 committed manifest by default. `PLAYWRIGHT_BASE_URL` selects another preview
 URL, `PHPANTOM_MATRIX_VERSIONS` selects a comma-separated subset, and
 `PHPANTOM_MATRIX_OUT` sets the report path. Named-argument behavior is checked
