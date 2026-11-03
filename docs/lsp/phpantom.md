@@ -8,13 +8,15 @@ by the focused regression probe. User-code parsing and syntax diagnostics are
 not version-aware, and full inventories for every PHP extension are outside
 scope.
 
-The runtime, Docker builder, pinned patches, native probe, and Node validation
-tools live together in `src/lsp/phpantom/`. The Node validation tools are run
-explicitly and are not browser entrypoints. ESLint checks those two CLIs with
-the Node environment; TypeScript declaration generation excludes only those
-two files, while the browser runtime stays in the normal checks.
-`build-wasm.sh` resolves the repository root three levels above this module.
-Docker uses the repository root as context with the module-specific `Dockerfile.dockerignore` allowlist.
+Browser runtime adapters and version helpers live in `src/lsp/phpantom/`.
+The Docker builder, pinned patches, native probe, and Node validation tools live
+in the sibling build module `src/lsp/wasm/`, like `src/php-wasm/` and `src/wasm/`.
+The build module is excluded from browser TypeScript declaration generation;
+ESLint checks its two Node CLIs with the Node environment. Browser runtime
+checks remain unchanged, and build tools are not browser entrypoints.
+`build-wasm.sh` resolves the repository root three levels above the build module.
+Docker uses the repository root as context with the module-specific
+`Dockerfile.dockerignore` allowlist.
 
 ## Reproducible candidate build
 

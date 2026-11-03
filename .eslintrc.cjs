@@ -30,9 +30,9 @@ module.exports = {
 		"src/wasm/build-assets/*.js",
 		"src/wasm-assets/*.js"
 	],
-	// These explicit Node CLIs live beside browser runtime sources.
+	// The build module has two explicit Node validation CLIs.
 	overrides: [{
-		files: ['src/lsp/phpantom/smoke-test.mjs', 'src/lsp/phpantom/versioned-wasi-test.mjs'],
+		files: ['src/lsp/wasm/smoke-test.mjs', 'src/lsp/wasm/versioned-wasi-test.mjs'],
 		env: { node: true, browser: false },
 	}],
 	plugins: ['react', '@typescript-eslint'],

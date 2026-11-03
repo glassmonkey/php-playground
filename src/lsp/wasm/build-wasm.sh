@@ -20,7 +20,7 @@ elif [[ -n "$php_target" ]]; then
 fi
 
 repo_root="$(cd "$(dirname "$0")/../../.." && pwd -P)"
-script_dir="$repo_root/src/lsp/phpantom"
+script_dir="$repo_root/src/lsp/wasm"
 docker_bin="${DOCKER:-docker}"
 output_root="${PHPANTOM_DOCKER_OUTPUT_DIR:-$repo_root/build/phpantom-docker-candidates}"
 matrix_cache="${PHPANTOM_DOCKER_MATRIX_CACHE_DIR:-$output_root/shared-rust1.99-cache}"
@@ -200,7 +200,7 @@ for existing_artifact in "$candidate_root"/*/*/phpantom_lsp.wasm; do
 	fi
 done
 
-if node "$repo_root/src/lsp/phpantom/versioned-wasi-test.mjs" "$candidate_dir/provenance.json" \
+if node "$repo_root/src/lsp/wasm/versioned-wasi-test.mjs" "$candidate_dir/provenance.json" \
 	>"$candidate_dir/versioned-wasi-test.log" 2>&1; then
 	wasi_test_status=0
 	printf '%s\n' "$wasi_test_status" >"$candidate_dir/versioned-wasi-test.exit"

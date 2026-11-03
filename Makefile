@@ -13,7 +13,7 @@ PHPANTOM_ASSET_DIR ?= $(PWD)/assets/lsp/phpantom
 
 .PHONY: build-phpantom-runtime install-phpantom-runtime test-phpantom-runtime-native
 build-phpantom-runtime:
-	PHPANTOM_BUILD_OUTPUT_DIR="$(PHPANTOM_BUILD_DIR)" ./src/lsp/phpantom/build-wasm.sh artifact $(PHPANTOM_TARGET_VERSION)
+	PHPANTOM_BUILD_OUTPUT_DIR="$(PHPANTOM_BUILD_DIR)" ./src/lsp/wasm/build-wasm.sh artifact $(PHPANTOM_TARGET_VERSION)
 
 # Explicit asset adoption; a failed build never reaches these copies.
 install-phpantom-runtime: build-phpantom-runtime
@@ -23,7 +23,7 @@ install-phpantom-runtime: build-phpantom-runtime
 	@echo "Installed PHPantom PHP $(PHPANTOM_TARGET_VERSION): $(PHPANTOM_ASSET_DIR)/php-$(PHPANTOM_TARGET_VERSION).wasm"
 
 test-phpantom-runtime-native:
-	./src/lsp/phpantom/build-wasm.sh native-test
+	./src/lsp/wasm/build-wasm.sh native-test
 
 .PHONY: build-image build-wasm build build-all $(addprefix build-,$(PHP_VERSIONS))
 
