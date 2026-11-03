@@ -325,7 +325,7 @@ describe('PHPantom Monaco lifecycle', () => {
 		}
 	);
 
-	it.each(['change', 'cancel', 'dispose'] as const)(
+	it.each(['change', 'change-and-cancel', 'dispose'] as const)(
 		'discards additional edits when resolve becomes stale through %s',
 		async (reason) => {
 			// Arrange
@@ -368,8 +368,8 @@ describe('PHPantom Monaco lifecycle', () => {
 			const item = completion!.suggestions[0];
 			// Act
 			const pending = provider.resolveCompletionItem!(item, token.token);
-			if (reason === 'change') document.change();
-			if (reason === 'cancel') token.cancel();
+			if (reason.startsWith('change')) document.change();
+			if (reason === 'change-and-cancel') token.cancel();
 			if (reason === 'dispose') sut.dispose();
 			worker.reply({
 				jsonrpc: '2.0',
@@ -379,6 +379,107 @@ describe('PHPantom Monaco lifecycle', () => {
 			const got = await pending;
 			// Assert
 			expect(got).toEqual({ ...item, additionalTextEdits: undefined });
+			sut.dispose();
+		}
+	);
+
+	it.each([
+		{ initial: true, label: 'DateTime', imported: 'DateTime' },
+		{ initial: false, label: 'Widget', imported: 'Foo\\Widget' },
+	])(
+		'rejects focus cancellation and refocus resolves $label imports (initial=$initial)',
+		async ({ initial, label, imported }) => {
+			// Arrange
+			const document = testModel();
+			const monaco = testMonaco(document.model);
+			const worker = new TestWorker();
+			const edit = {
+				range: {
+					start: { line: 2, character: 0 },
+					end: { line: 2, character: 0 },
+				},
+				newText: `\nuse ${imported};\n`,
+			};
+			const raw = {
+				label,
+				data: { m: imported },
+				...(initial ? { additionalTextEdits: [edit] } : {}),
+			};
+			worker.completionResult = { items: [raw] };
+			worker.delayResolves = true;
+			const sut = await LspClient.connect({
+				worker: worker as unknown as Worker,
+				model: document.model,
+				monaco: monaco.monaco,
+				phpVersion: '8.5',
+				onStatus: vi.fn(),
+			});
+			const provider = monaco.getActive()[0]
+				.provider as Monaco.languages.CompletionItemProvider;
+			const firstToken = testCancellationToken();
+			const completion = await provider.provideCompletionItems(
+				document.model,
+				{ lineNumber: 3, column: 10 } as Monaco.Position,
+				{ triggerKind: 1 },
+				firstToken.token
+			);
+			const item = completion!.suggestions[0];
+			const initialEdits = item.additionalTextEdits;
+			// Act
+			const cancelled = Promise.resolve(
+				provider.resolveCompletionItem!(item, firstToken.token)
+			).catch((error) => error);
+			const oldRequest = worker.lastResolve!;
+			firstToken.cancel();
+			const cancellation = await cancelled;
+			worker.delayResolves = false;
+			worker.resolveResult = { ...raw, additionalTextEdits: [edit] };
+			const refocused = await provider.resolveCompletionItem!(
+				item,
+				testCancellationToken().token
+			);
+			worker.reply({
+				jsonrpc: '2.0',
+				id: oldRequest.id,
+				result: {
+					...raw,
+					additionalTextEdits: [
+						{ ...edit, newText: 'WRONG LATE IMPORT' },
+					],
+				},
+			});
+			const got = {
+				error: {
+					name: cancellation.name,
+					message: cancellation.message,
+					typed: cancellation instanceof Error,
+				},
+				originalUnchanged: item.additionalTextEdits,
+				refocused,
+				requests: worker.sent
+					.filter((m) => m.method === 'completionItem/resolve')
+					.map((m) => m.params),
+			};
+			// Assert
+			expect(got).toEqual({
+				error: { name: 'Canceled', message: 'Canceled', typed: true },
+				originalUnchanged: initialEdits,
+				refocused: {
+					...item,
+					additionalTextEdits: [
+						{
+							range: {
+								startLineNumber: 3,
+								startColumn: 1,
+								endLineNumber: 3,
+								endColumn: 1,
+							},
+							text: `\nuse ${imported};\n`,
+						},
+					],
+				},
+				requests: [raw, raw],
+			});
 			sut.dispose();
 		}
 	);

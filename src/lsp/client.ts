@@ -95,6 +95,15 @@ function raceCancellation<T>(
 	);
 }
 
+// Monaco resets its per-item resolve cache only for a cancellation rejection.
+// Fulfilling a cancelled request would mark an incomplete item resolved.
+class CompletionResolutionCancelled extends Error {
+	constructor() {
+		super('Canceled');
+		this.name = 'Canceled';
+	}
+}
+
 function rpcError(message: RpcMessage): Error {
 	return new Error(message.error?.message ?? 'LSP request failed.');
 }
@@ -416,6 +425,8 @@ export class LspClient {
 							this.options.model.getVersionId() === data.version;
 						if (!isCurrent())
 							return { ...item, additionalTextEdits: undefined };
+						if (token.isCancellationRequested)
+							throw new CompletionResolutionCancelled();
 						try {
 							const resolved = await raceCancellation(
 								this.request<LspCompletionItem>(
@@ -424,11 +435,16 @@ export class LspClient {
 								),
 								token
 							);
-							if (resolved === REQUEST_CANCELLED || !isCurrent())
+							if (!isCurrent())
 								return {
 									...item,
 									additionalTextEdits: undefined,
 								};
+							if (
+								resolved === REQUEST_CANCELLED ||
+								token.isCancellationRequested
+							)
+								throw new CompletionResolutionCancelled();
 							const completion = {
 								...item,
 								detail: resolved.detail ?? item.detail,
@@ -446,7 +462,9 @@ export class LspClient {
 							};
 							this.completionData.set(completion, data);
 							return completion;
-						} catch {
+						} catch (error) {
+							if (error instanceof CompletionResolutionCancelled)
+								throw error;
 							return isCurrent()
 								? item
 								: { ...item, additionalTextEdits: undefined };

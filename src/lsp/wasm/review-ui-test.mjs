@@ -17,14 +17,20 @@ const browser = await chromium.launch({ headless: true, timeout: 10_000 });
 const persist = () => writeFile(output, JSON.stringify(report, null, 2) + '\n');
 class FixtureError extends Error {}
 const selection = process.env.PHPANTOM_REVIEW_CASE ?? 'all';
-if (!['all', 'DateTime', 'Widget', 'startup'].includes(selection))
+if (
+	!['all', 'DateTime', 'Widget', 'startup', 'cancellation'].includes(
+		selection
+	)
+)
 	throw new Error('Unknown review case selection');
 async function run(name, action) {
-	const group = name.startsWith('namespaced DateTime')
-		? 'DateTime'
-		: name.startsWith('namespaced project')
-			? 'Widget'
-			: 'startup';
+	const group = name.startsWith('cancelled resolve')
+		? 'cancellation'
+		: name.startsWith('namespaced DateTime')
+			? 'DateTime'
+			: name.startsWith('namespaced project')
+				? 'Widget'
+				: 'startup';
 	if (selection !== 'all' && selection !== group) return;
 	console.log(`START ${name}`);
 	const context = await browser.newContext();
@@ -72,6 +78,81 @@ async function run(name, action) {
 				worker.addEventListener('message', (event) =>
 					trace.received.push(event.data)
 				);
+				if (window.__reviewResolveMode) {
+					const add = worker.addEventListener.bind(worker),
+						remove = worker.removeEventListener.bind(worker);
+					const wrappers = new Map();
+					trace.delivered = [];
+					worker.addEventListener = (type, listener, ...options) => {
+						if (type !== 'message')
+							return add(type, listener, ...options);
+						const wrapped = (event) => {
+							const request = trace.sent.find(
+								(m) => m?.id === event.data?.id && m?.method
+							);
+							let data = event.data;
+							if (request?.method === 'textDocument/completion') {
+								const items = Array.isArray(data.result)
+									? data.result
+									: data.result?.items;
+								trace.globalImport = items?.find(
+									(item) => item.detail === 'DateTime'
+								)?.additionalTextEdits;
+								if (
+									window.__reviewResolveMode ===
+										'resolve-only' &&
+									items
+								) {
+									const transformed = items.map((item) =>
+										item.detail === 'DateTime'
+											? {
+													...item,
+													additionalTextEdits:
+														undefined,
+												}
+											: item
+									);
+									data = {
+										...data,
+										result: Array.isArray(data.result)
+											? transformed
+											: {
+													...data.result,
+													items: transformed,
+												},
+									};
+								}
+							}
+							if (
+								request?.method === 'completionItem/resolve' &&
+								request.params.data?.m === 'DateTime' &&
+								window.__reviewResolveMode === 'resolve-only'
+							)
+								data = {
+									...data,
+									result: {
+										...data.result,
+										additionalTextEdits: trace.globalImport,
+									},
+								};
+							const deliver = () => {
+								trace.delivered.push({ request, data });
+								listener(new MessageEvent('message', { data }));
+							};
+							if (request?.method === 'completionItem/resolve')
+								setTimeout(deliver, 3_000);
+							else deliver();
+						};
+						wrappers.set(listener, wrapped);
+						return add(type, wrapped, ...options);
+					};
+					worker.removeEventListener = (type, listener, ...options) =>
+						remove(
+							type,
+							wrappers.get(listener) ?? listener,
+							...options
+						);
+				}
 				return worker;
 			},
 		});
@@ -416,6 +497,173 @@ async function selectVersion(page, version) {
 	);
 }
 try {
+	for (const mode of ['initial', 'resolve-only']) {
+		await run(
+			`cancelled resolve ${mode} refocus preserves global import`,
+			async (page) => {
+				await page.addInitScript((mode) => {
+					window.__reviewResolveMode = mode;
+				}, mode);
+				await open(page, '<?php\nnamespace App;\nnew DateT');
+				await ready(page, '8.5');
+				await focusEnd(page);
+				const before = await modelSnapshot(page);
+				if (
+					before?.text !== '<?php\nnamespace App;\nnew DateT' ||
+					before.cursor.lineNumber !== 3 ||
+					before.cursor.column !== 10
+				)
+					throw new FixtureError(
+						`cancellation fixture cursor/text mismatch: ${JSON.stringify(before)}`
+					);
+				await page.keyboard.type('i');
+				await expect
+					.poll(() => text(page))
+					.toBe('<?php\nnamespace App;\nnew DateTi');
+				const rows = page.locator('.suggest-widget .monaco-list-row');
+				await rows.first().waitFor();
+				const identities = await rows.evaluateAll((es) =>
+					es.map((e) => ({
+						index: e.getAttribute('data-index'),
+						label: e.querySelector('.label-name')?.textContent,
+						detail: e.querySelector('.details-label')?.textContent,
+					}))
+				);
+				const wanted = identities.find(
+					(e) =>
+						e.label === 'DateTime' &&
+						e.detail?.trim() === 'DateTime'
+				);
+				if (!wanted)
+					throw new FixtureError(
+						`no global DateTime: ${JSON.stringify(identities)}`
+					);
+				for (let i = 0; i <= identities.length; i++) {
+					if (
+						(await page
+							.locator('.suggest-widget .monaco-list-row.focused')
+							.getAttribute('data-index')) === wanted.index
+					)
+						break;
+					await page.keyboard.press('ArrowDown');
+				}
+				await page.waitForFunction(() =>
+					window.__reviewWorkers.some((w) =>
+						w.sent.some(
+							(m) =>
+								m?.method === 'completionItem/resolve' &&
+								m.params.data?.m === 'DateTime'
+						)
+					)
+				);
+				await page.keyboard.press('ArrowDown');
+				await expect(
+					page.locator('.suggest-widget .monaco-list-row.focused')
+				).not.toHaveAttribute('data-index', wanted.index);
+				await page.keyboard.press('ArrowUp');
+				await expect(
+					page.locator('.suggest-widget .monaco-list-row.focused')
+				).toHaveAttribute('data-index', wanted.index);
+				await page.waitForFunction(() =>
+					window.__reviewWorkers.some(
+						(w) =>
+							w.sent.filter(
+								(m) =>
+									m?.method === 'completionItem/resolve' &&
+									m.params.data?.m === 'DateTime'
+							).length >= 2
+					)
+				);
+				const refocus = await page.evaluate(() => {
+					const worker = window.__reviewWorkers.find((w) =>
+						w.sent.some((m) => m?.type === 'phpantom:bootstrap')
+					);
+					return {
+						requests: worker.sent.filter(
+							(m) =>
+								m?.method === 'completionItem/resolve' &&
+								m.params.data?.m === 'DateTime'
+						),
+						deliveries: worker.delivered.filter(
+							(m) =>
+								m.request?.method ===
+									'completionItem/resolve' &&
+								m.request.params.data?.m === 'DateTime'
+						),
+						initial: worker.delivered.find(
+							(m) =>
+								m.request?.method === 'textDocument/completion'
+						),
+					};
+				});
+				if (refocus.deliveries.length !== 0)
+					throw new FixtureError(
+						'three-second response arrived before away/back fixture completed'
+					);
+				expect(
+					refocus.requests.map((m) => ({
+						symbol: m.params.data.m,
+						detail: m.params.detail,
+					}))
+				).toEqual([
+					{ symbol: 'DateTime', detail: 'DateTime' },
+					{ symbol: 'DateTime', detail: 'DateTime' },
+				]);
+				if (mode === 'resolve-only') {
+					const items = Array.isArray(refocus.initial.data.result)
+						? refocus.initial.data.result
+						: refocus.initial.data.result.items;
+					expect(
+						items.find((item) => item.detail === 'DateTime')
+							.additionalTextEdits
+					).toBeUndefined();
+					await page.waitForFunction(
+						(id) =>
+							window.__reviewWorkers.some((w) =>
+								w.delivered?.some(
+									(entry) => entry.data.id === id
+								)
+							),
+						refocus.requests.at(-1).id
+					);
+				}
+				await page.keyboard.press('Enter');
+				const accepted =
+					'<?php\nnamespace App;\n\nuse DateTime;\nnew DateTime()';
+				await expect.poll(() => text(page)).toBe(accepted);
+				// All original/second delayed replies must finish without reapplying imports.
+				await page.waitForFunction(() =>
+					window.__reviewWorkers.some(
+						(w) =>
+							w.delivered?.filter(
+								(m) =>
+									m.request?.method ===
+										'completionItem/resolve' &&
+									m.request.params.data?.m === 'DateTime'
+							).length >= 2
+					)
+				);
+				await expect.poll(() => text(page)).toBe(accepted);
+				await page.keyboard.type('; echo get_class(new DateTime());');
+				await expect(page.getByTestId('preview-console')).toHaveText(
+					'DateTime'
+				);
+				return {
+					fixtureMode: mode,
+					delayResolveMs: 3_000,
+					beforeKey: before,
+					identities,
+					refocus,
+					document: await text(page),
+					execution: await page
+						.getByTestId('preview-console')
+						.textContent(),
+					workers: await workers(page),
+				};
+			}
+		);
+	}
+
 	await run(
 		'namespaced DateTime acceptance applies import and executes global class',
 		async (page) => {
