@@ -8,6 +8,14 @@ by the focused regression probe. User-code parsing and syntax diagnostics are
 not version-aware, and full inventories for every PHP extension are outside
 scope.
 
+The runtime, Docker builder, pinned patches, native probe, and Node validation
+tools live together in `src/lsp/phpantom/`. The Node validation tools are run
+explicitly and are not browser entrypoints. ESLint checks those two CLIs with
+the Node environment; TypeScript declaration generation excludes only those
+two files, while the browser runtime stays in the normal checks.
+`build-wasm.sh` resolves the repository root three levels above this module.
+Docker uses the repository root as context with the module-specific `Dockerfile.dockerignore` allowlist.
+
 ## Reproducible candidate build
 
 The source pin is PHPantom `49b9a7513ed19cbbfb79d5d08a3f3693ffb2b668`, with
@@ -30,8 +38,10 @@ Docker uses Rust 1.99.0 from the immutable image
 `rust:1.99.0-bookworm@sha256:114c7a4425406451c2866b6aafe69fe29b1b298832db1277d411ac73c82d04d6`.
 Each run downloads and hashes the upstream archive, applies the patch, checks
 the exact stub pin, then emits a WASI candidate and provenance under
-`build/phpantom-versioned-candidates/`. It never replaces the checked-in
-runtime asset.
+`build/phpantom-versioned-candidates/`. After the WASI gate passes it also
+exports `php-<target>.wasm` and matching
+`php-<target>.provenance.json` to `build/phpantom-runtime/<target>/`. The module
+never writes to assets or public output.
 
 Build a candidate for a supported PHP target (5.6, 7.0–7.4, or 8.0–8.5):
 
@@ -39,6 +49,23 @@ Build a candidate for a supported PHP target (5.6, 7.0–7.4, or 8.0–8.5):
 make test-phpantom-runtime-native
 make build-phpantom-runtime PHPANTOM_TARGET_VERSION=8.0
 ```
+
+`build-phpantom-runtime` produces and tests artifacts only. Explicit asset placement
+belongs to the repository Makefile:
+
+```sh
+make install-phpantom-runtime PHPANTOM_TARGET_VERSION=8.0
+# Exercise distribution without changing tracked assets:
+make install-phpantom-runtime PHPANTOM_TARGET_VERSION=8.0 PHPANTOM_ASSET_DIR=/tmp/phpantom-assets
+```
+
+Installation depends on a successful build, then copies the versioned WASM and
+provenance. `PHPANTOM_BUILD_DIR` overrides the build output root;
+`PHPANTOM_CANDIDATE_DIR` can isolate immutable candidate records during validation.
+The provenance artifact path matches the installed versioned filename. The UI
+owner must update its registry/manifest and hashes together when adopting these
+bytes; this command does not update UI metadata or deploy a site. The legacy
+`phpantom_lsp.wasm` is not an installation target.
 
 The native probe records `nativeRawExit`, `nativePassed`, `nativeFailed`,
 `knownLimitMatched`, and `unexpectedFailures` in `native-test.json`; the raw

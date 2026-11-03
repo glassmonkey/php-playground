@@ -9,5 +9,5 @@ RUN apt-get update \
 	&& rustup target add wasm32-wasip1
 
 WORKDIR /opt/phpantom
-COPY scripts/lsp/phpantom/ ./
+COPY src/lsp/phpantom/ ./
 ENTRYPOINT ["/opt/phpantom/build-in-container.sh"]

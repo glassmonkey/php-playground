@@ -1,9 +1,9 @@
 # The builder only needs the reviewed PHPantom patch, harness, and scripts.
 **
-!scripts/
-!scripts/lsp/
-!scripts/lsp/phpantom/
-!scripts/lsp/phpantom/**
+!src/
+!src/lsp/
+!src/lsp/phpantom/
+!src/lsp/phpantom/**
 
 # Never send generated output or local caches to the Docker build context.
 **/target
