@@ -330,8 +330,6 @@ async function accept(page, label, suffix) {
 			);
 		row = matching.nth(globalIndex);
 	}
-	await row.click();
-	await page.keyboard.press('Escape');
 	const expectedFqn =
 		label === 'DateTime'
 			? 'DateTime'
@@ -340,6 +338,22 @@ async function accept(page, label, suffix) {
 				: undefined;
 	let acceptedResolve;
 	if (expectedFqn) {
+		const targetIndex = await row.getAttribute('data-index');
+		if (targetIndex === null)
+			throw new FixtureError('candidate row has no list index');
+		for (let step = 0; step <= (await rows.count()); step++) {
+			const focused = await page
+				.locator('.suggest-widget .monaco-list-row.focused')
+				.getAttribute('data-index');
+			if (focused === targetIndex) break;
+			await page.keyboard.press('ArrowDown');
+		}
+		if (
+			(await page
+				.locator('.suggest-widget .monaco-list-row.focused')
+				.getAttribute('data-index')) !== targetIndex
+		)
+			throw new FixtureError('qualified candidate could not be focused');
 		await page.waitForFunction((fqn) => {
 			const worker = window.__reviewWorkers
 				.filter(
@@ -379,7 +393,11 @@ async function accept(page, label, suffix) {
 			symbol: acceptedResolve.request.params.data.m,
 			detail: acceptedResolve.request.params.detail,
 		}).toEqual({ symbol: expectedFqn, detail: expectedFqn });
+		await page.keyboard.press('Enter');
+	} else {
+		await row.click();
 	}
+	await page.keyboard.press('Escape');
 	return {
 		acceptedResolve,
 		beforeKey: before,
