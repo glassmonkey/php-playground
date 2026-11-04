@@ -11,8 +11,8 @@ expected_stubs_sha256='3ef62542d2f77ad30c7dab7dfa726e57e86dd5e3403780294119cf4f5
 phase_a_patch_sha256='9ba5fdfbe29fcfacc974611159c6aaf6bcdc15797e0e2a2c6cbf6989ad93f3d9'
 reviewed_phase_b_diff_sha256='e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d'
 phase_b_bundle_sha256='60aad10373b97a65da73196aa28e6893a77480a21d5687ad1b140e6d74bd30a3'
-phase_b_patch_sha256='4996a41403b2c570ba3e6a5a67c86bbe2833129c95bca62f19c5e39581a4b31d'
-phase_b_file_manifest_sha256='b15beb40bcac3d50ab75f722c874aba5cb93dcab55aa41aef1e54108c6d35598'
+phase_b_patch_sha256='fdd3267c72b39cbe3024d38d7ddadee7e651c64c622162db1fcc00706f19afc5'
+phase_b_file_manifest_sha256='7362df153e9f57f2bd74eb7b69d9320d27048841fbca90931b399437b054fc27'
 patch_file='/opt/phpantom/patches/phase-b-versioned-target.patch'
 file_manifest='/opt/phpantom/patches/phase-b-versioned-target.files.json'
 target='wasm32-wasip1'
@@ -82,7 +82,7 @@ fi
 
 patch --dry-run --batch --forward -p1 -d "$source_root" -i "$patch_file"
 patch --batch --forward -p1 -d "$source_root" -i "$patch_file"
-if [[ ! -f "$source_root/build_support/stub_since.rs" || ! -f "$source_root/tests/native_versioned_embedded.rs" ]]; then
+if [[ ! -f "$source_root/build_support/stub_availability.rs" || ! -f "$source_root/tests/native_versioned_embedded.rs" ]]; then
 	printf 'Complete Phase B patch is missing its scanner helper or focused native test.\n' >&2
 	exit 1
 fi
@@ -119,7 +119,7 @@ PY
 source_cargo_lock_sha256="$actual_cargo_lock_sha256"
 stubs_lock_sha256="$(sha256sum "$stubs_lock" | awk '{print $1}')"
 build_started_utc="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-build_identity="49b9a751-phase-b-e12de794"
+build_identity="49b9a751-release-${actual_patch_sha256:0:8}"
 export PHPANTOM_GIT_VERSION="$build_identity"
 unset PHPANTOM_STUBS_DIR
 
@@ -127,6 +127,8 @@ if [[ "$build_mode" == native-test ]]; then
 	native_probe='/source/phpantom-native-probe'
 	export CARGO_HOME=/cache
 	export CARGO_TARGET_DIR=/out/target/native-probe
+	export CARGO_BUILD_JOBS=1
+	export CARGO_PROFILE_TEST_DEBUG=0
 	mkdir -p "$CARGO_HOME" "$CARGO_TARGET_DIR" "$native_probe"
 	cp -R /opt/phpantom/native-probe/. "$native_probe/"
 	if [[ "$(rustc --version | awk '{print $2}')" != '1.99.0' ]]; then
@@ -161,9 +163,13 @@ PYRESULT
 	PHPANTOM_TARGET_PHP_VERSION=7.4 cargo test --locked \
 		--manifest-path "$native_probe/Cargo.toml" \
 		--test native_profile_guards -- --nocapture >"$guard_log" 2>&1
-	rustc --edition=2024 --test "$source_root/build_support/stub_since.rs" \
-		-o "$attempt_root/stub-since-tests"
-	"$attempt_root/stub-since-tests" > /output/stub-since-tests.log 2>&1
+	quality_log='/output/native-release-quality.log'
+	PHPANTOM_TARGET_PHP_VERSION=7.4 cargo test --locked \
+		--manifest-path "$native_probe/Cargo.toml" \
+		--test native_release_quality -- --show-output >"$quality_log" 2>&1
+	rustc --edition=2024 --test "$source_root/build_support/stub_availability.rs" \
+		-o "$attempt_root/stub-availability-tests"
+	"$attempt_root/stub-availability-tests" > /output/stub-availability-tests.log 2>&1
 	native_test_seconds="$((SECONDS - behavior_started))"
 	export PHPANTOM_NATIVE_TEST_SECONDS="$native_test_seconds"
 	export PHPANTOM_BEHAVIOR_EXIT="$behavior_exit"
@@ -215,7 +221,7 @@ summary = {
         "php_target": "7.4",
         "build_identity": os.environ["PHPANTOM_BUILD_IDENTITY"],
         "command": "cargo test --locked --manifest-path <native-probe>/Cargo.toml --test native_versioned_embedded -- --show-output",
-        "result": "raw counts and known-limit classification are recorded in top-level native fields",
+        "result": "raw clean 7/7 is required; counts are recorded in top-level native fields",
         "log": "native-versioned-embedded.log",
     },
     "guards": {
@@ -224,10 +230,12 @@ summary = {
         "log": "native-profile-guards.log",
     },
     "scanner_test": {
-        "command": "rustc --edition=2024 --test <patched-source>/build_support/stub_since.rs",
-        "result": "1/1 passed",
-        "log": "stub-since-tests.log",
+        "command": "rustc --edition=2024 --test <patched-source>/build_support/stub_availability.rs",
+        "result": "8/8 passed",
+        "log": "stub-availability-tests.log",
     },
+    "release_quality": {"command": "cargo test --locked --test native_release_quality -- --show-output", "log": "native-release-quality.log", "required": True},
+    "native_test_profile": {"debug": 0, "jobs": 1},
     "rustc_verbose": os.environ["PHPANTOM_RUSTC_VERBOSE"],
     "cargo_version": os.environ["PHPANTOM_CARGO_VERSION"],
     "docker": {
@@ -243,7 +251,7 @@ summary = {
 }
 Path("/output/native-test.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n")
 PY
-	printf 'Native probe recorded: raw exit=%s, %s passed, %s failed, known limit matched=%s, unexpected failures=%s; guards 2/2; scanner 1/1.\n' \
+	printf 'Native probe recorded: raw exit=%s, %s passed, %s failed, legacy knownLimitMatched=%s, unexpected failures=%s; guards 2/2; release quality required; scanner 8/8.\n' \
 		"$behavior_exit" "$native_passed" "$native_failed" "$known_limit_matched" "$unexpected_failures"
 	exit 0
 fi

@@ -52,7 +52,7 @@ test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 `;
 
 for (const { name, log, rawExit, want } of [
-	{ name: 'exact complete known failure', log: completeKnown, rawExit: 101, want: [0, true, true, 0] },
+	{ name: 'complete former baseline failure is rejected', log: completeKnown, rawExit: 101, want: [1, false, false, 1] },
 	{ name: 'all seven clean', log: clean, rawExit: 0, want: [0, true, false, 0] },
 	{ name: 'known FAIL followed by same-test unwrap panic', log: completeKnown.replace('PHPANTOM_NATIVE_ASSERTIONS_FAILED: 1 failed native checks: [', 'called Result::unwrap() on an Err value'), rawExit: 101, want: [1, false, false, 1] },
 	{ name: 'panic before finish sentinel', log: completeKnown.replace('PHPANTOM_NATIVE_FINISH php74_same_name_user_function_and_local_symbols_survive failures=1\n', ''), rawExit: 101, want: [1, false, false, 1] },

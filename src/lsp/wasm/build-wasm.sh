@@ -119,7 +119,7 @@ if [[ "$build_mode" == native-test ]]; then
 		printf 'Native test command exited 0 without its summary; retained at %s\n' "$attempt_dir" >&2
 		exit 1
 	fi
-	printf 'Native regression probe completed; expected docs-marker failure remains recorded.\n'
+	printf 'Native regression probe passed with no failed checks.\n'
 	printf 'Summary: %s/output/native-test.json\n' "$attempt_dir"
 	printf 'Logs: %s/output/*.log %s/docker-{build,run}.log\n' "$attempt_dir" "$attempt_dir"
 	exit 0
@@ -164,8 +164,8 @@ assert "--target wasm32-wasip1" in manifest["build"]["command"]
 assert manifest["source"]["commit"] == "49b9a7513ed19cbbfb79d5d08a3f3693ffb2b668"
 assert manifest["source"]["archiveSha256"] == "f5861b581a5503c7bf033df82390d08fbc9a971fa769afa90a310d0c623eb59d"
 assert manifest["source"]["cargoLockSha256"] == "0a601fc471628943f15c4e3f97649b99417b1037cf4f824bd835e8a3a12fad1d"
-assert manifest["source"]["appliedPhaseBPatchSha256"] == "4996a41403b2c570ba3e6a5a67c86bbe2833129c95bca62f19c5e39581a4b31d"
-assert manifest["source"]["appliedFileManifestSha256"] == "b15beb40bcac3d50ab75f722c874aba5cb93dcab55aa41aef1e54108c6d35598"
+assert manifest["source"]["appliedPhaseBPatchSha256"] == "fdd3267c72b39cbe3024d38d7ddadee7e651c64c622162db1fcc00706f19afc5"
+assert manifest["source"]["appliedFileManifestSha256"] == "7362df153e9f57f2bd74eb7b69d9320d27048841fbca90931b399437b054fc27"
 assert manifest["stubs"]["commit"] == "2049ca3cfa1feabf52db074108fe776a5713cf02"
 assert manifest["stubs"]["resolvedCommitMarker"] == manifest["stubs"]["commit"]
 assert manifest["stubs"]["archiveSha256"] == "3ef62542d2f77ad30c7dab7dfa726e57e86dd5e3403780294119cf4f5ca6dcb7"

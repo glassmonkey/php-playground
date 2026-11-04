@@ -18,9 +18,9 @@ assert.equal(reviewedDiff,
 	'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d');
 if (manifest.source?.appliedPhaseBPatchSha256) {
 	assert.equal(manifest.source.appliedPhaseBPatchSha256,
-		'4996a41403b2c570ba3e6a5a67c86bbe2833129c95bca62f19c5e39581a4b31d');
+		'fdd3267c72b39cbe3024d38d7ddadee7e651c64c622162db1fcc00706f19afc5');
 	assert.equal(manifest.source.appliedFileManifestSha256,
-		'b15beb40bcac3d50ab75f722c874aba5cb93dcab55aa41aef1e54108c6d35598');
+		'7362df153e9f57f2bd74eb7b69d9320d27048841fbca90931b399437b054fc27');
 } else {
 	assert.equal(manifest.source?.reviewedSourceBundleSha256,
 		'60aad10373b97a65da73196aa28e6893a77480a21d5687ad1b140e6d74bd30a3',
@@ -43,9 +43,9 @@ const actualSha = createHash('sha256').update(bytes).digest('hex');
 assert.equal(actualSha, artifactRecord.sha256, 'artifact bytes match provenance SHA-256');
 assert.equal(bytes.byteLength, artifactRecord.bytes, 'artifact bytes match provenance size');
 
-const wasi = new WASI({ version: 'preview1', args: [], env: {} });
+let wasi = new WASI({ version: 'preview1', args: [], env: {} });
 const module = await WebAssembly.compile(bytes);
-const instance = await WebAssembly.instantiate(module, wasi.getImportObject());
+let instance = await WebAssembly.instantiate(module, wasi.getImportObject());
 wasi.initialize(instance);
 for (const name of ['memory', 'lsp_alloc', 'lsp_dealloc', 'lsp_handle', 'lsp_response_len']) {
 	assert.ok(name in instance.exports, `WASI artifact exports ${name}`);
@@ -54,7 +54,6 @@ const encoder = new TextEncoder();
 const decoder = new TextDecoder('utf-8', { fatal: true });
 let nextId = 1;
 let assertions = 0;
-const knownLimits = [];
 const [targetMajor, targetMinor] = target.split('.').map(Number);
 
 function targetAtLeast(major, minor) {
@@ -218,10 +217,7 @@ function userSymbolsAndBaselineDocs() {
 		const resolved = request('completionItem/resolve', userFunction).result;
 		check(`${target} same-name user function retains signature`, resolved?.detail === 'bool', resolved);
 		const hasMarker = JSON.stringify(resolved).includes('EVAL_USER_SAME_NAME_MARKER');
-		if (!hasMarker) {
-			knownLimits.push('same-name user documentation marker absent; matches the corrected Phase A baseline');
-			console.log(`KNOWN_LIMIT ${target} same-name user docs marker absent (baseline case)`);
-		}
+		check(`${target} same-name user function retains documentation`, hasMarker, resolved);
 	}
 	for (const [marker, expected] of [
 		['local_probe_f', 'local_probe_function'],
@@ -289,15 +285,133 @@ function strrchrBoundary() {
 			&& (!expectedNamedParameters || !serialized.includes('before_needle')), userNamed);
 }
 
+async function releaseFamilyOracle() {
+    const rows=(await readFile(new URL('./native-probe/tests/fixtures/minimum-availability.tsv',import.meta.url),'utf8')).split('\n')
+        .filter(line=>line && !line.startsWith('#')).map(line=>line.split('\t')).filter(row=>row[0]===target);
+    assert.equal(rows.length,14,'the independent minimum oracle has 14 declarations per target');
+    for (const [,family,symbol,available,location] of rows) {
+        // Fresh engine per case: a previous fixture cannot warm the cold result.
+        wasi=new WASI({version:'preview1',args:[],env:{}});
+        instance=await WebAssembly.instantiate(module,wasi.getImportObject());wasi.initialize(instance);initialize();
+        const tail=family==='class'?`new ${symbol.slice(0,-1)}`:family==='interface'?`function f(${symbol.slice(0,-1)}`:family==='member'?'DateTime::createFromI':symbol.slice(0,-1);
+        const uri=`file:///release/${family}/${symbol.replaceAll('\\','_').replaceAll('::','_')}.php`;const source=`<?php\n${tail}`;open(uri,source);
+        const offered=items=>items.some(item=>item.data?.m===symbol || item.filterText===symbol || item.label===symbol.split('\\').at(-1) || item.label?.startsWith(symbol.split('::').at(-1)+'('));
+        const get=()=>completionItems(request('textDocument/completion',{textDocument:{uri},position:{line:source.split('\n').length-1,character:tail.length}}));
+        check(`${target} ${family} ${symbol} cold`,offered(get())===(available==='true'),{expected:available,location});
+        const siblings={
+            'random/random.php':['mt_ran','mt_rand'], 'standard/standard_9.php':['array_chun','array_chunk'],
+            'standard/standard_3.php':['ab','abs'], 'Core/Core_c.php':['new Exceptio','Exception'],
+            'Core/Core_d.php':['PHP_O','PHP_OS'], 'json/json.php':['json_encod','json_encode'],
+            'date/date_c.php':['new DateTim','DateTime'], 'Core/Core.php':['class_exist','class_exists'],
+        };
+        const [prefix,warmSymbol]=siblings[location.split(':')[0]];const warmUri='file:///release/warm.php';const warmSource=`<?php\n${prefix}`;open(warmUri,warmSource);
+        const sibling=completionItems(completion(warmUri,warmSource,prefix)).find(item=>item.data?.m===warmSymbol);
+        check(`${target} ${symbol} shared-source sibling exists`,Boolean(sibling),warmSymbol);
+        request('completionItem/resolve',sibling);
+        check(`${target} ${family} ${symbol} warm`,offered(get())===(available==='true'),{expected:available,location});
+    }
+}
+function applyCompletion(source, item) {
+    assert.ok(item?.textEdit?.range, 'function completion carries an explicit replacement range');
+    const offset = position => source.split('\n').slice(0, position.line)
+        .reduce((sum, line) => sum + line.length + 1, 0) + position.character;
+    const edits = [item.textEdit, ...(item.additionalTextEdits ?? [])]
+        .sort((a, b) => offset(b.range.start) - offset(a.range.start));
+    return edits.reduce((text, edit) => text.slice(0, offset(edit.range.start))
+        + edit.newText + text.slice(offset(edit.range.end)), source);
+}
+
+async function freshEngine() {
+    wasi = new WASI({ version: 'preview1', args: [], env: {} });
+    instance = await WebAssembly.instantiate(module, wasi.getImportObject());
+    wasi.initialize(instance);
+    initialize();
+}
+
+async function releaseInsertionIdentity() {
+    for (const warm of [false, true]) {
+        await freshEngine();
+        const uri = 'file:///release/binding.php';
+        const source = '<?php\nnamespace ReleaseBinding;\n/** USER_BINDING_DOC */\nfunction strlen(string $ownOnly): bool { return true; }\n\\strle';
+        open(uri, source);
+        if (warm) {
+            const siblingUri = 'file:///release/sibling.php';
+            const siblingSource = '<?php\nstrle';
+            open(siblingUri, siblingSource);
+            const sibling = completionItems(completion(siblingUri, siblingSource, 'strle'))
+                .find(item => item.data?.m === 'strlen');
+            assert.ok(sibling, 'the public sibling request finds the builtin');
+            request('completionItem/resolve', sibling);
+        }
+        const items = completionItems(completion(uri, source, '\\strle'));
+        const global = items.find(item => item.data?.m === 'strlen');
+        const user = items.find(item => item.data?.m === 'ReleaseBinding\\strlen');
+        const globalCall = warm ? '\\strlen(${1:\\$string})$0' : '\\strlen()$0';
+        const common = source.slice(0, source.lastIndexOf('\\strle'));
+        check(`${target} global full edit preserves identity warm=${warm}`,
+            applyCompletion(source, global) === common + globalCall, global);
+        check(`${target} user full edit preserves identity warm=${warm}`,
+            applyCompletion(source, user) === common + 'strlen(${1:\\$ownOnly})$0', user);
+        const globalDoc = JSON.stringify(request('completionItem/resolve', global).result);
+        const userDoc = JSON.stringify(request('completionItem/resolve', user).result);
+        check(`${target} global docs do not resolve to user warm=${warm}`,
+            !globalDoc.includes('USER_BINDING_DOC') && globalDoc.includes('string $string'), globalDoc);
+        check(`${target} selected user docs preserve marker warm=${warm}`,
+            userDoc.includes('USER_BINDING_DOC'), userDoc);
+    }
+    await freshEngine();
+    const uri = 'file:///release/qualified.php';
+    const source = '<?php\nnamespace Vendor { /** VENDOR_DOC */ function chosen(int $value): string {} }\nnamespace Consumer {\nuse function Vendor\\chosen as picked;\nVendor\\chos';
+    open(uri, source);
+    const item = completionItems(completion(uri, source, 'Vendor\\chos'))
+        .find(item => item.data?.m === 'Vendor\\chosen');
+    const expected = '<?php\nnamespace Vendor { /** VENDOR_DOC */ function chosen(int $value): string {} }\nnamespace Consumer {\nuse function Vendor\\chosen as picked;\npicked(${1:\\$value})$0';
+    check(`${target} qualified prefix and all edits select the imported alias`,
+        applyCompletion(source, item) === expected, item);
+    check(`${target} qualified alias docs select the indexed FQN`,
+        JSON.stringify(request('completionItem/resolve', item).result).includes('VENDOR_DOC'), item);
+}
+
+async function releaseMemberAndTypeBoundaries() {
+    for (const [tail, symbol, expected] of [
+        ['DateTime::RFC3339_EXT', 'RFC3339_EXTENDED', targetAtLeast(7, 0)],
+        ["$d=new DateInterval('PT1S');\n$d->f", 'f', targetAtLeast(7, 1)],
+    ]) {
+        await freshEngine();
+        const uri = 'file:///release/member.php';
+        const source = `<?php\n${tail}`;
+        open(uri, source);
+        const items = completionItems(completion(uri, source, tail));
+        check(`${target} member ${symbol} own metadata boundary`,
+            items.some(item => item.label === symbol || item.filterText === symbol) === expected, items);
+    }
+    for (const [tail, marker, expected] of [
+        ['substr("abc", 0,', 'false', !targetAtLeast(8, 0)],
+        ['$d=new DateTime();\n$d->setTime(1,2,3,', 'microsecond', targetAtLeast(7, 1)],
+    ]) {
+        await freshEngine();
+        const uri = 'file:///release/signature.php';
+        const source = `<?php\n${tail}`;
+        open(uri, source);
+        const signature = request('textDocument/signatureHelp', {
+            textDocument: { uri }, position: positionAfter(source, tail),
+        }).result?.signatures?.[0]?.label;
+        check(`${target} signature ${marker} version boundary`,
+            typeof signature === 'string' && signature.includes(marker) === expected, signature);
+    }
+}
+
 initialize();
 versionedBuiltinAvailability();
 namedArgumentFeature();
 strrchrBoundary();
 userSymbolsAndBaselineDocs();
+await releaseInsertionIdentity();
+await releaseFamilyOracle();
+await releaseMemberAndTypeBoundaries();
 console.log(JSON.stringify({
 	target,
 	artifactSha256: actualSha,
 	buildIdentity,
 	assertionsPassed: assertions,
-	knownLimits,
 }, null, 2));

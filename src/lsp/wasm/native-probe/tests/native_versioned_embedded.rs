@@ -140,7 +140,7 @@ async fn builtin_case(major: u8, minor: u8, expected: bool) {
         &mut failures,
         &format!("PHP {major}.{minor} sibling abs completion"),
         abs.is_some(),
-        &labels(&abs_items),
+        labels(&abs_items),
     );
     if let Some(abs) = abs {
         let resolved = backend.completion_resolve(abs.clone()).await.unwrap();
@@ -222,7 +222,7 @@ async fn php74_same_name_user_function_and_local_symbols_survive() {
                     .and_then(|name| name.as_str())
                     .is_some_and(|name| name.eq_ignore_ascii_case("EvalProbe\\str_contains"))
         }),
-        &same_name
+        same_name
             .iter()
             .map(|item| (&item.label, &item.filter_text, &item.data))
             .collect::<Vec<_>>(),
@@ -248,11 +248,14 @@ async fn php74_same_name_user_function_and_local_symbols_survive() {
         );
         record(
             &mut failures,
-            "PHP 7.4 same-name user documentation marker (known baseline)",
+            "PHP 7.4 same-name user documentation marker",
             details.contains("EVAL_USER_SAME_NAME_MARKER"),
             &details,
         );
-        eprintln!("INFO PHP 7.4 same-name user documentation resolve: {:?}", resolved.documentation);
+        eprintln!(
+            "INFO PHP 7.4 same-name user documentation resolve: {:?}",
+            resolved.documentation
+        );
     }
 
     for (line, character, expected) in [
@@ -335,7 +338,7 @@ async fn strrchr_case(major: u8, minor: u8, expected: bool) {
         &mut failures,
         &format!("PHP {major}.{minor} strrchr signature available"),
         signature.is_some(),
-        &signature.as_ref().map(|value| &value.signatures),
+        signature.as_ref().map(|value| &value.signatures),
     );
     if let Some(signature) = signature {
         let parameters = signature_params(&signature);

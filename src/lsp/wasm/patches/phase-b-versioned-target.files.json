@@ -1,30 +1,66 @@
 {
-  "completePatchSha256": "4996a41403b2c570ba3e6a5a67c86bbe2833129c95bca62f19c5e39581a4b31d",
-  "fileCount": 15,
+  "completePatchSha256": "fdd3267c72b39cbe3024d38d7ddadee7e651c64c622162db1fcc00706f19afc5",
+  "fileCount": 25,
   "files": [
     {
       "path": "build.rs",
-      "sha256": "02313f1d792cdaac7fd85450440c96d075d908c7067ddec9eee0a8106515a532"
+      "sha256": "7753954e6a13a16ca046859f432e9ce077d25379f47854fe687469ee131a27ed"
+    },
+    {
+      "path": "build_support/stub_availability.rs",
+      "sha256": "b28f4a8590032245bd8724679a3c4a31e8c3c69a57eb8601198f5b1ae2ec6a5c"
     },
     {
       "path": "src/backend/settings.rs",
-      "sha256": "f2de5d64f7fa4b799243608aec0a1ba37944cc5d3bac5bd7107ad2902dbfa0dd"
+      "sha256": "e62fe48083bfc15807d8cdb39652e4012c8d5fdd4bfc51ada3615d83d7727217"
+    },
+    {
+      "path": "src/completion/context/function_completion.rs",
+      "sha256": "5edcb79abb7572cc267dbd5d85c0200f6e2c0a2f1494c3a4522ccca23f80d883"
     },
     {
       "path": "src/completion/handler/named_args.rs",
       "sha256": "80b2326a57356fc393a84663a3797b04eb22910439b01f603a76e09c6ecde88d"
     },
     {
+      "path": "src/completion/resolve.rs",
+      "sha256": "27a9b490b763411f54e1e8cb44b757d5c0165dad81d0eacb5297ef494d663a39"
+    },
+    {
+      "path": "src/completion/use_edit.rs",
+      "sha256": "17d22af66529f1d057af1e4b973a43c2578519a859827cfed77bf56c511054dc"
+    },
+    {
       "path": "src/docblock/tags.rs",
       "sha256": "a8bf6ff65a8dbcf91ff96dd7c996090449ccdf81901cfaf3a67aef4a5f79062d"
+    },
+    {
+      "path": "src/lib.rs",
+      "sha256": "32855643f2baf93e1213427517f896ecb23722c95d4201fbfe2d355d585cb002"
     },
     {
       "path": "src/lsp_dispatch.rs",
       "sha256": "edd511bb98871cc2f9e8bb347e416e1408f327f28d7e5cb92a6929a6caaee9a5"
     },
     {
+      "path": "src/parser/ast_update.rs",
+      "sha256": "db56a84cf3fd7e1657a5a1dca95d4ce4f56dee48df6509e17ac86ac30bd24fcc"
+    },
+    {
+      "path": "src/parser/classes/members.rs",
+      "sha256": "aa4b048a05cf072ac2abdcb3bab81b938b6d2258c7ba2e2ecb482414783efe39"
+    },
+    {
       "path": "src/parser/classes/methods.rs",
       "sha256": "a87edccf4f9101af4e51223f6dd1a45c51cdd767f7e992b3f201f92ebb24e7db"
+    },
+    {
+      "path": "src/parser/classes/mod.rs",
+      "sha256": "fea34fb0a22eed5e8b4526c6e3a8bbde48474635fb30fed49a509531c0b4e3b1"
+    },
+    {
+      "path": "src/parser/classes/properties.rs",
+      "sha256": "8fb611f357a27bc41121e0f999ff458a0297b42a4c159523ba73733e1acefa4b"
     },
     {
       "path": "src/parser/functions.rs",
@@ -32,15 +68,23 @@
     },
     {
       "path": "src/parser/signature.rs",
-      "sha256": "1fd2cf16ef6a71b6f5f61e3c8e070616f8355ae3301a536cc54ec48bec5a8c9f"
+      "sha256": "0a2fc1bc4cc2fbf85e0d919bfa6cc69cafa1187fcd979a3d0ec31538f5449a07"
+    },
+    {
+      "path": "src/parser/stub_attributes.rs",
+      "sha256": "0106b9a613929037ab536d168269448752ed06e731604942ca8aed03cb1f0ec8"
     },
     {
       "path": "src/resolution/functions.rs",
       "sha256": "ed50c94431905b22058832ed223a67344f683e793bf41e11a23d29f173e49f53"
     },
     {
+      "path": "src/stub_metadata.rs",
+      "sha256": "003bbde1462fd3dfcc6d469401f4d84b55daae9229949a619666c6da24ad2397"
+    },
+    {
       "path": "src/stubs.rs",
-      "sha256": "2e63f4527e8b65b77c549668ea53e05bc7c197e24b378c25988ddb366414a5c6"
+      "sha256": "932a0b72e18e5f54e1891b3927eee2ffe60db171df89be8ef6491d47ecfa75a2"
     },
     {
       "path": "tests/integration/completion_named_args.rs",
@@ -53,10 +97,6 @@
     {
       "path": "tests/integration/php_version.rs",
       "sha256": "6cfaef90def93dbbb763a96634c15334ce57187cdb6b65bc6aeaa07f76e14179"
-    },
-    {
-      "path": "build_support/stub_since.rs",
-      "sha256": "8b4a28692bca309a843b1f4ecb572494d923b8b2dccb9b4d7fe019bab3b2f146"
     },
     {
       "path": "tests/native_versioned_embedded.rs",

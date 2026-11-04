@@ -1,17 +1,16 @@
 diff --git a/build.rs b/build.rs
-index c579d0b..3105201 100644
 --- a/build.rs
 +++ b/build.rs
-@@ -66,6 +66,8 @@ use tar::Archive;
+@@ -64,6 +64,8 @@
+ use flate2::read::GzDecoder;
+ use tar::Archive;
  
++#[path = "build_support/stub_availability.rs"]
++mod stub_availability;
  #[path = "src/stub_map.rs"]
  mod stub_map;
-+#[path = "build_support/stub_since.rs"]
-+mod stub_since;
  use stub_map::parse_section;
- 
- /// Relative path (from the stubs root) to the stubs map file.
-@@ -104,7 +106,31 @@ fn resolve_stubs_root() -> (PathBuf, bool) {
+@@ -104,7 +106,31 @@
      (out_stubs, needs_fetch)
  }
  
@@ -43,107 +42,529 @@ index c579d0b..3105201 100644
      // Watch the project root directory so that creating/removing `stubs/`
      // (which is gitignored) is detected via the directory mtime change.
      // Without this, Cargo's default "any package file" check ignores
-@@ -338,6 +364,26 @@ fn generate_stub_map(stubs_path: &Path) {
+@@ -291,11 +317,45 @@
+         // directory to avoid fragile relative path arithmetic.
+         let abs = stubs_path.join(rel_path);
+         let abs_str = abs.to_string_lossy().replace('\\', "/");
+-        out.push_str(&format!("    include_str!(\"{}\")", abs_str));
++        if stub_availability::php_version_domain(rel_path) {
++            out.push_str(&format!(
++                "    concat!({:?}, include_str!({:?}))",
++                stub_availability::PHP_DOC_MARKER,
++                abs_str
++            ));
++        } else {
++            out.push_str(&format!("    include_str!({:?})", abs_str));
++        }
+         out.push_str(",\n");
      }
      out.push_str("];\n\n");
  
-+    // PHP core functions use @since for introduction versions. Extension
-+    // stubs use the same tag for extension releases, so only read it from
-+    // the core and standard-library source trees.
-+    let function_since_entries =
-+        function_since_entries(stubs_path, &existing_files, &function_entries);
-+    out.push_str("/// PHP core functions with an authoritative introduction version.\n");
-+    out.push_str(&format!(
-+        "pub(crate) static STUB_FUNCTION_SINCE: [(&str, u8, u8); {}] = [\n",
-+        function_since_entries.len()
-+    ));
-+    for (name, major, minor) in &function_since_entries {
-+        out.push_str(&format!(
-+            "    (\"{}\", {}, {}),\n",
-+            escape(name),
-+            major,
-+            minor
-+        ));
-+    }
-+    out.push_str("];\n\n");
-+
-     // 4. Constant name → file index mapping.
-     let constant_entries: Vec<(&str, usize)> = constant_map
-         .iter()
-@@ -362,6 +408,36 @@ fn generate_stub_map(stubs_path: &Path) {
-     write_if_changed(&out);
- }
- 
-+fn function_since_entries<'a>(
-+    stubs_path: &Path,
-+    files: &[&str],
-+    function_entries: &[(&'a str, usize)],
-+) -> Vec<(&'a str, u8, u8)> {
-+    let mut result = Vec::new();
-+    let mut file_versions = BTreeMap::new();
-+    for &(name, index) in function_entries {
-+        let Some(path) = files.get(index) else {
-+            continue;
-+        };
-+        if !path.starts_with("Core/") && !path.starts_with("standard/") {
-+            continue;
-+        }
-+        let versions = file_versions.entry(index).or_insert_with(|| {
-+            fs::read_to_string(stubs_path.join(path))
-+                .map(|source| stub_since::function_since_versions(&source))
-+                .unwrap_or_default()
-+        });
-+        let short_name = name.rsplit('\\').next().unwrap_or(name);
-+        if let Some((_, major, minor)) = versions
-+            .iter()
-+            .find(|(declared_name, _, _)| declared_name.eq_ignore_ascii_case(short_name))
++    let mut availability = Vec::new();
++    for rel in &existing_files {
++        let source = fs::read_to_string(stubs_path.join(rel)).expect("verified stub file");
++        for entry in stub_availability::entries(&source, stub_availability::php_version_domain(rel))
 +        {
-+            result.push((name, *major, *minor));
++            let name = if entry.kind == "constant" {
++                entry.name.clone()
++            } else {
++                entry.name.to_ascii_lowercase()
++            };
++            availability.push((
++                format!("{}:{name}", entry.kind),
++                entry.from,
++                entry.to,
++                entry.removed,
++            ));
 +        }
 +    }
-+    result
-+}
++    availability.sort();
++    availability.dedup();
++    out.push_str("pub(crate) static STUB_AVAILABILITY: &[(&str, u16, u16, u16)] = &[\n");
++    for (key, from, to, removed) in availability {
++        out.push_str(&format!("    ({key:?}, {from}, {to}, {removed}),\n"));
++    }
++    out.push_str("];\n");
 +
- // ── Stub fetching ───────────────────────────────────────────────────────
- 
- /// Read `stubs.lock` and return the pinned commit + hash.
-@@ -624,6 +700,7 @@ fn write_empty_stubs() {
+     // 2. Class name → file index mapping.
+     let class_entries: Vec<(&str, usize)> = class_map
+         .iter()
+@@ -624,6 +684,7 @@
          "pub(crate) static STUB_FILES: [&str; 0] = [];\n",
          "pub(crate) static STUB_CLASS_MAP: [(&str, usize); 0] = [];\n",
          "pub(crate) static STUB_FUNCTION_MAP: [(&str, usize); 0] = [];\n",
-+        "pub(crate) static STUB_FUNCTION_SINCE: [(&str, u8, u8); 0] = [];\n",
++        "pub(crate) static STUB_AVAILABILITY: &[(&str, u16, u16, u16)] = &[];\n",
          "pub(crate) static STUB_CONSTANT_MAP: [(&str, usize); 0] = [];\n",
      );
      write_if_changed(content);
+diff --git a/build_support/stub_availability.rs b/build_support/stub_availability.rs
+--- a/build_support/stub_availability.rs
++++ b/build_support/stub_availability.rs
+@@ -0,0 +1,423 @@
++//! Metadata-only PHP stub scanner, shared by cold indexes and stub parsing.
++//! Numeric @since/@removed tags are PHP versions only for bundled PHP domains.
++#[path = "../src/stub_metadata.rs"]
++mod metadata;
++pub use metadata::PHP_DOC_MARKER;
++use metadata::{doc_version, is_availability_attribute, version};
++#[derive(Clone, Debug, PartialEq, Eq)]
++pub struct Entry {
++    pub kind: &'static str,
++    pub name: String,
++    pub from: u16,
++    pub to: u16,
++    pub removed: u16,
++}
++pub fn php_version_domain(path: &str) -> bool {
++    matches!(
++        path.split('/').next().unwrap_or(""),
++        "Core"
++            | "standard"
++            | "SPL"
++            | "Reflection"
++            | "date"
++            | "random"
++            | "json"
++            | "pcre"
++            | "hash"
++            | "filter"
++            | "session"
++            | "tokenizer"
++            | "mbstring"
++            | "iconv"
++            | "ctype"
++            | "fileinfo"
++            | "zlib"
++            | "bz2"
++            | "openssl"
++            | "sodium"
++            | "sockets"
++            | "curl"
++            | "gd"
++            | "intl"
++            | "zip"
++            | "Phar"
++            | "PDO"
++            | "mysql"
++            | "mysqli"
++            | "pgsql"
++            | "sqlite3"
++            | "dom"
++            | "SimpleXML"
++            | "xml"
++            | "xmlreader"
++            | "xmlwriter"
++            | "xsl"
++            | "libxml"
++            | "ftp"
++            | "imap"
++            | "ldap"
++            | "soap"
++            | "bcmath"
++            | "calendar"
++            | "dba"
++            | "enchant"
++            | "exif"
++            | "gettext"
++            | "gmp"
++            | "pcntl"
++            | "posix"
++            | "pspell"
++            | "readline"
++            | "shmop"
++            | "snmp"
++            | "sysvmsg"
++            | "sysvsem"
++            | "sysvshm"
++            | "tidy"
++            | "FFI"
++            | "Zend OPcache"
++            | "sybase"
++            | "mssql"
++            | "mcrypt"
++            | "recode"
++            | "wddx"
++            | "SQLite"
++            | "fpm"
++            | "uri"
++            | "io"
++    )
++}
++// Tokenize strings/comments/attributes instead of matching declaration-looking prose.
++fn tokens(source: &str) -> Vec<&str> {
++    let b = source.as_bytes();
++    let mut out = Vec::new();
++    let mut i = 0;
++    while i < b.len() {
++        let start = i;
++        if b[i].is_ascii_whitespace() {
++            i += 1;
++            continue;
++        }
++        if source[i..].starts_with("//") || (b[i] == b'#' && !source[i..].starts_with("#[")) {
++            i += source[i..].find('\n').unwrap_or(b.len() - i);
++            continue;
++        }
++        if source[i..].starts_with("/*") {
++            i += 2 + source[i + 2..].find("*/").unwrap_or(b.len() - i - 2);
++            i = (i + 2).min(b.len());
++            if source[start..].starts_with("/**") {
++                out.push(&source[start..i]);
++            }
++            continue;
++        }
++        if b[i] == b'\'' || b[i] == b'"' {
++            let quote = b[i];
++            i += 1;
++            while i < b.len() {
++                if b[i] == b'\\' {
++                    i = (i + 2).min(b.len());
++                } else if b[i] == quote {
++                    i += 1;
++                    break;
++                } else {
++                    i += 1;
++                }
++            }
++        } else if b[i].is_ascii_alphanumeric() || b[i] == b'_' || b[i] == b'\\' || b[i] >= 128 {
++            i += 1;
++            while i < b.len()
++                && (b[i].is_ascii_alphanumeric() || b[i] == b'_' || b[i] == b'\\' || b[i] >= 128)
++            {
++                i += 1;
++            }
++        } else {
++            i += 1;
++        }
++        out.push(&source[start..i]);
++    }
++    out
++}
++fn unquote(s: &str) -> &str {
++    s.trim_matches(['\'', '"'])
++}
++fn availability_attribute(attrs: &str, imports: &[(&str, &str)]) -> (u16, u16) {
++    let normalized = attrs.replace("# [", "#[");
++    let t = tokens(&normalized);
++    let mut nesting = 0usize;
++    for i in 0..t.len().saturating_sub(1) {
++        if t[i] == "(" {
++            nesting += 1;
++            continue;
++        }
++        if t[i] == ")" {
++            nesting = nesting.saturating_sub(1);
++            continue;
++        }
++        if nesting != 0 || !is_availability_attribute(t[i], imports) || t[i + 1] != "(" {
++            continue;
++        }
++        let mut from = 0;
++        let mut to = u16::MAX;
++        let mut j = i + 2;
++        // Only this attribute's own argument list contributes bounds.
++        while j < t.len() && t[j] != ")" {
++            if (t[j] == "from" || t[j] == "to") && t.get(j + 1) == Some(&":") {
++                if let Some(value) = t.get(j + 2).and_then(|v| version(unquote(v))) {
++                    if t[j] == "from" {
++                        from = value;
++                    } else {
++                        to = value;
++                    }
++                }
++                j += 3;
++            } else if j == i + 2 {
++                if let Some(value) = version(unquote(t[j])) {
++                    from = value;
++                }
++                j += 1;
++            } else {
++                j += 1;
++            }
++        }
++        return (from, to);
++    }
++    (0, u16::MAX)
++}
++pub fn entries(source: &str, php_domain: bool) -> Vec<Entry> {
++    let t = tokens(source);
++    let mut imports = Vec::new();
++    for i in 0..t.len().saturating_sub(1) {
++        if t[i] == "use" && !matches!(t[i + 1], "function" | "const") {
++            let target = t[i + 1].trim_start_matches('\\');
++            let alias = if t.get(i + 2) == Some(&"as") {
++                t.get(i + 3).copied().unwrap_or("")
++            } else {
++                target.rsplit('\\').next().unwrap_or(target)
++            };
++            imports.push((alias, target));
++        }
++    }
++    let mut i = 0;
++    let mut doc = "";
++    let mut attrs = String::new();
++    let mut ns = String::new();
++    let mut depth = 0usize;
++    let mut class_depth = None;
++    let mut pending_class = false;
++    let mut ns_depth = None;
++    let mut result = Vec::new();
++    while i < t.len() {
++        let token = t[i];
++        if token.starts_with("/**") {
++            doc = token;
++            attrs.clear();
++            i += 1;
++            continue;
++        }
++        if token == "#" && t.get(i + 1) == Some(&"[") {
++            let start = i;
++            i += 2;
++            let mut n = 1;
++            while i < t.len() && n > 0 {
++                if t[i] == "[" {
++                    n += 1;
++                }
++                if t[i] == "]" {
++                    n -= 1;
++                }
++                i += 1;
++            }
++            attrs.push_str(&t[start..i].join(" "));
++            continue;
++        }
++        if token == "namespace" {
++            if let Some(name) = t.get(i + 1) {
++                if *name != "{" {
++                    ns = name.trim_start_matches('\\').to_string();
++                } else {
++                    ns.clear();
++                }
++            }
++            if let Some(next) = t[i + 1..].iter().position(|v| *v == "{" || *v == ";") {
++                if t[i + 1 + next] == "{" {
++                    ns_depth = Some(depth + 1);
++                }
++            }
++            doc = "";
++            attrs.clear();
++            i += 1;
++            continue;
++        }
++        if token == "{" {
++            depth += 1;
++            if pending_class {
++                class_depth = Some(depth);
++                pending_class = false;
++            }
++            doc = "";
++            attrs.clear();
++            i += 1;
++            continue;
++        }
++        if token == "}" {
++            if class_depth == Some(depth) {
++                class_depth = None;
++            }
++            if ns_depth == Some(depth) {
++                ns.clear();
++                ns_depth = None;
++            }
++            depth = depth.saturating_sub(1);
++            doc = "";
++            attrs.clear();
++            i += 1;
++            continue;
++        }
++        let kind = match token {
++            "function" => Some("function"),
++            "class" | "interface" | "trait" | "enum" => Some("class"),
++            "const" | "define" => Some("constant"),
++            _ => None,
++        };
++        if let Some(kind) = kind {
++            let mut n = i + 1;
++            if t.get(n) == Some(&"&") {
++                n += 1;
++            }
++            if token == "define" {
++                if t.get(n) != Some(&"(") {
++                    i += 1;
++                    continue;
++                }
++                n += 1;
++            }
++            if let Some(raw) = t.get(n) {
++                let name = unquote(raw);
++                let declaration = name
++                    .bytes()
++                    .next()
++                    .is_some_and(|b| b.is_ascii_alphabetic() || b == b'_' || b >= 128);
++                if declaration && class_depth.is_none() && t.get(i.wrapping_sub(1)) != Some(&":") {
++                    let fqn = if ns.is_empty() || token == "define" {
++                        name.to_string()
++                    } else {
++                        format!("{ns}\\{name}")
++                    };
++                    let (attr_from, attr_to) = availability_attribute(&attrs, &imports);
++                    let from = doc_version(doc, "@since", php_domain)
++                        .unwrap_or(0)
++                        .max(attr_from);
++                    let removed = doc_version(doc, "@removed", php_domain).unwrap_or(u16::MAX);
++                    let to = attr_to;
++                    result.push(Entry {
++                        kind,
++                        name: fqn,
++                        from,
++                        to,
++                        removed,
++                    });
++                    if kind == "class" {
++                        pending_class = true;
++                    }
++                }
++            }
++            doc = "";
++            attrs.clear();
++        }
++        if token == ";" {
++            doc = "";
++            attrs.clear();
++        }
++        i += 1;
++    }
++    result
++}
++#[cfg(test)]
++mod tests {
++    use super::*;
++    #[test]
++    fn domain_and_owner_are_not_inferred_from_indentation() {
++        let src = "<?php namespace Random { /** @since 7.0 */ function random_bytes() {} /** @since 8.2 */ class Randomizer { /** @since 8.3 */ function getFloat() {} } }";
++        assert_eq!(
++            entries(src, true),
++            vec![
++                Entry {
++                    kind: "function",
++                    name: "Random\\random_bytes".into(),
++                    from: 700,
++                    to: 65535,
++                    removed: 65535
++                },
++                Entry {
++                    kind: "class",
++                    name: "Random\\Randomizer".into(),
++                    from: 802,
++                    to: 65535,
++                    removed: 65535
++                }
++            ]
++        );
++    }
++    #[test]
++    fn extension_release_is_not_a_php_release() {
++        let src = "<?php /** @since 5.2.0 */ function redis_example() {}";
++        assert_eq!(entries(src, false)[0].from, 0);
++        assert_eq!(entries(src, true)[0].from, 502);
++    }
++    #[test]
++    fn ranges_and_removals_are_per_declaration() {
++        let src = "<?php /** @removed 8.0 */ #[PhpStormStubsElementAvailable(from: '5.6', to: '7.4')] function old_name() {} /** @since 8.1 */ define('FUTURE', 1);";
++        let e = entries(src, true);
++        assert_eq!((e[0].from, e[0].to, e[0].removed), (506, 704, 800));
++        assert_eq!(e[1].from, 801);
++    }
++
++    #[test]
++    fn unrelated_attribute_bounds_are_not_php_availability() {
++        let src = "<?php #[Unrelated(from: '8.5')] function existing() {}";
++        assert_eq!(
++            (entries(src, true)[0].from, entries(src, true)[0].to),
++            (0, 65535)
++        );
++    }
++    #[test]
++    fn attribute_bounds_do_not_bleed_across_attributes() {
++        let src = "<?php #[Unrelated(from: '8.5'), PhpStormStubsElementAvailable(to: '7.4'), Other(from: '8.3')] function existing() {}";
++        assert_eq!(
++            (entries(src, true)[0].from, entries(src, true)[0].to),
++            (0, 704)
++        );
++    }
++    #[test]
++    fn availability_fqn_alias_and_positional_are_recognized() {
++        let src = "<?php use JetBrains\\PhpStorm\\Internal\\PhpStormStubsElementAvailable as Available; #[Available('8.1')] function first() {} #[\\JetBrains\\PhpStorm\\Internal\\PhpStormStubsElementAvailable(from: '8.2')] function second() {}";
++        assert_eq!(
++            entries(src, true)
++                .iter()
++                .map(|e| e.from)
++                .collect::<Vec<_>>(),
++            vec![801, 802]
++        );
++    }
++    #[test]
++    fn unrelated_namespace_and_nested_attributes_are_not_availability() {
++        let src = "<?php use Other\\PhpStormStubsElementAvailable; #[PhpStormStubsElementAvailable(from: '8.5')] function first() {} #[Unrelated(new \\JetBrains\\PhpStorm\\Internal\\PhpStormStubsElementAvailable(from: '8.5'))] function second() {}";
++        assert_eq!(
++            entries(src, true)
++                .iter()
++                .map(|e| e.from)
++                .collect::<Vec<_>>(),
++            vec![0, 0]
++        );
++    }
++    #[test]
++    fn since_does_not_leak_from_classes_constants_or_comments_to_functions() {
++        let source = "<?php /** @since 8.0.2 */ #[Pure] function introduced_in_core(): void {} /** @since 8.1 */ class Type { /** @since 8.2 */ public function method_since(): void {} } /** @since 8.3 */ // function mentioned is not a declaration\nconst DOCUMENTED_CONSTANT = 'function not_a_function';";
++        let got = entries(source, true)
++            .into_iter()
++            .filter(|e| e.kind == "function")
++            .map(|e| (e.name, e.from))
++            .collect::<Vec<_>>();
++        assert_eq!(got, vec![("introduced_in_core".to_string(), 800)]);
++    }
++}
 diff --git a/src/backend/settings.rs b/src/backend/settings.rs
-index 07afa09..f922666 100644
 --- a/src/backend/settings.rs
 +++ b/src/backend/settings.rs
-@@ -110,6 +110,7 @@ impl Backend {
+@@ -1,7 +1,6 @@
+ //! The project configuration, the indexing filters compiled from it, and
+ //! the PHP version the stubs are filtered for.
+ 
+-use std::collections::HashMap;
+ use std::sync::Arc;
+ 
+ use crate::{Backend, classmap_scanner, config, stubs, types};
+@@ -110,27 +109,23 @@
      /// `stub_constant_index` to remove entries that do not exist in
      /// the given PHP version.
      pub fn set_php_version(&self, version: types::PhpVersion) {
 +        let version_changed = self.php_version() != version;
          *self.workspace.php_version.lock() = version;
-         // Every symbol a stub file declares shares that file's `&'static str`,
-         // so each file is scanned once for its removed declarations and the
-@@ -123,14 +124,22 @@ impl Backend {
-                 .as_ref()
-                 .is_some_and(|names| names.contains(kind, name))
-         };
--        self.stub_function_index
--            .write()
+-        // Every symbol a stub file declares shares that file's `&'static str`,
+-        // so each file is scanned once for its removed declarations and the
+-        // filter below is a set lookup per symbol.
+-        let mut removed_by_file: HashMap<usize, Option<stubs::RemovedStubNames<'static>>> =
+-            HashMap::new();
+-        let mut is_removed = |source: &'static str, name: &str, kind: stubs::StubSymbolKind| {
+-            removed_by_file
+-                .entry(source.as_ptr() as usize)
+-                .or_insert_with(|| stubs::removed_stub_names(source, version))
+-                .as_ref()
+-                .is_some_and(|names| names.contains(kind, name))
+-        };
+         self.stub_function_index
+             .write()
 -            .retain(|name, source| !is_removed(source, name, stubs::StubSymbolKind::Function));
-+        self.stub_function_index.write().retain(|name, source| {
-+            !is_removed(source, name, stubs::StubSymbolKind::Function)
-+                && stubs::stub_function_available(name, version)
-+        });
++            .retain(|name, _| stubs::stub_symbol_available("function", name, version));
          self.stub_index
              .write()
-             .retain(|name, source| !is_removed(source, name, stubs::StubSymbolKind::Class));
+-            .retain(|name, source| !is_removed(source, name, stubs::StubSymbolKind::Class));
++            .retain(|name, _| stubs::stub_symbol_available("class", name, version));
          self.stub_constant_index
              .write()
-             .retain(|name, source| !is_removed(source, name, stubs::StubSymbolKind::Constant));
+-            .retain(|name, source| !is_removed(source, name, stubs::StubSymbolKind::Constant));
++            .retain(|name, _| stubs::stub_symbol_available("constant", name, version));
 +        if version_changed {
 +            self.symbols
 +                .global_functions
@@ -153,11 +574,256 @@ index 07afa09..f922666 100644
 +        }
      }
  }
+diff --git a/src/completion/context/function_completion.rs b/src/completion/context/function_completion.rs
+--- a/src/completion/context/function_completion.rs
++++ b/src/completion/context/function_completion.rs
+@@ -34,6 +34,7 @@
+     insert_text_format: Option<InsertTextFormat>,
+     is_deprecated: bool,
+     additional_text_edits: Option<Vec<TextEdit>>,
++    replacement_range: Option<Range>,
+ }
+ 
+ impl FunctionItemBuilder {
+@@ -56,6 +57,7 @@
+             insert_text_format: None,
+             is_deprecated: false,
+             additional_text_edits: None,
++            replacement_range: None,
+         }
+     }
+ 
+@@ -79,7 +81,18 @@
+         self
+     }
+ 
++    fn replace_range(mut self, range: Option<Range>) -> Self {
++        self.replacement_range = range;
++        self
++    }
++
+     fn build(self) -> CompletionItem {
++        let text_edit = self.replacement_range.map(|range| {
++            CompletionItemTextEdit::TextEdit(TextEdit {
++                range,
++                new_text: self.insert_text.clone(),
++            })
++        });
+         let detail = self.return_type;
+         let data = serde_json::to_value(CompletionItemData {
+             class_name: String::new(),
+@@ -94,6 +107,7 @@
+             kind: Some(CompletionItemKind::Function),
+             detail,
+             insert_text: Some(self.insert_text),
++            text_edit,
+             insert_text_format: self.insert_text_format,
+             filter_text: Some(self.filter_text),
+             sort_text: Some(self.sort_text),
+@@ -181,6 +195,79 @@
+ 
+         // Pre-compute use-block info for auto-import insertion.
+         let use_block = content.map(|content| self.use_block_at(uri, content, position));
++        // Monaco's PHP word range excludes backslashes. Replace the entire written name explicitly.
++        let replacement_range = content.map(|text| {
++            let end =
++                (crate::text_position::position_to_offset(text, position) as usize).min(text.len());
++            let units = text[..end]
++                .chars()
++                .rev()
++                .take_while(|c| {
++                    c.is_ascii_alphanumeric() || *c == '_' || *c == '\\' || !c.is_ascii()
++                })
++                .map(char::len_utf16)
++                .sum::<usize>() as u32;
++            Range {
++                start: Position {
++                    line: position.line,
++                    character: position.character.saturating_sub(units),
++                },
++                end: position,
++            }
++        });
++
++        // The selected FQN is an identity; insertion must preserve it in the consumer scope.
++        let scope = content.map(|text| {
++            self.file_context_at(
++                uri,
++                crate::text_position::position_to_offset(text, position),
++            )
++        });
++        let namespace = scope
++            .as_ref()
++            .map(|ctx| ctx.namespace.as_ref())
++            .unwrap_or(file_namespace.as_ref());
++        let mut declared_functions: HashSet<String> = self
++            .symbols
++            .global_functions
++            .read()
++            .iter_folded()
++            .map(|(_, name, _)| name.to_ascii_lowercase())
++            .collect();
++        declared_functions.extend(
++            self.symbols
++                .autoload_function_index
++                .read()
++                .iter_folded()
++                .map(|(_, name, _)| name.to_ascii_lowercase()),
++        );
++        let call_spelling = |fqn: &str| -> (String, bool) {
++            let short = short_name(fqn);
++            if let Some(imports) = scope.as_ref().map(|ctx| &ctx.symbol_imports.functions) {
++                if let Some((alias, _)) = imports
++                    .iter()
++                    .find(|(_, target)| target.eq_ignore_ascii_case(fqn))
++                {
++                    return (alias.clone(), false);
++                }
++                if imports.iter().any(|(alias, target)| {
++                    alias.eq_ignore_ascii_case(short) && !target.eq_ignore_ascii_case(fqn)
++                }) {
++                    return (format!("\\{fqn}"), false);
++                }
++            }
++            let local = namespace
++                .map(|ns| format!("{ns}\\{short}"))
++                .unwrap_or_else(|| short.to_string());
++            if local.eq_ignore_ascii_case(fqn) {
++                return (short.to_string(), false);
++            }
++            if !fqn.contains('\\') || declared_functions.contains(&local.to_ascii_lowercase()) {
++                return (format!("\\{fqn}"), false);
++            }
++            // A foreign namespaced function may use the existing collision-free import edit.
++            (short.to_string(), true)
++        };
+ 
+         // ── 1. User-defined functions (from parsed files) ───────────
+         {
+@@ -223,42 +310,17 @@
+                 } else {
+                     let label = build_callable_label(&info.name, &info.parameters);
+ 
+-                    // No import needed when the function lives in the
+-                    // same namespace as the current file.
+-                    let same_ns = file_namespace
+-                        .as_ref()
+-                        .zip(info.namespace.as_ref())
+-                        .is_some_and(|(file_ns, func_ns)| file_ns.eq_ignore_ascii_case(func_ns));
+-
+-                    // Check for import conflict: another function with
+-                    // the same short name is already imported.
+-                    let has_conflict = is_namespaced
+-                        && !same_ns
+-                        && use_block
+-                            .as_ref()
+-                            .is_some_and(|ub| ub.function_import_conflicts(&fqn));
+-
+-                    let additional_text_edits = if is_namespaced && !same_ns && !has_conflict {
++                    let (call_name, needs_import) = call_spelling(&fqn);
++                    let additional_text_edits = if needs_import {
+                         use_block
+                             .as_ref()
+                             .and_then(|ub| build_use_function_edit(&fqn, ub))
+                     } else {
+                         None
+                     };
++                    let insert_text = build_callable_snippet(&call_name, &info.parameters);
++                    let filter_text = info.name.to_string();
+ 
+-                    // When there's a conflict, use the leading-backslash
+-                    // FQN so the call resolves without an import.
+-                    let (insert_text, filter_text) = if has_conflict {
+-                        let fqn_snippet =
+-                            format!("\\{}", build_callable_snippet(&fqn, &info.parameters));
+-                        (fqn_snippet, format!("\\{}", fqn))
+-                    } else {
+-                        (
+-                            build_callable_snippet(&info.name, &info.parameters),
+-                            info.name.to_string(),
+-                        )
+-                    };
+-
+                     let origin_tier = origin_sort_tier(self.completion_origin_for_uri(_uri));
+                     items.push(
+                         FunctionItemBuilder::new(
+@@ -273,6 +335,7 @@
+                         .snippet()
+                         .deprecated(is_deprecated)
+                         .additional_edits(additional_text_edits)
++                        .replace_range(replacement_range)
+                         .build(),
+                     );
+                 }
+@@ -303,25 +366,17 @@
+                 if for_use_import {
+                     items.push(build_use_import_item(fqn.to_owned(), fqn, "4", false, uri));
+                 } else {
+-                    let has_conflict = is_namespaced
+-                        && use_block
+-                            .as_ref()
+-                            .is_some_and(|ub| ub.function_import_conflicts(fqn));
+-
+-                    let additional_text_edits = if is_namespaced && !has_conflict {
++                    let (call_name, needs_import) = call_spelling(fqn);
++                    let additional_text_edits = if needs_import {
+                         use_block
+                             .as_ref()
+                             .and_then(|ub| build_use_function_edit(fqn, ub))
+                     } else {
+                         None
+                     };
++                    let insert_text = format!("{call_name}()$0");
++                    let filter_text = sn.to_string();
+ 
+-                    let (insert_text, filter_text) = if has_conflict {
+-                        (format!("\\{fqn}()$0"), format!("\\{fqn}"))
+-                    } else {
+-                        (format!("{sn}()$0"), sn.to_string())
+-                    };
+-
+                     let origin = self
+                         .symbols
+                         .autoload_function_origin_index
+@@ -341,6 +396,7 @@
+                         )
+                         .snippet()
+                         .additional_edits(additional_text_edits)
++                        .replace_range(replacement_range)
+                         .build(),
+                     );
+                 }
+@@ -376,7 +432,8 @@
+                     uri,
+                 ));
+             } else {
+-                let additional_text_edits = if is_namespaced {
++                let (call_name, needs_import) = call_spelling(name);
++                let additional_text_edits = if needs_import {
+                     use_block
+                         .as_ref()
+                         .and_then(|ub| build_use_function_edit(name, ub))
+@@ -387,7 +444,7 @@
+                 items.push(
+                     FunctionItemBuilder::new(
+                         sn.to_string(),
+-                        format!("{sn}()$0"),
++                        format!("{call_name}()$0"),
+                         sn.to_string(),
+                         flat_symbol_sort_text(
+                             sn,
+@@ -400,6 +457,7 @@
+                     )
+                     .snippet()
+                     .additional_edits(additional_text_edits)
++                    .replace_range(replacement_range)
+                     .build(),
+                 );
+             }
 diff --git a/src/completion/handler/named_args.rs b/src/completion/handler/named_args.rs
-index 8d628b6..14f7a74 100644
 --- a/src/completion/handler/named_args.rs
 +++ b/src/completion/handler/named_args.rs
-@@ -14,7 +14,7 @@ use crate::completion::named_args::{
+@@ -14,7 +14,7 @@
      NamedArgContext, cursor_inside_nested_bracket, parse_existing_args,
  };
  use crate::text_position::position_to_offset;
@@ -166,7 +832,7 @@ index 8d628b6..14f7a74 100644
  
  impl Backend {
      /// Collect `name:` argument completion items inside function/method
-@@ -31,6 +31,10 @@ impl Backend {
+@@ -31,6 +31,10 @@
          position: Position,
          ctx: &FileContext,
      ) -> Vec<CompletionItem> {
@@ -177,11 +843,68 @@ index 8d628b6..14f7a74 100644
          // ── Primary path: AST-based detection via symbol map ────────
          // The symbol map's `CallSite` data handles chains, nesting,
          // and strings correctly.  Fall back to text scanning when the
+diff --git a/src/completion/resolve.rs b/src/completion/resolve.rs
+--- a/src/completion/resolve.rs
++++ b/src/completion/resolve.rs
+@@ -132,7 +132,7 @@
+ 
+             // ── Standalone function ─────────────────────────────────
+             "function" => {
+-                self.resolve_function(&mut item, &data, &ctx, &content);
++                self.resolve_function(&mut item, &data, &content);
+             }
+ 
+             // ── Class / interface / trait / enum reference ───────────
+@@ -270,11 +270,10 @@
+         &self,
+         item: &mut CompletionItem,
+         data: &CompletionItemData,
+-        ctx: &FileContext,
+         content: &str,
+     ) {
+-        let function_loader = self.function_loader(ctx);
+-        if let Some(func) = function_loader(&data.member_name, 0) {
++        // CompletionItemData stores the selected indexed FQN, not a PHP source spelling.
++        if let Some(func) = self.find_or_load_function(&[&data.member_name]) {
+             let resolved_see = self.resolve_see_refs(&func.see_refs, &data.uri, content);
+             let provenance = self.provenance_line_for_function(&data.member_name);
+             let hover = hover_for_function(&func, Some(&resolved_see), provenance, false);
+diff --git a/src/completion/use_edit.rs b/src/completion/use_edit.rs
+--- a/src/completion/use_edit.rs
++++ b/src/completion/use_edit.rs
+@@ -212,28 +212,6 @@
+     /// nor `use const`.
+     pub(crate) fn has_class_imports(&self) -> bool {
+         self.existing.iter().any(|(_, k)| Self::key_group(k) == 0)
+-    }
+-
+-    /// Check whether a `use function` import already exists whose short
+-    /// name (case-insensitive) matches the given short name but whose
+-    /// FQN differs from `fqn`.  This indicates a conflict: the short
+-    /// name is already taken by a different function.
+-    pub(crate) fn function_import_conflicts(&self, fqn: &str) -> bool {
+-        let short = crate::util::short_name(fqn).to_lowercase();
+-        let target_key = format!("function {}", fqn.to_lowercase());
+-        self.existing.iter().any(|(_, k)| {
+-            if !k.starts_with("function ") {
+-                return false;
+-            }
+-            if k == &target_key {
+-                // Same FQN — not a conflict, it's already imported.
+-                return false;
+-            }
+-            // Extract short name from the sort key.
+-            let existing_fqn = k.strip_prefix("function ").unwrap_or(k);
+-            let existing_short = existing_fqn.rsplit('\\').next().unwrap_or(existing_fqn);
+-            existing_short == short
+-        })
+     }
+ }
+ 
 diff --git a/src/docblock/tags.rs b/src/docblock/tags.rs
-index 2d52d21..840d6af 100644
 --- a/src/docblock/tags.rs
 +++ b/src/docblock/tags.rs
-@@ -616,6 +616,7 @@ pub fn extract_param_raw_type_from_info(info: &DocblockInfo, var_name: &str) ->
+@@ -616,6 +616,7 @@
  pub(crate) fn merge_param_docblock_into_parameters(
      info: &DocblockInfo,
      parameters: &mut Vec<ParameterInfo>,
@@ -189,7 +912,7 @@ index 2d52d21..840d6af 100644
      template_bounds: &crate::atom::AtomMap<PhpType>,
  ) {
      for param in parameters.iter_mut() {
-@@ -699,6 +700,10 @@ pub(crate) fn merge_param_docblock_into_parameters(
+@@ -699,6 +700,10 @@
      // These document parameters accessed via `func_get_args()` or
      // similar mechanisms and should appear in hover/signature.
      for (tag_name, tag_type) in extract_all_param_tags_from_info(info) {
@@ -200,7 +923,7 @@ index 2d52d21..840d6af 100644
          if !parameters.iter().any(|p| p.name == tag_name) {
              let description = extract_param_description_from_info(info, &tag_name);
              parameters.push(ParameterInfo {
-@@ -1154,6 +1159,28 @@ fn recover_base_type(s: &str) -> &str {
+@@ -1154,6 +1159,28 @@
  mod tests {
      use super::*;
  
@@ -229,11 +952,21 @@ index 2d52d21..840d6af 100644
      // ── extract_deprecation_message ─────────────────────────────────
  
      #[test]
+diff --git a/src/lib.rs b/src/lib.rs
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -315,6 +315,7 @@
+ mod signature_help;
+ mod signature_render;
+ pub mod stub_map;
++mod stub_metadata;
+ pub mod stub_patches;
+ pub mod stubs;
+ mod symbol_index;
 diff --git a/src/lsp_dispatch.rs b/src/lsp_dispatch.rs
-index 3f4ff19..ab083d2 100644
 --- a/src/lsp_dispatch.rs
 +++ b/src/lsp_dispatch.rs
-@@ -40,9 +40,12 @@ impl Default for LspDispatcher {
+@@ -40,9 +40,12 @@
  
  impl LspDispatcher {
      pub fn new() -> LspDispatcher {
@@ -249,11 +982,85 @@ index 3f4ff19..ab083d2 100644
      }
  
      /// Handle one LSP JSON-RPC message. Returns a JSON-RPC response string for
+diff --git a/src/parser/ast_update.rs b/src/parser/ast_update.rs
+--- a/src/parser/ast_update.rs
++++ b/src/parser/ast_update.rs
+@@ -401,7 +401,7 @@
+             let doc_ctx = DocblockCtx {
+                 trivias: program.trivia.as_slice(),
+                 content,
+-                php_version: Some(self.php_version()),
++                php_version: crate::stubs::is_embedded_stub_uri(uri).then(|| self.php_version()),
+                 use_map: HashMap::new(),
+                 namespace: None,
+             };
+@@ -432,6 +432,14 @@
+             // breaking closure parameter inference for the rest of the
+             // session.
+             if crate::stubs::is_embedded_stub_uri(uri) {
++                functions.retain(|f| {
++                    let fqn = f
++                        .namespace
++                        .as_ref()
++                        .map(|ns| format!("{ns}\\{}", f.name))
++                        .unwrap_or_else(|| f.name.to_string());
++                    crate::stubs::stub_symbol_available("function", &fqn, self.php_version())
++                });
+                 for func in &mut functions {
+                     crate::stub_patches::apply_function_stub_patches(func);
+                 }
+@@ -461,6 +469,10 @@
+             );
+             let defines: Vec<(String, DefineInfo)> = define_entries
+                 .into_iter()
++                .filter(|(name, _, _)| {
++                    !crate::stubs::is_embedded_stub_uri(uri)
++                        || crate::stubs::stub_symbol_available("constant", name, self.php_version())
++                })
+                 .map(|(name, offset, value)| {
+                     (
+                         name,
+diff --git a/src/parser/classes/members.rs b/src/parser/classes/members.rs
+--- a/src/parser/classes/members.rs
++++ b/src/parser/classes/members.rs
+@@ -63,6 +63,18 @@
+                     extract_constants(member, constant, doc_ctx, &mut extracted.constants);
+                 }
+                 ClassLikeMember::EnumCase(enum_case) => {
++                    if doc_ctx.is_some_and(|ctx| {
++                        ctx.php_version.is_some_and(|ver| {
++                            crate::parser::is_doc_unavailable_for_version(member, ctx, ver)
++                                || !crate::parser::is_available_for_version(
++                                    &enum_case.attribute_lists,
++                                    ctx,
++                                    ver,
++                                )
++                        })
++                    }) {
++                        continue;
++                    }
+                     extracted
+                         .constants
+                         .push(extract_enum_case(member, enum_case, doc_ctx));
+@@ -91,6 +103,14 @@
+     doc_ctx: Option<&DocblockCtx<'_>>,
+     constants: &mut Vec<ConstantInfo>,
+ ) {
++    if doc_ctx.is_some_and(|ctx| {
++        ctx.php_version.is_some_and(|ver| {
++            crate::parser::is_doc_unavailable_for_version(member, ctx, ver)
++                || !crate::parser::is_available_for_version(&constant.attribute_lists, ctx, ver)
++        })
++    }) {
++        return;
++    }
+     let type_hint = constant.hint.as_ref().map(|h| extract_hint_type(h));
+     let visibility = extract_visibility(constant.modifiers.iter());
+     let const_docblock_text = doc_ctx
 diff --git a/src/parser/classes/methods.rs b/src/parser/classes/methods.rs
-index 95a25a5..e02c063 100644
 --- a/src/parser/classes/methods.rs
 +++ b/src/parser/classes/methods.rs
-@@ -50,6 +50,7 @@ pub(super) fn extract_method<'a>(
+@@ -50,6 +50,7 @@
      }
      let Signature {
          mut parameters,
@@ -261,7 +1068,7 @@ index 95a25a5..e02c063 100644
          native_return_type,
          return_type,
          conditional_return,
-@@ -81,6 +82,7 @@ pub(super) fn extract_method<'a>(
+@@ -81,6 +82,7 @@
          docblock::merge_param_docblock_into_parameters(
              info,
              &mut parameters,
@@ -269,11 +1076,125 @@ index 95a25a5..e02c063 100644
              &template_bounds_in_scope(
                  class_template_param_bounds,
                  // A constructor binding the class's templates takes on
+diff --git a/src/parser/classes/mod.rs b/src/parser/classes/mod.rs
+--- a/src/parser/classes/mod.rs
++++ b/src/parser/classes/mod.rs
+@@ -26,7 +26,7 @@
+ use crate::atom::{Atom, atom};
+ use crate::types::*;
+ 
+-use super::{DocblockCtx, for_each_nested_statement_list, is_removed_for_version};
++use super::{DocblockCtx, for_each_nested_statement_list, is_doc_unavailable_for_version};
+ 
+ impl Backend {
+     /// De-duplicate parsed class-likes by `(name, namespace)`, keeping the
+@@ -92,7 +92,17 @@
+         for statement in statements {
+             match statement {
+                 Statement::Class(class) => {
+-                    if removed_in_target_version(class, doc_ctx) {
++                    if removed_in_target_version(class, doc_ctx)
++                        || doc_ctx.is_some_and(|ctx| {
++                            ctx.php_version.is_some_and(|ver| {
++                                !crate::parser::is_available_for_version(
++                                    &class.attribute_lists,
++                                    ctx,
++                                    ver,
++                                )
++                            })
++                        })
++                    {
+                         continue;
+                     }
+                     classes.push(class_likes::extract_class(class, doc_ctx));
+@@ -100,14 +110,34 @@
+                     Self::find_anonymous_classes_in_members(class.members.iter(), classes, doc_ctx);
+                 }
+                 Statement::Interface(iface) => {
+-                    if removed_in_target_version(iface, doc_ctx) {
++                    if removed_in_target_version(iface, doc_ctx)
++                        || doc_ctx.is_some_and(|ctx| {
++                            ctx.php_version.is_some_and(|ver| {
++                                !crate::parser::is_available_for_version(
++                                    &iface.attribute_lists,
++                                    ctx,
++                                    ver,
++                                )
++                            })
++                        })
++                    {
+                         continue;
+                     }
+                     classes.push(class_likes::extract_interface(iface, doc_ctx));
+                     Self::find_anonymous_classes_in_members(iface.members.iter(), classes, doc_ctx);
+                 }
+                 Statement::Trait(trait_def) => {
+-                    if removed_in_target_version(trait_def, doc_ctx) {
++                    if removed_in_target_version(trait_def, doc_ctx)
++                        || doc_ctx.is_some_and(|ctx| {
++                            ctx.php_version.is_some_and(|ver| {
++                                !crate::parser::is_available_for_version(
++                                    &trait_def.attribute_lists,
++                                    ctx,
++                                    ver,
++                                )
++                            })
++                        })
++                    {
+                         continue;
+                     }
+                     classes.push(class_likes::extract_trait(trait_def, doc_ctx));
+@@ -118,7 +148,17 @@
+                     );
+                 }
+                 Statement::Enum(enum_def) => {
+-                    if removed_in_target_version(enum_def, doc_ctx) {
++                    if removed_in_target_version(enum_def, doc_ctx)
++                        || doc_ctx.is_some_and(|ctx| {
++                            ctx.php_version.is_some_and(|ver| {
++                                !crate::parser::is_available_for_version(
++                                    &enum_def.attribute_lists,
++                                    ctx,
++                                    ver,
++                                )
++                            })
++                        })
++                    {
+                         continue;
+                     }
+                     classes.push(class_likes::extract_enum(enum_def, doc_ctx));
+@@ -167,7 +207,7 @@
+ fn removed_in_target_version(node: &impl HasSpan, doc_ctx: Option<&DocblockCtx<'_>>) -> bool {
+     doc_ctx.is_some_and(|ctx| {
+         ctx.php_version
+-            .is_some_and(|ver| is_removed_for_version(node, ctx, ver))
++            .is_some_and(|ver| is_doc_unavailable_for_version(node, ctx, ver))
+     })
+ }
+ 
+diff --git a/src/parser/classes/properties.rs b/src/parser/classes/properties.rs
+--- a/src/parser/classes/properties.rs
++++ b/src/parser/classes/properties.rs
+@@ -37,6 +37,15 @@
+         Property::Hooked(h) => &h.attribute_lists,
+     };
+ 
++    if doc_ctx.is_some_and(|ctx| {
++        ctx.php_version.is_some_and(|ver| {
++            crate::parser::is_doc_unavailable_for_version(member, ctx, ver)
++                || !crate::parser::is_available_for_version(prop_attr_lists, ctx, ver)
++        })
++    }) {
++        return Vec::new();
++    }
++
+     // Apply #[LanguageLevelTypeAware] override to property types.  When
+     // present, the attribute's version-appropriate type string replaces
+     // the native type hint.
 diff --git a/src/parser/functions.rs b/src/parser/functions.rs
-index 1b8ba74..df03d5e 100644
 --- a/src/parser/functions.rs
 +++ b/src/parser/functions.rs
-@@ -121,6 +121,7 @@ impl Backend {
+@@ -121,6 +121,7 @@
                  Statement::Function(func) => {
                      let Some(Signature {
                          mut parameters,
@@ -281,7 +1202,7 @@ index 1b8ba74..df03d5e 100644
                          native_return_type,
                          return_type,
                          conditional_return,
-@@ -187,6 +188,7 @@ impl Backend {
+@@ -187,6 +188,7 @@
                          docblock::merge_param_docblock_into_parameters(
                              info,
                              &mut parameters,
@@ -290,7 +1211,6 @@ index 1b8ba74..df03d5e 100644
                          );
                      }
 diff --git a/src/parser/signature.rs b/src/parser/signature.rs
-index 57c05e8..f293055 100644
 --- a/src/parser/signature.rs
 +++ b/src/parser/signature.rs
 @@ -7,6 +7,7 @@
@@ -301,7 +1221,15 @@ index 57c05e8..f293055 100644
  
  use crate::atom::{Atom, AtomMap, atom};
  use crate::docblock::{self, DocblockInfo};
-@@ -22,6 +23,8 @@ use super::{
+@@ -15,13 +16,15 @@
+ 
+ use super::{
+     DocblockCtx, apply_array_shape_override, extract_hint_type, extract_language_level_type,
+-    extract_parameters, is_available_for_version, is_removed_for_version,
++    extract_parameters, is_available_for_version, is_doc_unavailable_for_version,
+ };
+ 
+ /// The pieces of a function or method signature computed by
  /// [`extract_signature`].
  pub(super) struct Signature<'a> {
      pub parameters: Vec<ParameterInfo>,
@@ -310,7 +1238,13 @@ index 57c05e8..f293055 100644
      /// The native return hint, or the `#[LanguageLevelTypeAware]` type
      /// that replaces it for the target PHP version.
      pub native_return_type: Option<PhpType>,
-@@ -68,6 +71,20 @@ pub(super) fn extract_signature<'a>(
+@@ -63,11 +66,31 @@
+     if let Some(ctx) = doc_ctx
+         && let Some(ver) = php_version
+         && (!is_available_for_version(attribute_lists, ctx, ver)
+-            || is_removed_for_version(node, ctx, ver))
++            || is_doc_unavailable_for_version(node, ctx, ver))
+     {
          return None;
      }
  
@@ -319,6 +1253,12 @@ index 57c05e8..f293055 100644
 +            .parameters
 +            .iter()
 +            .filter(|param| !super::is_param_available_for_version(param, ctx, version))
++            .filter(|param| {
++                !parameter_list.parameters.iter().any(|variant| {
++                    variant.variable.name == param.variable.name
++                        && super::is_param_available_for_version(variant, ctx, version)
++                })
++            })
 +            .map(|param| {
 +                crate::atom::bytes_to_str(param.variable.name)
 +                    .trim_start_matches('$')
@@ -331,7 +1271,7 @@ index 57c05e8..f293055 100644
      let parameters = extract_parameters(
          parameter_list,
          doc_ctx.map(|ctx| ctx.content),
-@@ -100,6 +117,7 @@ pub(super) fn extract_signature<'a>(
+@@ -100,6 +123,7 @@
          let return_type = finish_return_type(native_return_type.clone(), attribute_lists, doc_ctx);
          return Some(Signature {
              parameters,
@@ -339,7 +1279,7 @@ index 57c05e8..f293055 100644
              native_return_type,
              return_type,
              conditional_return: None,
-@@ -199,6 +217,7 @@ pub(super) fn extract_signature<'a>(
+@@ -199,6 +223,7 @@
  
      Some(Signature {
          parameters,
@@ -347,11 +1287,93 @@ index 57c05e8..f293055 100644
          native_return_type,
          return_type,
          conditional_return,
+diff --git a/src/parser/stub_attributes.rs b/src/parser/stub_attributes.rs
+--- a/src/parser/stub_attributes.rs
++++ b/src/parser/stub_attributes.rs
+@@ -13,12 +13,6 @@
+ 
+ use super::DocblockCtx;
+ 
+-/// FQN constants for the JetBrains stub attributes we recognise.
+-/// Matching is done on the last segment of the resolved FQN so that
+-/// `#[PhpStormStubsElementAvailable]`, `#[\JetBrains\PhpStorm\Internal\PhpStormStubsElementAvailable]`,
+-/// and any `use ... as Alias` form all work.
+-const ATTR_ELEMENT_AVAILABLE: &str = "PhpStormStubsElementAvailable";
+-
+ /// Last segment of the `LanguageLevelTypeAware` attribute FQN.
+ const ATTR_LANGUAGE_LEVEL_TYPE_AWARE: &str = "LanguageLevelTypeAware";
+ 
+@@ -48,9 +42,12 @@
+ 
+     /// Check whether `attr_short_name` resolves to `PhpStormStubsElementAvailable`.
+     pub(crate) fn is_element_available_attr(&self, attr_short_name: &[u8]) -> bool {
+-        let name_str = bytes_to_str(attr_short_name);
+-        let canonical = self.resolve_attr_last_segment(name_str).unwrap_or(name_str);
+-        canonical == ATTR_ELEMENT_AVAILABLE
++        let imports = self
++            .use_map
++            .iter()
++            .map(|(alias, target)| (alias.as_str(), target.as_str()))
++            .collect::<Vec<_>>();
++        crate::stub_metadata::is_availability_attribute(bytes_to_str(attr_short_name), &imports)
+     }
+ 
+     /// Check whether `attr_short_name` resolves to `LanguageLevelTypeAware`.
+@@ -101,27 +98,23 @@
+     }
+ }
+ 
+-/// Check whether a function, method, or class has been removed in the
+-/// target PHP version based on a `@removed X.Y` docblock tag.
+-///
+-/// Returns `true` when the element has `@removed X.Y` and the target
+-/// PHP version is >= X.Y (meaning it was removed before or at the
+-/// target version).
+-///
+-/// Returns `false` when there is no `@removed` tag or the target
+-/// version is older than the removal version.
+-pub(crate) fn is_removed_for_version(
++/// PHP introduction/removal docs only come from explicitly marked bundled stubs.
++pub(crate) fn is_doc_unavailable_for_version(
+     node: &impl HasSpan,
+     ctx: &DocblockCtx<'_>,
+-    php_version: PhpVersion,
++    version: PhpVersion,
+ ) -> bool {
+-    let docblock_text = crate::docblock::get_docblock_text_for_node(ctx.trivias, ctx.content, node);
+-    if let Some(text) = docblock_text
+-        && let Some(removed_ver) = crate::docblock::extract_removed_version(text)
+-    {
+-        return php_version >= removed_ver;
+-    }
+-    false
++    let Some(doc) = crate::docblock::get_docblock_text_for_node(ctx.trivias, ctx.content, node)
++    else {
++        return false;
++    };
++    let php_domain = ctx
++        .content
++        .starts_with(crate::stub_metadata::PHP_DOC_MARKER);
++    let target = u16::from(version.major) * 100 + u16::from(version.minor);
++    crate::stub_metadata::doc_version(doc, "@since", php_domain).is_some_and(|v| target < v)
++        || crate::stub_metadata::doc_version(doc, "@removed", php_domain)
++            .is_some_and(|v| target >= v)
+ }
+ 
+ /// Check whether a parameter is available for the given PHP version
+@@ -161,7 +154,7 @@
+ ) -> Option<VersionAvailability> {
+     for attr_list in attribute_lists.iter() {
+         for attr in attr_list.attributes.iter() {
+-            if !ctx.is_element_available_attr(last_segment(attr.name.value())) {
++            if !ctx.is_element_available_attr(attr.name.value()) {
+                 continue;
+             }
+ 
 diff --git a/src/resolution/functions.rs b/src/resolution/functions.rs
-index bff8c3e..a5cf48b 100644
 --- a/src/resolution/functions.rs
 +++ b/src/resolution/functions.rs
-@@ -200,6 +200,15 @@ impl Backend {
+@@ -200,6 +200,15 @@
          let _parse_guard = crate::parser::with_parse_cache(stub_content);
          let ver = Some(self.php_version());
          let mut functions = self.parse_functions_versioned(stub_content, ver);
@@ -367,27 +1389,87 @@ index bff8c3e..a5cf48b 100644
          if functions.is_empty() {
              return None;
          }
+diff --git a/src/stub_metadata.rs b/src/stub_metadata.rs
+--- a/src/stub_metadata.rs
++++ b/src/stub_metadata.rs
+@@ -0,0 +1,37 @@
++//! Shared, PHP-provenance-aware interpretation of stub version metadata.
++pub const PHP_DOC_MARKER: &str = "<?php /* PHPANTOM_PHP_VERSION_DOCS */ ?>\n";
++pub fn version(value: &str) -> Option<u16> {
++    let mut parts = value.trim().split('.');
++    let major = parts.next()?.parse::<u16>().ok()?;
++    let minor = parts.next()?.parse::<u16>().ok()?;
++    Some(major * 100 + minor)
++}
++pub fn doc_version(doc: &str, tag: &str, php_domain: bool) -> Option<u16> {
++    doc.lines().find_map(|line| {
++        let (_, rest) = line.split_once(tag)?;
++        let mut rest = rest.trim();
++        let explicit = rest.starts_with("PHP ");
++        if explicit {
++            rest = rest.strip_prefix("PHP ")?.trim_start();
++        }
++        if !php_domain && !explicit {
++            return None;
++        }
++        let raw = rest.split_whitespace().next()?.trim_end_matches("*/");
++        version(raw)
++    })
++}
++pub fn is_availability_attribute(name: &str, imports: &[(&str, &str)]) -> bool {
++    const FQN: &str = "JetBrains\\PhpStorm\\Internal\\PhpStormStubsElementAvailable";
++    if let Some(name) = name.strip_prefix('\\') {
++        return name.eq_ignore_ascii_case(FQN);
++    }
++    let first = name.split('\\').next().unwrap_or(name);
++    if let Some((_, target)) = imports
++        .iter()
++        .find(|(alias, _)| alias.eq_ignore_ascii_case(first))
++    {
++        return format!("{target}{}", &name[first.len()..]).eq_ignore_ascii_case(FQN);
++    }
++    name.eq_ignore_ascii_case("PhpStormStubsElementAvailable") || name.eq_ignore_ascii_case(FQN)
++}
 diff --git a/src/stubs.rs b/src/stubs.rs
-index a3aedeb..b6e3203 100644
 --- a/src/stubs.rs
 +++ b/src/stubs.rs
-@@ -46,6 +46,14 @@ include!(concat!(env!("OUT_DIR"), "/stub_map_generated.rs"));
+@@ -46,6 +46,35 @@
  /// built without them.
  pub const STUBS_VERSION: &str = env!("PHPANTOM_STUBS_VERSION");
  
 +/// Whether a function declared by phpstorm-stubs exists in this PHP release.
 +pub(crate) fn stub_function_available(name: &str, version: crate::types::PhpVersion) -> bool {
-+    STUB_FUNCTION_SINCE
-+        .iter()
-+        .find(|(candidate, _, _)| candidate.eq_ignore_ascii_case(name))
-+        .is_none_or(|(_, major, minor)| version >= crate::types::PhpVersion::new(*major, *minor))
++    stub_symbol_available("function", name, version)
++}
++pub(crate) fn stub_symbol_available(
++    kind: &str,
++    name: &str,
++    version: crate::types::PhpVersion,
++) -> bool {
++    let name = if kind == "constant" {
++        name.to_string()
++    } else {
++        name.to_ascii_lowercase()
++    };
++    let key = format!("{kind}:{name}");
++    let entries = STUB_AVAILABILITY;
++    let start = entries.partition_point(|entry| entry.0 < key.as_str());
++    let matching = entries[start..].iter().take_while(|entry| entry.0 == key);
++    let v = u16::from(version.major) * 100 + u16::from(version.minor);
++    let mut found = false;
++    for (_, from, to, removed) in matching {
++        found = true;
++        if v >= *from && v <= *to && v < *removed {
++            return true;
++        }
++    }
++    !found
 +}
 +
  /// Warning shown when the binary embeds no stubs, so a broken package
  /// says why everything built in is reported as unknown.
  pub(crate) const MISSING_STUBS_WARNING: &str = "PHPantom was built without the PHP standard library stubs, so every built-in function, class, and constant is reported as unknown. Rebuild it with network access, or with PHPANTOM_STUBS_DIR pointing at phpstorm-stubs.";
 diff --git a/tests/integration/completion_named_args.rs b/tests/integration/completion_named_args.rs
-index f715aea..ee3875e 100644
 --- a/tests/integration/completion_named_args.rs
 +++ b/tests/integration/completion_named_args.rs
 @@ -1,6 +1,53 @@
@@ -445,7 +1527,6 @@ index f715aea..ee3875e 100644
  
  /// Named arg completion for `$this->method(|)` inside the same class.
 diff --git a/tests/integration/completion_stub_functions.rs b/tests/integration/completion_stub_functions.rs
-index f651816..ca99096 100644
 --- a/tests/integration/completion_stub_functions.rs
 +++ b/tests/integration/completion_stub_functions.rs
 @@ -1,5 +1,6 @@
@@ -456,7 +1537,7 @@ index f651816..ca99096 100644
  };
  use phpantom_lsp::Backend;
  use phpantom_lsp::atom::atom;
-@@ -67,6 +68,62 @@ async fn test_stub_function_index_resolves_json_decode() {
+@@ -67,6 +68,62 @@
      );
  }
  
@@ -520,7 +1601,6 @@ index f651816..ca99096 100644
  /// first lookup, so subsequent lookups are fast (Phase 1 hit).
  #[tokio::test]
 diff --git a/tests/integration/php_version.rs b/tests/integration/php_version.rs
-index df751bf..8afef3d 100644
 --- a/tests/integration/php_version.rs
 +++ b/tests/integration/php_version.rs
 @@ -3,7 +3,7 @@
@@ -532,7 +1612,7 @@ index df751bf..8afef3d 100644
  use phpantom_lsp::Backend;
  use phpantom_lsp::types::PhpVersion;
  
-@@ -1217,3 +1217,24 @@ fn set_php_version_keeps_removed_constants_for_older_version() {
+@@ -1217,3 +1217,24 @@
          "OLD_CONST (@removed 8.0) should survive when targeting PHP 7.4"
      );
  }
@@ -557,132 +1637,8 @@ index df751bf..8afef3d 100644
 +        "PHP 8.3 must retain the newly available parameter"
 +    );
 +}
-diff --git a/build_support/stub_since.rs b/build_support/stub_since.rs
-new file mode 100644
-index 0000000..9dafc86
---- /dev/null
-+++ b/build_support/stub_since.rs
-@@ -0,0 +1,116 @@
-+/// Read PHP introduction versions from documented, top-level functions.
-+///
-+/// Callers must restrict this to PHP core stub files: extensions use
-+/// `@since` for their own release versions.
-+pub(crate) fn function_since_versions(source: &str) -> Vec<(String, u8, u8)> {
-+    let mut result = Vec::new();
-+    let mut search_from = 0;
-+    while let Some(relative_tag) = source[search_from..].find("@since") {
-+        let tag_pos = search_from + relative_tag;
-+        let Some(doc_end) = source[tag_pos..]
-+            .find("*/")
-+            .map(|offset| tag_pos + offset + 2)
-+        else {
-+            break;
-+        };
-+        search_from = doc_end;
-+        let Some(doc_start) = source[..tag_pos].rfind("/**") else {
-+            continue;
-+        };
-+        let Some((major, minor)) = source[doc_start..doc_end]
-+            .lines()
-+            .filter_map(|line| line.split_once("@since").map(|(_, value)| value))
-+            .find_map(parse_php_version)
-+        else {
-+            continue;
-+        };
-+        let after = &source[doc_end..];
-+        let after = &after[..after.find("/**").unwrap_or(after.len())];
-+        if let Some(name) = documented_top_level_function(after) {
-+            result.push((name.to_string(), major, minor));
-+        }
-+    }
-+    result
-+}
-+
-+fn parse_php_version(value: &str) -> Option<(u8, u8)> {
-+    let version = value
-+        .trim()
-+        .split(|character: char| !(character.is_ascii_digit() || character == '.'))
-+        .find(|part| !part.is_empty())?;
-+    let mut parts = version.split('.');
-+    Some((parts.next()?.parse().ok()?, parts.next()?.parse().ok()?))
-+}
-+
-+fn documented_top_level_function(text: &str) -> Option<&str> {
-+    let mut in_block_comment = false;
-+    let mut in_attribute = false;
-+    for line in text.lines() {
-+        let trimmed = line.trim();
-+        if in_block_comment {
-+            in_block_comment = !trimmed.contains("*/");
-+            continue;
-+        }
-+        if trimmed.is_empty() || trimmed.starts_with("//") {
-+            continue;
-+        }
-+        if trimmed.starts_with("/*") {
-+            in_block_comment = !trimmed.contains("*/");
-+            continue;
-+        }
-+        if in_attribute {
-+            in_attribute = !trimmed.contains(']');
-+            continue;
-+        }
-+        if trimmed.starts_with("#[") {
-+            in_attribute = !trimmed.contains(']');
-+            continue;
-+        }
-+        if line.trim_start() != line {
-+            return None;
-+        }
-+        let rest = trimmed
-+            .strip_prefix("function ")
-+            .or_else(|| trimmed.strip_prefix("function&"))?;
-+        return function_identifier(rest);
-+    }
-+    None
-+}
-+
-+fn function_identifier(rest: &str) -> Option<&str> {
-+    let rest = rest.trim_start_matches([' ', '\t', '&']);
-+    let length = rest
-+        .bytes()
-+        .take_while(|byte| byte.is_ascii_alphanumeric() || *byte == b'_' || *byte >= 0x80)
-+        .count();
-+    (length > 0).then(|| &rest[..length])
-+}
-+
-+#[cfg(test)]
-+mod tests {
-+    use super::function_since_versions;
-+
-+    #[test]
-+    fn since_metadata_is_attached_only_to_the_documented_top_level_function() {
-+        let source = r#"
-+/** @since 8.0.2 introduced in core */
-+#[Pure]
-+function introduced_in_core(): void {}
-+
-+/** @since 8.1 */
-+class VersionedType {
-+    /** @since 8.2 */
-+    public function method_since(): void {}
-+}
-+
-+/** @since 8.3 */
-+// function mentioned in a comment is not a declaration
-+const DOCUMENTED_CONSTANT = 'function not_a_function';
-+"#;
-+
-+        assert_eq!(
-+            function_since_versions(source),
-+            vec![("introduced_in_core".to_string(), 8, 0)]
-+        );
-+    }
-+}
 diff --git a/tests/native_versioned_embedded.rs b/tests/native_versioned_embedded.rs
-new file mode 100644
-index 0000000..2d047ae
---- /dev/null
+--- a/tests/native_versioned_embedded.rs
 +++ b/tests/native_versioned_embedded.rs
 @@ -0,0 +1,353 @@
 +use phpantom_lsp::{Backend, types::PhpVersion};

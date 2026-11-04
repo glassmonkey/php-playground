@@ -74,24 +74,17 @@ owner must update its registry/manifest and hashes together when adopting these
 bytes; this command does not update UI metadata or deploy a site. The legacy
 `phpantom_lsp.wasm` is not an installation target.
 
-The native probe records `nativeRawExit`, `nativePassed`, `nativeFailed`,
-`knownLimitMatched`, and `unexpectedFailures` in `native-test.json`; the raw
-behavior result is also retained in `native-probe-result.json`. Classification
-requires all seven test outcomes and finish sentinels, emitted only after each
-test's last request/assertion. The known failure must end in the exact final
-assertion panic; a later unwrap panic or truncated log is rejected. It accepts a
-clean 7/7 run or the recorded baseline failure: assertion `PHP 7.4 same-name
-user documentation marker (known baseline)` in test
-`php74_same_name_user_function_and_local_symbols_survive`, with raw exit 101,
-6 passed, 1 failed, and zero unexpected failures. Any other native outcome
-fails the command. Version guards must pass 2/2 and the pinned `@since` scanner
-tests 1/1. WASI candidate builds run the required request harness and fail on
-any required assertion.
+native の公開回帰は raw 7/7、終了コード 0 を必須にします。同名の利用者関数の PHPDoc も必須の assertion です。既知の失敗を成功に変換しません。classifier は全 7 件の結果、各テストの最後に出る完了 sentinel、失敗一覧と最終集計の整合性を確認します。途中で切れたログ、異なる panic、追加の失敗、0 件実行を拒否します。`native-probe-result.json` の `knownLimitMatched` は過去の読取形式を維持するための項目で、常に false です。
 
-CI builds the 7.4, 8.0, 8.3, and 8.5 boundaries in sequence on one runner
-after the native probe, reusing the verified local Cargo cache safely. The accepted all-12-target matrix and per-artifact hashes are retained
-in the manager's review evidence. The focused CI does not claim browser or
-Monaco verification, parser-version parity, or production asset readiness.
+追加の `native_release_quality` も CI の必須検査です。固定 stubs に対する独立オラクル 14 API × 12 対象を、各ケース別の Backend で cold と warm の両方から検査します。warm は同じ stub ファイルの別シンボルへの公開 completion と resolve で作ります。関数、クラス、interface、定数、メソッド、削除境界に加え、クラス定数、プロパティ、引数と型の境界を検査します。同名引数の版違い、利用者のソース、編集後の docs、別名と名前衝突も対象です。メタデータの scanner 8 件と独立ガード 2 件は補助検査です。
+
+resolve は補完項目に保存した索引の FQN を直接参照します。入力元の namespace を再付加しません。関数の挿入は選択した FQN と呼出し側の別名・同名関数から決め、バックスラッシュを含む入力全体を明示的な textEdit で置換します。補完の主編集と追加 import 編集を適用した全文も回帰検査します。
+
+版の選別は API の許可リストを使いません。`PhpStormStubsElementAvailable` の正しい属性名・別名・FQN とその属性の引数だけを解釈します。PHP に属する stub の `@since` と `@removed` は cold 索引と lazy パースの両方に適用します。拡張のリリース番号を PHP の版として解釈しません。利用者のファイルはパーサの由来情報で版選別の対象外にします。属性、引数の型、PHPDoc の補足情報は既存のパーサで維持します。メタデータのない全 API の歴史を推定できるわけではなく、代表例の成功だけで全 inventory の正しさは証明できません。
+
+CI は native の後に 7.4、8.0、8.3、8.5 を順番に生成して、各生成物の WASI 公開要求を検査します。WASI でも利用者 docs、選択した関数の全文編集、各対象の独立 family オラクル、メンバーと型の境界を必須にします。失敗を knownLimits として許容しません。ソース gate 後の全 12 対象バッチでも、この同じハーネスを対象ごとの実 WASM に対して実行する必要があります。native の成功から他版の WASM の成功は推定しません。
+
+このソース変更だけでは追跡中の 12 WASM と UI の hash metadata は更新しません。全対象の実生成・WASI 検証・provenance 確認の後、UI 担当が同じソースの生成物と registry を一緒に採用し、採用した各資産の SHA-256 を再確認します。ソース検証、WASI 検証、ブラウザ検証、出荷判定はそれぞれ別の証拠を必要とします。
 
 Run the same production classifier/verifier regression cases used by CI:
 
