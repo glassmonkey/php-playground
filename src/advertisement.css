@@ -1,0 +1,142 @@
+.advertisement {
+	min-width: 0;
+	color: var(--chakra-colors-chakra-body-text);
+}
+.advertisement-label {
+	font-size: 10px;
+	line-height: 16px;
+	color: var(--chakra-colors-chakra-subtle-text);
+}
+.advertisement-placeholder {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px dashed var(--chakra-colors-chakra-border-color);
+	background: var(--chakra-colors-chakra-subtle-bg);
+	font-size: 12px;
+}
+.advertisement--article {
+	margin: 32px 0;
+}
+.advertisement--article .adsbygoogle,
+.advertisement--article .advertisement-placeholder {
+	min-height: 250px;
+}
+.playground-header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 24px 32px;
+	margin: 16px;
+}
+.advertisement--banner {
+	width: 320px;
+	max-width: 100%;
+}
+
+.advertisement--banner .advertisement-placeholder {
+	width: 320px;
+	max-width: 100%;
+	height: 50px;
+}
+.advertisement-desktop-size {
+	display: none;
+}
+@media (min-width: 1200px) {
+	.advertisement--banner,
+	.advertisement--banner .advertisement-placeholder {
+		width: 728px;
+	}
+
+	.advertisement--banner .advertisement-placeholder {
+		height: 90px;
+	}
+	.advertisement-desktop-size {
+		display: inline;
+	}
+	.advertisement-mobile-size {
+		display: none;
+	}
+}
+.advertisement--index {
+	width: 300px;
+	max-width: 100%;
+	margin: 32px auto;
+}
+
+.advertisement--index .advertisement-placeholder {
+	width: 300px;
+	max-width: 100%;
+	height: 250px;
+}
+.advertisement--lesson-banner {
+	width: 320px;
+	flex-shrink: 0;
+}
+
+.advertisement--lesson-banner .advertisement-placeholder {
+	width: 320px;
+	height: 100px;
+}
+@media (min-width: 850px) {
+	.tutorial-intro-layout {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 32px;
+	}
+	.tutorial-intro-layout .tutorial-intro {
+		flex: 1;
+		min-width: 0;
+	}
+	.tutorial-intro-layout .advertisement--index {
+		flex-shrink: 0;
+		margin: 24px 0;
+	}
+	.tutorial-lesson-heading {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 32px;
+	}
+	.tutorial-lesson-title {
+		min-width: 0;
+	}
+}
+
+.advertisement-lesson-medium-size,
+.advertisement-lesson-large-size {
+	display: none;
+}
+@media (min-width: 1200px) {
+	.advertisement--lesson-banner,
+	.advertisement--lesson-banner .advertisement-placeholder {
+		width: 468px;
+	}
+
+	.advertisement--lesson-banner .advertisement-placeholder {
+		height: 60px;
+	}
+	.advertisement-lesson-small-size {
+		display: none;
+	}
+	.advertisement-lesson-medium-size {
+		display: inline;
+	}
+}
+@media (min-width: 1440px) {
+	.advertisement--lesson-banner,
+	.advertisement--lesson-banner .advertisement-placeholder {
+		width: 728px;
+	}
+	.advertisement--lesson-banner .advertisement-placeholder {
+		height: 90px;
+	}
+	.advertisement-lesson-medium-size {
+		display: none;
+	}
+	.advertisement-lesson-large-size {
+		display: inline;
+	}
+}

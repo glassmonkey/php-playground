@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button, Select, useColorMode } from '@chakra-ui/react';
+import { Button, Select, useColorMode, useMediaQuery } from '@chakra-ui/react';
 import { previewThemeFor } from '../preview-theme';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { compressToEncodedURIComponent } from 'lz-string';
@@ -14,6 +14,7 @@ import type { Lesson } from './types';
 import { useTutorialRunner } from './use-tutorial-runner';
 import ThemeToggle from '../theme-toggle';
 import './tutorial.css';
+import { TutorialIndexAd, TutorialLessonHeaderAd } from '../advertisements';
 import { LessonSections } from './lesson-sections';
 import { validateLessons } from './validate-content';
 import { chapters, groupLessons } from './chapters';
@@ -172,6 +173,7 @@ function ValidVersionPage({
 	slug?: string;
 }) {
 	const navigate = useNavigate();
+	const [desktop] = useMediaQuery('(min-width: 850px)', { ssr: false });
 	const groups = groupLessons(lessonsByVersion[version]);
 	const lessons = groups.flatMap((chapter) => chapter.lessons);
 	const lesson = lessons.find((item) => item.slug === slug);
@@ -260,64 +262,72 @@ function ValidVersionPage({
 				/>
 			) : (
 				<>
-					<header className="tutorial-intro">
-						<p className="tutorial-eyebrow">
-							PHP {version} · LEARN IN YOUR BROWSER
-						</p>
-						<h1>Learn PHP, one experiment at a time.</h1>
-						<p>
-							Start with a small program. Change the code and see
-							what happens, right beside the explanation. No
-							installation needed.
-						</p>
-						<Button
-							as={Link}
-							size="sm"
-							colorScheme="green"
-							to={`/tutorial/${version}/${lessons[0].slug}/`}
-						>
-							Start learning →
-						</Button>
-					</header>
+					<div className="tutorial-intro-layout">
+						<header className="tutorial-intro">
+							<p className="tutorial-eyebrow">
+								PHP {version} · LEARN IN YOUR BROWSER
+							</p>
+							<h1>Learn PHP, one experiment at a time.</h1>
+							<p>
+								Start with a small program. Change the code and
+								see what happens, right beside the explanation.
+								No installation needed.
+							</p>
+							<Button
+								as={Link}
+								size="sm"
+								colorScheme="green"
+								to={`/tutorial/${version}/${lessons[0].slug}/`}
+							>
+								Start learning →
+							</Button>
+						</header>
+						{desktop && <TutorialIndexAd />}
+					</div>
 					<section aria-labelledby="lesson-list">
 						<h2 id="lesson-list">Your learning path</h2>
-						{groups.map((chapter) => (
-							<section
-								className="tutorial-chapter"
-								id={`chapter-${chapter.id}`}
-								key={chapter.id}
-							>
-								<div className="tutorial-chapter-heading">
-									<h3>{chapter.title}</h3>
-								</div>
-								<ol className="tutorial-lessons">
-									{chapter.lessons.map((item) => (
-										<li key={item.slug}>
-											<Link
-												to={`/tutorial/${version}/${item.slug}/`}
-											>
-												<span className="tutorial-number">
-													{String(
-														lessons.indexOf(item) +
-															1
-													).padStart(2, '0')}
-												</span>
-												<span>
-													<strong>
-														{item.title}
-													</strong>
-													<span className="tutorial-summary">
-														{item.summary}
+						{groups.map((chapter, chapterIndex) => (
+							<React.Fragment key={chapter.id}>
+								<section
+									className="tutorial-chapter"
+									id={`chapter-${chapter.id}`}
+								>
+									<div className="tutorial-chapter-heading">
+										<h3>{chapter.title}</h3>
+									</div>
+									<ol className="tutorial-lessons">
+										{chapter.lessons.map((item) => (
+											<li key={item.slug}>
+												<Link
+													to={`/tutorial/${version}/${item.slug}/`}
+												>
+													<span className="tutorial-number">
+														{String(
+															lessons.indexOf(
+																item
+															) + 1
+														).padStart(2, '0')}
 													</span>
-												</span>
-												<span aria-hidden="true">
-													→
-												</span>
-											</Link>
-										</li>
-									))}
-								</ol>
-							</section>
+													<span>
+														<strong>
+															{item.title}
+														</strong>
+														<span className="tutorial-summary">
+															{item.summary}
+														</span>
+													</span>
+													<span aria-hidden="true">
+														→
+													</span>
+												</Link>
+											</li>
+										))}
+									</ol>
+								</section>
+								{!desktop && chapterIndex === 1 && (
+									<TutorialIndexAd />
+								)}
+							</React.Fragment>
 						))}
 					</section>
 				</>
@@ -335,6 +345,7 @@ function LessonPage({
 	lesson: Lesson;
 	lessons: readonly Lesson[];
 }) {
+	const [desktop] = useMediaQuery('(min-width: 850px)', { ssr: false });
 	const storagePrefix = `php-tutorial:${version}:${lesson.slug}`;
 	const drafts = React.useRef<Record<string, string>>({});
 	function variantKey(id: string | null) {
@@ -459,12 +470,15 @@ function LessonPage({
 					</nav>
 				</details>
 				<header className="tutorial-lesson-heading">
-					<p className="tutorial-eyebrow">
-						LESSON {String(index + 1).padStart(2, '0')} /{' '}
-						{lessons.length} · PHP {version}
-					</p>
-					<h1>{lesson.title}</h1>
-					<p>{lesson.goal}</p>
+					<div className="tutorial-lesson-title">
+						<p className="tutorial-eyebrow">
+							LESSON {String(index + 1).padStart(2, '0')} /{' '}
+							{lessons.length} · PHP {version}
+						</p>
+						<h1>{lesson.title}</h1>
+						<p>{lesson.goal}</p>
+					</div>
+					{desktop && <TutorialLessonHeaderAd />}
 				</header>
 				<div className="tutorial-workspace">
 					<article className="tutorial-explanation">

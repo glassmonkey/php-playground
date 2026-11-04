@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { TutorialArticleAd } from '../advertisements';
 import { Button } from '@chakra-ui/react';
 import type { Lesson, LessonBlock, Program } from './types';
 import type { TutorialVersion } from './config';
@@ -231,20 +232,23 @@ export function LessonSections({
 }) {
 	return (
 		<>
-			{lesson.sections.map((section) => (
-				<section key={section.id} id={section.id}>
-					<h2>{section.title}</h2>
-					{section.blocks.map((block, index) => (
-						<Block
-							key={index}
-							block={block}
-							lesson={lesson}
-							version={version}
-							activeExperimentId={activeExperimentId}
-							onSelectExperiment={onSelectExperiment}
-						/>
-					))}
-				</section>
+			{lesson.sections.map((section, sectionIndex) => (
+				<React.Fragment key={section.id}>
+					<section id={section.id}>
+						<h2>{section.title}</h2>
+						{section.blocks.map((block, index) => (
+							<Block
+								key={index}
+								block={block}
+								lesson={lesson}
+								version={version}
+								activeExperimentId={activeExperimentId}
+								onSelectExperiment={onSelectExperiment}
+							/>
+						))}
+					</section>
+					{sectionIndex === 0 && <TutorialArticleAd />}
+				</React.Fragment>
 			))}
 		</>
 	);
