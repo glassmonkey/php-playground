@@ -363,7 +363,17 @@ async function releaseInsertionIdentity() {
     const uri = 'file:///release/qualified.php';
     const source = '<?php\nnamespace Vendor { /** VENDOR_DOC */ function chosen(int $value): string {} }\nnamespace Consumer {\nuse function Vendor\\chosen as picked;\nVendor\\chos';
     open(uri, source);
-    const item = completionItems(completion(uri, source, 'Vendor\\chos'))
+    // The first occurrence is inside the import; the public request must target the call.
+    const callPosition = positionAfter(source, 'Vendor\\chos', 1);
+    assert.deepEqual(callPosition, { line: 4, character: 11 }, 'qualified fixture call cursor');
+    assert.equal(source.split('\n')[callPosition.line], 'Vendor\\chos',
+        'the request line is exactly the unfinished call, not the import');
+    assert.equal(callPosition.line, source.split('\n').length - 1, 'the call is the final line');
+    assert.notDeepEqual(positionAfter(source, 'Vendor\\chos'), callPosition,
+        'the repeated import prefix must not become the request cursor');
+    const item = completionItems(request('textDocument/completion', {
+        textDocument: { uri }, position: callPosition,
+    }))
         .find(item => item.data?.m === 'Vendor\\chosen');
     const expected = '<?php\nnamespace Vendor { /** VENDOR_DOC */ function chosen(int $value): string {} }\nnamespace Consumer {\nuse function Vendor\\chosen as picked;\npicked(${1:\\$value})$0';
     check(`${target} qualified prefix and all edits select the imported alias`,
