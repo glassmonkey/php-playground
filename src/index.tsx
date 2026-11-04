@@ -8,13 +8,15 @@ import Footer from './footer';
 import Manual from './manual';
 import theme from './theme';
 import TutorialPage from './tutorial/page';
+import { PlaygroundHeaderAd } from './advertisements';
 
 function PlaygroundPage() {
 	return (
 		<>
-			<Box style={{ margin: '16px' }}>
+			<div className="playground-header">
 				<Header />
-			</Box>
+				<PlaygroundHeaderAd />
+			</div>
 			<App />
 			<Box style={{ margin: '16px' }}>
 				<Manual />
