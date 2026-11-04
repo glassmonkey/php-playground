@@ -1,18 +1,20 @@
 // Required semantic checks against a production build. No automatic retries.
 import { spawn, execFileSync } from 'node:child_process';
+import { Buffer } from 'node:buffer';
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, readdir, writeFile, chmod } from 'node:fs/promises';
 import { resolve, relative, join } from 'node:path';
 import process from 'node:process';
-import { fetchWithin, journalProcess } from './phpantom-process.mjs';
+import { fetchWithin, journalProcess } from './ui-process.mjs';
 
-const root = resolve(import.meta.dirname, '..');
+const root = resolve(import.meta.dirname, '../../..');
 const directory = resolve(
+	root,
 	process.env.PHPANTOM_RELEASE_OUT ?? 'build/phpantom-release-evidence'
 );
-const build = resolve(process.env.PHPANTOM_RELEASE_BUILD ?? 'public');
+const build = resolve(root, process.env.PHPANTOM_RELEASE_BUILD ?? 'public');
 const phase = process.env.PHPANTOM_RELEASE_PHASE ?? 'all';
-if (!['all', 'matrix', 'review', 'semantics'].includes(phase))
+if (!['all', 'matrix', 'review', 'semantics', 'tail'].includes(phase))
 	throw new Error('Unknown release phase');
 const fetchBudgetMs = Math.min(
 	10_000,
@@ -20,7 +22,9 @@ const fetchBudgetMs = Math.min(
 );
 if (!Number.isFinite(fetchBudgetMs) || fetchBudgetMs <= 0)
 	throw new Error('Invalid fetch budget');
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:4176';
+const baseURL =
+	process.env.PLAYWRIGHT_BASE_URL ??
+	`http://127.0.0.1:${process.env.PHPANTOM_RELEASE_PREVIEW_PORT ?? '4176'}`;
 const digest = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const git = (...args) =>
 	execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
@@ -43,10 +47,10 @@ const sources = [
 	'src/lsp/client.ts',
 	'src/lsp/wasm/versioned-ui-test.mjs',
 	'src/lsp/wasm/review-ui-test.mjs',
-	'e2e/phpantom-observation.mjs',
-	'e2e/phpantom-contracts.mjs',
-	'e2e/phpantom-process.mjs',
-	'e2e/run-phpantom-release.mjs',
+	'src/lsp/wasm/ui-observation.mjs',
+	'src/lsp/wasm/ui-contracts.mjs',
+	'src/lsp/wasm/ui-process.mjs',
+	'src/lsp/wasm/release-ui-test.mjs',
 	'assets/lsp/phpantom/manifest.json',
 	'.github/workflows/playwright.yml',
 ];
@@ -224,6 +228,13 @@ try {
 		digest(await readFile(join(build, 'index.html')))
 	)
 		throw new Error('Served index differs from journaled production input');
+	if (phase === 'tail')
+		await run(
+			'tail',
+			['src/lsp/wasm/versioned-ui-test.mjs'],
+			{ PHPANTOM_MATRIX_VERSIONS: '8.5', PHPANTOM_MATRIX_CASES: 'tail' },
+			3
+		);
 	if (phase === 'all' || phase === 'matrix')
 		await run(
 			'matrix',

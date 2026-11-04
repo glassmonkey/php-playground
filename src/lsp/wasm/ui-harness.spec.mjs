@@ -5,14 +5,14 @@ import { createServer } from 'node:http';
 import { mkdtemp, readFile, mkdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import process from 'node:process';
-import { installWorkerTrace } from '../../../e2e/phpantom-observation.mjs';
+import { installWorkerTrace } from './ui-observation.mjs';
 import {
 	parseMatrixManifest,
 	validateMatrixInputs,
 	expectedPhpTargets,
 	expectedStrrchrSignature,
-} from '../../../e2e/phpantom-contracts.mjs';
-import { fetchWithin, runBounded } from '../../../e2e/phpantom-process.mjs';
+} from './ui-contracts.mjs';
+import { fetchWithin, runBounded } from './ui-process.mjs';
 
 const helperEvidenceRoot =
 	process.env.PHPANTOM_HELPER_EVIDENCE_DIR ??
@@ -210,9 +210,12 @@ describe('UI runner public contracts', () => {
 		const cap = setTimeout(() => server.closeAllConnections(), 2500);
 		try {
 			const actual = await runBounded(
-				[process.execPath, 'e2e/run-phpantom-release.mjs'],
+				[
+					process.execPath,
+					resolve(import.meta.dirname, 'release-ui-test.mjs'),
+				],
 				{
-					cwd: resolve(import.meta.dirname, '../../..'),
+					cwd: directory,
 					env: {
 						...process.env,
 						PLAYWRIGHT_BASE_URL: `http://127.0.0.1:${server.address().port}`,
@@ -292,10 +295,7 @@ describe('UI runner public contracts', () => {
 			const directory = await mkdtemp(
 				join(helperEvidenceRoot, 'process-')
 			);
-			const helper = new URL(
-				'../../../e2e/phpantom-process.mjs',
-				import.meta.url
-			).href;
+			const helper = new URL('./ui-process.mjs', import.meta.url).href;
 			const script = `import {journalProcess} from ${JSON.stringify(helper)};const r=await journalProcess(${JSON.stringify(directory)},'child',${JSON.stringify(fixture.command)},{timeoutMs:${fixture.timeoutMs}});process.exitCode=r.exitCode;`;
 			const actual = await runBounded(
 				[process.execPath, '--input-type=module', '-e', script],

@@ -27,7 +27,7 @@ jobs:
       if: ${{ !cancelled() && steps.build.outcome == 'success' }}
       env:
         PHPANTOM_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
-      run: node e2e/run-phpantom-release.mjs
+      run: node src/lsp/wasm/release-ui-test.mjs
     - uses: actions/upload-artifact@v7
       if: always()
       with:

@@ -58,7 +58,7 @@ are checked by natural typing.
 ## 必須の意味検証と未達項目
 
 必須の Playwright workflow は、通常の E2E に加えて
-`node e2e/run-phpantom-release.mjs` を実行する。production build を専用の
+`node src/lsp/wasm/release-ui-test.mjs` を実行する。production build を専用の
 preview で開き、PHP 8.0・8.3・8.5 の26ケースと review の14ケースを確認する。
 元の全12版101ケースは残してあり、この部分集合を全版の保証とは扱わない。
 名前付き引数のケースは明示的な補完要求であり、通常の自然入力の証拠と区別する。
@@ -107,3 +107,9 @@ manifestはsubsetの選択に関係なく、期待する全12版の集合と照�
 K3のfamily別availabilityはruntime担当の必須native/WASI oracleとCI連携のgateを待つ。
 UIの既存3版subsetがその代わりを検証したとは扱わず、managerがexact gateを受け入れるまで
 未達の項目として残す。
+
+PHPantom専用の検証CLIとhelperもbuild module内の `src/lsp/wasm` に置く。
+`release-ui-test.mjs` は自身の位置からrepository rootを解決する。
+`PHPANTOM_RELEASE_PHASE=tail` は専用previewの起動から末尾3ケースまでを検証する。
+局所試験の専用portは `PHPANTOM_RELEASE_PREVIEW_PORT` で指定できる。
+既存previewを使う `PLAYWRIGHT_BASE_URL` とは区別し、専用子プロセスだけを終了する。

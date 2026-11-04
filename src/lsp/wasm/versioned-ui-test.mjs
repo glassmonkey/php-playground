@@ -9,12 +9,9 @@ import {
 	parseMatrixManifest,
 	validateMatrixInputs,
 	expectedStrrchrSignature,
-} from '../../../e2e/phpantom-contracts.mjs';
+} from './ui-contracts.mjs';
 import { chromium, expect } from '@playwright/test';
-import {
-	installWorkerTrace,
-	hoverState,
-} from '../../../e2e/phpantom-observation.mjs';
+import { installWorkerTrace, hoverState } from './ui-observation.mjs';
 
 const allVersions = expectedPhpTargets;
 const versions =
