@@ -165,14 +165,18 @@ function testMonaco(model: Monaco.editor.ITextModel) {
 
 function testModel() {
 	let version = 1;
-	let changeListener: (() => void) | undefined;
+	const listeners = new Set<() => void>();
 	const model = {
 		uri: { toString: () => 'inmemory://model/preview.php' },
 		getValue: () => '<?php $widget->',
 		getVersionId: () => version,
 		onDidChangeContent: (listener: () => void) => {
-			changeListener = listener;
-			return { dispose: () => (changeListener = undefined) };
+			listeners.add(listener);
+			return {
+				dispose: () => {
+					listeners.delete(listener);
+				},
+			};
 		},
 		getWordUntilPosition: (position: Monaco.Position) => ({
 			startColumn: Math.max(1, position.column - 4),
@@ -181,9 +185,10 @@ function testModel() {
 	};
 	return {
 		model: model as unknown as Monaco.editor.ITextModel,
+		listeners,
 		change: () => {
 			version++;
-			changeListener?.();
+			for (const listener of listeners) listener();
 		},
 	};
 }
@@ -572,6 +577,211 @@ describe('PHPantom Monaco lifecycle', () => {
 			listeners: [],
 		});
 	});
+
+	it.each([
+		'response-before-abort',
+		'initialized-notification',
+		'model-listener',
+		'provider-registration',
+	] as const)(
+		'rejects cancelled connect at %s without publishing resources',
+		async (boundary) => {
+			// Arrange: only the public Worker/model/Monaco callbacks schedule cancellation.
+			const document = testModel();
+			const monaco = testMonaco(document.model);
+			const worker = new TestWorker();
+			const controller = new AbortController();
+			const onStatus = vi.fn();
+			const modelListener = vi.spyOn(
+				document.model,
+				'onDidChangeContent'
+			);
+			const removedModelListener = vi.fn();
+			if (boundary === 'model-listener') {
+				modelListener.mockImplementation(() => {
+					controller.abort();
+					return { dispose: removedModelListener };
+				});
+			}
+			if (boundary === 'provider-registration') {
+				const register =
+					monaco.monaco.languages.registerCompletionItemProvider;
+				vi.spyOn(
+					monaco.monaco.languages,
+					'registerCompletionItemProvider'
+				).mockImplementation((...args) => {
+					const registration = register(...args);
+					controller.abort();
+					return registration;
+				});
+			}
+			if (boundary === 'initialized-notification') {
+				const post = worker.postMessage.bind(worker);
+				vi.spyOn(worker, 'postMessage').mockImplementation(
+					(message) => {
+						post(message);
+						if (message.method === 'initialized')
+							controller.abort();
+					}
+				);
+			}
+			// Act: initialize replies first. This microtask runs before connect's await continuation.
+			const pending = LspClient.connect({
+				worker: worker as unknown as Worker,
+				model: document.model,
+				monaco: monaco.monaco,
+				phpVersion: '8.5',
+				onStatus,
+				signal: controller.signal,
+			});
+			if (boundary === 'response-before-abort')
+				queueMicrotask(() => controller.abort());
+			await expect(pending).rejects.toThrow(Error);
+			const sentBeforeEdit = worker.sent.length;
+			document.change();
+			// Assert: notifications already made before a synchronous cancellation are explicit.
+			const got = {
+				notifications: worker.sent
+					.filter((message) => message.id === undefined)
+					.map((message) => message.method),
+				activeProviders: monaco.getActive().length,
+				modelListeners: document.listeners.size,
+				status: onStatus.mock.calls,
+				terminated: worker.terminated,
+				workerListeners: [...worker.listeners.values()].flat(),
+				modelListenerRegistrations: modelListener.mock.calls.length,
+				modelListenerDisposals: removedModelListener.mock.calls.length,
+				messagesAfterEdit: worker.sent.length - sentBeforeEdit,
+			};
+			expect(got).toEqual({
+				notifications:
+					boundary === 'response-before-abort'
+						? ['textDocument/didClose']
+						: boundary === 'initialized-notification'
+							? ['initialized', 'textDocument/didClose']
+							: [
+									'initialized',
+									'textDocument/didOpen',
+									'textDocument/didClose',
+								],
+				activeProviders: 0,
+				modelListeners: 0,
+				status: [],
+				terminated: true,
+				workerListeners: [],
+				modelListenerRegistrations:
+					boundary === 'model-listener' ||
+					boundary === 'provider-registration'
+						? 1
+						: 0,
+				modelListenerDisposals: boundary === 'model-listener' ? 1 : 0,
+				messagesAfterEdit: 0,
+			});
+		}
+	);
+
+	it('publishes a normal connection and disposes its public resources', async () => {
+		const document = testModel();
+		const monaco = testMonaco(document.model);
+		const worker = new TestWorker();
+		const onStatus = vi.fn();
+		const sut = await LspClient.connect({
+			worker: worker as unknown as Worker,
+			model: document.model,
+			monaco: monaco.monaco,
+			phpVersion: '8.5',
+			onStatus,
+		});
+		const connected = {
+			notifications: worker.sent
+				.filter((message) => message.id === undefined)
+				.map((message) => message.method),
+			active: monaco.getActive().length,
+			status: onStatus.mock.calls,
+			terminated: worker.terminated,
+		};
+		sut.dispose();
+		const before = worker.sent.length;
+		document.change();
+		expect({
+			connected,
+			after: {
+				active: monaco.getActive().length,
+				terminated: worker.terminated,
+				listeners: [...worker.listeners.values()].flat(),
+				messagesAfterEdit: worker.sent.length - before,
+			},
+		}).toEqual({
+			connected: {
+				notifications: ['initialized', 'textDocument/didOpen'],
+				active: 3,
+				status: [['ready']],
+				terminated: false,
+			},
+			after: {
+				active: 0,
+				terminated: true,
+				listeners: [],
+				messagesAfterEdit: 0,
+			},
+		});
+	});
+
+	it.each(['error', 'messageerror'] as const)(
+		'disposes an active connection after Worker %s',
+		async (kind) => {
+			const document = testModel();
+			const monaco = testMonaco(document.model);
+			const worker = new TestWorker();
+			const onStatus = vi.fn();
+			const sut = await LspClient.connect({
+				worker: worker as unknown as Worker,
+				model: document.model,
+				monaco: monaco.monaco,
+				phpVersion: '8.5',
+				onStatus,
+			});
+			worker.delayCompletions = true;
+			const provider = monaco.getActive()[0]
+				.provider as Monaco.languages.CompletionItemProvider;
+			const pending = provider.provideCompletionItems(
+				document.model,
+				{ lineNumber: 1, column: 5 } as Monaco.Position,
+				{ triggerKind: 1 },
+				testCancellationToken().token
+			);
+			const event = new Event(kind, { cancelable: true });
+			for (const listener of worker.listeners.get(kind) ?? [])
+				listener(event);
+			const response = await pending;
+			const sentBeforeEdit = worker.sent.length;
+			document.change();
+			sut.dispose();
+			expect({
+				response,
+				status: onStatus.mock.calls,
+				active: monaco.getActive().length,
+				modelListeners: document.listeners.size,
+				workerListeners: [...worker.listeners.values()].flat(),
+				terminated: worker.terminated,
+				messagesAfterEdit: worker.sent.length - sentBeforeEdit,
+			}).toEqual({
+				response: { suggestions: [] },
+				status: [
+					['ready'],
+					[
+						'error',
+						'PHPantom Worker failed. Reload the preview and try again.',
+					],
+				],
+				active: 0,
+				modelListeners: 0,
+				workerListeners: [],
+				terminated: true,
+				messagesAfterEdit: 0,
+			});
+		}
+	);
 
 	it('preserves PHPantom snippet and variable edit completion shapes', async () => {
 		// Arrange

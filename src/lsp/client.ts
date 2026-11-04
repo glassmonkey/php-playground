@@ -200,10 +200,14 @@ export class LspClient {
 				},
 				initializationOptions: { phpVersion: options.phpVersion },
 			});
+			client.assertConnectionActive();
 			client.notify('initialized', {});
+			client.assertConnectionActive();
 			client.openDocument();
 			client.registerProviders();
+			client.assertConnectionActive();
 			options.onStatus('ready');
+			client.assertConnectionActive();
 			return client;
 		} catch (error) {
 			client.dispose();
@@ -211,6 +215,20 @@ export class LspClient {
 		} finally {
 			options.signal?.removeEventListener('abort', cancel);
 		}
+	}
+
+	private assertConnectionActive(): void {
+		if (this.disposed || this.options.signal?.aborted)
+			throw new Error('LSP connection cancelled.');
+	}
+
+	private keepDisposable(disposable: Monaco.IDisposable): void {
+		// Public registration callbacks may synchronously abort before returning.
+		if (this.disposed) {
+			disposable.dispose();
+			this.assertConnectionActive();
+		}
+		this.disposables.push(disposable);
 	}
 
 	private readonly handleMessage = (event: MessageEvent<RpcMessage>) => {
@@ -229,6 +247,7 @@ export class LspClient {
 		);
 		for (const pending of this.pending.values()) pending.reject(error);
 		this.pending.clear();
+		this.dispose();
 		this.options.onStatus('error', error.message);
 		if (event instanceof ErrorEvent) event.preventDefault();
 	};
@@ -277,7 +296,7 @@ export class LspClient {
 				text: this.options.model.getValue(),
 			},
 		});
-		this.disposables.push(
+		this.keepDisposable(
 			this.options.model.onDidChangeContent(() => {
 				if (!this.disposed) {
 					this.notify('textDocument/didChange', {
@@ -303,7 +322,7 @@ export class LspClient {
 		const isCurrentModel = (requestedModel: Monaco.editor.ITextModel) =>
 			!this.disposed && requestedModel.uri.toString() === this.uri;
 
-		this.disposables.push(
+		this.keepDisposable(
 			monaco.languages.registerCompletionItemProvider(
 				phpDocumentSelector,
 				{
@@ -476,7 +495,7 @@ export class LspClient {
 			)
 		);
 
-		this.disposables.push(
+		this.keepDisposable(
 			monaco.languages.registerHoverProvider(phpDocumentSelector, {
 				provideHover: async (requestedModel, position, token) => {
 					if (!isCurrentModel(requestedModel)) return null;
@@ -516,7 +535,7 @@ export class LspClient {
 			})
 		);
 
-		this.disposables.push(
+		this.keepDisposable(
 			monaco.languages.registerSignatureHelpProvider(
 				phpDocumentSelector,
 				{

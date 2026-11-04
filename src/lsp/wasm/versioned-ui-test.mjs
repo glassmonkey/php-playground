@@ -4,7 +4,11 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
-import { chromium } from '@playwright/test';
+import { chromium, expect } from '@playwright/test';
+import {
+	observeHover,
+	hoverState,
+} from '../../../e2e/phpantom-observation.mjs';
 
 const allVersions = [
 	'5.6',
@@ -75,11 +79,19 @@ const batch = JSON.parse(await readFile(batchPath, 'utf8'));
 const rows = Object.entries(batch.artifacts ?? {}).map(
 	([phpVersion, artifact]) => ({ phpVersion, ...artifact })
 );
-if (batch.schemaVersion !== 1 || rows.length !== 12 || typeof batch.buildIdentity !== 'string')
-	throw new Error('Requires a schema version 1 manifest with all 12 target artifacts and a build identity.');
+if (
+	batch.schemaVersion !== 1 ||
+	rows.length !== 12 ||
+	typeof batch.buildIdentity !== 'string'
+)
+	throw new Error(
+		'Requires a schema version 1 manifest with all 12 target artifacts and a build identity.'
+	);
 const artifactByVersion = new Map(rows.map((row) => [row.phpVersion, row]));
 if (artifactByVersion.size !== 12)
-	throw new Error('Artifact manifest contains duplicate or missing PHP targets.');
+	throw new Error(
+		'Artifact manifest contains duplicate or missing PHP targets.'
+	);
 if (versions.some((version) => !artifactByVersion.has(version)))
 	throw new Error(
 		'Artifact manifest is missing one or more supported PHP targets.'
@@ -157,6 +169,29 @@ const recordCase = async (name, run) => {
 			finishedAt: new Date().toISOString(),
 			error: message,
 		};
+		if (
+			activePage &&
+			(!report.firstFailure ||
+				(name.includes('hover') && !report.firstHoverFailure))
+		) {
+			const screenshot =
+				outputPath +
+				(name.includes('hover')
+					? '.first-hover-failure.png'
+					: '.first-failure.png');
+			const failure = {
+				name,
+				state: await hoverState(activePage, 'first-failure').catch(
+					(error) => ({ captureError: String(error) })
+				),
+				screenshot,
+			};
+			await activePage.screenshot({ path: screenshot }).catch((error) => {
+				failure.screenshotError = String(error);
+			});
+			report.firstFailure ??= failure;
+			if (name.includes('hover')) report.firstHoverFailure ??= failure;
+		}
 		errors.push(`${name}: ${message}`);
 		console.error(`FAIL ${name}: ${message}`);
 	}
@@ -171,6 +206,7 @@ await mkdir(resolve(outputPath, '..'), { recursive: true });
 report.status = 'launching-browser';
 await persist();
 let browser;
+let activePage;
 const hardTimer = setTimeout(() => {
 	report.status = 'hard-timeout';
 	report.stage = `overall ${overallBudgetSeconds}s budget`;
@@ -196,6 +232,8 @@ try {
 		await stage(`version ${version}: create page`);
 		const artifact = artifactByVersion.get(version);
 		const page = await browser.newPage();
+		activePage = page;
+		await observeHover(page);
 		page.setDefaultTimeout(7_000);
 		page.setDefaultNavigationTimeout(12_000);
 		const wasmResponses = [];
@@ -234,14 +272,25 @@ try {
 									});
 								} else {
 									trace.sent.push(message);
+									window.__quality.protocol.push({
+										direction: 'sent',
+										at: performance.now(),
+										message,
+									});
 								}
 							}
 							return nativePostMessage(message, ...transfer);
 						},
 					});
 					worker.addEventListener('message', (event) => {
-						if (event.data && typeof event.data === 'object')
+						if (event.data && typeof event.data === 'object') {
 							trace.received.push(event.data);
+							window.__quality.protocol.push({
+								direction: 'received',
+								at: performance.now(),
+								message: event.data,
+							});
+						}
 					});
 					window.__phpantomMatrix.workers.push(trace);
 					return worker;
@@ -417,7 +466,7 @@ try {
 					page.on('request', (request) => {
 						if (
 							new URL(request.url()).pathname ===
-								'/lsp/phpantom/php-8.5.wasm'
+							'/lsp/phpantom/php-8.5.wasm'
 						)
 							requests.push(request.url());
 					});
@@ -1135,6 +1184,13 @@ async function signatureCase(page, version, shouldHaveThirdParameter) {
 		hasBeforeNeedle === shouldHaveThirdParameter,
 		`before_needle availability mismatch; parameters=${JSON.stringify(parameters)}, signatures=${JSON.stringify(signatures.map((item) => item.label))}`
 	);
+	const widget = page.locator('.parameter-hints-widget:visible');
+	await expect(widget).toBeVisible();
+	await expect(widget).toContainText('$haystack');
+	await expect(widget).toContainText('$needle');
+	if (shouldHaveThirdParameter)
+		await expect(widget).toContainText('$before_needle');
+	else await expect(widget).not.toContainText('$before_needle');
 	return {
 		version,
 		text,
@@ -1143,6 +1199,7 @@ async function signatureCase(page, version, shouldHaveThirdParameter) {
 		responseId: response.id,
 		signatureLabels: signatures.map((item) => item.label),
 		parameterLabels: parameters,
+		visibleSignature: await widget.innerText(),
 		shouldHaveThirdParameter,
 	};
 }
@@ -1180,10 +1237,13 @@ async function hoverSignatureCase(page, version, shouldHaveThirdParameter) {
 				range.setStart(node, start + 3);
 				range.setEnd(node, start + 4);
 				const rect = range.getBoundingClientRect();
-				return {
+				const point = {
 					x: rect.x + rect.width / 2,
 					y: rect.y + rect.height / 2,
 				};
+				window.__quality.hoverPoint = point;
+				window.__qualityCapture('before-original-hover-moves', point);
+				return point;
 			}
 			return null;
 		});
@@ -1226,10 +1286,15 @@ async function hoverSignatureCase(page, version, shouldHaveThirdParameter) {
 		hasThird === shouldHaveThirdParameter,
 		`hover signature parameter mismatch: ${signature}`
 	);
-	const tooltip = await page
-		.locator('.monaco-hover')
-		.innerText()
-		.catch(() => '');
+	const hover = page.locator('.monaco-hover:visible');
+	await expect(hover).toBeVisible();
+	await expect(hover).toContainText('function strrchr(');
+	await expect(hover).toContainText('$haystack');
+	await expect(hover).toContainText('$needle');
+	if (shouldHaveThirdParameter)
+		await expect(hover).toContainText('$before_needle');
+	else await expect(hover).not.toContainText('$before_needle');
+	const tooltip = await hover.innerText();
 	return {
 		version,
 		text: source,
@@ -1239,6 +1304,7 @@ async function hoverSignatureCase(page, version, shouldHaveThirdParameter) {
 		rawContents: response.result?.contents,
 		signature,
 		tooltip,
+		observation: await hoverState(page, 'hover-complete'),
 		shouldHaveThirdParameter,
 	};
 }
@@ -1348,14 +1414,25 @@ async function installWorkerTrace(page) {
 								});
 							} else {
 								trace.sent.push(message);
+								window.__quality.protocol.push({
+									direction: 'sent',
+									at: performance.now(),
+									message,
+								});
 							}
 						}
 						return nativePostMessage(message, ...transfer);
 					},
 				});
 				worker.addEventListener('message', (event) => {
-					if (event.data && typeof event.data === 'object')
+					if (event.data && typeof event.data === 'object') {
 						trace.received.push(event.data);
+						window.__quality.protocol.push({
+							direction: 'received',
+							at: performance.now(),
+							message: event.data,
+						});
+					}
 				});
 				window.__phpantomMatrix.workers.push(trace);
 				return worker;

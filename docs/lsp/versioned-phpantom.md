@@ -55,11 +55,35 @@ URL, `PHPANTOM_MATRIX_VERSIONS` selects a comma-separated subset, and
 with an explicit completion request; normal builtin completion and insertion
 are checked by natural typing.
 
-## Scope and known limitation
+## 必須の意味検証と未達項目
 
-The published matrix covers artifact identity, selected completion and
-signature boundaries, version switching, browser history, and autocomplete
-configuration. It does not claim full PHP grammar or diagnostics parity across
-versions. A controlled Phase A/B comparison found that resolving a same-name
-user function preserves its identity and insertion but does not return that
-function's PHPDoc marker. That remains a known limitation.
+必須の Playwright workflow は、通常の E2E に加えて
+`node e2e/run-phpantom-release.mjs` を実行する。production build を専用の
+preview で開き、PHP 8.0・8.3・8.5 の26ケースと review の14ケースを確認する。
+元の全12版101ケースは残してあり、この部分集合を全版の保証とは扱わない。
+名前付き引数のケースは明示的な補完要求であり、通常の自然入力の証拠と区別する。
+
+hover と signature は RPC の内容だけでなく、可視 widget の本文にも
+引数名と版の境界が現れることを検証する。関数のケースでは自然入力から候補を選び、
+resolve に送った FQN、表示された説明、確定文書、実 PHP の呼出し先を確認する。
+resolve-only の import は制御した応答の fixture であり、実 engine がその形式を
+自然に返すことを証明するものではない。
+
+初期の固定 assets には user PHPDoc の欠落、別 symbol の説明の混入、
+namespace 内で global 関数を選択した際の呼出し先の誤りが残っている。
+新しい assertion はこれらを失敗として扱う。既知の制限や旧版と同じ結果という理由で
+成功へ変換しない。runtime 修正と検証済み12版 batch の採用は別の受入 gate を通す。
+
+検証器は `build/phpantom-release-evidence/` に source/head/build の hash、
+開始、個別結果、終了と実際の exit code を排他的に保存する。
+1子プロセスは180秒、全体は420秒を上限とし、自動再試行しない。
+`PHPANTOM_RELEASE_BUILD` と `PHPANTOM_RELEASE_OUT` で入力と証拠の保存先を指定できる。
+`PLAYWRIGHT_BASE_URL` を指定した場合は既存 preview を使い、そのプロセスを停止しない。
+局所診断の `PHPANTOM_RELEASE_PHASE=matrix|review|semantics` は実行範囲を記録する。
+CI の既定値 `all` は全必須群を実行し、未実施群を成功に含めない。
+
+hover の初回失敗では pointer、hit target、widget、model/version、provider/token、
+RPC とスクリーンショットを保存する。観測の追加自体が時刻へ影響する可能性は残る。
+過去の no-RPC 失敗は、後続実行が成功しても原因解明まで未解決として保持する。
+通常 E2E も最初の失敗から trace と画面状態を保存する。
+CI の retry 後の成功は、初回の失敗原因が修正された証拠とはしない。

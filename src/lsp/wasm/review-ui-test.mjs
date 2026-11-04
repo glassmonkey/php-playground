@@ -18,19 +18,26 @@ const persist = () => writeFile(output, JSON.stringify(report, null, 2) + '\n');
 class FixtureError extends Error {}
 const selection = process.env.PHPANTOM_REVIEW_CASE ?? 'all';
 if (
-	!['all', 'DateTime', 'Widget', 'startup', 'cancellation'].includes(
-		selection
-	)
+	![
+		'all',
+		'DateTime',
+		'Widget',
+		'startup',
+		'cancellation',
+		'semantics',
+	].includes(selection)
 )
 	throw new Error('Unknown review case selection');
 async function run(name, action) {
-	const group = name.startsWith('cancelled resolve')
-		? 'cancellation'
-		: name.startsWith('namespaced DateTime')
-			? 'DateTime'
-			: name.startsWith('namespaced project')
-				? 'Widget'
-				: 'startup';
+	const group = name.startsWith('semantic ')
+		? 'semantics'
+		: name.startsWith('cancelled resolve')
+			? 'cancellation'
+			: name.startsWith('namespaced DateTime')
+				? 'DateTime'
+				: name.startsWith('namespaced project')
+					? 'Widget'
+					: 'startup';
 	if (selection !== 'all' && selection !== group) return;
 	console.log(`START ${name}`);
 	const context = await browser.newContext();
@@ -170,6 +177,11 @@ async function run(name, action) {
 			acceptance: await page
 				.evaluate(() => window.__reviewAcceptance)
 				.catch(() => null),
+			document: await text(page).catch(() => null),
+			visibleDocumentation: await page
+				.locator('.suggest-details:visible .docs')
+				.allTextContents()
+				.catch(() => []),
 			workers: await page
 				.evaluate(() => window.__reviewWorkers)
 				.catch(() => []),
@@ -286,7 +298,7 @@ async function modelSnapshot(page) {
 		};
 	});
 }
-async function accept(page, label, suffix) {
+async function accept(page, label, suffix, options = {}) {
 	await focusEnd(page);
 	const before = await modelSnapshot(page);
 	if (!before || before.text !== before.fixture)
@@ -382,7 +394,11 @@ async function accept(page, label, suffix) {
 	const matching = rows.filter({
 		has: page
 			.locator('.label-name')
-			.filter({ hasText: new RegExp(`^${label}$`) }),
+			.filter({
+				hasText: new RegExp(
+					`^${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`
+				),
+			}),
 	});
 	await matching.first().waitFor({ state: 'visible' });
 	const displayed = await rows.allTextContents();
@@ -412,11 +428,12 @@ async function accept(page, label, suffix) {
 		row = matching.nth(globalIndex);
 	}
 	const expectedFqn =
-		label === 'DateTime'
+		options.fqn ??
+		(label === 'DateTime'
 			? 'DateTime'
 			: label === 'Widget'
 				? 'Foo\\Widget'
-				: undefined;
+				: undefined);
 	let acceptedResolve;
 	if (expectedFqn) {
 		const targetIndex = await row.getAttribute('data-index');
@@ -470,10 +487,27 @@ async function accept(page, label, suffix) {
 				response: worker.received.find((m) => m.id === request.id),
 			};
 		}, expectedFqn);
-		expect({
-			symbol: acceptedResolve.request.params.data.m,
-			detail: acceptedResolve.request.params.detail,
-		}).toEqual({ symbol: expectedFqn, detail: expectedFqn });
+		expect(acceptedResolve.request.params.data.m).toBe(expectedFqn);
+		if (!options.fqn)
+			expect(acceptedResolve.request.params.detail).toBe(expectedFqn);
+		if (options.docs) {
+			// Expanding an already naturally-opened candidate is a documentation action.
+			// It does not invoke completion or change the chosen candidate.
+			await page.evaluate(() => {
+				const monaco =
+					window.monaco ?? window.require('vs/editor/editor.main');
+				monaco.editor
+					.getEditors()[0]
+					.trigger('keyboard', 'toggleSuggestionDetails', {});
+			});
+			const docs = page.locator('.suggest-details:visible .docs');
+			await expect(docs).toBeVisible();
+			for (const marker of options.docs.present)
+				await expect(docs).toContainText(marker);
+			for (const marker of options.docs.absent)
+				await expect(docs).not.toContainText(marker);
+			acceptedResolve.visibleDocumentation = await docs.innerText();
+		}
 		await page.keyboard.press('Enter');
 	} else {
 		await row.click();
@@ -497,6 +531,139 @@ async function selectVersion(page, version) {
 	);
 }
 try {
+	const shadow =
+		'<?php\nnamespace App;\n/** RELEASE_USER_DOC */\nfunction str_contains(string $ownOnly): bool { return true; }\n';
+	for (const fixture of [
+		{
+			name: 'unique user function',
+			source: '<?php\nnamespace App;\n/** RELEASE_UNIQUE_DOC */\nfunction audit_local(string $ownOnly): bool { return true; }\naudit_lo',
+			suffix: 'c',
+			label: 'audit_local($ownOnly)',
+			fqn: 'App\\audit_local',
+			docs: {
+				present: ['RELEASE_UNIQUE_DOC'],
+				absent: ['RELEASE_USER_DOC'],
+			},
+		},
+		{
+			name: 'same-name user function',
+			source: shadow + 'str_con',
+			suffix: 't',
+			label: 'str_contains($ownOnly)',
+			fqn: 'App\\str_contains',
+			docs: {
+				present: ['RELEASE_USER_DOC'],
+				absent: ['$haystack', '$needle'],
+			},
+		},
+		{
+			name: 'global builtin function',
+			source: shadow + 'str_con',
+			suffix: 't',
+			label: 'str_contains',
+			fqn: 'str_contains',
+			docs: {
+				present: ['$haystack', '$needle'],
+				absent: ['RELEASE_USER_DOC', '$ownOnly'],
+			},
+		},
+	]) {
+		await run(
+			'semantic visible docs identify ' + fixture.name,
+			async (page) => {
+				await open(page, fixture.source);
+				await ready(page, '8.5');
+				const acceptance = await accept(
+					page,
+					fixture.label,
+					fixture.suffix,
+					fixture
+				);
+				return { fixture, acceptance, document: await text(page) };
+			}
+		);
+	}
+	for (const fixture of [
+		{
+			name: 'global builtin',
+			label: 'str_contains',
+			fqn: 'str_contains',
+			arguments: "'a', 'z'",
+			output: 'false',
+		},
+		{
+			name: 'namespace user',
+			label: 'str_contains($ownOnly)',
+			fqn: 'App\\str_contains',
+			arguments: "'a'",
+			output: 'true',
+		},
+	]) {
+		await run(
+			'semantic selected function executes ' + fixture.name,
+			async (page) => {
+				await open(page, shadow + 'var_export(str_con');
+				await ready(page, '8.5');
+				const acceptance = await accept(page, fixture.label, 't', {
+					fqn: fixture.fqn,
+				});
+				const acceptedDocument = await text(page);
+				// Only fill arguments and finish the outer var_export call; preserve the inserted symbol/imports.
+				await page.evaluate((args) => {
+					const monaco =
+						window.monaco ??
+						window.require('vs/editor/editor.main');
+					const editor = monaco.editor.getEditors()[0];
+					const model = editor.getModel();
+					const lineNumber = model.getLineCount(),
+						line = model.getLineContent(lineNumber);
+					const open = line.lastIndexOf('('),
+						close = line.lastIndexOf(')');
+					if (open < 0 || close < open)
+						throw new Error(
+							'accepted candidate did not insert a function call'
+						);
+					editor.executeEdits('argument-fixture', [
+						{
+							range: {
+								startLineNumber: lineNumber,
+								endLineNumber: lineNumber,
+								startColumn: open + 2,
+								endColumn: close + 1,
+							},
+							text: args,
+						},
+						{
+							range: {
+								startLineNumber: lineNumber,
+								endLineNumber: lineNumber,
+								startColumn: line.length + 1,
+								endColumn: line.length + 1,
+							},
+							text: ');',
+						},
+					]);
+				}, fixture.arguments);
+				const finalDocument = await page.evaluate(() =>
+					(
+						window.monaco ?? window.require('vs/editor/editor.main')
+					).editor
+						.getEditors()[0]
+						.getValue()
+				);
+				await expect.poll(() => text(page)).toBe(finalDocument);
+				const preview = page.getByTestId('preview-console');
+				await expect(preview).toHaveText(fixture.output);
+				return {
+					fixture,
+					acceptance,
+					acceptedDocument,
+					finalDocument,
+					execution: await preview.innerText(),
+				};
+			}
+		);
+	}
 	for (const mode of ['initial', 'resolve-only']) {
 		await run(
 			`cancelled resolve ${mode} refocus preserves global import`,

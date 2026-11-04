@@ -3,6 +3,28 @@ import lzString from 'lz-string';
 import {versions, defaultVersion} from "../src/php-wasm/php";
 
 const PAGE = (process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:8888').replace(/\/$/, '');
+
+// Preserve the first failed attempt's editor/preview state; retries do not replace it.
+test.afterEach(async ({page}, testInfo) => {
+  if (testInfo.status === testInfo.expectedStatus) return;
+  const state = await page.evaluate(() => {
+    let models: unknown;
+    try {
+      const scope = window as unknown as {monaco?: typeof import('monaco-editor'); require?: (id: string) => typeof import('monaco-editor')};
+      const monaco = scope.monaco ?? scope.require?.('vs/editor/editor.main');
+      models = monaco?.editor.getEditors().map(editor => ({text: editor.getValue(), version: editor.getModel()?.getVersionId(), cursor: editor.getPosition(), focused: editor.hasTextFocus()}));
+    } catch (error) { models = {captureError: String(error)}; }
+    return {
+      url: location.href, models,
+      loading: [...document.querySelectorAll('[data-testid="loading-spinner"]')].map(element => ({display:getComputedStyle(element).display,visible:element.getBoundingClientRect().height>0})),
+      htmlPreview: [...document.querySelectorAll('[data-testid="preview-html"]')].map(element => ({srcdoc:element.getAttribute('srcdoc'),visible:element.getBoundingClientRect().height>0})),
+      consolePreview: [...document.querySelectorAll('[data-testid="preview-console"]')].map(element => element.textContent),
+      resources: performance.getEntriesByType('resource').map(entry => ({name:entry.name,startTime:entry.startTime,duration:entry.duration})),
+    };
+  }).catch(error => ({captureError:String(error)}));
+  await testInfo.attach('first-attempt-editor-preview-state', {body:JSON.stringify({retry:testInfo.retry,status:testInfo.status,expectedStatus:testInfo.expectedStatus,state},null,2),contentType:'application/json'});
+});
+
 const versionPattern = (v: string) => new RegExp(`PHP Version ${v.replace('.', '\\.')}`);
 
 type ThemeMode = 'light' | 'dark';
