@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { mkdir, readFile, readdir, writeFile, chmod } from 'node:fs/promises';
 import { resolve, relative, join } from 'node:path';
 import process from 'node:process';
+import { fetchWithin, journalProcess } from './phpantom-process.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const directory = resolve(
@@ -13,6 +14,12 @@ const build = resolve(process.env.PHPANTOM_RELEASE_BUILD ?? 'public');
 const phase = process.env.PHPANTOM_RELEASE_PHASE ?? 'all';
 if (!['all', 'matrix', 'review', 'semantics'].includes(phase))
 	throw new Error('Unknown release phase');
+const fetchBudgetMs = Math.min(
+	10_000,
+	Number(process.env.PHPANTOM_RELEASE_FETCH_TIMEOUT_MS ?? 10_000)
+);
+if (!Number.isFinite(fetchBudgetMs) || fetchBudgetMs <= 0)
+	throw new Error('Invalid fetch budget');
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:4176';
 const digest = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const git = (...args) =>
@@ -37,6 +44,8 @@ const sources = [
 	'src/lsp/wasm/versioned-ui-test.mjs',
 	'src/lsp/wasm/review-ui-test.mjs',
 	'e2e/phpantom-observation.mjs',
+	'e2e/phpantom-contracts.mjs',
+	'e2e/phpantom-process.mjs',
 	'e2e/run-phpantom-release.mjs',
 	'assets/lsp/phpantom/manifest.json',
 	'.github/workflows/playwright.yml',
@@ -72,13 +81,14 @@ const save = async (name, value) => {
 };
 await save('START.json', start);
 let server;
-let activeChild;
+const overall = new AbortController();
 let globalExpired = false;
 let serverClosed;
+let serverCloseObserved = false;
+let serverSpawnError;
 const serverLogs = [];
 function terminateOwned(child) {
-	if (!child?.pid || child.exitCode !== null || child.signalCode !== null)
-		return;
+	if (!child?.pid || serverCloseObserved) return;
 	try {
 		process.kill(-child.pid, 'SIGTERM');
 	} catch (error) {
@@ -96,7 +106,9 @@ function terminateOwned(child) {
 const results = [];
 const deadline = setTimeout(() => {
 	globalExpired = true;
-	terminateOwned(activeChild);
+	overall.abort(
+		new DOMException('Global semantic deadline reached', 'TimeoutError')
+	);
 	terminateOwned(server);
 	process.exitCode = 124;
 }, 420_000);
@@ -112,7 +124,7 @@ async function run(name, args, env, expected) {
 		startedAt: new Date().toISOString(),
 	};
 	await save(`${name}.START.json`, record);
-	const child = spawn(command[0], command.slice(1), {
+	const processResult = await journalProcess(directory, name, command, {
 		cwd: root,
 		env: {
 			...process.env,
@@ -121,35 +133,10 @@ async function run(name, args, env, expected) {
 			PHPANTOM_MATRIX_OUT: output,
 			PHPANTOM_REVIEW_OUT: output,
 		},
-		stdio: ['ignore', 'pipe', 'pipe'],
-		detached: true,
+		timeoutMs: 180_000,
+		signal: overall.signal,
 	});
-	activeChild = child;
-	const stdout = [],
-		stderr = [];
-	child.stdout.on('data', (data) => stdout.push(data));
-	child.stderr.on('data', (data) => stderr.push(data));
-	let expired = false;
-	const timer = setTimeout(() => {
-		expired = true;
-		terminateOwned(child);
-	}, 180_000);
-	const exitCode = await new Promise((resolve, reject) => {
-		child.once('error', reject);
-		child.once('exit', resolve);
-	});
-	clearTimeout(timer);
-	activeChild = undefined;
-	await writeFile(
-		join(directory, `${name}.stdout.log`),
-		Buffer.concat(stdout),
-		{ flag: 'wx' }
-	);
-	await writeFile(
-		join(directory, `${name}.stderr.log`),
-		Buffer.concat(stderr),
-		{ flag: 'wx' }
-	);
+	const { exitCode, deadlineReached: expired } = processResult;
 	let result;
 	try {
 		result = JSON.parse(await readFile(output, 'utf8'));
@@ -196,18 +183,31 @@ try {
 			],
 			{ cwd: root, stdio: ['ignore', 'pipe', 'pipe'], detached: true }
 		);
-		serverClosed = new Promise((resolve) => server.once('close', resolve));
+		serverClosed = new Promise((resolve) =>
+			server.once('close', () => {
+				serverCloseObserved = true;
+				resolve();
+			})
+		);
+		server.once('error', (error) => {
+			serverSpawnError = error;
+		});
 		server.stdout.on('data', (data) => serverLogs.push(data));
 		server.stderr.on('data', (data) => serverLogs.push(data));
-		const end = Date.now() + 10_000;
+		const end = Date.now() + fetchBudgetMs;
 		let ready = false;
 		while (Date.now() < end) {
+			if (serverSpawnError) throw serverSpawnError;
 			if (server.exitCode !== null)
 				throw new Error(
 					'Owned preview failed to start (port may be occupied)'
 				);
 			try {
-				const r = await fetch(baseURL);
+				const r = await fetchWithin(
+					baseURL,
+					end - Date.now(),
+					overall.signal
+				);
 				if (r.ok) {
 					ready = true;
 					break;
@@ -215,11 +215,10 @@ try {
 			} catch {}
 			await new Promise((resolve) => setTimeout(resolve, 100));
 		}
+		if (serverSpawnError) throw serverSpawnError;
 		if (!ready) throw new Error('Owned preview did not become ready');
 	}
-	const response = await fetch(baseURL, {
-		signal: AbortSignal.timeout(10_000),
-	});
+	const response = await fetchWithin(baseURL, fetchBudgetMs, overall.signal);
 	if (
 		digest(new Uint8Array(await response.arrayBuffer())) !==
 		digest(await readFile(join(build, 'index.html')))
@@ -250,7 +249,16 @@ try {
 			5
 		);
 } catch (error) {
-	results.push({ passed: false, error: String(error) });
+	results.push({
+		passed: false,
+		error: String(error),
+		errorName: error.name,
+		exitCode: serverSpawnError
+			? 127
+			: error.name === 'TimeoutError' || overall.signal.aborted
+				? 124
+				: 1,
+	});
 } finally {
 	clearTimeout(deadline);
 	terminateOwned(server);
@@ -277,7 +285,14 @@ try {
 		!globalExpired &&
 		sourceUnchanged &&
 		git('rev-parse', 'HEAD') === head;
+	const exitCode = passed
+		? 0
+		: globalExpired
+			? 124
+			: results.find((row) => !row.passed)?.exitCode || 1;
+	await save('result.json', { exitCode, passed, results });
 	await save('EXIT.json', {
+		exitCode,
 		finishedAt: new Date().toISOString(),
 		head,
 		headUnchanged: git('rev-parse', 'HEAD') === head,
@@ -287,5 +302,5 @@ try {
 	});
 	for (const entry of await readdir(directory))
 		await chmod(join(directory, entry), 0o444);
-	if (!passed) process.exitCode = 1;
+	process.exitCode = exitCode;
 }

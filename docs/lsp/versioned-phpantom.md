@@ -87,3 +87,23 @@ RPC とスクリーンショットを保存する。観測の追加自体が時�
 過去の no-RPC 失敗は、後続実行が成功しても原因解明まで未解決として保持する。
 通常 E2E も最初の失敗から trace と画面状態を保存する。
 CI の retry 後の成功は、初回の失敗原因が修正された証拠とはしない。
+
+末尾のURL・既定値・OFF・履歴3ケースは、`PHPANTOM_MATRIX_CASES=tail` で
+独立に実行できる。通常ページと末尾ページは同じWorker観測器を使う。
+観測器が元Workerへinitializeとtransferを同一のまま渡すことを、小さい公開経路の試験で確認する。
+manifestはsubsetの選択に関係なく、期待する全12版の集合と照合する。
+重複JSON key、欠落・余分な版、重複・無効な選択は実行前に拒否する。
+
+関数の確定文書とPHP実行文書はfixture内の独立した全文期待値と照合し、コメントや
+無関係な行の削除も検出する。署名は入力した関数、順序付きの型・引数名、activeParameterと
+可視の強調位置を確認する。現在のsignatureHelp labelにはFQNがないため、関数identityは
+完全一致する文書と要求位置にも結び付ける。
+
+応答しないHTTP、子timeout、spawn errorでは開始・結果・終了と実際の数値exitを
+小さい実プロセスで照合する。stdoutとstderrはexitではなくcloseまで取得する。
+`PHPANTOM_RELEASE_FETCH_TIMEOUT_MS` は局所試験でfetch上限を短縮する指定であり、
+既定の10秒より長くすることはできない。
+
+K3のfamily別availabilityはruntime担当の必須native/WASI oracleとCI連携のgateを待つ。
+UIの既存3版subsetがその代わりを検証したとは扱わず、managerがexact gateを受け入れるまで
+未達の項目として残す。

@@ -1,14 +1,15 @@
 // Test-only observation: preserve provider return values and original pointer actions.
 export async function observeHover(page) {
 	await page.addInitScript(() => {
-		const q = (window.__quality = {
-			events: [],
-			providers: [],
-			providerCalls: [],
-			protocol: [],
-			states: [],
-			hookInstalled: false,
-		});
+		if (window.__quality?.observationInstalled) return;
+		const q = (window.__quality ??= {});
+		q.events ??= [];
+		q.providers ??= [];
+		q.providerCalls ??= [];
+		q.protocol ??= [];
+		q.states ??= [];
+		q.hookInstalled ??= false;
+		q.observationInstalled = true;
 		let monacoInstance;
 		const stamp = () => performance.now();
 		const install = (monaco) => {
@@ -206,4 +207,54 @@ export async function hoverState(page, label) {
 		window.__qualityCapture?.(label, window.__quality?.hoverPoint);
 		return window.__quality;
 	}, label);
+}
+
+export async function installWorkerTrace(page) {
+	await observeHover(page);
+	await page.addInitScript(() => {
+		if (window.__phpantomMatrix) return;
+		const originalWorker = window.Worker;
+		window.__phpantomMatrix = { workers: [] };
+		window.Worker = new Proxy(originalWorker, {
+			construct(target, args) {
+				const worker = Reflect.construct(target, args);
+				const trace = { url: String(args[0]), sent: [], received: [] };
+				const nativePostMessage = worker.postMessage.bind(worker);
+				Object.defineProperty(worker, 'postMessage', {
+					configurable: true,
+					value: (message, ...transfer) => {
+						if (message && typeof message === 'object') {
+							if (message.type === 'phpantom:bootstrap') {
+								trace.sent.push({
+									type: message.type,
+									phpVersion: message.phpVersion,
+									error: message.error,
+								});
+							} else {
+								trace.sent.push(message);
+								window.__quality.protocol.push({
+									direction: 'sent',
+									at: performance.now(),
+									message,
+								});
+							}
+						}
+						return nativePostMessage(message, ...transfer);
+					},
+				});
+				worker.addEventListener('message', (event) => {
+					if (event.data && typeof event.data === 'object') {
+						trace.received.push(event.data);
+						window.__quality.protocol.push({
+							direction: 'received',
+							at: performance.now(),
+							message: event.data,
+						});
+					}
+				});
+				window.__phpantomMatrix.workers.push(trace);
+				return worker;
+			},
+		});
+	});
 }

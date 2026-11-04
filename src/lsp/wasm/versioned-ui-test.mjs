@@ -4,31 +4,25 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
+import {
+	expectedPhpTargets,
+	parseMatrixManifest,
+	validateMatrixInputs,
+	expectedStrrchrSignature,
+} from '../../../e2e/phpantom-contracts.mjs';
 import { chromium, expect } from '@playwright/test';
 import {
-	observeHover,
+	installWorkerTrace,
 	hoverState,
 } from '../../../e2e/phpantom-observation.mjs';
 
-const allVersions = [
-	'5.6',
-	'7.0',
-	'7.1',
-	'7.2',
-	'7.3',
-	'7.4',
-	'8.0',
-	'8.1',
-	'8.2',
-	'8.3',
-	'8.4',
-	'8.5',
-];
-const versions = process.env.PHPANTOM_MATRIX_VERSIONS
-	? process.env.PHPANTOM_MATRIX_VERSIONS.split(',')
-	: allVersions;
+const allVersions = expectedPhpTargets;
+const versions =
+	process.env.PHPANTOM_MATRIX_VERSIONS !== undefined
+		? process.env.PHPANTOM_MATRIX_VERSIONS.split(',')
+		: allVersions;
 const caseSelection = process.env.PHPANTOM_MATRIX_CASES ?? 'all';
-if (!['all', 'core'].includes(caseSelection))
+if (!['all', 'core', 'tail'].includes(caseSelection))
 	throw new Error(`Unsupported matrix case selection: ${caseSelection}`);
 if (new Set(versions).size !== versions.length)
 	throw new Error(
@@ -40,11 +34,15 @@ const isFullMatrix =
 	caseSelection === 'all' &&
 	versions.length === allVersions.length &&
 	allVersions.every((version) => versions.includes(version));
-const matrixKind = isFullMatrix
-	? 'full-matrix'
-	: caseSelection === 'core' && versions.length === 1
-		? 'single-target-core'
-		: 'version-subset';
+const runTail = isFullMatrix || caseSelection === 'tail';
+const matrixKind =
+	caseSelection === 'tail'
+		? 'tail-only'
+		: isFullMatrix
+			? 'full-matrix'
+			: caseSelection === 'core' && versions.length === 1
+				? 'single-target-core'
+				: 'version-subset';
 const targetBudgetSeconds = Object.fromEntries(
 	versions.map((version) => {
 		const behaviorCases =
@@ -59,14 +57,16 @@ const targetBudgetSeconds = Object.fromEntries(
 	})
 );
 const overallBudgetSeconds =
-	matrixKind === 'single-target-core'
+	caseSelection === 'tail'
 		? 165
-		: 30 +
-			Object.values(targetBudgetSeconds).reduce(
-				(total, value) => total + value,
-				0
-			) +
-			(isFullMatrix ? 3 * 90 : 0);
+		: matrixKind === 'single-target-core'
+			? 165
+			: 30 +
+				Object.values(targetBudgetSeconds).reduce(
+					(total, value) => total + value,
+					0
+				) +
+				(runTail ? 3 * 90 : 0);
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:4176';
 const batchPath =
@@ -75,27 +75,9 @@ const batchPath =
 const outputPath =
 	process.env.PHPANTOM_MATRIX_OUT ??
 	resolve(repoRoot, 'build/phpantom-ui-matrix-result.json');
-const batch = JSON.parse(await readFile(batchPath, 'utf8'));
-const rows = Object.entries(batch.artifacts ?? {}).map(
-	([phpVersion, artifact]) => ({ phpVersion, ...artifact })
-);
-if (
-	batch.schemaVersion !== 1 ||
-	rows.length !== 12 ||
-	typeof batch.buildIdentity !== 'string'
-)
-	throw new Error(
-		'Requires a schema version 1 manifest with all 12 target artifacts and a build identity.'
-	);
+const batch = parseMatrixManifest(await readFile(batchPath, 'utf8'));
+const rows = validateMatrixInputs(batch, versions);
 const artifactByVersion = new Map(rows.map((row) => [row.phpVersion, row]));
-if (artifactByVersion.size !== 12)
-	throw new Error(
-		'Artifact manifest contains duplicate or missing PHP targets.'
-	);
-if (versions.some((version) => !artifactByVersion.has(version)))
-	throw new Error(
-		'Artifact manifest is missing one or more supported PHP targets.'
-	);
 const digest = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const report = {
 	baseURL,
@@ -108,7 +90,7 @@ const report = {
 	budget: {
 		perTargetSeconds: targetBudgetSeconds,
 		targets: {},
-		globalCaseSeconds: isFullMatrix ? 90 : 0,
+		globalCaseSeconds: runTail ? 90 : 0,
 		overallSeconds: overallBudgetSeconds,
 		model: 'single core 165s; otherwise 45s setup + 30s per behavior case + 20s reserve per target; full matrix adds 90s per 3 cross-version cases and 30s startup/finalization',
 	},
@@ -222,7 +204,7 @@ try {
 	console.log(`START browser launch (${versions.join(',')})`);
 	browser = await chromium.launch({ headless: true, timeout: 10_000 });
 	report.status = 'running';
-	for (const version of versions) {
+	for (const version of caseSelection === 'tail' ? [] : versions) {
 		const targetStartedAt = Date.now();
 		report.budget.targets[version] = {
 			budgetSeconds: targetBudgetSeconds[version],
@@ -233,7 +215,6 @@ try {
 		const artifact = artifactByVersion.get(version);
 		const page = await browser.newPage();
 		activePage = page;
-		await observeHover(page);
 		page.setDefaultTimeout(7_000);
 		page.setDefaultNavigationTimeout(12_000);
 		const wasmResponses = [];
@@ -248,55 +229,7 @@ try {
 			});
 			await route.fulfill({ response, body: bytes });
 		});
-		await page.addInitScript(() => {
-			const originalWorker = window.Worker;
-			window.__phpantomMatrix = { workers: [] };
-			window.Worker = new Proxy(originalWorker, {
-				construct(target, args) {
-					const worker = Reflect.construct(target, args);
-					const trace = {
-						url: String(args[0]),
-						sent: [],
-						received: [],
-					};
-					const nativePostMessage = worker.postMessage.bind(worker);
-					Object.defineProperty(worker, 'postMessage', {
-						configurable: true,
-						value: (message, ...transfer) => {
-							if (message && typeof message === 'object') {
-								if (message.type === 'phpantom:bootstrap') {
-									trace.sent.push({
-										type: message.type,
-										phpVersion: message.phpVersion,
-										error: message.error,
-									});
-								} else {
-									trace.sent.push(message);
-									window.__quality.protocol.push({
-										direction: 'sent',
-										at: performance.now(),
-										message,
-									});
-								}
-							}
-							return nativePostMessage(message, ...transfer);
-						},
-					});
-					worker.addEventListener('message', (event) => {
-						if (event.data && typeof event.data === 'object') {
-							trace.received.push(event.data);
-							window.__quality.protocol.push({
-								direction: 'received',
-								at: performance.now(),
-								message: event.data,
-							});
-						}
-					});
-					window.__phpantomMatrix.workers.push(trace);
-					return worker;
-				},
-			});
-		});
+		await installWorkerTrace(page);
 		await stage(`version ${version}: navigate`);
 		await page.goto(
 			`${baseURL}/?v=${encodeURIComponent(version)}&ac=1&f=console`,
@@ -452,13 +385,14 @@ try {
 		await finishTargetBudget(version, targetStartedAt);
 	}
 
-	if (isFullMatrix) {
+	if (runTail) {
 		await recordCase(
 			'default and invalid autocomplete URL values remain on',
 			async () => {
 				const checks = [];
 				for (const query of ['', '&ac=invalid']) {
 					const page = await browser.newPage();
+					activePage = page;
 					page.setDefaultTimeout(7_000);
 					page.setDefaultNavigationTimeout(12_000);
 					await installWorkerTrace(page);
@@ -501,6 +435,7 @@ try {
 			'ac=0 starts without PHPantom worker or WASM fetch',
 			async () => {
 				const page = await browser.newPage();
+				activePage = page;
 				page.setDefaultTimeout(7_000);
 				page.setDefaultNavigationTimeout(12_000);
 				await installWorkerTrace(page);
@@ -551,6 +486,7 @@ try {
 			'selector and browser history switch through old and new PHP engines',
 			async () => {
 				const page = await browser.newPage();
+				activePage = page;
 				page.setDefaultTimeout(7_000);
 				page.setDefaultNavigationTimeout(12_000);
 				await installWorkerTrace(page);
@@ -1184,8 +1120,37 @@ async function signatureCase(page, version, shouldHaveThirdParameter) {
 		hasBeforeNeedle === shouldHaveThirdParameter,
 		`before_needle availability mismatch; parameters=${JSON.stringify(parameters)}, signatures=${JSON.stringify(signatures.map((item) => item.label))}`
 	);
+	const expectedSignature = expectedStrrchrSignature(version);
+	const actualDocument = (await latestWorker(page)).sent
+		.filter((message) => message.method === 'textDocument/didChange')
+		.at(-1)?.params.contentChanges[0].text;
+	expect({
+		functionName: actualDocument?.match(/\n([a-z_]+)\(/)?.[1],
+		signatures: signatures.map((signature) => ({
+			label: signature.label,
+			parameters: (signature.parameters ?? []).map((parameter) =>
+				typeof parameter.label === 'string'
+					? parameter.label
+					: signature.label.slice(...parameter.label)
+			),
+		})),
+		activeSignature: response.result.activeSignature,
+		activeParameter: response.result.activeParameter,
+		document: actualDocument,
+	}).toEqual({
+		...expectedSignature,
+		document: '<?php\nstrrchr("haystack", "needle",',
+	});
 	const widget = page.locator('.parameter-hints-widget:visible');
 	await expect(widget).toBeVisible();
+	await expect(widget.locator('.signature .code')).toHaveText(
+		expectedSignature.signatures[0].label
+	);
+	await expect(widget.locator('.parameter.active')).toHaveText(
+		expectedSignature.signatures[0].parameters[
+			expectedSignature.activeParameter
+		]
+	);
 	await expect(widget).toContainText('$haystack');
 	await expect(widget).toContainText('$needle');
 	if (shouldHaveThirdParameter)
@@ -1200,6 +1165,8 @@ async function signatureCase(page, version, shouldHaveThirdParameter) {
 		signatureLabels: signatures.map((item) => item.label),
 		parameterLabels: parameters,
 		visibleSignature: await widget.innerText(),
+		expectedSignature,
+		activeParameter: response.result.activeParameter,
 		shouldHaveThirdParameter,
 	};
 }
@@ -1391,54 +1358,6 @@ async function selectVersion(page, version) {
 		(target) => new URL(location.href).searchParams.get('v') === target,
 		version
 	);
-}
-
-async function installWorkerTrace(page) {
-	await page.addInitScript(() => {
-		const originalWorker = window.Worker;
-		window.__phpantomMatrix = { workers: [] };
-		window.Worker = new Proxy(originalWorker, {
-			construct(target, args) {
-				const worker = Reflect.construct(target, args);
-				const trace = { url: String(args[0]), sent: [], received: [] };
-				const nativePostMessage = worker.postMessage.bind(worker);
-				Object.defineProperty(worker, 'postMessage', {
-					configurable: true,
-					value: (message, ...transfer) => {
-						if (message && typeof message === 'object') {
-							if (message.type === 'phpantom:bootstrap') {
-								trace.sent.push({
-									type: message.type,
-									phpVersion: message.phpVersion,
-									error: message.error,
-								});
-							} else {
-								trace.sent.push(message);
-								window.__quality.protocol.push({
-									direction: 'sent',
-									at: performance.now(),
-									message,
-								});
-							}
-						}
-						return nativePostMessage(message, ...transfer);
-					},
-				});
-				worker.addEventListener('message', (event) => {
-					if (event.data && typeof event.data === 'object') {
-						trace.received.push(event.data);
-						window.__quality.protocol.push({
-							direction: 'received',
-							at: performance.now(),
-							message: event.data,
-						});
-					}
-				});
-				window.__phpantomMatrix.workers.push(trace);
-				return worker;
-			},
-		});
-	});
 }
 
 function compareVersions(left, right) {

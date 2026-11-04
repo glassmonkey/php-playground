@@ -392,13 +392,11 @@ async function accept(page, label, suffix, options = {}) {
 	}, position);
 	const rows = page.locator('.suggest-widget .monaco-list-row');
 	const matching = rows.filter({
-		has: page
-			.locator('.label-name')
-			.filter({
-				hasText: new RegExp(
-					`^${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`
-				),
-			}),
+		has: page.locator('.label-name').filter({
+			hasText: new RegExp(
+				`^${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`
+			),
+		}),
 	});
 	await matching.first().waitFor({ state: 'visible' });
 	const displayed = await rows.allTextContents();
@@ -539,6 +537,8 @@ try {
 			source: '<?php\nnamespace App;\n/** RELEASE_UNIQUE_DOC */\nfunction audit_local(string $ownOnly): bool { return true; }\naudit_lo',
 			suffix: 'c',
 			label: 'audit_local($ownOnly)',
+			expectedAcceptedDocument:
+				'<?php\nnamespace App;\n/** RELEASE_UNIQUE_DOC */\nfunction audit_local(string $ownOnly): bool { return true; }\naudit_local($ownOnly)',
 			fqn: 'App\\audit_local',
 			docs: {
 				present: ['RELEASE_UNIQUE_DOC'],
@@ -551,6 +551,7 @@ try {
 			suffix: 't',
 			label: 'str_contains($ownOnly)',
 			fqn: 'App\\str_contains',
+			expectedAcceptedDocument: shadow + 'str_contains($ownOnly)',
 			docs: {
 				present: ['RELEASE_USER_DOC'],
 				absent: ['$haystack', '$needle'],
@@ -562,6 +563,7 @@ try {
 			suffix: 't',
 			label: 'str_contains',
 			fqn: 'str_contains',
+			expectedAcceptedDocument: shadow + '\\str_contains()',
 			docs: {
 				present: ['$haystack', '$needle'],
 				absent: ['RELEASE_USER_DOC', '$ownOnly'],
@@ -579,6 +581,14 @@ try {
 					fixture.suffix,
 					fixture
 				);
+				expect({
+					document: await text(page),
+					selectedFqn:
+						acceptance.acceptedResolve.request.params.data.m,
+				}).toEqual({
+					document: fixture.expectedAcceptedDocument,
+					selectedFqn: fixture.fqn,
+				});
 				return { fixture, acceptance, document: await text(page) };
 			}
 		);
@@ -590,6 +600,9 @@ try {
 			fqn: 'str_contains',
 			arguments: "'a', 'z'",
 			output: 'false',
+			expectedAcceptedDocument: shadow + 'var_export(\\str_contains()',
+			expectedExecutionDocument:
+				shadow + "var_export(\\str_contains('a', 'z'));",
 		},
 		{
 			name: 'namespace user',
@@ -597,6 +610,10 @@ try {
 			fqn: 'App\\str_contains',
 			arguments: "'a'",
 			output: 'true',
+			expectedAcceptedDocument:
+				shadow + 'var_export(str_contains($ownOnly)',
+			expectedExecutionDocument:
+				shadow + "var_export(str_contains('a'));",
 		},
 	]) {
 		await run(
@@ -653,7 +670,19 @@ try {
 				);
 				await expect.poll(() => text(page)).toBe(finalDocument);
 				const preview = page.getByTestId('preview-console');
-				await expect(preview).toHaveText(fixture.output);
+				await expect(preview).toHaveText(/^(true|false)$/);
+				expect({
+					acceptedDocument,
+					finalDocument,
+					execution: await preview.innerText(),
+					selectedFqn:
+						acceptance.acceptedResolve.request.params.data.m,
+				}).toEqual({
+					acceptedDocument: fixture.expectedAcceptedDocument,
+					finalDocument: fixture.expectedExecutionDocument,
+					execution: fixture.output,
+					selectedFqn: fixture.fqn,
+				});
 				return {
 					fixture,
 					acceptance,
