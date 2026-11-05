@@ -133,3 +133,7 @@ release 用の単独 WASI ハーネスは、実行前に current applied patch �
 return は関数だけでなく script/eval/include の終了にも使えます。従来の return-outside-function の全12期待値が負だったのは誤りで、[PHP の return の説明](https://www.php.net/manual/en/function.return.php)に従って正に訂正しました。旧期待値と修正前の失敗を保全し、class/trait/interface body の負、関数・method・namespace・条件付き script の正、yield の関数内の正と script 位置の負を分けて検査します。
 
 scanner は class owner の深さを stack で保存・復元します。入れ子の匿名・名前付き class を閉じた後も外側の所有状態を保持し、外側 method や class 定数を global 宣言へ混入させません。synthetic な所有状態の反例と、固定 stub ファイル群への影響確認と、lazy parser の公開要求の比較は別々の証拠として扱います。
+
+namespace の import 種別は固定版 PHP parser の CST で判定します。`use` と `function` / `const` の間に空白やコメントがあっても種別を保ち、closure の capture と trait use は別の構文として扱います。同じファイルの別 namespace にある function/const は import 候補へ残します。21 fixture を全12対象の公開 native completion と、生成対象ごとの WASI completion で検査します。
+
+未完成の class/namespace では、parser へ渡す一時入力の末尾だけに終端記号と閉じ括弧を補い、元の cursor と span を保持します。補完する文書自体は書き換えません。コメント内の括弧で import と trait use が入れ替わらないことと、trait use に通常 class が混入しないことも検査します。

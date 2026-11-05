@@ -11,8 +11,8 @@ expected_stubs_sha256='3ef62542d2f77ad30c7dab7dfa726e57e86dd5e3403780294119cf4f5
 phase_a_patch_sha256='9ba5fdfbe29fcfacc974611159c6aaf6bcdc15797e0e2a2c6cbf6989ad93f3d9'
 reviewed_phase_b_diff_sha256='e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d'
 phase_b_bundle_sha256='60aad10373b97a65da73196aa28e6893a77480a21d5687ad1b140e6d74bd30a3'
-phase_b_patch_sha256='019ad85297e763718d23888288e61ba33deae56770603a9150f797fbcf72ff21'
-phase_b_file_manifest_sha256='3ea9798c644678ab1fdd02209fbe8845ef0b66e86fe2ee76bedbadb763eb5d38'
+phase_b_patch_sha256='4b147cb3a7ec776942a695d3cebdfd27cd7e584f895e239e98188dd1cab0b20e'
+phase_b_file_manifest_sha256='4bf904e14107a8591dc21eb0be980bac7eadd78a6fdcab73c33b8ddc06a57904'
 patch_file='/opt/phpantom/patches/phase-b-versioned-target.patch'
 file_manifest='/opt/phpantom/patches/phase-b-versioned-target.files.json'
 target='wasm32-wasip1'
@@ -166,7 +166,7 @@ PYRESULT
 	quality_log='/output/native-release-quality.log'
 	PHPANTOM_TARGET_PHP_VERSION=7.4 cargo test --locked \
 		--manifest-path "$native_probe/Cargo.toml" \
-		--test native_release_quality --test native_language_completion --test native_stub_metadata -- --show-output >"$quality_log" 2>&1
+		--test native_release_quality --test native_language_completion --test native_stub_metadata --test native_import_completion -- --show-output >"$quality_log" 2>&1
 	rustc --edition=2024 --test "$source_root/build_support/stub_availability.rs" \
 		-o "$attempt_root/stub-availability-tests"
 	"$attempt_root/stub-availability-tests" > /output/stub-availability-tests.log 2>&1
@@ -234,7 +234,7 @@ summary = {
         "result": "16/16 passed",
         "log": "stub-availability-tests.log",
     },
-    "release_quality": {"command": "cargo test --locked --test native_release_quality --test native_language_completion --test native_stub_metadata -- --show-output", "log": "native-release-quality.log", "required": True},
+    "release_quality": {"command": "cargo test --locked --test native_release_quality --test native_language_completion --test native_stub_metadata --test native_import_completion -- --show-output", "log": "native-release-quality.log", "required": True},
     "native_test_profile": {"debug": 0, "jobs": 1},
     "rustc_verbose": os.environ["PHPANTOM_RUSTC_VERBOSE"],
     "cargo_version": os.environ["PHPANTOM_CARGO_VERSION"],

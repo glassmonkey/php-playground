@@ -17,10 +17,10 @@ const reviewedDiff = manifest.source?.reviewedPhaseBDiffSha256
 assert.equal(reviewedDiff,
 	'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d');
 assert.equal(manifest.source?.appliedPhaseBPatchSha256,
-    '019ad85297e763718d23888288e61ba33deae56770603a9150f797fbcf72ff21',
+    '4b147cb3a7ec776942a695d3cebdfd27cd7e584f895e239e98188dd1cab0b20e',
     'current applied PHPantom patch is required before WASM instantiation');
 assert.equal(manifest.source?.appliedFileManifestSha256,
-    '3ea9798c644678ab1fdd02209fbe8845ef0b66e86fe2ee76bedbadb763eb5d38',
+    '4bf904e14107a8591dc21eb0be980bac7eadd78a6fdcab73c33b8ddc06a57904',
     'current applied file manifest is required before WASM instantiation');
 assert.equal(manifest.stubs?.commit, '2049ca3cfa1feabf52db074108fe776a5713cf02');
 if (manifest.stubs?.resolvedCommitMarker) {
@@ -435,6 +435,26 @@ async function releaseLanguageOracle() {
     }
 }
 
+async function releaseImportOracle() {
+    const rows=(await readFile(new URL('./native-probe/tests/fixtures/import-completion.tsv',import.meta.url),'utf8'))
+        .split('\n').filter(row=>row&&!row.startsWith('#')).map(row=>row.split('\t'));
+    assert.equal(rows.length,21,'complete independent import inventory');
+    assert.equal(new Set(rows.map(row=>row[0])).size,21,'unique import case IDs');
+    for (const [name,encodedSource,symbol,kind,forbidden] of rows) {
+        await freshEngine();
+        const uri='file:///release/import.php';
+        const source=encodedSource.replaceAll('\\n','\n');
+        open(uri,source);
+        const lines=source.split('\n');
+        const position={line:lines.length-1,character:lines.at(-1).length};
+        const items=completionItems(request('textDocument/completion',{textDocument:{uri},position}));
+        const expectedKind=Number(kind);
+        const found=items.some(item=>item.kind===expectedKind &&
+            (item.label===symbol||item.filterText===symbol||item.data?.m===symbol));
+        check(`${target} import ${name}`,found&&items.every(item=>item.kind===expectedKind && (forbidden==='-' || !(item.label===forbidden||item.filterText===forbidden||item.data?.m===forbidden))),{position,symbol,expectedKind,items});
+    }
+}
+
 async function releaseSharedConstantDeclarations() {
     for (const symbol of ['PHP_SBINDIR','PHP_OUTPUT_HANDLER_PROCESSED']) {
         await freshEngine();
@@ -464,6 +484,7 @@ await releaseFamilyOracle();
 await releaseMemberAndTypeBoundaries();
 await releaseSharedConstantDeclarations();
 await releaseLanguageOracle();
+await releaseImportOracle();
 console.log(JSON.stringify({
 	target,
 	artifactSha256: actualSha,

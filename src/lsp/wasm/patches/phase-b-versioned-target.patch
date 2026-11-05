@@ -798,6 +798,26 @@ diff --git a/src/backend/settings.rs b/src/backend/settings.rs
 +        }
      }
  }
+diff --git a/src/completion/context/class_completion/context_detect.rs b/src/completion/context/class_completion/context_detect.rs
+--- a/src/completion/context/class_completion/context_detect.rs
++++ b/src/completion/context/class_completion/context_detect.rs
+@@ -97,6 +97,16 @@
+ /// Walks backward from the cursor past identifiers, whitespace, and
+ /// comma-separated lists to find the preceding keyword.
+ pub(crate) fn detect_class_name_context(content: &str, position: Position) -> ClassNameContext {
++    use crate::completion::import_context::{ImportContext, detect_import_context};
++    if let Some(context) = detect_import_context(content, position) {
++        return match context {
++            ImportContext::Class => ClassNameContext::UseImport,
++            ImportContext::Function => ClassNameContext::UseFunction,
++            ImportContext::Const => ClassNameContext::UseConst,
++            ImportContext::Trait => ClassNameContext::TraitUse,
++        };
++    }
++
+     let chars: Vec<char> = content.chars().collect();
+     let Some(offset) = position_to_char_offset(&chars, position) else {
+         return ClassNameContext::Any;
 diff --git a/src/completion/context/function_completion.rs b/src/completion/context/function_completion.rs
 --- a/src/completion/context/function_completion.rs
 +++ b/src/completion/context/function_completion.rs
@@ -1044,6 +1064,147 @@ diff --git a/src/completion/context/function_completion.rs b/src/completion/cont
                      .build(),
                  );
              }
+diff --git a/src/completion/context/import_context.rs b/src/completion/context/import_context.rs
+--- a/src/completion/context/import_context.rs
++++ b/src/completion/context/import_context.rs
+@@ -0,0 +1,137 @@
++//! Import classification from the pinned PHP CST, including lexical trivia and namespace scope.
++use mago_allocator::LocalArena;
++use mago_database::file::FileId;
++use mago_span::HasSpan;
++use mago_syntax::cst::{Node, UseItems, UseType};
++use mago_syntax::settings::ParserSettings;
++use tower_lsp_server::gen_lsp_types::Position;
++
++#[derive(Debug, Clone, Copy, PartialEq, Eq)]
++pub(crate) enum ImportContext {
++    Class,
++    Function,
++    Const,
++    Trait,
++}
++
++fn kind(value: Option<&UseType<'_>>) -> ImportContext {
++    match value {
++        Some(UseType::Function(_)) => ImportContext::Function,
++        Some(UseType::Const(_)) => ImportContext::Const,
++        None => ImportContext::Class,
++    }
++}
++
++pub(crate) fn detect_import_context(content: &str, position: Position) -> Option<ImportContext> {
++    let offset = crate::text_position::position_to_offset(content, position) as usize;
++    let prefix = &content[..offset.min(content.len())];
++    if !prefix
++        .as_bytes()
++        .windows(3)
++        .any(|w| w.eq_ignore_ascii_case(b"use"))
++    {
++        return None;
++    }
++    crate::util::catch_panic_unwind_safe("completion import context", "<completion>", None, || {
++        let arena = LocalArena::new();
++        let settings = ParserSettings {
++            recover_incomplete: true,
++            ..Default::default()
++        };
++        // Completion often ends before a class/namespace closing brace. The
++        // parser cannot retain those CST owners until they close. Add only
++        // synthetic terminators after the cursor; original spans stay intact.
++        // Counting every opening brace is an upper bound, including trivia:
++        // extra trailing closers cannot change an earlier use node's owner.
++        let closing = "}".repeat(prefix.bytes().filter(|&b| b == b'{').count());
++        let recoverable = format!("{prefix};{closing}");
++        let program = mago_syntax::parser::parse_file_content_with_settings(
++            &arena,
++            FileId::new(b"completion-import.php"),
++            recoverable.as_bytes(),
++            settings,
++        );
++        let cursor = offset as u32;
++        let mut nodes = vec![Node::Program(program)];
++        while let Some(node) = nodes.pop() {
++            let span = node.span();
++            if cursor < span.start.offset || cursor > span.end.offset {
++                continue;
++            }
++            match node {
++                Node::Use(import) if cursor <= import.terminator.span().start.offset => {
++                    return match &import.items {
++                        UseItems::Sequence(_) => Some(ImportContext::Class),
++                        UseItems::TypedSequence(items) => Some(kind(Some(&items.r#type))),
++                        UseItems::TypedList(items) => Some(kind(Some(&items.r#type))),
++                        UseItems::MixedList(items) => items
++                            .items
++                            .iter()
++                            .find(|item| {
++                                let span = item.span();
++                                cursor >= span.start.offset && cursor <= span.end.offset
++                            })
++                            .map(|item| kind(item.r#type.as_ref())),
++                    };
++                }
++                Node::TraitUse(import) if cursor <= import.specification.span().start.offset => {
++                    return Some(ImportContext::Trait);
++                }
++                // A capture list is not an import and must fall through to variable completion.
++                Node::ClosureUseClause(_) => return None,
++                _ => node.visit_children(|child| nodes.push(child)),
++            }
++        }
++        None
++    })
++    .flatten()
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    fn at_end(source: &str) -> Option<ImportContext> {
++        let lines = source.split('\n').collect::<Vec<_>>();
++        detect_import_context(
++            source,
++            Position {
++                line: lines.len() as u32 - 1,
++                character: lines.last().unwrap().encode_utf16().count() as u32,
++            },
++        )
++    }
++    #[test]
++    fn comments_preserve_namespace_import_kinds() {
++        for (suffix, expected) in [
++            ("use /*x*/ const str", ImportContext::Const),
++            ("use /*x*/ function str", ImportContext::Function),
++            ("use /*x*/ Vendor\\str", ImportContext::Class),
++        ] {
++            assert_eq!(
++                at_end(&format!("<?php namespace App; {suffix}")),
++                Some(expected)
++            );
++            assert_eq!(
++                at_end(&format!("<?php namespace App {{ {suffix}")),
++                Some(expected)
++            );
++        }
++    }
++    #[test]
++    fn capture_and_trait_use_are_distinct_nodes() {
++        assert_eq!(at_end("<?php $x=1; $f=function() use /*x*/ ($x"), None);
++        for source in [
++            "<?php class C { use /*x*/ Vendor\\T",
++            "<?php namespace App { class C { use /* } } */ Vendor\\T",
++        ] {
++            assert_eq!(at_end(source), Some(ImportContext::Trait));
++        }
++    }
++    #[test]
++    fn preceding_completed_import_is_not_the_active_context() {
++        assert_eq!(
++            at_end("<?php use const STR_PAD_BOTH;\nfunction f(): str"),
++            None
++        );
++    }
++}
 diff --git a/src/completion/context/keyword_completion.rs b/src/completion/context/keyword_completion.rs
 --- a/src/completion/context/keyword_completion.rs
 +++ b/src/completion/context/keyword_completion.rs
@@ -1149,6 +1310,33 @@ diff --git a/src/completion/context/keyword_completion.rs b/src/completion/conte
 +    };
 +    version >= PhpVersion::new(since.0, since.1)
  }
+diff --git a/src/completion/context/mod.rs b/src/completion/context/mod.rs
+--- a/src/completion/context/mod.rs
++++ b/src/completion/context/mod.rs
+@@ -22,3 +22,5 @@
+ pub(crate) mod override_completion;
+ pub(crate) mod symbol_ranking;
+ pub(crate) mod type_hint_completion;
++
++pub(crate) mod import_context;
+diff --git a/src/completion/context/override_completion/position.rs b/src/completion/context/override_completion/position.rs
+--- a/src/completion/context/override_completion/position.rs
++++ b/src/completion/context/override_completion/position.rs
+@@ -329,6 +329,14 @@
+ }
+ 
+ pub(crate) fn is_member_declaration_name_position_at_offset(content: &str, cursor: usize) -> bool {
++    if super::super::import_context::detect_import_context(
++        content,
++        crate::text_position::offset_to_position(content, cursor),
++    )
++    .is_some()
++    {
++        return false;
++    }
+     let bytes = content.as_bytes();
+     let cursor = cursor.min(bytes.len());
+     is_function_or_const_name_position_at_offset(bytes, cursor)
 diff --git a/src/completion/context/type_hint_completion.rs b/src/completion/context/type_hint_completion.rs
 --- a/src/completion/context/type_hint_completion.rs
 +++ b/src/completion/context/type_hint_completion.rs
@@ -1178,7 +1366,14 @@ diff --git a/src/completion/context/type_hint_completion.rs b/src/completion/con
  }
  
  /// Detect whether the cursor is at a type-hint position inside a
-@@ -61,6 +73,9 @@
+@@ -57,10 +69,16 @@
+ ) -> Option<TypeHintContext> {
+     let chars: Vec<char> = content.chars().collect();
+     let cursor = position_to_char_offset(&chars, position)?;
++    if super::import_context::detect_import_context(content, position).is_some() {
++        return None;
++    }
+ 
      // Member *names* after `function` / `const` / `case` are not types.
      // Without this, `public const ST` looks like a property type position
      // (modifier keyword earlier on the line) and steals completion.
@@ -1188,7 +1383,7 @@ diff --git a/src/completion/context/type_hint_completion.rs b/src/completion/con
      if is_function_or_const_name_position(content, position) {
          return None;
      }
-@@ -119,6 +134,8 @@
+@@ -119,6 +137,8 @@
          return Some(TypeHintContext {
              partial,
              needs_space_prefix: needs_space,
@@ -1197,7 +1392,7 @@ diff --git a/src/completion/context/type_hint_completion.rs b/src/completion/con
          });
      }
  
-@@ -145,17 +162,21 @@
+@@ -145,17 +165,21 @@
              return Some(TypeHintContext {
                  partial,
                  needs_space_prefix: false,
@@ -1220,7 +1415,7 @@ diff --git a/src/completion/context/type_hint_completion.rs b/src/completion/con
          });
      }
  
-@@ -201,12 +222,86 @@
+@@ -201,12 +225,78 @@
          return Some(TypeHintContext {
              partial,
              needs_space_prefix: false,
@@ -1230,8 +1425,8 @@ diff --git a/src/completion/context/type_hint_completion.rs b/src/completion/con
      }
  
      None
-+}
-+
+ }
+ 
 +/// Keep the complete type fragment after const, including nullable/union/intersection/DNF.
 +/// A following identifier after a complete type is a constant name, not another type.
 +fn class_constant_type_context(chars: &[char], cursor: usize) -> Option<TypeHintContext> {
@@ -1249,14 +1444,6 @@ diff --git a/src/completion/context/type_hint_completion.rs b/src/completion/con
 +            && (i == 0 || !is_identifier_char(segment[i - 1]))
 +            && (i + 5 == segment.len() || !is_identifier_char(segment[i + 5]))
 +        {
-+            let before = segment[..i].iter().collect::<String>();
-+            if before
-+                .split_whitespace()
-+                .last()
-+                .is_some_and(|w| w.eq_ignore_ascii_case("use"))
-+            {
-+                continue;
-+            }
 +            constant_end = Some(start + i + 5);
 +        }
 +    }
@@ -1293,8 +1480,8 @@ diff --git a/src/completion/context/type_hint_completion.rs b/src/completion/con
 +
 +fn is_identifier_char(c: char) -> bool {
 +    c.is_alphanumeric() || matches!(c, '_' | '\\')
- }
- 
++}
++
 +/// Native comparison keys only; never rewrite user class names or insertion spellings.
 +fn preceding_type_keys(ctx: &TypeHintContext) -> Vec<String> {
 +    ctx.preceding_types
@@ -1307,7 +1494,17 @@ diff --git a/src/completion/context/type_hint_completion.rs b/src/completion/con
  /// Whether the cursor is typing a declared member *name* (not a type).
  ///
  /// True for positions like:
-@@ -293,87 +388,167 @@
+@@ -219,6 +309,9 @@
+ /// by `$`.  Type positions like `protected User|` intentionally still
+ /// offer class names.
+ pub(crate) fn is_function_or_const_name_position(content: &str, position: Position) -> bool {
++    if super::import_context::detect_import_context(content, position).is_some() {
++        return false;
++    }
+     let cursor = (position_to_offset(content, position) as usize).min(content.len());
+     super::override_completion::is_function_or_const_name_position_at_offset(
+         content.as_bytes(),
+@@ -293,87 +386,167 @@
  /// Walks backward past existing type names and modifiers until it finds
  /// the structural character that anchors the context (one of `(`, `,`,
  /// `:` for return type, or a modifier keyword for property declarations).
@@ -1603,7 +1800,50 @@ diff --git a/src/completion/context/type_hint_completion_tests.rs b/src/completi
 diff --git a/src/completion/handler/class_constant.rs b/src/completion/handler/class_constant.rs
 --- a/src/completion/handler/class_constant.rs
 +++ b/src/completion/handler/class_constant.rs
-@@ -160,12 +160,29 @@
+@@ -60,12 +60,20 @@
+ fn filter_current_file_functions(
+     items: Vec<CompletionItem>,
+     current_uri: &str,
++    namespace: &Option<String>,
+     backend: &Backend,
+ ) -> Vec<CompletionItem> {
+     let current_funcs: HashSet<String> = {
+         let fmap = backend.global_functions().read();
+         fmap.iter()
+-            .filter(|(_, (uri, _))| uri == current_uri)
++            .filter(|(_, (uri, info))| {
++                uri == current_uri
++                    && info
++                        .namespace
++                        .as_deref()
++                        .unwrap_or("")
++                        .eq_ignore_ascii_case(namespace.as_deref().unwrap_or(""))
++            })
+             .map(|(key, _)| key.to_owned())
+             .collect()
+     };
+@@ -86,12 +94,19 @@
+ fn filter_current_file_constants(
+     items: Vec<CompletionItem>,
+     current_uri: &str,
++    namespace: &Option<String>,
+     backend: &Backend,
+ ) -> Vec<CompletionItem> {
+     let current_consts: HashSet<String> = {
+         let dmap = backend.global_defines().read();
+         dmap.iter()
+-            .filter(|(_, info)| info.file_uri.as_str() == current_uri)
++            .filter(|(name, info)| {
++                info.file_uri.as_str() == current_uri
++                    && name
++                        .rsplit_once('\\')
++                        .map_or("", |(ns, _)| ns)
++                        .eq_ignore_ascii_case(namespace.as_deref().unwrap_or(""))
++            })
+             .map(|(name, _)| name.clone())
+             .collect()
+     };
+@@ -160,12 +175,29 @@
          position: Position,
          uri: &str,
      ) -> Option<CompletionResponse> {
@@ -1633,7 +1873,7 @@ diff --git a/src/completion/handler/class_constant.rs b/src/completion/handler/c
                  .enumerate()
                  .map(|(idx, t)| CompletionItem {
                      label: t.to_string(),
-@@ -370,8 +387,10 @@
+@@ -370,8 +402,10 @@
          if let Some(partial) =
              crate::completion::keyword_completion::enum_backing_type_partial(content, position)
          {
@@ -1646,7 +1886,7 @@ diff --git a/src/completion/handler/class_constant.rs b/src/completion/handler/c
              if items.is_empty() {
                  return None;
              }
-@@ -418,6 +437,7 @@
+@@ -418,6 +452,7 @@
                          "",
                          class_ctx,
                          keyword_ctx,
@@ -1654,7 +1894,27 @@ diff --git a/src/completion/handler/class_constant.rs b/src/completion/handler/c
                      );
                      if items.is_empty() {
                          return None;
-@@ -596,6 +616,7 @@
+@@ -439,7 +474,8 @@
+                 current_uri,
+                 position,
+             );
+-            let function_items = filter_current_file_functions(function_items, current_uri, self);
++            let function_items =
++                filter_current_file_functions(function_items, current_uri, &ctx.namespace, self);
+             let items = append_semicolon_to_insert_text(function_items);
+             return Some(CompletionResponse::CompletionList(CompletionList {
+                 is_incomplete: func_incomplete,
+@@ -453,7 +489,8 @@
+         if matches!(class_ctx, ClassNameContext::UseConst) {
+             let (constant_items, const_incomplete) =
+                 self.build_constant_completions(&partial, current_uri, position);
+-            let constant_items = filter_current_file_constants(constant_items, current_uri, self);
++            let constant_items =
++                filter_current_file_constants(constant_items, current_uri, &ctx.namespace, self);
+             let items = append_semicolon_to_insert_text(constant_items);
+             return Some(CompletionResponse::CompletionList(CompletionList {
+                 is_incomplete: const_incomplete,
+@@ -596,6 +633,7 @@
              &partial,
              class_ctx,
              keyword_ctx,
@@ -1696,6 +1956,16 @@ diff --git a/src/completion/handler/named_args.rs b/src/completion/handler/named
          // ── Primary path: AST-based detection via symbol map ────────
          // The symbol map's `CallSite` data handles chains, nesting,
          // and strings correctly.  Fall back to text scanning when the
+diff --git a/src/completion/mod.rs b/src/completion/mod.rs
+--- a/src/completion/mod.rs
++++ b/src/completion/mod.rs
+@@ -109,5 +109,6 @@
+ // context/
+ pub(crate) use context::catch_completion;
+ pub(crate) use context::class_completion;
++pub(crate) use context::import_context;
+ pub(crate) use context::keyword_completion;
+ pub(crate) use context::type_hint_completion;
 diff --git a/src/completion/resolve.rs b/src/completion/resolve.rs
 --- a/src/completion/resolve.rs
 +++ b/src/completion/resolve.rs

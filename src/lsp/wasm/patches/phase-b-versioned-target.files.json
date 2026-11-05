@@ -1,6 +1,6 @@
 {
-  "completePatchSha256": "019ad85297e763718d23888288e61ba33deae56770603a9150f797fbcf72ff21",
-  "fileCount": 31,
+  "completePatchSha256": "4b147cb3a7ec776942a695d3cebdfd27cd7e584f895e239e98188dd1cab0b20e",
+  "fileCount": 36,
   "files": [
     {
       "path": "build.rs",
@@ -15,16 +15,32 @@
       "sha256": "e62fe48083bfc15807d8cdb39652e4012c8d5fdd4bfc51ada3615d83d7727217"
     },
     {
+      "path": "src/completion/context/class_completion/context_detect.rs",
+      "sha256": "177c8616463db7d04ceebfa3d6b54740ef5addb3a1de79655e1d80de768ca15c"
+    },
+    {
       "path": "src/completion/context/function_completion.rs",
       "sha256": "5edcb79abb7572cc267dbd5d85c0200f6e2c0a2f1494c3a4522ccca23f80d883"
+    },
+    {
+      "path": "src/completion/context/import_context.rs",
+      "sha256": "9da3f7f147a60ddc96918c2d61b2e6ba0ce2dbc1507d7428be53b0735272a64c"
     },
     {
       "path": "src/completion/context/keyword_completion.rs",
       "sha256": "235a97fd39969cb03b51eb4efc6e7104bb758253c6bcaf8d4c2949ddce75e7fc"
     },
     {
+      "path": "src/completion/context/mod.rs",
+      "sha256": "e730630bd1adad5867387d67ad46acf849563b5a435b26336cbb1a1a1a99319c"
+    },
+    {
+      "path": "src/completion/context/override_completion/position.rs",
+      "sha256": "0db7fdd9b7fc4f15d0d5600002499bd7c4f27fe406533bb0b9bca79fc3f251e3"
+    },
+    {
       "path": "src/completion/context/type_hint_completion.rs",
-      "sha256": "dc9585f20569098730f31c78615cf4474640f6e2d4e9d14a22427b381b6d4df2"
+      "sha256": "5b33ca47fd249f5891b7b6890adea453fff12bd097a3ef6b238a5c66d7833f99"
     },
     {
       "path": "src/completion/context/type_hint_completion_tests.rs",
@@ -32,7 +48,7 @@
     },
     {
       "path": "src/completion/handler/class_constant.rs",
-      "sha256": "d6468e8ebfeaaabe77eb7e43677d8a1f47f3cd1e6554cdf5338c844dedfbb3cb"
+      "sha256": "38f0b07512351ba48ef1b7df4cdaea0e325ec178ed0e6a0128d404c4ccd94fd9"
     },
     {
       "path": "src/completion/handler/member_access.rs",
@@ -41,6 +57,10 @@
     {
       "path": "src/completion/handler/named_args.rs",
       "sha256": "80b2326a57356fc393a84663a3797b04eb22910439b01f603a76e09c6ecde88d"
+    },
+    {
+      "path": "src/completion/mod.rs",
+      "sha256": "eac3db3e7b3d3d5fb9c4b3b38c8d4de6592d4966b524cd7470967d9bc138de54"
     },
     {
       "path": "src/completion/resolve.rs",

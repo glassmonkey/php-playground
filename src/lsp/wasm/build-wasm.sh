@@ -164,8 +164,8 @@ assert "--target wasm32-wasip1" in manifest["build"]["command"]
 assert manifest["source"]["commit"] == "49b9a7513ed19cbbfb79d5d08a3f3693ffb2b668"
 assert manifest["source"]["archiveSha256"] == "f5861b581a5503c7bf033df82390d08fbc9a971fa769afa90a310d0c623eb59d"
 assert manifest["source"]["cargoLockSha256"] == "0a601fc471628943f15c4e3f97649b99417b1037cf4f824bd835e8a3a12fad1d"
-assert manifest["source"]["appliedPhaseBPatchSha256"] == "019ad85297e763718d23888288e61ba33deae56770603a9150f797fbcf72ff21"
-assert manifest["source"]["appliedFileManifestSha256"] == "3ea9798c644678ab1fdd02209fbe8845ef0b66e86fe2ee76bedbadb763eb5d38"
+assert manifest["source"]["appliedPhaseBPatchSha256"] == "4b147cb3a7ec776942a695d3cebdfd27cd7e584f895e239e98188dd1cab0b20e"
+assert manifest["source"]["appliedFileManifestSha256"] == "4bf904e14107a8591dc21eb0be980bac7eadd78a6fdcab73c33b8ddc06a57904"
 assert manifest["stubs"]["commit"] == "2049ca3cfa1feabf52db074108fe776a5713cf02"
 assert manifest["stubs"]["resolvedCommitMarker"] == manifest["stubs"]["commit"]
 assert manifest["stubs"]["archiveSha256"] == "3ef62542d2f77ad30c7dab7dfa726e57e86dd5e3403780294119cf4f5ca6dcb7"
