@@ -16,16 +16,12 @@ const reviewedDiff = manifest.source?.reviewedPhaseBDiffSha256
 	?? manifest.source?.reviewedPatchSha256;
 assert.equal(reviewedDiff,
 	'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d');
-if (manifest.source?.appliedPhaseBPatchSha256) {
-	assert.equal(manifest.source.appliedPhaseBPatchSha256,
-		'fdd3267c72b39cbe3024d38d7ddadee7e651c64c622162db1fcc00706f19afc5');
-	assert.equal(manifest.source.appliedFileManifestSha256,
-		'7362df153e9f57f2bd74eb7b69d9320d27048841fbca90931b399437b054fc27');
-} else {
-	assert.equal(manifest.source?.reviewedSourceBundleSha256,
-		'60aad10373b97a65da73196aa28e6893a77480a21d5687ad1b140e6d74bd30a3',
-		'legacy frozen-artifact provenance identifies the verified source bundle');
-}
+assert.equal(manifest.source?.appliedPhaseBPatchSha256,
+    '5e9a8179730a6aa7b219f1d683eab8fc8e0fa0e09ce13d323339a30f043ab843',
+    'current applied PHPantom patch is required before WASM instantiation');
+assert.equal(manifest.source?.appliedFileManifestSha256,
+    '5f243f8eb337ed45a2dc6a0372eae9f8c5457071133e817485fc0234af66fabc',
+    'current applied file manifest is required before WASM instantiation');
 assert.equal(manifest.stubs?.commit, '2049ca3cfa1feabf52db074108fe776a5713cf02');
 if (manifest.stubs?.resolvedCommitMarker) {
 	assert.equal(manifest.stubs.resolvedCommitMarker, manifest.stubs.commit,
@@ -286,8 +282,13 @@ function strrchrBoundary() {
 }
 
 async function releaseFamilyOracle() {
-    const rows=(await readFile(new URL('./native-probe/tests/fixtures/minimum-availability.tsv',import.meta.url),'utf8')).split('\n')
-        .filter(line=>line && !line.startsWith('#')).map(line=>line.split('\t')).filter(row=>row[0]===target);
+    const allRows=(await readFile(new URL('./native-probe/tests/fixtures/minimum-availability.tsv',import.meta.url),'utf8')).split('\n')
+        .filter(line=>line && !line.startsWith('#')).map(line=>line.split('\t'));
+    const symbols=[['class','Attribute'],['class','Fiber'],['class','Random\\Randomizer'],['constant','JSON_THROW_ON_ERROR'],['constant','PHP_FLOAT_EPSILON'],['function','array_is_list'],['function','intdiv'],['function','random_bytes'],['function','str_ends_with'],['interface','Throwable'],['member','DateTime::createFromImmutable'],['removed','create_function'],['removed','each'],['removed','get_magic_quotes_gpc']];
+    assert.equal(allRows.length,168,'the independent oracle is exactly 14 symbols by 12 targets');
+    assert.ok(allRows.every(row=>row.length===6 && ['true','false'].includes(row[3])));
+    assert.deepEqual(allRows.map(row=>row.slice(0,3).join(':')).sort(),supportedTargets.flatMap(version=>symbols.map(([family,symbol])=>[version,family,symbol].join(':'))).sort());
+    const rows=allRows.filter(row=>row[0]===target);
     assert.equal(rows.length,14,'the independent minimum oracle has 14 declarations per target');
     for (const [,family,symbol,available,location] of rows) {
         // Fresh engine per case: a previous fixture cannot warm the cold result.
@@ -411,6 +412,48 @@ async function releaseMemberAndTypeBoundaries() {
     }
 }
 
+async function releaseLanguageOracle() {
+    const rows=(await readFile(new URL('./native-probe/tests/fixtures/language-completion.tsv',import.meta.url),'utf8'))
+        .split('\n').filter(row=>row&&!row.startsWith('#')).map(row=>row.split('\t'));
+    assert.equal(rows.length,106,'the complete independent language/context inventory is required');
+    assert.equal(new Set(rows.map(row=>row[0])).size,106,'language case IDs must be unique');
+    const targetIndex=supportedTargets.indexOf(target);
+    for (const [name,label,category,encodedSource,expectedTargets] of rows) {
+        assert.match(expectedTargets,/^[01]{12}$/,'every supported PHP target has an explicit expectation');
+        await freshEngine();
+        const uri='file:///release/language.php';
+        const source=encodedSource.replaceAll('\\n','\n');
+        open(uri,source);
+        const lines=source.split('\n');
+        const position={line:lines.length-1,character:lines.at(-1).length};
+        // Fixtures request the end of the document, never a first substring occurrence.
+        const items=completionItems(request('textDocument/completion',{textDocument:{uri},position}));
+        const kind=category==='function'?3:category==='class'?7:14;
+        const actual=items.some(item=>item.kind===kind && (category!=='type'||item.detail==='PHP built-in type')
+            && (item.filterText===label || item.label===label));
+        check(`${target} language ${name}`,actual===(expectedTargets[targetIndex]==='1'),{position,expected:expectedTargets[targetIndex],items});
+    }
+}
+
+async function releaseSharedConstantDeclarations() {
+    for (const symbol of ['PHP_SBINDIR','PHP_OUTPUT_HANDLER_PROCESSED']) {
+        await freshEngine();
+        const uri='file:///release/shared-constant.php';
+        const source=`<?php\n${symbol.slice(0,-1)}`;
+        open(uri,source);
+        const get=()=>completionItems(request('textDocument/completion',{textDocument:{uri},position:{line:1,character:symbol.length-1}}));
+        const offered=items=>items.some(item=>item.filterText===symbol || item.label===symbol || item.data?.m===symbol);
+        const expected=targetAtLeast(8,4);
+        check(`${target} shared declaration ${symbol} cold`,offered(get())===expected,{expected});
+        const siblingUri='file:///release/shared-constant-warm.php';
+        const siblingSource='<?php\nPHP_O';open(siblingUri,siblingSource);
+        const sibling=completionItems(completion(siblingUri,siblingSource,'PHP_O')).find(item=>item.data?.m==='PHP_OS');
+        assert.ok(sibling,'the same Core_d source is warmed through public resolve');
+        request('completionItem/resolve',sibling);
+        check(`${target} shared declaration ${symbol} warm`,offered(get())===expected,{expected});
+    }
+}
+
 initialize();
 versionedBuiltinAvailability();
 namedArgumentFeature();
@@ -419,6 +462,8 @@ userSymbolsAndBaselineDocs();
 await releaseInsertionIdentity();
 await releaseFamilyOracle();
 await releaseMemberAndTypeBoundaries();
+await releaseSharedConstantDeclarations();
+await releaseLanguageOracle();
 console.log(JSON.stringify({
 	target,
 	artifactSha256: actualSha,

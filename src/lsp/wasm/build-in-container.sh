@@ -11,8 +11,8 @@ expected_stubs_sha256='3ef62542d2f77ad30c7dab7dfa726e57e86dd5e3403780294119cf4f5
 phase_a_patch_sha256='9ba5fdfbe29fcfacc974611159c6aaf6bcdc15797e0e2a2c6cbf6989ad93f3d9'
 reviewed_phase_b_diff_sha256='e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d'
 phase_b_bundle_sha256='60aad10373b97a65da73196aa28e6893a77480a21d5687ad1b140e6d74bd30a3'
-phase_b_patch_sha256='fdd3267c72b39cbe3024d38d7ddadee7e651c64c622162db1fcc00706f19afc5'
-phase_b_file_manifest_sha256='7362df153e9f57f2bd74eb7b69d9320d27048841fbca90931b399437b054fc27'
+phase_b_patch_sha256='5e9a8179730a6aa7b219f1d683eab8fc8e0fa0e09ce13d323339a30f043ab843'
+phase_b_file_manifest_sha256='5f243f8eb337ed45a2dc6a0372eae9f8c5457071133e817485fc0234af66fabc'
 patch_file='/opt/phpantom/patches/phase-b-versioned-target.patch'
 file_manifest='/opt/phpantom/patches/phase-b-versioned-target.files.json'
 target='wasm32-wasip1'
@@ -166,7 +166,7 @@ PYRESULT
 	quality_log='/output/native-release-quality.log'
 	PHPANTOM_TARGET_PHP_VERSION=7.4 cargo test --locked \
 		--manifest-path "$native_probe/Cargo.toml" \
-		--test native_release_quality -- --show-output >"$quality_log" 2>&1
+		--test native_release_quality --test native_language_completion --test native_stub_metadata -- --show-output >"$quality_log" 2>&1
 	rustc --edition=2024 --test "$source_root/build_support/stub_availability.rs" \
 		-o "$attempt_root/stub-availability-tests"
 	"$attempt_root/stub-availability-tests" > /output/stub-availability-tests.log 2>&1
@@ -231,10 +231,10 @@ summary = {
     },
     "scanner_test": {
         "command": "rustc --edition=2024 --test <patched-source>/build_support/stub_availability.rs",
-        "result": "8/8 passed",
+        "result": "14/14 passed",
         "log": "stub-availability-tests.log",
     },
-    "release_quality": {"command": "cargo test --locked --test native_release_quality -- --show-output", "log": "native-release-quality.log", "required": True},
+    "release_quality": {"command": "cargo test --locked --test native_release_quality --test native_language_completion --test native_stub_metadata -- --show-output", "log": "native-release-quality.log", "required": True},
     "native_test_profile": {"debug": 0, "jobs": 1},
     "rustc_verbose": os.environ["PHPANTOM_RUSTC_VERBOSE"],
     "cargo_version": os.environ["PHPANTOM_CARGO_VERSION"],
@@ -251,7 +251,7 @@ summary = {
 }
 Path("/output/native-test.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n")
 PY
-	printf 'Native probe recorded: raw exit=%s, %s passed, %s failed, legacy knownLimitMatched=%s, unexpected failures=%s; guards 2/2; release quality required; scanner 8/8.\n' \
+	printf 'Native probe recorded: raw exit=%s, %s passed, %s failed, legacy knownLimitMatched=%s, unexpected failures=%s; guards 2/2; release quality required; scanner 14/14.\n' \
 		"$behavior_exit" "$native_passed" "$native_failed" "$known_limit_matched" "$unexpected_failures"
 	exit 0
 fi

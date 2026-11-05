@@ -1,0 +1,107 @@
+# Independent official-language expectations; target columns 5.6,7.0,7.1,7.2,7.3,7.4,8.0,8.1,8.2,8.3,8.4,8.5
+keyword-fn	fn	keyword	<?php\nf	000001111111	https://www.php.net/manual/en/migration74.new-features.php
+keyword-match	match	keyword	<?php\nmatc	000000111111	https://www.php.net/manual/en/migration80.new-features.php
+keyword-enum	enum	keyword	<?php\nenu	000000011111	https://www.php.net/manual/en/migration81.new-features.php
+keyword-readonly	readonly	keyword	<?php\nreadonl	000000001111	https://www.php.net/manual/en/migration82.new-features.php
+keyword-echo	echo	keyword	<?php\nech	111111111111	https://www.php.net/manual/en/reserved.keywords.php
+keyword-class	class	keyword	<?php\nclas	111111111111	https://www.php.net/manual/en/reserved.keywords.php
+keyword-function	function	keyword	<?php\nfunctio	111111111111	https://www.php.net/manual/en/reserved.keywords.php
+keyword-trait	trait	keyword	<?php\ntrai	111111111111	https://www.php.net/manual/en/reserved.keywords.php
+readonly-property	readonly	keyword	<?php\nclass C {\npublic rea	000000011111	https://www.php.net/manual/en/migration81.new-features.php
+readonly-trait-property	readonly	keyword	<?php\ntrait T {\npublic rea	000000011111	https://www.php.net/manual/en/migration81.new-features.php
+readonly-static-forbidden	readonly	keyword	<?php\nclass C {\npublic static rea	000000000000	https://www.php.net/manual/en/language.oop5.properties.php
+readonly-interface-forbidden	readonly	keyword	<?php\ninterface I {\npublic rea	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+enum-backing-int	int	keyword	<?php\nenum E: in	000000011111	https://www.php.net/manual/en/language.enumerations.backed.php
+yield-in-function	yield	keyword	<?php\nfunction f(){\nyiel	111111111111	https://www.php.net/manual/en/language.generators.syntax.php
+return-in-function	return	keyword	<?php\nfunction f(){\nretur	111111111111	https://www.php.net/manual/en/functions.returning-values.php
+return-outside-function	return	keyword	<?php\nretur	000000000000	https://www.php.net/manual/en/functions.returning-values.php
+parameter-string	string	type	<?php\nfunction f(strin	011111111111	https://www.php.net/manual/en/language.types.declarations.php
+parameter-int	int	type	<?php\nfunction f(in	011111111111	https://www.php.net/manual/en/language.types.declarations.php
+parameter-float	float	type	<?php\nfunction f(floa	011111111111	https://www.php.net/manual/en/language.types.declarations.php
+parameter-bool	bool	type	<?php\nfunction f(boo	011111111111	https://www.php.net/manual/en/language.types.declarations.php
+parameter-array	array	type	<?php\nfunction f(arra	111111111111	https://www.php.net/manual/en/language.types.declarations.php
+parameter-object	object	type	<?php\nfunction f(objec	000111111111	https://www.php.net/manual/en/language.types.declarations.php
+parameter-mixed	mixed	type	<?php\nfunction f(mixe	000000111111	https://www.php.net/manual/en/language.types.declarations.php
+parameter-void	void	type	<?php\nfunction f(voi	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+parameter-null	null	type	<?php\nfunction f(nul	000000001111	https://www.php.net/manual/en/language.types.declarations.php
+parameter-callable	callable	type	<?php\nfunction f(callabl	111111111111	https://www.php.net/manual/en/language.types.declarations.php
+parameter-iterable	iterable	type	<?php\nfunction f(iterabl	001111111111	https://www.php.net/manual/en/language.types.declarations.php
+parameter-never	never	type	<?php\nfunction f(neve	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+parameter-true	true	type	<?php\nfunction f(tru	000000001111	https://www.php.net/manual/en/language.types.declarations.php
+parameter-false	false	type	<?php\nfunction f(fals	000000001111	https://www.php.net/manual/en/language.types.declarations.php
+return-string	string	type	<?php\nfunction f(): strin	011111111111	https://www.php.net/manual/en/language.types.declarations.php
+return-int	int	type	<?php\nfunction f(): in	011111111111	https://www.php.net/manual/en/language.types.declarations.php
+return-float	float	type	<?php\nfunction f(): floa	011111111111	https://www.php.net/manual/en/language.types.declarations.php
+return-bool	bool	type	<?php\nfunction f(): boo	011111111111	https://www.php.net/manual/en/language.types.declarations.php
+return-array	array	type	<?php\nfunction f(): arra	011111111111	https://www.php.net/manual/en/language.types.declarations.php
+return-object	object	type	<?php\nfunction f(): objec	000111111111	https://www.php.net/manual/en/language.types.declarations.php
+return-mixed	mixed	type	<?php\nfunction f(): mixe	000000111111	https://www.php.net/manual/en/language.types.declarations.php
+return-void	void	type	<?php\nfunction f(): voi	001111111111	https://www.php.net/manual/en/language.types.declarations.php
+return-null	null	type	<?php\nfunction f(): nul	000000001111	https://www.php.net/manual/en/language.types.declarations.php
+return-callable	callable	type	<?php\nfunction f(): callabl	011111111111	https://www.php.net/manual/en/language.types.declarations.php
+return-iterable	iterable	type	<?php\nfunction f(): iterabl	001111111111	https://www.php.net/manual/en/language.types.declarations.php
+return-never	never	type	<?php\nfunction f(): neve	000000011111	https://www.php.net/manual/en/language.types.declarations.php
+return-true	true	type	<?php\nfunction f(): tru	000000001111	https://www.php.net/manual/en/language.types.declarations.php
+return-false	false	type	<?php\nfunction f(): fals	000000001111	https://www.php.net/manual/en/language.types.declarations.php
+property-string	string	type	<?php\nclass C {\npublic strin	000001111111	https://www.php.net/manual/en/language.types.declarations.php
+property-int	int	type	<?php\nclass C {\npublic in	000001111111	https://www.php.net/manual/en/language.types.declarations.php
+property-float	float	type	<?php\nclass C {\npublic floa	000001111111	https://www.php.net/manual/en/language.types.declarations.php
+property-bool	bool	type	<?php\nclass C {\npublic boo	000001111111	https://www.php.net/manual/en/language.types.declarations.php
+property-array	array	type	<?php\nclass C {\npublic arra	000001111111	https://www.php.net/manual/en/language.types.declarations.php
+property-object	object	type	<?php\nclass C {\npublic objec	000001111111	https://www.php.net/manual/en/language.types.declarations.php
+property-mixed	mixed	type	<?php\nclass C {\npublic mixe	000000111111	https://www.php.net/manual/en/language.types.declarations.php
+property-void	void	type	<?php\nclass C {\npublic voi	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+property-null	null	type	<?php\nclass C {\npublic nul	000000001111	https://www.php.net/manual/en/language.types.declarations.php
+property-callable	callable	type	<?php\nclass C {\npublic callabl	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+property-iterable	iterable	type	<?php\nclass C {\npublic iterabl	000001111111	https://www.php.net/manual/en/language.types.declarations.php
+property-never	never	type	<?php\nclass C {\npublic neve	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+property-true	true	type	<?php\nclass C {\npublic tru	000000001111	https://www.php.net/manual/en/language.types.declarations.php
+property-false	false	type	<?php\nclass C {\npublic fals	000000001111	https://www.php.net/manual/en/language.types.declarations.php
+class-parameter-self	self	type	<?php\nclass B {}\nclass C extends B {\nfunction f(sel	111111111111	https://www.php.net/manual/en/language.types.declarations.php
+class-return-self	self	type	<?php\nclass B {}\nclass C extends B {\nfunction f(): sel	011111111111	https://www.php.net/manual/en/language.types.declarations.php
+class-property-self	self	type	<?php\nclass B {}\nclass C extends B {\npublic sel	000001111111	https://www.php.net/manual/en/language.types.declarations.php
+class-parameter-parent	parent	type	<?php\nclass B {}\nclass C extends B {\nfunction f(paren	111111111111	https://www.php.net/manual/en/language.types.declarations.php
+class-return-parent	parent	type	<?php\nclass B {}\nclass C extends B {\nfunction f(): paren	011111111111	https://www.php.net/manual/en/language.types.declarations.php
+class-property-parent	parent	type	<?php\nclass B {}\nclass C extends B {\npublic paren	000001111111	https://www.php.net/manual/en/language.types.declarations.php
+class-parameter-static	static	type	<?php\nclass B {}\nclass C extends B {\nfunction f(stati	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+class-return-static	static	type	<?php\nclass B {}\nclass C extends B {\nfunction f(): stati	000000111111	https://www.php.net/manual/en/language.types.declarations.php
+class-property-static	static	type	<?php\nclass B {}\nclass C extends B {\npublic stati	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+global-self-forbidden	self	type	<?php\nfunction f(sel	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+class-parent-without-parent-forbidden	parent	type	<?php\nclass C {\nfunction f(): par	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+nullable-void	void	type	<?php\nfunction f(): ?voi	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+nullable-never	never	type	<?php\nfunction f(): ?neve	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+nullable-mixed	mixed	type	<?php\nfunction f(): ?mixe	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+nullable-null	null	type	<?php\nfunction f(): ?nul	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+nullable-string	string	type	<?php\nfunction f(): ?strin	001111111111	https://www.php.net/manual/en/language.types.declarations.php
+union-false	false	type	<?php\nfunction f(): int|fals	000000111111	https://www.php.net/manual/en/language.types.declarations.php
+union-null	null	type	<?php\nfunction f(): int|nul	000000111111	https://www.php.net/manual/en/language.types.declarations.php
+union-true	true	type	<?php\nfunction f(): int|tru	000000001111	https://www.php.net/manual/en/language.types.declarations.php
+union-never	never	type	<?php\nfunction f(): int|neve	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+union-void	void	type	<?php\nfunction f(): int|voi	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+union-mixed	mixed	type	<?php\nfunction f(): int|mixe	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+union-string	string	type	<?php\nfunction f(): int|strin	000000111111	https://www.php.net/manual/en/language.types.declarations.php
+intersection-string	string	type	<?php\nclass A {}\nclass C extends A {\nfunction f(): A&strin	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+intersection-self	self	type	<?php\nclass A {}\nclass C extends A {\nfunction f(): A&sel	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+intersection-parent	parent	type	<?php\nclass A {}\nclass C extends A {\nfunction f(): A&paren	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+intersection-static	static	type	<?php\nclass A {}\nclass C extends A {\nfunction f(): A&stati	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+intersection-object	object	type	<?php\nclass A {}\nclass C extends A {\nfunction f(): A&objec	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+user-function-enum	enum	function	<?php\nnamespace User;\nfunction enum() {}\nenu	111111111111	https://www.php.net/manual/en/language.namespaces.rules.php
+user-function-never	never	function	<?php\nnamespace User;\nfunction never() {}\nnev	111111111111	https://www.php.net/manual/en/language.namespaces.rules.php
+user-class-never-parameter	Never	class	<?php\nnamespace User;\nclass Never {}\nfunction f(Nev	111111111111	https://www.php.net/manual/en/language.namespaces.rules.php
+class-constant-string	string	type	<?php\nclass C {\nconst strin	000000000111	https://www.php.net/manual/en/language.types.declarations.php
+class-constant-int	int	type	<?php\nclass C {\nconst in	000000000111	https://www.php.net/manual/en/language.types.declarations.php
+class-constant-float	float	type	<?php\nclass C {\nconst floa	000000000111	https://www.php.net/manual/en/language.types.declarations.php
+class-constant-bool	bool	type	<?php\nclass C {\nconst boo	000000000111	https://www.php.net/manual/en/language.types.declarations.php
+class-constant-array	array	type	<?php\nclass C {\nconst arra	000000000111	https://www.php.net/manual/en/language.types.declarations.php
+class-constant-object	object	type	<?php\nclass C {\nconst objec	000000000111	https://www.php.net/manual/en/language.types.declarations.php
+class-constant-mixed	mixed	type	<?php\nclass C {\nconst mixe	000000000111	https://www.php.net/manual/en/language.types.declarations.php
+class-constant-void	void	type	<?php\nclass C {\nconst voi	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+class-constant-null	null	type	<?php\nclass C {\nconst nul	000000000111	https://www.php.net/manual/en/language.types.declarations.php
+class-constant-callable	callable	type	<?php\nclass C {\nconst callabl	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+class-constant-iterable	iterable	type	<?php\nclass C {\nconst iterabl	000000000111	https://www.php.net/manual/en/language.types.declarations.php
+class-constant-never	never	type	<?php\nclass C {\nconst neve	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+class-constant-true	true	type	<?php\nclass C {\nconst tru	000000000111	https://www.php.net/manual/en/language.types.declarations.php
+class-constant-false	false	type	<?php\nclass C {\nconst fals	000000000111	https://www.php.net/manual/en/language.types.declarations.php
+dnf-return-string	string	type	<?php\nclass A {}\nclass B {}\nfunction f(): (A&B)|str	000000001111	https://www.php.net/manual/en/language.types.declarations.php
+dnf-parameter-string	string	type	<?php\nclass A {}\nclass B {}\nfunction f((A&B)|str	000000001111	https://www.php.net/manual/en/language.types.declarations.php
+dnf-intersection-native-forbidden	string	type	<?php\nclass A {}\nclass B {}\nfunction f(): A|(B&str	000000000000	https://www.php.net/manual/en/language.types.declarations.php

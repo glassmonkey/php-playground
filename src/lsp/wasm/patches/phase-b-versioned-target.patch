@@ -100,7 +100,7 @@ diff --git a/build.rs b/build.rs
 diff --git a/build_support/stub_availability.rs b/build_support/stub_availability.rs
 --- a/build_support/stub_availability.rs
 +++ b/build_support/stub_availability.rs
-@@ -0,0 +1,423 @@
+@@ -0,0 +1,613 @@
 +//! Metadata-only PHP stub scanner, shared by cold indexes and stub parsing.
 +//! Numeric @since/@removed tags are PHP versions only for bundled PHP domains.
 +#[path = "../src/stub_metadata.rs"]
@@ -213,7 +213,34 @@ diff --git a/build_support/stub_availability.rs b/build_support/stub_availabilit
 +            }
 +            continue;
 +        }
-+        if b[i] == b'\'' || b[i] == b'"' {
++        if source[i..].starts_with("<<<") {
++            // PHP's flexible heredoc/nowdoc end marker may be indented. Treat the body as opaque.
++            let header_end = source[i..].find('\n').map_or(b.len(), |n| i + n);
++            let label = source[i + 3..header_end].trim().trim_matches(['\'', '"']);
++            if !label.is_empty()
++                && label
++                    .bytes()
++                    .all(|c| c.is_ascii_alphanumeric() || c == b'_')
++            {
++                i = (header_end + 1).min(b.len());
++                while i < b.len() {
++                    let end = source[i..].find('\n').map_or(b.len(), |n| i + n);
++                    let line = source[i..end].trim_start_matches([' ', '\t']);
++                    if let Some(rest) = line.strip_prefix(label)
++                        && !rest
++                            .bytes()
++                            .next()
++                            .is_some_and(|c| c.is_ascii_alphanumeric() || c == b'_')
++                    {
++                        i = end - line.len() + label.len();
++                        break;
++                    }
++                    i = (end + 1).min(b.len());
++                }
++                continue;
++            }
++        }
++        if b[i] == b'\'' || b[i] == b'"' || b[i] == b'`' {
 +            let quote = b[i];
 +            i += 1;
 +            while i < b.len() {
@@ -243,7 +270,7 @@ diff --git a/build_support/stub_availability.rs b/build_support/stub_availabilit
 +fn unquote(s: &str) -> &str {
 +    s.trim_matches(['\'', '"'])
 +}
-+fn availability_attribute(attrs: &str, imports: &[(&str, &str)]) -> (u16, u16) {
++fn availability_attribute(attrs: &str, imports: &[(&str, &str)], namespace: &str) -> (u16, u16) {
 +    let normalized = attrs.replace("# [", "#[");
 +    let t = tokens(&normalized);
 +    let mut nesting = 0usize;
@@ -256,7 +283,7 @@ diff --git a/build_support/stub_availability.rs b/build_support/stub_availabilit
 +            nesting = nesting.saturating_sub(1);
 +            continue;
 +        }
-+        if nesting != 0 || !is_availability_attribute(t[i], imports) || t[i + 1] != "(" {
++        if nesting != 0 || !is_availability_attribute(t[i], imports, namespace) || t[i + 1] != "(" {
 +            continue;
 +        }
 +        let mut from = 0;
@@ -288,18 +315,7 @@ diff --git a/build_support/stub_availability.rs b/build_support/stub_availabilit
 +}
 +pub fn entries(source: &str, php_domain: bool) -> Vec<Entry> {
 +    let t = tokens(source);
-+    let mut imports = Vec::new();
-+    for i in 0..t.len().saturating_sub(1) {
-+        if t[i] == "use" && !matches!(t[i + 1], "function" | "const") {
-+            let target = t[i + 1].trim_start_matches('\\');
-+            let alias = if t.get(i + 2) == Some(&"as") {
-+                t.get(i + 3).copied().unwrap_or("")
-+            } else {
-+                target.rsplit('\\').next().unwrap_or(target)
-+            };
-+            imports.push((alias, target));
-+        }
-+    }
++    let mut imports: Vec<(String, String)> = Vec::new();
 +    let mut i = 0;
 +    let mut doc = "";
 +    let mut attrs = String::new();
@@ -334,6 +350,7 @@ diff --git a/build_support/stub_availability.rs b/build_support/stub_availabilit
 +            continue;
 +        }
 +        if token == "namespace" {
++            imports.clear();
 +            if let Some(name) = t.get(i + 1) {
 +                if *name != "{" {
 +                    ns = name.trim_start_matches('\\').to_string();
@@ -341,14 +358,44 @@ diff --git a/build_support/stub_availability.rs b/build_support/stub_availabilit
 +                    ns.clear();
 +                }
 +            }
-+            if let Some(next) = t[i + 1..].iter().position(|v| *v == "{" || *v == ";") {
-+                if t[i + 1 + next] == "{" {
-+                    ns_depth = Some(depth + 1);
-+                }
++            if let Some(next) = t[i + 1..].iter().position(|v| *v == "{" || *v == ";")
++                && t[i + 1 + next] == "{"
++            {
++                ns_depth = Some(depth + 1);
 +            }
 +            doc = "";
 +            attrs.clear();
 +            i += 1;
++            continue;
++        }
++        if token == "use" && class_depth.is_none() && depth == ns_depth.unwrap_or(0) {
++            let end = t[i..]
++                .iter()
++                .position(|v| *v == ";")
++                .map_or(t.len(), |n| i + n);
++            if !matches!(t.get(i + 1), Some(&"function") | Some(&"const")) {
++                let parts = &t[i + 1..end];
++                let group = parts.iter().position(|v| *v == "{");
++                let prefix = group.map_or("", |g| parts[g - 1]);
++                let body = group.map_or(parts, |g| {
++                    &parts[g + 1..parts.iter().rposition(|v| *v == "}").unwrap_or(parts.len())]
++                });
++                for item in body.split(|v| *v == ",") {
++                    if let Some(name) = item.first() {
++                        let target = format!("{}{}", prefix, name)
++                            .trim_start_matches('\\')
++                            .to_string();
++                        let alias = if item.get(1) == Some(&"as") {
++                            item.get(2).copied().unwrap_or("")
++                        } else {
++                            target.rsplit('\\').next().unwrap_or(&target)
++                        };
++                        imports.retain(|(old, _)| !old.eq_ignore_ascii_case(alias));
++                        imports.push((alias.to_string(), target));
++                    }
++                }
++            }
++            i = (end + 1).min(t.len());
 +            continue;
 +        }
 +        if token == "{" {
@@ -368,12 +415,62 @@ diff --git a/build_support/stub_availability.rs b/build_support/stub_availabilit
 +            }
 +            if ns_depth == Some(depth) {
 +                ns.clear();
++                imports.clear();
 +                ns_depth = None;
 +            }
 +            depth = depth.saturating_sub(1);
 +            doc = "";
 +            attrs.clear();
 +            i += 1;
++            continue;
++        }
++        if token == "const" {
++            let mut end = i + 1;
++            let mut nesting = 0usize;
++            let mut start = end;
++            while end < t.len() {
++                match t[end] {
++                    "(" | "[" | "{" => nesting += 1,
++                    ")" | "]" | "}" => nesting = nesting.saturating_sub(1),
++                    "," | ";" if nesting == 0 => {
++                        let declarator = &t[start..end];
++                        if class_depth.is_none()
++                            && let Some(eq) = declarator.iter().position(|v| *v == "=")
++                            && eq > 0
++                        {
++                            let name = declarator[eq - 1];
++                            let refs = imports
++                                .iter()
++                                .map(|(a, t)| (a.as_str(), t.as_str()))
++                                .collect::<Vec<_>>();
++                            let (attr_from, attr_to) = availability_attribute(&attrs, &refs, &ns);
++                            result.push(Entry {
++                                kind: "constant",
++                                name: if ns.is_empty() {
++                                    name.to_string()
++                                } else {
++                                    format!("{ns}\\{name}")
++                                },
++                                from: doc_version(doc, "@since", php_domain)
++                                    .unwrap_or(0)
++                                    .max(attr_from),
++                                to: attr_to,
++                                removed: doc_version(doc, "@removed", php_domain)
++                                    .unwrap_or(u16::MAX),
++                            });
++                        }
++                        start = end + 1;
++                        if t[end] == ";" {
++                            break;
++                        }
++                    }
++                    _ => {}
++                }
++                end += 1;
++            }
++            doc = "";
++            attrs.clear();
++            i = (end + 1).min(t.len());
 +            continue;
 +        }
 +        let kind = match token {
@@ -400,13 +497,21 @@ diff --git a/build_support/stub_availability.rs b/build_support/stub_availabilit
 +                    .bytes()
 +                    .next()
 +                    .is_some_and(|b| b.is_ascii_alphabetic() || b == b'_' || b >= 128);
-+                if declaration && class_depth.is_none() && t.get(i.wrapping_sub(1)) != Some(&":") {
++                if declaration
++                    && class_depth.is_none()
++                    && t.get(i.wrapping_sub(1)) != Some(&":")
++                    && !(kind == "class" && t.get(i.wrapping_sub(1)) == Some(&"new"))
++                {
 +                    let fqn = if ns.is_empty() || token == "define" {
 +                        name.to_string()
 +                    } else {
 +                        format!("{ns}\\{name}")
 +                    };
-+                    let (attr_from, attr_to) = availability_attribute(&attrs, &imports);
++                    let refs = imports
++                        .iter()
++                        .map(|(a, t)| (a.as_str(), t.as_str()))
++                        .collect::<Vec<_>>();
++                    let (attr_from, attr_to) = availability_attribute(&attrs, &refs, &ns);
 +                    let from = doc_version(doc, "@since", php_domain)
 +                        .unwrap_or(0)
 +                        .max(attr_from);
@@ -419,10 +524,19 @@ diff --git a/build_support/stub_availability.rs b/build_support/stub_availabilit
 +                        to,
 +                        removed,
 +                    });
-+                    if kind == "class" {
-+                        pending_class = true;
-+                    }
 +                }
++            }
++            if kind == "class" && t.get(i.wrapping_sub(1)) != Some(&":") {
++                pending_class = true;
++            }
++            if kind == "function"
++                && t.get(n).is_some_and(|name| {
++                    name.bytes()
++                        .next()
++                        .is_some_and(|b| b.is_ascii_alphabetic() || b == b'_' || b >= 128)
++                })
++            {
++                i = n;
 +            }
 +            doc = "";
 +            attrs.clear();
@@ -522,6 +636,82 @@ diff --git a/build_support/stub_availability.rs b/build_support/stub_availabilit
 +            .map(|e| (e.name, e.from))
 +            .collect::<Vec<_>>();
 +        assert_eq!(got, vec![("introduced_in_core".to_string(), 800)]);
++    }
++}
++
++#[cfg(test)]
++mod release_regressions {
++    use super::*;
++    #[test]
++    fn all_constant_declarators_share_the_statement_metadata() {
++        let e = entries(
++            "<?php /** @since 8.4 */ const A = [1, 2], B = 2, C = foo(1, 2);",
++            true,
++        );
++        assert_eq!(
++            e.iter()
++                .map(|e| (e.name.as_str(), e.from))
++                .collect::<Vec<_>>(),
++            vec![("A", 804), ("B", 804), ("C", 804)]
++        );
++    }
++    #[test]
++    fn grouped_availability_import_resolves_its_own_alias() {
++        let src = r"<?php use JetBrains\PhpStorm\Internal\{Other, PhpStormStubsElementAvailable as Available}; #[Available(from: '8.4')] function future() {}";
++        assert_eq!(entries(src, true)[0].from, 804);
++    }
++    #[test]
++    fn imports_do_not_leak_between_namespace_scopes() {
++        let src = r"<?php namespace A { use JetBrains\PhpStorm\Internal\PhpStormStubsElementAvailable as Available; #[Available(from:'8.4')] function future() {} } namespace B { use Other\Available; #[Available(from:'8.4')] function existing() {} }";
++        assert_eq!(
++            entries(src, true)
++                .iter()
++                .map(|e| (e.name.as_str(), e.from))
++                .collect::<Vec<_>>(),
++            vec![("A\\future", 804), ("B\\existing", 0)]
++        );
++    }
++    #[test]
++    fn heredoc_and_nowdoc_contents_never_become_declarations_or_imports() {
++        let src = "<?php $s=<<<TXT\n/** @since 8.5 */ function phantom() {}\nuse Wrong\\Available;\nTXT;\n$s=<<<'RAW'\nclass Phantom {}\nfunction phantom_again() {}\nRAW;\nfunction real() {}";
++        assert_eq!(
++            entries(src, true)
++                .iter()
++                .map(|e| e.name.as_str())
++                .collect::<Vec<_>>(),
++            vec!["real"]
++        );
++    }
++    #[test]
++    fn anonymous_class_members_and_quoted_declarations_are_not_global_functions() {
++        let src = r#"<?php $x = new class { function member() {} }; $s="function quoted() {}"; $f = function () use ($x) {}; function real() {}"#;
++        assert_eq!(
++            entries(src, true)
++                .iter()
++                .map(|e| e.name.as_str())
++                .collect::<Vec<_>>(),
++            vec!["real"]
++        );
++    }
++}
++
++#[cfg(test)]
++mod ownership_regressions {
++    use super::*;
++    #[test]
++    fn anonymous_extends_and_class_name_literals_do_not_change_declaration_ownership() {
++        let source = "<?php $x=new class extends Base { function member() {} }; Foo::class; function enum() {} function real() {}";
++        let names = entries(source, true)
++            .into_iter()
++            .map(|e| (e.kind, e.name))
++            .collect::<Vec<_>>();
++        assert_eq!(
++            names,
++            vec![
++                ("function", "enum".to_string()),
++                ("function", "real".to_string())
++            ]
++        );
 +    }
 +}
 diff --git a/src/backend/settings.rs b/src/backend/settings.rs
@@ -820,6 +1010,520 @@ diff --git a/src/completion/context/function_completion.rs b/src/completion/cont
                      .build(),
                  );
              }
+diff --git a/src/completion/context/keyword_completion.rs b/src/completion/context/keyword_completion.rs
+--- a/src/completion/context/keyword_completion.rs
++++ b/src/completion/context/keyword_completion.rs
+@@ -6,7 +6,7 @@
+ use crate::class_lookup::find_class_at_offset;
+ use crate::completion::class_completion::ClassNameContext;
+ use crate::symbol_map::SymbolMap;
+-use crate::types::{ClassInfo, ClassLikeKind};
++use crate::types::{ClassInfo, ClassLikeKind, PhpVersion};
+ 
+ /// Cursor context used to gate context-sensitive PHP keywords.
+ #[derive(Debug, Clone, Copy)]
+@@ -30,6 +30,7 @@
+     /// Cursor is right after a class-member modifier chain followed by
+     /// whitespace (e.g. `public `, `private static `).
+     pub after_member_modifier_chain: bool,
++    pub has_static_member_modifier: bool,
+ }
+ 
+ /// Core PHP keywords that can be completed in generic code contexts.
+@@ -291,6 +292,12 @@
+         ),
+         class_body_kind,
+         after_member_modifier_chain,
++        has_static_member_modifier: content[..(cursor_offset as usize).min(content.len())]
++            .rsplit(['{', '}', ';', '\n', '\r'])
++            .next()
++            .unwrap_or("")
++            .split_whitespace()
++            .any(|word| word == "static"),
+     }
+ }
+ 
+@@ -352,6 +359,7 @@
+     prefix: &str,
+     class_ctx: ClassNameContext,
+     ctx: KeywordContext,
++    version: PhpVersion,
+ ) -> Vec<CompletionItem> {
+     if !matches!(class_ctx, ClassNameContext::Any) {
+         return Vec::new();
+@@ -363,6 +371,7 @@
+         .enumerate()
+         .filter(|(_, keyword)| keyword.starts_with(&prefix_lower))
+         .filter(|(_, keyword)| keyword_allowed(keyword, ctx))
++        .filter(|(_, keyword)| keyword_available(keyword, ctx, version))
+         .map(|(idx, keyword)| CompletionItem {
+             label: (*keyword).to_string(),
+             kind: Some(CompletionItemKind::Keyword),
+@@ -376,7 +385,13 @@
+ }
+ 
+ /// Build completion items for enum backing types (`string`, `int`).
+-pub(crate) fn build_backed_enum_type_completions(prefix: &str) -> Vec<CompletionItem> {
++pub(crate) fn build_backed_enum_type_completions(
++    prefix: &str,
++    version: PhpVersion,
++) -> Vec<CompletionItem> {
++    if version < PhpVersion::new(8, 1) {
++        return Vec::new();
++    }
+     let prefix_lower = prefix.to_ascii_lowercase();
+     BACKED_ENUM_TYPES
+         .iter()
+@@ -433,3 +448,29 @@
+         ),
+     }
+ }
++
++/// Exhaustive policy for the emitted keyword inventory. Existing syntax-context gates still apply.
++/// PHP manual: migration74/80/81.new-features and language.oop5.basic (readonly classes).
++fn keyword_available(keyword: &str, ctx: KeywordContext, version: PhpVersion) -> bool {
++    let since = match keyword {
++        "fn" => (7, 4),
++        "match" => (8, 0),
++        "enum" => (8, 1),
++        "readonly" if ctx.class_body_kind.is_some() => {
++            if ctx.has_static_member_modifier {
++                return false;
++            }
++            (8, 1)
++        }
++        "readonly" => (8, 2),
++        "abstract" | "as" | "break" | "case" | "catch" | "class" | "clone" | "const"
++        | "continue" | "declare" | "default" | "die" | "do" | "echo" | "else" | "elseif"
++        | "empty" | "eval" | "exit" | "extends" | "final" | "finally" | "for" | "foreach"
++        | "function" | "global" | "goto" | "if" | "implements" | "include" | "include_once"
++        | "instanceof" | "interface" | "isset" | "list" | "namespace" | "new" | "print"
++        | "private" | "protected" | "public" | "require" | "require_once" | "return" | "static"
++        | "switch" | "throw" | "trait" | "try" | "unset" | "use" | "while" | "yield" => (5, 6),
++        _ => return false,
++    };
++    version >= PhpVersion::new(since.0, since.1)
++}
+diff --git a/src/completion/context/type_hint_completion.rs b/src/completion/context/type_hint_completion.rs
+--- a/src/completion/context/type_hint_completion.rs
++++ b/src/completion/context/type_hint_completion.rs
+@@ -30,6 +30,16 @@
+     "iterable", "never", "self", "static", "parent", "true", "false",
+ ];
+ 
++/// Native declaration positions; PHPDoc deliberately uses its separate enrichment path.
++#[derive(Debug, Clone, Copy, PartialEq, Eq)]
++pub(crate) enum TypeHintSite {
++    Parameter,
++    PromotedParameter,
++    ClassConstant,
++    Return,
++    Property,
++}
++
+ /// Context returned when the cursor is at a type-hint position.
+ #[derive(Debug, Clone, PartialEq, Eq)]
+ pub(crate) struct TypeHintContext {
+@@ -43,6 +53,8 @@
+     /// right after `:` needs a space so that the result is `: string`
+     /// rather than `:string`.
+     pub needs_space_prefix: bool,
++    pub site: TypeHintSite,
++    pub preceding_types: String,
+ }
+ 
+ /// Detect whether the cursor is at a type-hint position inside a
+@@ -61,6 +73,24 @@
+     // Member *names* after `function` / `const` / `case` are not types.
+     // Without this, `public const ST` looks like a property type position
+     // (modifier keyword earlier on the line) and steals completion.
++    let offset = position_to_offset(content, position) as usize;
++    let before_cursor = &content[..offset.min(content.len())];
++    let line = before_cursor
++        .rsplit(['\n', '{', '}', ';'])
++        .next()
++        .unwrap_or("");
++    let words = line.split_whitespace().collect::<Vec<_>>();
++    if let [.., "const", partial] = words.as_slice()
++        && partial.starts_with(|c: char| c.is_ascii_lowercase())
++        && PHP_NATIVE_TYPES.iter().any(|ty| ty.starts_with(*partial))
++    {
++        return Some(TypeHintContext {
++            partial: partial.to_string(),
++            needs_space_prefix: false,
++            site: TypeHintSite::ClassConstant,
++            preceding_types: String::new(),
++        });
++    }
+     if is_function_or_const_name_position(content, position) {
+         return None;
+     }
+@@ -119,6 +149,8 @@
+         return Some(TypeHintContext {
+             partial,
+             needs_space_prefix: needs_space,
++            site: TypeHintSite::Return,
++            preceding_types: String::new(),
+         });
+     }
+ 
+@@ -145,17 +177,21 @@
+             return Some(TypeHintContext {
+                 partial,
+                 needs_space_prefix: false,
++                site: TypeHintSite::Parameter,
++                preceding_types: String::new(),
+             });
+         }
+     }
+ 
+     // ── Check: type modifier `?`, `|`, `&` in a type context ────────
+     if (prev_char == '?' || prev_char == '|' || prev_char == '&')
+-        && is_type_modifier_in_definition(&chars, before - 1)
++        && let Some((site, anchor)) = type_modifier_anchor(&chars, before - 1)
+     {
+         return Some(TypeHintContext {
+             partial,
+             needs_space_prefix: false,
++            site,
++            preceding_types: chars[anchor..partial_start].iter().collect(),
+         });
+     }
+ 
+@@ -201,6 +237,8 @@
+         return Some(TypeHintContext {
+             partial,
+             needs_space_prefix: false,
++            site: modifier_site(&chars, before),
++            preceding_types: String::new(),
+         });
+     }
+ 
+@@ -293,87 +331,163 @@
+ /// Walks backward past existing type names and modifiers until it finds
+ /// the structural character that anchors the context (one of `(`, `,`,
+ /// `:` for return type, or a modifier keyword for property declarations).
+-fn is_type_modifier_in_definition(chars: &[char], mod_pos: usize) -> bool {
+-    // Walk backward past the preceding type name (if any) and any
+-    // further type modifiers, collecting context anchors.
+-    let mut i = mod_pos;
++fn modifier_site(chars: &[char], position: usize) -> TypeHintSite {
++    if find_enclosing_open_paren(chars, position)
++        .is_some_and(|open| is_function_definition_paren(chars, open))
++    {
++        TypeHintSite::PromotedParameter
++    } else {
++        TypeHintSite::Property
++    }
++}
+ 
+-    // Allow chained modifiers:  `A|B|`  or `?A|`
++fn type_modifier_anchor(chars: &[char], mod_pos: usize) -> Option<(TypeHintSite, usize)> {
++    let mut i = mod_pos;
+     loop {
+-        // Skip whitespace
+         i = skip_whitespace_backward(chars, i);
+-
+         if i == 0 {
+-            return false;
++            return None;
+         }
+-
+-        // Walk backward through type identifier
+-        let type_end = i;
+-        while i > 0
+-            && (chars[i - 1].is_alphanumeric() || chars[i - 1] == '_' || chars[i - 1] == '\\')
+-        {
++        while i > 0 && (chars[i - 1].is_alphanumeric() || matches!(chars[i - 1], '_' | '\\')) {
+             i -= 1;
+         }
+-
+-        // Skip whitespace
+         i = skip_whitespace_backward(chars, i);
+-
+         if i == 0 {
+-            return false;
++            return None;
+         }
+-
+-        let prev = chars[i - 1];
+-
+-        match prev {
+-            // Another type modifier — keep walking.
++        match chars[i - 1] {
+             '?' | '|' | '&' => {
+                 i -= 1;
+-                continue;
+             }
+-            '(' => {
+-                // Check if this paren is a function definition.
+-                return is_function_definition_paren(chars, i - 1);
++            ')' => {
++                i = find_matching_paren_backward(chars, i - 1)?;
+             }
++            ':' if is_return_type_colon(chars, i - 1) => return Some((TypeHintSite::Return, i)),
++            '(' if is_function_definition_paren(chars, i - 1) => {
++                return Some((TypeHintSite::Parameter, i));
++            }
+             ',' => {
+-                // Find enclosing paren and check if it's a function definition.
+-                if let Some(open) = find_enclosing_open_paren(chars, i - 1)
+-                    && is_function_definition_paren(chars, open)
+-                {
+-                    // Verify the previous param segment has a `$`
+-                    let between: String = chars[open + 1..i - 1].iter().collect();
+-                    if let Some(last_seg) = between.rsplit(',').next() {
+-                        return last_seg.contains('$');
+-                    }
+-                }
+-                return false;
++                let open = find_enclosing_open_paren(chars, i - 1)?;
++                return is_function_definition_paren(chars, open)
++                    .then_some((TypeHintSite::Parameter, i));
+             }
+-            ':' => {
+-                // Return type colon.
+-                return is_return_type_colon(chars, i - 1);
++            c if c.is_alphabetic() && is_after_modifier_keyword(chars, i) => {
++                return Some((modifier_site(chars, i), i));
+             }
+-            _ => {
+-                // Could be after a modifier keyword (property or promoted param).
+-                if prev.is_alphabetic() {
+-                    if is_after_modifier_keyword(chars, i) {
+-                        return true;
+-                    }
+-                    // Could also be: we already consumed the type name above
+-                    // and now the preceding text ends with a modifier.
+-                    // But if type_end == i we didn't consume anything, so this
+-                    // isn't a type context.
+-                    if type_end == i {
+-                        return false;
+-                    }
+-                    // We consumed a type name; check if what's before it is a
+-                    // modifier keyword (e.g. `public ?string|`).
+-                    return is_after_modifier_keyword(chars, i);
+-                }
+-                return false;
+-            }
++            _ => return None,
+         }
+     }
+ }
+ 
++/// PHP manual language.types.declarations: declaration-site and composition availability.
++pub(crate) fn declaration_available(
++    ctx: &TypeHintContext,
++    version: crate::types::PhpVersion,
++) -> bool {
++    use crate::types::PhpVersion;
++    let min = match ctx.site {
++        TypeHintSite::Parameter => (5, 6),
++        TypeHintSite::Return => (7, 0),
++        TypeHintSite::Property => (7, 4),
++        TypeHintSite::PromotedParameter => (8, 0),
++        TypeHintSite::ClassConstant => (8, 3),
++    };
++    version >= PhpVersion::new(min.0, min.1)
++        && (!ctx.preceding_types.contains('?') || version >= PhpVersion::new(7, 1))
++        && (!ctx.preceding_types.contains('|') || version >= PhpVersion::new(8, 0))
++        && (!ctx.preceding_types.contains('&') || version >= PhpVersion::new(8, 1))
++        && (!(ctx.preceding_types.contains('&') && ctx.preceding_types.contains('|'))
++            || version >= PhpVersion::new(8, 2))
++}
++
++pub(crate) fn native_type_available(
++    ty: &str,
++    ctx: &TypeHintContext,
++    version: crate::types::PhpVersion,
++    in_class: bool,
++    has_parent: bool,
++) -> bool {
++    use crate::types::PhpVersion;
++    if !declaration_available(ctx, version) {
++        return false;
++    }
++    let union = ctx.preceding_types.contains('|');
++    let nullable = ctx.preceding_types.contains('?');
++    let mut depth = 0usize;
++    let mut last_operator = None;
++    for c in ctx.preceding_types.chars() {
++        match c {
++            '(' => depth += 1,
++            ')' => depth = depth.saturating_sub(1),
++            '|' | '&' if depth == 0 => last_operator = Some(c),
++            _ => {}
++        }
++    }
++    if depth > 0 || last_operator == Some('&') {
++        return false;
++    } // Intersections accept class names only.
++    let since = match ty {
++        "array" | "callable" | "self" | "parent" => (5, 6),
++        "string" | "int" | "float" | "bool" => (7, 0),
++        "iterable" | "void" => (7, 1),
++        "object" => (7, 2),
++        "mixed" | "static" => (8, 0),
++        "never" => (8, 1),
++        "true" => (8, 2),
++        "false" | "null" if union => (8, 0),
++        "false" | "null" => (8, 2),
++        _ => return false,
++    };
++    if version < PhpVersion::new(since.0, since.1) {
++        return false;
++    }
++    if matches!(ty, "void" | "never" | "static") && ctx.site != TypeHintSite::Return {
++        return false;
++    }
++    if matches!(
++        ctx.site,
++        TypeHintSite::Property | TypeHintSite::PromotedParameter | TypeHintSite::ClassConstant
++    ) && ty == "callable"
++    {
++        return false;
++    }
++    if ctx.site == TypeHintSite::ClassConstant && !in_class {
++        return false;
++    }
++    if matches!(ty, "self" | "parent" | "static") && !in_class {
++        return false;
++    }
++    if ty == "parent" && !has_parent {
++        return false;
++    }
++    if union && matches!(ty, "void" | "never" | "mixed")
++        || nullable && matches!(ty, "void" | "never" | "mixed" | "null")
++    {
++        return false;
++    }
++    let previous = ctx
++        .preceding_types
++        .split(['|', '&', '?'])
++        .map(str::trim)
++        .collect::<Vec<_>>();
++    if previous.iter().any(|p| p.eq_ignore_ascii_case(ty)) {
++        return false;
++    }
++    if previous.contains(&"mixed") || previous.contains(&"never") || previous.contains(&"void") {
++        return false;
++    }
++    if ty == "bool" && (previous.contains(&"true") || previous.contains(&"false"))
++        || matches!(ty, "true" | "false") && previous.contains(&"bool")
++        || ty == "true" && previous.contains(&"false")
++        || ty == "false" && previous.contains(&"true")
++        || ty == "array" && previous.contains(&"iterable")
++        || ty == "iterable" && previous.contains(&"array")
++    {
++        return false;
++    }
++    true
++}
++
+ /// Check whether the text ending at `pos` (exclusive) is one of the PHP
+ /// modifier keywords that can precede a type hint: `public`, `protected`,
+ /// `private`, `readonly`, or `static`.
+diff --git a/src/completion/context/type_hint_completion_tests.rs b/src/completion/context/type_hint_completion_tests.rs
+--- a/src/completion/context/type_hint_completion_tests.rs
++++ b/src/completion/context/type_hint_completion_tests.rs
+@@ -605,3 +605,24 @@
+     assert!(!PHP_NATIVE_TYPES.contains(&"non-empty-string"));
+     assert!(!PHP_NATIVE_TYPES.contains(&"resource"));
+ }
++
++#[test]
++fn lowercase_native_class_constant_type_keeps_its_distinct_declaration_site() {
++    let source = "<?php\nclass C {\npublic const str";
++    let context = detect(source, 2, 16).unwrap();
++    assert_eq!(context.site, TypeHintSite::ClassConstant);
++    assert_eq!(context.partial, "str");
++    assert!(!declaration_available(
++        &context,
++        crate::types::PhpVersion::new(8, 2)
++    ));
++    assert!(declaration_available(
++        &context,
++        crate::types::PhpVersion::new(8, 3)
++    ));
++}
++
++#[test]
++fn existing_uppercase_constant_name_remains_a_name_context() {
++    assert!(detect("<?php\nclass C {\npublic const ST", 2, 15).is_none());
++}
+diff --git a/src/completion/handler/class_constant.rs b/src/completion/handler/class_constant.rs
+--- a/src/completion/handler/class_constant.rs
++++ b/src/completion/handler/class_constant.rs
+@@ -160,12 +160,29 @@
+         position: Position,
+         uri: &str,
+     ) -> Option<CompletionResponse> {
++        let version = self.php_version();
++        if !crate::completion::type_hint_completion::declaration_available(th_ctx, version) {
++            return None;
++        }
++        let class = crate::class_lookup::find_class_at_offset(
++            &ctx.classes,
++            position_to_offset(content, position),
++        );
+         let partial_lower = th_ctx.partial.to_lowercase();
+         let space_prefix = if th_ctx.needs_space_prefix { " " } else { "" };
+         let mut items: Vec<CompletionItem> =
+             crate::completion::type_hint_completion::PHP_NATIVE_TYPES
+                 .iter()
+                 .filter(|t| t.to_lowercase().starts_with(&partial_lower))
++                .filter(|t| {
++                    crate::completion::type_hint_completion::native_type_available(
++                        t,
++                        th_ctx,
++                        version,
++                        class.is_some(),
++                        class.is_some_and(|c| c.parent_class.is_some()),
++                    )
++                })
+                 .enumerate()
+                 .map(|(idx, t)| CompletionItem {
+                     label: t.to_string(),
+@@ -370,8 +387,10 @@
+         if let Some(partial) =
+             crate::completion::keyword_completion::enum_backing_type_partial(content, position)
+         {
+-            let items =
+-                crate::completion::keyword_completion::build_backed_enum_type_completions(&partial);
++            let items = crate::completion::keyword_completion::build_backed_enum_type_completions(
++                &partial,
++                self.php_version(),
++            );
+             if items.is_empty() {
+                 return None;
+             }
+@@ -418,6 +437,7 @@
+                         "",
+                         class_ctx,
+                         keyword_ctx,
++                        self.php_version(),
+                     );
+                     if items.is_empty() {
+                         return None;
+@@ -596,6 +616,7 @@
+             &partial,
+             class_ctx,
+             keyword_ctx,
++            self.php_version(),
+         );
+         let (constant_items, const_incomplete) =
+             self.build_constant_completions(&partial, current_uri, position);
+diff --git a/src/completion/handler/member_access.rs b/src/completion/handler/member_access.rs
+--- a/src/completion/handler/member_access.rs
++++ b/src/completion/handler/member_access.rs
+@@ -427,6 +427,7 @@
+                 &partial,
+                 crate::completion::class_completion::ClassNameContext::Any,
+                 keyword_ctx,
++                self.php_version(),
+             )
+         };
+ 
 diff --git a/src/completion/handler/named_args.rs b/src/completion/handler/named_args.rs
 --- a/src/completion/handler/named_args.rs
 +++ b/src/completion/handler/named_args.rs
@@ -1303,7 +2007,7 @@ diff --git a/src/parser/stub_attributes.rs b/src/parser/stub_attributes.rs
  /// Last segment of the `LanguageLevelTypeAware` attribute FQN.
  const ATTR_LANGUAGE_LEVEL_TYPE_AWARE: &str = "LanguageLevelTypeAware";
  
-@@ -48,9 +42,12 @@
+@@ -48,9 +42,16 @@
  
      /// Check whether `attr_short_name` resolves to `PhpStormStubsElementAvailable`.
      pub(crate) fn is_element_available_attr(&self, attr_short_name: &[u8]) -> bool {
@@ -1315,11 +2019,15 @@ diff --git a/src/parser/stub_attributes.rs b/src/parser/stub_attributes.rs
 +            .iter()
 +            .map(|(alias, target)| (alias.as_str(), target.as_str()))
 +            .collect::<Vec<_>>();
-+        crate::stub_metadata::is_availability_attribute(bytes_to_str(attr_short_name), &imports)
++        crate::stub_metadata::is_availability_attribute(
++            bytes_to_str(attr_short_name),
++            &imports,
++            self.namespace.as_deref().unwrap_or(""),
++        )
      }
  
      /// Check whether `attr_short_name` resolves to `LanguageLevelTypeAware`.
-@@ -101,27 +98,23 @@
+@@ -101,27 +102,23 @@
      }
  }
  
@@ -1361,7 +2069,7 @@ diff --git a/src/parser/stub_attributes.rs b/src/parser/stub_attributes.rs
  }
  
  /// Check whether a parameter is available for the given PHP version
-@@ -161,7 +154,7 @@
+@@ -161,7 +158,7 @@
  ) -> Option<VersionAvailability> {
      for attr_list in attribute_lists.iter() {
          for attr in attr_list.attributes.iter() {
@@ -1392,7 +2100,7 @@ diff --git a/src/resolution/functions.rs b/src/resolution/functions.rs
 diff --git a/src/stub_metadata.rs b/src/stub_metadata.rs
 --- a/src/stub_metadata.rs
 +++ b/src/stub_metadata.rs
-@@ -0,0 +1,37 @@
+@@ -0,0 +1,43 @@
 +//! Shared, PHP-provenance-aware interpretation of stub version metadata.
 +pub const PHP_DOC_MARKER: &str = "<?php /* PHPANTOM_PHP_VERSION_DOCS */ ?>\n";
 +pub fn version(value: &str) -> Option<u16> {
@@ -1416,7 +2124,7 @@ diff --git a/src/stub_metadata.rs b/src/stub_metadata.rs
 +        version(raw)
 +    })
 +}
-+pub fn is_availability_attribute(name: &str, imports: &[(&str, &str)]) -> bool {
++pub fn is_availability_attribute(name: &str, imports: &[(&str, &str)], namespace: &str) -> bool {
 +    const FQN: &str = "JetBrains\\PhpStorm\\Internal\\PhpStormStubsElementAvailable";
 +    if let Some(name) = name.strip_prefix('\\') {
 +        return name.eq_ignore_ascii_case(FQN);
@@ -1428,7 +2136,13 @@ diff --git a/src/stub_metadata.rs b/src/stub_metadata.rs
 +    {
 +        return format!("{target}{}", &name[first.len()..]).eq_ignore_ascii_case(FQN);
 +    }
-+    name.eq_ignore_ascii_case("PhpStormStubsElementAvailable") || name.eq_ignore_ascii_case(FQN)
++    let resolved = if namespace.is_empty() {
++        name.to_string()
++    } else {
++        format!("{namespace}\\{name}")
++    };
++    resolved.eq_ignore_ascii_case(FQN)
++        || namespace.is_empty() && name.eq_ignore_ascii_case("PhpStormStubsElementAvailable")
 +}
 diff --git a/src/stubs.rs b/src/stubs.rs
 --- a/src/stubs.rs

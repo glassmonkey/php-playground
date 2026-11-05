@@ -1,6 +1,6 @@
 {
-  "completePatchSha256": "fdd3267c72b39cbe3024d38d7ddadee7e651c64c622162db1fcc00706f19afc5",
-  "fileCount": 25,
+  "completePatchSha256": "5e9a8179730a6aa7b219f1d683eab8fc8e0fa0e09ce13d323339a30f043ab843",
+  "fileCount": 30,
   "files": [
     {
       "path": "build.rs",
@@ -8,7 +8,7 @@
     },
     {
       "path": "build_support/stub_availability.rs",
-      "sha256": "b28f4a8590032245bd8724679a3c4a31e8c3c69a57eb8601198f5b1ae2ec6a5c"
+      "sha256": "b4b3d4af55b343497ece19c194236b626e5d98794096f8e1675ad5bf1ea9b147"
     },
     {
       "path": "src/backend/settings.rs",
@@ -17,6 +17,26 @@
     {
       "path": "src/completion/context/function_completion.rs",
       "sha256": "5edcb79abb7572cc267dbd5d85c0200f6e2c0a2f1494c3a4522ccca23f80d883"
+    },
+    {
+      "path": "src/completion/context/keyword_completion.rs",
+      "sha256": "69eef97fb64d8ccb06bd443f309c6c2741a45f52e92bd7b0b3c136b12c184737"
+    },
+    {
+      "path": "src/completion/context/type_hint_completion.rs",
+      "sha256": "ee4c8e9c346362d8771ab55f554286e73d79d720e5e208829b50dc45f574140c"
+    },
+    {
+      "path": "src/completion/context/type_hint_completion_tests.rs",
+      "sha256": "ef79f350c2ec4f7c040bb3dfa23272f96b842190c662cc77b3d33a57a55e926e"
+    },
+    {
+      "path": "src/completion/handler/class_constant.rs",
+      "sha256": "d6468e8ebfeaaabe77eb7e43677d8a1f47f3cd1e6554cdf5338c844dedfbb3cb"
+    },
+    {
+      "path": "src/completion/handler/member_access.rs",
+      "sha256": "0a5cdb574c98bdc2d2dde541803ee98363be3db9c356324c97fd99e25c00f059"
     },
     {
       "path": "src/completion/handler/named_args.rs",
@@ -72,7 +92,7 @@
     },
     {
       "path": "src/parser/stub_attributes.rs",
-      "sha256": "0106b9a613929037ab536d168269448752ed06e731604942ca8aed03cb1f0ec8"
+      "sha256": "7704eab69045ef03cbb7d7c1838971f70ba14af0f919347136a0cebbb19a2f5a"
     },
     {
       "path": "src/resolution/functions.rs",
@@ -80,7 +100,7 @@
     },
     {
       "path": "src/stub_metadata.rs",
-      "sha256": "003bbde1462fd3dfcc6d469401f4d84b55daae9229949a619666c6da24ad2397"
+      "sha256": "aa3563e8df11c5c8bbe5be50c6f9aeae9dfd163d3bed19f367c7661b9c0265d6"
     },
     {
       "path": "src/stubs.rs",

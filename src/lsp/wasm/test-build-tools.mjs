@@ -112,3 +112,35 @@ for (const { name, mutate, want } of [
 		}
 	});
 }
+
+const currentPatch = createHash('sha256').update(readFileSync(path.join(moduleDir, 'patches/phase-b-versioned-target.patch'))).digest('hex');
+const currentFileManifest = createHash('sha256').update(readFileSync(path.join(moduleDir, 'patches/phase-b-versioned-target.files.json'))).digest('hex');
+for (const [field, expectedMessage, current, historical] of [
+    ['appliedPhaseBPatchSha256', 'current applied PHPantom patch is required', currentPatch, '4996a41403b2c570ba3e6a5a67c86bbe2833129c95bca62f19c5e39581a4b31d'],
+    ['appliedFileManifestSha256', 'current applied file manifest is required', currentFileManifest, 'b15beb40bcac3d50ab75f722c874aba5cb93dcab55aa41aef1e54108c6d35598'],
+]) {
+    for (const [name, value] of [['missing', undefined], ['historical', historical], ['different', '0'.repeat(64)]]) {
+        test(`release WASI provenance rejects ${name} ${field} before opening a binary`, () => {
+            const dir = mkdtempSync(path.join(tmpdir(), 'phpantom-release-provenance-'));
+            try {
+                const source = {
+                    commit: '49b9a7513ed19cbbfb79d5d08a3f3693ffb2b668',
+                    reviewedPhaseBDiffSha256: 'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d',
+                    reviewedSourceBundleSha256: '60aad10373b97a65da73196aa28e6893a77480a21d5687ad1b140e6d74bd30a3',
+                    appliedPhaseBPatchSha256: currentPatch,
+                    appliedFileManifestSha256: currentFileManifest,
+                };
+                assert.equal(source[field], current);
+                if (value === undefined) delete source[field]; else source[field] = value;
+                const fixture = path.join(dir, 'provenance.json');
+                writeFileSync(fixture, JSON.stringify({ phase: 'B', phpTarget: '8.0', source, artifact: {path: 'deliberately-missing.wasm'} }));
+                const result = spawnSync(process.execPath, [path.join(moduleDir, 'versioned-wasi-test.mjs'), fixture], { encoding: 'utf8' });
+                assert.equal(result.status, 1);
+                assert.ok(result.stderr.includes(expectedMessage), result.stderr);
+                assert.ok(!result.stderr.includes('ENOENT'), result.stderr);
+            } finally {
+                rmSync(dir, {recursive: true, force: true});
+            }
+        });
+    }
+}

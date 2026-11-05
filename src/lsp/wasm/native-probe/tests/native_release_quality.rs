@@ -184,14 +184,60 @@ fn offered(items: &[CompletionItem], symbol: &str) -> bool {
                 == Some(symbol)
     })
 }
+fn minimum_oracle_rows() -> Vec<Vec<&'static str>> {
+    use std::collections::BTreeSet;
+    const TARGETS: [&str; 12] = [
+        "5.6", "7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2", "8.3", "8.4", "8.5",
+    ];
+    const SYMBOLS: [(&str, &str); 14] = [
+        ("class", "Attribute"),
+        ("class", "Fiber"),
+        ("class", "Random\\Randomizer"),
+        ("constant", "JSON_THROW_ON_ERROR"),
+        ("constant", "PHP_FLOAT_EPSILON"),
+        ("function", "array_is_list"),
+        ("function", "intdiv"),
+        ("function", "random_bytes"),
+        ("function", "str_ends_with"),
+        ("interface", "Throwable"),
+        ("member", "DateTime::createFromImmutable"),
+        ("removed", "create_function"),
+        ("removed", "each"),
+        ("removed", "get_magic_quotes_gpc"),
+    ];
+    let rows = include_str!("fixtures/minimum-availability.tsv")
+        .lines()
+        .filter(|l| !l.starts_with('#'))
+        .map(|l| l.split('\t').collect::<Vec<_>>())
+        .collect::<Vec<_>>();
+    assert_eq!(
+        rows.len(),
+        168,
+        "The independent 14-symbol/12-target oracle must be complete and nonempty"
+    );
+    for row in &rows {
+        assert_eq!(row.len(), 6);
+        assert!(matches!(row[3], "true" | "false"));
+    }
+    let actual = rows
+        .iter()
+        .map(|c| (c[0], c[1], c[2]))
+        .collect::<BTreeSet<_>>();
+    let expected = TARGETS
+        .iter()
+        .flat_map(|v| SYMBOLS.iter().map(move |(f, s)| (*v, *f, *s)))
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        actual, expected,
+        "Every expected symbol must have exactly the 12 independent targets"
+    );
+    rows
+}
+
 async fn availability_family(family: &str) {
     let mut mismatches = Vec::new();
     let mut checked = 0;
-    for line in include_str!("fixtures/minimum-availability.tsv")
-        .lines()
-        .filter(|l| !l.starts_with('#'))
-    {
-        let c = line.split('\t').collect::<Vec<_>>();
+    for c in minimum_oracle_rows() {
         if c[1] != family {
             continue;
         }
@@ -637,5 +683,35 @@ async fn autoload_selected_identity_survives_resolve_and_parsed_warm_path() {
             docs(&backend.completion_resolve(item.clone()).await.unwrap())
                 .contains("AUTOLOAD_OWN_DOC")
         );
+    }
+}
+
+#[tokio::test]
+async fn every_constant_in_the_pinned_shared_declaration_keeps_its_introduction_boundary() {
+    for (major, minor, expected) in [(7, 4, false), (8, 0, false), (8, 4, true)] {
+        for symbol in ["PHP_SBINDIR", "PHP_OUTPUT_HANDLER_PROCESSED"] {
+            let backend = backend(major, minor);
+            let source = format!("<?php\n{}", &symbol[..symbol.len() - 1]);
+            let uri = open(&backend, &source).await;
+            let cold = completion(&backend, &uri, &source).await;
+            assert_eq!(
+                offered(&cold, symbol),
+                expected,
+                "PHP {major}.{minor} cold {symbol}"
+            );
+            let sibling_source = "<?php\nPHP_O";
+            let sibling_uri = open_uri(&backend, sibling_source, "file:///warm-constant.php").await;
+            let siblings = completion(&backend, &sibling_uri, sibling_source).await;
+            backend
+                .completion_resolve(selected(&siblings, "PHP_OS").clone())
+                .await
+                .unwrap();
+            let warm = completion(&backend, &uri, &source).await;
+            assert_eq!(
+                offered(&warm, symbol),
+                expected,
+                "PHP {major}.{minor} warm {symbol}"
+            );
+        }
     }
 }
