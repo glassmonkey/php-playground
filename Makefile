@@ -6,6 +6,24 @@ PHP_IMAGE := php-wasm:$(PHP_VERSION)
 DIST_DIR := $(PWD)/dist
 PHP_VERSIONS := 5.6 7.0 7.1 7.2 7.3 7.4 8.0 8.1 8.2 8.3 8.4 8.5
 
+# PHP_VERSIONS is ascending, so its last entry is the maximum.
+PHPANTOM_TARGET_VERSION ?= $(lastword $(PHP_VERSIONS))
+PHPANTOM_BUILD_DIR ?= $(PWD)/build/phpantom-runtime
+PHPANTOM_ASSET_DIR ?= $(PWD)/assets/lsp/phpantom
+
+.PHONY: build-phpantom-runtime install-phpantom-runtime test-phpantom-runtime-native
+build-phpantom-runtime:
+	PHPANTOM_BUILD_OUTPUT_DIR="$(PHPANTOM_BUILD_DIR)" ./src/lsp/wasm/build-wasm.sh artifact $(PHPANTOM_TARGET_VERSION)
+
+# Explicit asset adoption; a failed build never reaches these copies.
+install-phpantom-runtime: build-phpantom-runtime
+	mkdir -p "$(PHPANTOM_ASSET_DIR)"
+	cp "$(PHPANTOM_BUILD_DIR)/$(PHPANTOM_TARGET_VERSION)/php-$(PHPANTOM_TARGET_VERSION).wasm" "$(PHPANTOM_ASSET_DIR)/php-$(PHPANTOM_TARGET_VERSION).wasm"
+	cp "$(PHPANTOM_BUILD_DIR)/$(PHPANTOM_TARGET_VERSION)/php-$(PHPANTOM_TARGET_VERSION).provenance.json" "$(PHPANTOM_ASSET_DIR)/php-$(PHPANTOM_TARGET_VERSION).provenance.json"
+	@echo "Installed PHPantom PHP $(PHPANTOM_TARGET_VERSION): $(PHPANTOM_ASSET_DIR)/php-$(PHPANTOM_TARGET_VERSION).wasm"
+
+test-phpantom-runtime-native:
+	./src/lsp/wasm/build-wasm.sh native-test
 
 .PHONY: build-image build-wasm build build-all $(addprefix build-,$(PHP_VERSIONS))
 
