@@ -89,3 +89,93 @@ async fn scanner_and_lazy_stub_parser_agree_on_scoped_imports_and_opaque_literal
     assert!(scanner::php_version_domain("Core/Core_d.php"));
     assert!(!scanner::PHP_DOC_MARKER.is_empty());
 }
+
+#[tokio::test]
+async fn nested_classes_never_publish_enclosing_methods_or_constants_as_globals() {
+    let fixtures = [
+        (
+            "<?php class Outer { function first(){ $x=new class { function inner(){} }; } function outerMethod(){} const OUTER_CONST=1; } function real(){} const TOP=1;",
+            "",
+        ),
+        (
+            "<?php namespace N { class Outer { function first(){ class Inner { function inner(){} const INNER=1; } } function outerMethod(){} const OUTER_CONST=1; } function real(){} const TOP=1; }",
+            "N\\",
+        ),
+    ];
+    for (source, namespace) in fixtures {
+        let entries = scanner::entries(source, true);
+        let actual = entries
+            .iter()
+            .filter(|e| e.kind != "class")
+            .map(|e| (e.kind, e.name.clone()))
+            .collect::<Vec<_>>();
+        assert_eq!(
+            actual,
+            vec![
+                ("function", format!("{namespace}real")),
+                ("constant", format!("{namespace}TOP"))
+            ]
+        );
+        let backend = Backend::new_headless();
+        backend.set_php_version(PhpVersion::new(8, 3));
+        backend.update_ast("phpantom-stub://function/nested-owners.php", source);
+        for (name, expected) in [
+            ("real", true),
+            ("TOP", true),
+            ("outerMethod", false),
+            ("OUTER_CONST", false),
+            ("inner", false),
+            ("INNER", false),
+        ] {
+            let text = if namespace.is_empty() {
+                format!("<?php\n{name}")
+            } else {
+                format!(
+                    "<?php\nnamespace {};\n{name}",
+                    namespace.trim_end_matches('\\')
+                )
+            };
+            let query_line = text.lines().count() as u32 - 1;
+            let uri = Uri::parse("file:///nested-owner-user.php").unwrap();
+            backend
+                .did_open(DidOpenTextDocumentParams {
+                    text_document: TextDocumentItem {
+                        uri: uri.clone(),
+                        language_id: "php".to_string().into(),
+                        version: 1,
+                        text,
+                    },
+                })
+                .await;
+            let response = backend
+                .completion(CompletionParams {
+                    text_document_position_params: TextDocumentPositionParams {
+                        text_document: TextDocumentIdentifier { uri },
+                        position: Position {
+                            line: query_line,
+                            character: name.len() as u32,
+                        },
+                    },
+                    work_done_progress_params: Default::default(),
+                    partial_result_params: Default::default(),
+                    context: None,
+                })
+                .await
+                .unwrap();
+            let items = match response {
+                Some(CompletionResponse::CompletionItemList(x)) => x,
+                Some(CompletionResponse::CompletionList(x)) => x.items,
+                None => Vec::new(),
+            };
+            let fqn = format!("{namespace}{name}");
+            let offered = items.iter().any(|i| {
+                i.data
+                    .as_ref()
+                    .and_then(|d| d.get("m"))
+                    .and_then(|v| v.as_str())
+                    == Some(fqn.as_str())
+            });
+            assert_eq!(offered, expected, "{fqn}: {items:?}");
+        }
+    }
+}

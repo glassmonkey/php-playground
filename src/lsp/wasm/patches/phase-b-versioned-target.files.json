@@ -1,6 +1,6 @@
 {
-  "completePatchSha256": "5e9a8179730a6aa7b219f1d683eab8fc8e0fa0e09ce13d323339a30f043ab843",
-  "fileCount": 30,
+  "completePatchSha256": "019ad85297e763718d23888288e61ba33deae56770603a9150f797fbcf72ff21",
+  "fileCount": 31,
   "files": [
     {
       "path": "build.rs",
@@ -8,7 +8,7 @@
     },
     {
       "path": "build_support/stub_availability.rs",
-      "sha256": "b4b3d4af55b343497ece19c194236b626e5d98794096f8e1675ad5bf1ea9b147"
+      "sha256": "b3961938f64624f59926072af0e911183f63902532767b7a0e9f7cab20f49e60"
     },
     {
       "path": "src/backend/settings.rs",
@@ -20,15 +20,15 @@
     },
     {
       "path": "src/completion/context/keyword_completion.rs",
-      "sha256": "69eef97fb64d8ccb06bd443f309c6c2741a45f52e92bd7b0b3c136b12c184737"
+      "sha256": "235a97fd39969cb03b51eb4efc6e7104bb758253c6bcaf8d4c2949ddce75e7fc"
     },
     {
       "path": "src/completion/context/type_hint_completion.rs",
-      "sha256": "ee4c8e9c346362d8771ab55f554286e73d79d720e5e208829b50dc45f574140c"
+      "sha256": "dc9585f20569098730f31c78615cf4474640f6e2d4e9d14a22427b381b6d4df2"
     },
     {
       "path": "src/completion/context/type_hint_completion_tests.rs",
-      "sha256": "ef79f350c2ec4f7c040bb3dfa23272f96b842190c662cc77b3d33a57a55e926e"
+      "sha256": "d5cce401285898a768b01d5eb50db9d0075736384d5cbffd68be6cf858c256cd"
     },
     {
       "path": "src/completion/handler/class_constant.rs",
@@ -105,6 +105,10 @@
     {
       "path": "src/stubs.rs",
       "sha256": "932a0b72e18e5f54e1891b3927eee2ffe60db171df89be8ef6491d47ecfa75a2"
+    },
+    {
+      "path": "tests/integration/completion_basic.rs",
+      "sha256": "5976844eee1e25e01a5009d517afb61e22542719cc21ef2b5e22bd5183a1b4a9"
     },
     {
       "path": "tests/integration/completion_named_args.rs",

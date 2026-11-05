@@ -11,8 +11,8 @@ expected_stubs_sha256='3ef62542d2f77ad30c7dab7dfa726e57e86dd5e3403780294119cf4f5
 phase_a_patch_sha256='9ba5fdfbe29fcfacc974611159c6aaf6bcdc15797e0e2a2c6cbf6989ad93f3d9'
 reviewed_phase_b_diff_sha256='e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d'
 phase_b_bundle_sha256='60aad10373b97a65da73196aa28e6893a77480a21d5687ad1b140e6d74bd30a3'
-phase_b_patch_sha256='5e9a8179730a6aa7b219f1d683eab8fc8e0fa0e09ce13d323339a30f043ab843'
-phase_b_file_manifest_sha256='5f243f8eb337ed45a2dc6a0372eae9f8c5457071133e817485fc0234af66fabc'
+phase_b_patch_sha256='019ad85297e763718d23888288e61ba33deae56770603a9150f797fbcf72ff21'
+phase_b_file_manifest_sha256='3ea9798c644678ab1fdd02209fbe8845ef0b66e86fe2ee76bedbadb763eb5d38'
 patch_file='/opt/phpantom/patches/phase-b-versioned-target.patch'
 file_manifest='/opt/phpantom/patches/phase-b-versioned-target.files.json'
 target='wasm32-wasip1'
@@ -231,7 +231,7 @@ summary = {
     },
     "scanner_test": {
         "command": "rustc --edition=2024 --test <patched-source>/build_support/stub_availability.rs",
-        "result": "14/14 passed",
+        "result": "16/16 passed",
         "log": "stub-availability-tests.log",
     },
     "release_quality": {"command": "cargo test --locked --test native_release_quality --test native_language_completion --test native_stub_metadata -- --show-output", "log": "native-release-quality.log", "required": True},
@@ -251,7 +251,7 @@ summary = {
 }
 Path("/output/native-test.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n")
 PY
-	printf 'Native probe recorded: raw exit=%s, %s passed, %s failed, legacy knownLimitMatched=%s, unexpected failures=%s; guards 2/2; release quality required; scanner 14/14.\n' \
+	printf 'Native probe recorded: raw exit=%s, %s passed, %s failed, legacy knownLimitMatched=%s, unexpected failures=%s; guards 2/2; release quality required; scanner 16/16.\n' \
 		"$behavior_exit" "$native_passed" "$native_failed" "$known_limit_matched" "$unexpected_failures"
 	exit 0
 fi

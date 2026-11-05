@@ -26,7 +26,7 @@ async fn declaration_keywords_and_types_follow_the_independent_language_oracle()
         .collect::<Vec<_>>();
     assert_eq!(
         rows.len(),
-        106,
+        148,
         "The independent language inventory must not be empty or truncated"
     );
     assert_eq!(
@@ -34,7 +34,7 @@ async fn declaration_keywords_and_types_follow_the_independent_language_oracle()
             .map(|r| r.split('\t').next().unwrap())
             .collect::<std::collections::BTreeSet<_>>()
             .len(),
-        106,
+        148,
         "No duplicated case may hide a missing context"
     );
     for row in rows {
@@ -82,7 +82,7 @@ async fn declaration_keywords_and_types_follow_the_independent_language_oracle()
                 Some(CompletionResponse::CompletionList(list)) => list.items,
                 None => Vec::new(),
             };
-            let kind = if cells[2] == "function" {
+            let kind = if cells[2] == "function" || cells[2] == "any-function" {
                 CompletionItemKind::Function
             } else if cells[2] == "class" {
                 CompletionItemKind::Class
@@ -92,7 +92,9 @@ async fn declaration_keywords_and_types_follow_the_independent_language_oracle()
             let actual = items.iter().any(|item| {
                 item.kind == Some(kind)
                     && (cells[2] != "type" || item.detail.as_deref() == Some("PHP built-in type"))
-                    && (item.filter_text.as_deref() == Some(cells[1]) || item.label == cells[1])
+                    && (cells[2] == "any-function"
+                        || item.filter_text.as_deref() == Some(cells[1])
+                        || item.label == cells[1])
             });
             let expected = cells[4].as_bytes()[index] == b'1';
             if actual != expected {

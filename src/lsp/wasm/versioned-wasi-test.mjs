@@ -17,10 +17,10 @@ const reviewedDiff = manifest.source?.reviewedPhaseBDiffSha256
 assert.equal(reviewedDiff,
 	'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d');
 assert.equal(manifest.source?.appliedPhaseBPatchSha256,
-    '5e9a8179730a6aa7b219f1d683eab8fc8e0fa0e09ce13d323339a30f043ab843',
+    '019ad85297e763718d23888288e61ba33deae56770603a9150f797fbcf72ff21',
     'current applied PHPantom patch is required before WASM instantiation');
 assert.equal(manifest.source?.appliedFileManifestSha256,
-    '5f243f8eb337ed45a2dc6a0372eae9f8c5457071133e817485fc0234af66fabc',
+    '3ea9798c644678ab1fdd02209fbe8845ef0b66e86fe2ee76bedbadb763eb5d38',
     'current applied file manifest is required before WASM instantiation');
 assert.equal(manifest.stubs?.commit, '2049ca3cfa1feabf52db074108fe776a5713cf02');
 if (manifest.stubs?.resolvedCommitMarker) {
@@ -415,8 +415,8 @@ async function releaseMemberAndTypeBoundaries() {
 async function releaseLanguageOracle() {
     const rows=(await readFile(new URL('./native-probe/tests/fixtures/language-completion.tsv',import.meta.url),'utf8'))
         .split('\n').filter(row=>row&&!row.startsWith('#')).map(row=>row.split('\t'));
-    assert.equal(rows.length,106,'the complete independent language/context inventory is required');
-    assert.equal(new Set(rows.map(row=>row[0])).size,106,'language case IDs must be unique');
+    assert.equal(rows.length,148,'the complete independent language/context inventory is required');
+    assert.equal(new Set(rows.map(row=>row[0])).size,148,'language case IDs must be unique');
     const targetIndex=supportedTargets.indexOf(target);
     for (const [name,label,category,encodedSource,expectedTargets] of rows) {
         assert.match(expectedTargets,/^[01]{12}$/,'every supported PHP target has an explicit expectation');
@@ -428,9 +428,9 @@ async function releaseLanguageOracle() {
         const position={line:lines.length-1,character:lines.at(-1).length};
         // Fixtures request the end of the document, never a first substring occurrence.
         const items=completionItems(request('textDocument/completion',{textDocument:{uri},position}));
-        const kind=category==='function'?3:category==='class'?7:14;
+        const kind=category==='function'||category==='any-function'?3:category==='class'?7:14;
         const actual=items.some(item=>item.kind===kind && (category!=='type'||item.detail==='PHP built-in type')
-            && (item.filterText===label || item.label===label));
+            && (category==='any-function' || item.filterText===label || item.label===label));
         check(`${target} language ${name}`,actual===(expectedTargets[targetIndex]==='1'),{position,expected:expectedTargets[targetIndex],items});
     }
 }

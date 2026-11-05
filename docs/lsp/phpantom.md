@@ -76,7 +76,7 @@ bytes; this command does not update UI metadata or deploy a site. The legacy
 
 native の公開回帰は raw 7/7、終了コード 0 を必須にします。同名の利用者関数の PHPDoc も必須の assertion です。既知の失敗を成功に変換しません。classifier は全 7 件の結果、各テストの最後に出る完了 sentinel、失敗一覧と最終集計の整合性を確認します。途中で切れたログ、異なる panic、追加の失敗、0 件実行を拒否します。`native-probe-result.json` の `knownLimitMatched` は過去の読取形式を維持するための項目で、常に false です。
 
-追加の `native_release_quality` も CI の必須検査です。固定 stubs に対する独立オラクル 14 API × 12 対象を、各ケース別の Backend で cold と warm の両方から検査します。warm は同じ stub ファイルの別シンボルへの公開 completion と resolve で作ります。関数、クラス、interface、定数、メソッド、削除境界に加え、クラス定数、プロパティ、引数と型の境界を検査します。同名引数の版違い、利用者のソース、編集後の docs、別名と名前衝突も対象です。メタデータの scanner 14 件と独立ガード 2 件は補助検査です。
+追加の `native_release_quality` も CI の必須検査です。固定 stubs に対する独立オラクル 14 API × 12 対象を、各ケース別の Backend で cold と warm の両方から検査します。warm は同じ stub ファイルの別シンボルへの公開 completion と resolve で作ります。関数、クラス、interface、定数、メソッド、削除境界に加え、クラス定数、プロパティ、引数と型の境界を検査します。同名引数の版違い、利用者のソース、編集後の docs、別名と名前衝突も対象です。メタデータの scanner 16 件と独立ガード 2 件は補助検査です。
 
 resolve は補完項目に保存した索引の FQN を直接参照します。入力元の namespace を再付加しません。関数の挿入は選択した FQN と呼出し側の別名・同名関数から決め、バックスラッシュを含む入力全体を明示的な textEdit で置換します。補完の主編集と追加 import 編集を適用した全文も回帰検査します。
 
@@ -101,7 +101,7 @@ node --test src/lsp/wasm/test-build-tools.mjs
 | enum | 8.1 | 同上 |
 | readonly | 8.1 | class/trait の property 位置。static property には提示しない |
 | readonly | 8.2 | class 宣言を開始できる既存の位置 |
-| その他の現在の候補 | 5.6 | return/yield、break/continue、case/default、namespace、extends/implements と class body の既存の条件を維持 |
+| その他の現在の候補 | 5.6 | return は script/function、yield は function 内。break/continue、case/default、namespace、extends/implements と class body の条件も適用 |
 
 その他の候補は abstract、as、break、case、catch、class、clone、const、continue、declare、default、die、do、echo、else、elseif、empty、eval、exit、extends、final、finally、for、foreach、function、global、goto、if、implements、include、include_once、instanceof、interface、isset、list、namespace、new、print、private、protected、public、require、require_once、return、static、switch、throw、trait、try、unset、use、while、yield です。未知の keyword を新しい上流一覧へ追加しても、この版の表に登録されるまでは提示しません。
 
@@ -127,3 +127,9 @@ node --test src/lsp/wasm/test-build-tools.mjs
 必須 native 検査には、独立した言語表の各ケースに全 12 対象の期待値を明記した公開 completion 回帰と、scanner/lazy parser の namespace import・grouped import・heredoc/nowdoc・匿名 class の比較を含めます。固定した Core/Core_d.php の一括定数宣言は、全 declarator に同じ metadata を適用します。PHP_SBINDIR と PHP_OUTPUT_HANDLER_PROCESSED を cold/warm の両方で検査します。元の 14 API オラクルは件数 168、全 14 シンボルと全 12 対象の集合を先に照合し、空や欠落した表による成功を拒否します。
 
 release 用の単独 WASI ハーネスは、実行前に current applied patch と file manifest の両 SHA-256 を必須にします。旧 bundle だけでの代替受理はしません。欠落・旧値・異なる値を使った 6 件の CLI 反例で、WASM を開く前の拒否を検査します。過去の raw 記録は保全し、新しい release の証明とは分けます。CI の WASI 対象には 8.4 の定数境界も含め、7.4/8.0/8.3/8.4/8.5 を検査します。全 12 対象の採用には、別途許可された実生成と対象別の同じハーネス実行が必要です。
+
+複合型の入力でも class 定数の宣言位置を保持します。nullable、union、intersection、DNF の途中で通常の関数候補へ戻しません。8.3 未満の class 定数型は候補を出さず、型を入力済みの後ろに続く定数名は型位置と区別します。既出の native 型は比較用のキーだけを小文字へ正規化し、mixed/void/never、bool と true/false、重複の規則を入力の大小文字にかかわらず適用します。利用者 class の表示名と挿入文字列は変更しません。
+
+return は関数だけでなく script/eval/include の終了にも使えます。従来の return-outside-function の全12期待値が負だったのは誤りで、[PHP の return の説明](https://www.php.net/manual/en/function.return.php)に従って正に訂正しました。旧期待値と修正前の失敗を保全し、class/trait/interface body の負、関数・method・namespace・条件付き script の正、yield の関数内の正と script 位置の負を分けて検査します。
+
+scanner は class owner の深さを stack で保存・復元します。入れ子の匿名・名前付き class を閉じた後も外側の所有状態を保持し、外側 method や class 定数を global 宣言へ混入させません。synthetic な所有状態の反例と、固定 stub ファイル群への影響確認と、lazy parser の公開要求の比較は別々の証拠として扱います。

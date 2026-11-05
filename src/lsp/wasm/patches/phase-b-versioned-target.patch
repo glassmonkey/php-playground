@@ -100,7 +100,7 @@ diff --git a/build.rs b/build.rs
 diff --git a/build_support/stub_availability.rs b/build_support/stub_availability.rs
 --- a/build_support/stub_availability.rs
 +++ b/build_support/stub_availability.rs
-@@ -0,0 +1,613 @@
+@@ -0,0 +1,647 @@
 +//! Metadata-only PHP stub scanner, shared by cold indexes and stub parsing.
 +//! Numeric @since/@removed tags are PHP versions only for bundled PHP domains.
 +#[path = "../src/stub_metadata.rs"]
@@ -321,7 +321,7 @@ diff --git a/build_support/stub_availability.rs b/build_support/stub_availabilit
 +    let mut attrs = String::new();
 +    let mut ns = String::new();
 +    let mut depth = 0usize;
-+    let mut class_depth = None;
++    let mut class_depths = Vec::new();
 +    let mut pending_class = false;
 +    let mut ns_depth = None;
 +    let mut result = Vec::new();
@@ -368,7 +368,7 @@ diff --git a/build_support/stub_availability.rs b/build_support/stub_availabilit
 +            i += 1;
 +            continue;
 +        }
-+        if token == "use" && class_depth.is_none() && depth == ns_depth.unwrap_or(0) {
++        if token == "use" && class_depths.is_empty() && depth == ns_depth.unwrap_or(0) {
 +            let end = t[i..]
 +                .iter()
 +                .position(|v| *v == ";")
@@ -401,7 +401,7 @@ diff --git a/build_support/stub_availability.rs b/build_support/stub_availabilit
 +        if token == "{" {
 +            depth += 1;
 +            if pending_class {
-+                class_depth = Some(depth);
++                class_depths.push(depth);
 +                pending_class = false;
 +            }
 +            doc = "";
@@ -410,8 +410,8 @@ diff --git a/build_support/stub_availability.rs b/build_support/stub_availabilit
 +            continue;
 +        }
 +        if token == "}" {
-+            if class_depth == Some(depth) {
-+                class_depth = None;
++            if class_depths.last() == Some(&depth) {
++                class_depths.pop();
 +            }
 +            if ns_depth == Some(depth) {
 +                ns.clear();
@@ -434,7 +434,7 @@ diff --git a/build_support/stub_availability.rs b/build_support/stub_availabilit
 +                    ")" | "]" | "}" => nesting = nesting.saturating_sub(1),
 +                    "," | ";" if nesting == 0 => {
 +                        let declarator = &t[start..end];
-+                        if class_depth.is_none()
++                        if class_depths.is_empty()
 +                            && let Some(eq) = declarator.iter().position(|v| *v == "=")
 +                            && eq > 0
 +                        {
@@ -498,7 +498,7 @@ diff --git a/build_support/stub_availability.rs b/build_support/stub_availabilit
 +                    .next()
 +                    .is_some_and(|b| b.is_ascii_alphabetic() || b == b'_' || b >= 128);
 +                if declaration
-+                    && class_depth.is_none()
++                    && class_depths.is_empty()
 +                    && t.get(i.wrapping_sub(1)) != Some(&":")
 +                    && !(kind == "class" && t.get(i.wrapping_sub(1)) == Some(&"new"))
 +                {
@@ -711,6 +711,40 @@ diff --git a/build_support/stub_availability.rs b/build_support/stub_availabilit
 +                ("function", "enum".to_string()),
 +                ("function", "real".to_string())
 +            ]
++        );
++    }
++}
++
++#[cfg(test)]
++mod nested_owner_regressions {
++    use super::*;
++    #[test]
++    fn nested_anonymous_classes_restore_the_enclosing_owner() {
++        let source = "<?php namespace N { class Outer { function first() { $x=new class { function nested(){ $y=new class { function inner(){} }; } }; } /** @since 8.4 */ function outerMethod() {} /** @since 8.4 */ const OUTER_CONST=1; } function real() {} const TOP=1; }";
++        let entries = entries(source, true);
++        assert_eq!(
++            entries
++                .iter()
++                .map(|e| (e.kind, e.name.as_str()))
++                .collect::<Vec<_>>(),
++            vec![
++                ("class", "N\\Outer"),
++                ("function", "N\\real"),
++                ("constant", "N\\TOP")
++            ]
++        );
++    }
++    #[test]
++    fn nested_named_class_restores_outer_method_and_constant_ownership() {
++        let source = "<?php class Outer { function first() { class Inner { function inner() {} const INNER=1; } } /** @since 8.4 */ function outerMethod() {} const OUTER_CONST=1; } function real() {} const TOP=1;";
++        let entries = entries(source, true);
++        assert_eq!(
++            entries
++                .iter()
++                .filter(|e| e.kind != "class")
++                .map(|e| (e.kind, e.name.as_str()))
++                .collect::<Vec<_>>(),
++            vec![("function", "real"), ("constant", "TOP")]
 +        );
 +    }
 +}
@@ -1074,10 +1108,21 @@ diff --git a/src/completion/context/keyword_completion.rs b/src/completion/conte
      let prefix_lower = prefix.to_ascii_lowercase();
      BACKED_ENUM_TYPES
          .iter()
-@@ -433,3 +448,29 @@
+@@ -400,7 +415,8 @@
+     }
+ 
+     match *keyword {
+-        "return" | "yield" => ctx.in_function_like,
++        "return" => true, // PHP permits return from a script/eval/include as well as a function.
++        "yield" => ctx.in_function_like,
+         "break" => ctx.in_breakable,
+         "continue" => ctx.in_loop,
+         "case" | "default" => ctx.in_switch,
+@@ -432,4 +448,30 @@
+             "public" | "protected" | "private" | "static" | "function" | "const" | "use" | "case"
          ),
      }
- }
++}
 +
 +/// Exhaustive policy for the emitted keyword inventory. Existing syntax-context gates still apply.
 +/// PHP manual: migration74/80/81.new-features and language.oop5.basic (readonly classes).
@@ -1103,7 +1148,7 @@ diff --git a/src/completion/context/keyword_completion.rs b/src/completion/conte
 +        _ => return false,
 +    };
 +    version >= PhpVersion::new(since.0, since.1)
-+}
+ }
 diff --git a/src/completion/context/type_hint_completion.rs b/src/completion/context/type_hint_completion.rs
 --- a/src/completion/context/type_hint_completion.rs
 +++ b/src/completion/context/type_hint_completion.rs
@@ -1133,32 +1178,17 @@ diff --git a/src/completion/context/type_hint_completion.rs b/src/completion/con
  }
  
  /// Detect whether the cursor is at a type-hint position inside a
-@@ -61,6 +73,24 @@
+@@ -61,6 +73,9 @@
      // Member *names* after `function` / `const` / `case` are not types.
      // Without this, `public const ST` looks like a property type position
      // (modifier keyword earlier on the line) and steals completion.
-+    let offset = position_to_offset(content, position) as usize;
-+    let before_cursor = &content[..offset.min(content.len())];
-+    let line = before_cursor
-+        .rsplit(['\n', '{', '}', ';'])
-+        .next()
-+        .unwrap_or("");
-+    let words = line.split_whitespace().collect::<Vec<_>>();
-+    if let [.., "const", partial] = words.as_slice()
-+        && partial.starts_with(|c: char| c.is_ascii_lowercase())
-+        && PHP_NATIVE_TYPES.iter().any(|ty| ty.starts_with(*partial))
-+    {
-+        return Some(TypeHintContext {
-+            partial: partial.to_string(),
-+            needs_space_prefix: false,
-+            site: TypeHintSite::ClassConstant,
-+            preceding_types: String::new(),
-+        });
++    if let Some(context) = class_constant_type_context(&chars, cursor) {
++        return Some(context);
 +    }
      if is_function_or_const_name_position(content, position) {
          return None;
      }
-@@ -119,6 +149,8 @@
+@@ -119,6 +134,8 @@
          return Some(TypeHintContext {
              partial,
              needs_space_prefix: needs_space,
@@ -1167,7 +1197,7 @@ diff --git a/src/completion/context/type_hint_completion.rs b/src/completion/con
          });
      }
  
-@@ -145,17 +177,21 @@
+@@ -145,17 +162,21 @@
              return Some(TypeHintContext {
                  partial,
                  needs_space_prefix: false,
@@ -1190,7 +1220,7 @@ diff --git a/src/completion/context/type_hint_completion.rs b/src/completion/con
          });
      }
  
-@@ -201,6 +237,8 @@
+@@ -201,12 +222,86 @@
          return Some(TypeHintContext {
              partial,
              needs_space_prefix: false,
@@ -1199,7 +1229,85 @@ diff --git a/src/completion/context/type_hint_completion.rs b/src/completion/con
          });
      }
  
-@@ -293,87 +331,163 @@
+     None
++}
++
++/// Keep the complete type fragment after const, including nullable/union/intersection/DNF.
++/// A following identifier after a complete type is a constant name, not another type.
++fn class_constant_type_context(chars: &[char], cursor: usize) -> Option<TypeHintContext> {
++    let start = chars[..cursor]
++        .iter()
++        .rposition(|c| matches!(c, ';' | '{' | '}'))
++        .map_or(0, |p| p + 1);
++    let segment = &chars[start..cursor];
++    let mut constant_end = None;
++    for i in 0..segment.len().saturating_sub(4) {
++        if segment[i..i + 5]
++            .iter()
++            .zip("const".chars())
++            .all(|(a, b)| a.eq_ignore_ascii_case(&b))
++            && (i == 0 || !is_identifier_char(segment[i - 1]))
++            && (i + 5 == segment.len() || !is_identifier_char(segment[i + 5]))
++        {
++            let before = segment[..i].iter().collect::<String>();
++            if before
++                .split_whitespace()
++                .last()
++                .is_some_and(|w| w.eq_ignore_ascii_case("use"))
++            {
++                continue;
++            }
++            constant_end = Some(start + i + 5);
++        }
++    }
++    let anchor = constant_end?;
++    if chars[anchor..cursor]
++        .iter()
++        .any(|c| matches!(c, '=' | ',' | '$'))
++    {
++        return None;
++    }
++    let mut partial_start = cursor;
++    while partial_start > anchor && is_identifier_char(chars[partial_start - 1]) {
++        partial_start -= 1;
++    }
++    let partial = chars[partial_start..cursor].iter().collect::<String>();
++    let preceding = chars[anchor..partial_start].iter().collect::<String>();
++    let preceding = preceding.trim();
++    if preceding.is_empty() {
++        if !partial.starts_with(|c: char| c.is_ascii_lowercase())
++            || !PHP_NATIVE_TYPES.iter().any(|ty| ty.starts_with(&partial))
++        {
++            return None;
++        }
++    } else if !preceding.ends_with(['?', '|', '&', '(']) {
++        return None;
++    }
++    Some(TypeHintContext {
++        partial,
++        needs_space_prefix: false,
++        site: TypeHintSite::ClassConstant,
++        preceding_types: preceding.to_string(),
++    })
++}
++
++fn is_identifier_char(c: char) -> bool {
++    c.is_alphanumeric() || matches!(c, '_' | '\\')
+ }
+ 
++/// Native comparison keys only; never rewrite user class names or insertion spellings.
++fn preceding_type_keys(ctx: &TypeHintContext) -> Vec<String> {
++    ctx.preceding_types
++        .split(['|', '&', '?', '(', ')'])
++        .map(|t| t.trim().to_ascii_lowercase())
++        .filter(|t| !t.is_empty())
++        .collect()
++}
++
+ /// Whether the cursor is typing a declared member *name* (not a type).
+ ///
+ /// True for positions like:
+@@ -293,87 +388,167 @@
  /// Walks backward past existing type names and modifiers until it finds
  /// the structural character that anchors the context (one of `(`, `,`,
  /// `:` for return type, or a modifier keyword for property declarations).
@@ -1324,6 +1432,13 @@ diff --git a/src/completion/context/type_hint_completion.rs b/src/completion/con
 +        TypeHintSite::PromotedParameter => (8, 0),
 +        TypeHintSite::ClassConstant => (8, 3),
 +    };
++    let previous = preceding_type_keys(ctx);
++    if previous
++        .iter()
++        .any(|ty| matches!(ty.as_str(), "mixed" | "void" | "never"))
++    {
++        return false;
++    }
 +    version >= PhpVersion::new(min.0, min.1)
 +        && (!ctx.preceding_types.contains('?') || version >= PhpVersion::new(7, 1))
 +        && (!ctx.preceding_types.contains('|') || version >= PhpVersion::new(8, 0))
@@ -1397,23 +1512,20 @@ diff --git a/src/completion/context/type_hint_completion.rs b/src/completion/con
 +    {
 +        return false;
 +    }
-+    let previous = ctx
-+        .preceding_types
-+        .split(['|', '&', '?'])
-+        .map(str::trim)
-+        .collect::<Vec<_>>();
++    let previous = preceding_type_keys(ctx);
++    let has = |name: &str| previous.iter().any(|t| t == name);
 +    if previous.iter().any(|p| p.eq_ignore_ascii_case(ty)) {
 +        return false;
 +    }
-+    if previous.contains(&"mixed") || previous.contains(&"never") || previous.contains(&"void") {
++    if has("mixed") || has("never") || has("void") {
 +        return false;
 +    }
-+    if ty == "bool" && (previous.contains(&"true") || previous.contains(&"false"))
-+        || matches!(ty, "true" | "false") && previous.contains(&"bool")
-+        || ty == "true" && previous.contains(&"false")
-+        || ty == "false" && previous.contains(&"true")
-+        || ty == "array" && previous.contains(&"iterable")
-+        || ty == "iterable" && previous.contains(&"array")
++    if ty == "bool" && (has("true") || has("false"))
++        || matches!(ty, "true" | "false") && has("bool")
++        || ty == "true" && has("false")
++        || ty == "false" && has("true")
++        || ty == "array" && has("iterable")
++        || ty == "iterable" && has("array")
 +    {
 +        return false;
 +    }
@@ -1426,10 +1538,11 @@ diff --git a/src/completion/context/type_hint_completion.rs b/src/completion/con
 diff --git a/src/completion/context/type_hint_completion_tests.rs b/src/completion/context/type_hint_completion_tests.rs
 --- a/src/completion/context/type_hint_completion_tests.rs
 +++ b/src/completion/context/type_hint_completion_tests.rs
-@@ -605,3 +605,24 @@
+@@ -604,4 +604,61 @@
+     assert!(!PHP_NATIVE_TYPES.contains(&"positive-int"));
      assert!(!PHP_NATIVE_TYPES.contains(&"non-empty-string"));
      assert!(!PHP_NATIVE_TYPES.contains(&"resource"));
- }
++}
 +
 +#[test]
 +fn lowercase_native_class_constant_type_keeps_its_distinct_declaration_site() {
@@ -1445,11 +1558,47 @@ diff --git a/src/completion/context/type_hint_completion_tests.rs b/src/completi
 +        &context,
 +        crate::types::PhpVersion::new(8, 3)
 +    ));
-+}
+ }
 +
 +#[test]
 +fn existing_uppercase_constant_name_remains_a_name_context() {
 +    assert!(detect("<?php\nclass C {\npublic const ST", 2, 15).is_none());
++}
++
++#[test]
++fn class_constant_compound_types_keep_the_declaration_site_and_prefix() {
++    for tail in ["string|in", "?str", "A&B", "(A&B)|str"] {
++        let source = format!("<?php\nclass C {{ const {tail}");
++        let context = detect(&source, 1, source.lines().last().unwrap().len() as u32).unwrap();
++        assert_eq!(context.site, TypeHintSite::ClassConstant);
++        assert!(!context.preceding_types.is_empty());
++        assert!(!declaration_available(
++            &context,
++            crate::types::PhpVersion::new(8, 2)
++        ));
++        assert!(declaration_available(
++            &context,
++            crate::types::PhpVersion::new(8, 3)
++        ));
++    }
++    assert!(detect("<?php\nclass C { const string NAME", 1, 27).is_none());
++}
++
++#[test]
++fn previous_native_type_keys_are_case_insensitive_without_rewriting_user_names() {
++    let source = "<?php\nfunction f(): MiXeD|in";
++    let context = detect(source, 1, source.lines().last().unwrap().len() as u32).unwrap();
++    assert_eq!(context.preceding_types, " MiXeD|");
++    assert!(!declaration_available(
++        &context,
++        crate::types::PhpVersion::new(8, 0)
++    ));
++}
++
++#[test]
++fn constant_import_is_not_a_native_class_constant_type() {
++    assert!(detect("<?php\nuse const str", 1, 13).is_none());
++    assert!(detect("<?php\nUsE CoNsT str", 1, 13).is_none());
 +}
 diff --git a/src/completion/handler/class_constant.rs b/src/completion/handler/class_constant.rs
 --- a/src/completion/handler/class_constant.rs
@@ -2183,6 +2332,31 @@ diff --git a/src/stubs.rs b/src/stubs.rs
  /// Warning shown when the binary embeds no stubs, so a broken package
  /// says why everything built in is reported as unknown.
  pub(crate) const MISSING_STUBS_WARNING: &str = "PHPantom was built without the PHP standard library stubs, so every built-in function, class, and constant is reported as unknown. Rebuild it with network access, or with PHPANTOM_STUBS_DIR pointing at phpstorm-stubs.";
+diff --git a/tests/integration/completion_basic.rs b/tests/integration/completion_basic.rs
+--- a/tests/integration/completion_basic.rs
++++ b/tests/integration/completion_basic.rs
+@@ -143,7 +143,7 @@
+ }
+ 
+ #[tokio::test]
+-async fn test_completion_does_not_suggest_return_at_top_level() {
++async fn test_completion_suggests_return_at_top_level() {
+     let backend = create_test_backend();
+ 
+     let uri = Uri::parse("file:///keywords_top_level.php").unwrap();
+@@ -158,10 +158,10 @@
+         None => Vec::new(),
+     };
+     assert!(
+-        !items
++        items
+             .iter()
+             .any(|i| i.label == "return" && i.kind == Some(CompletionItemKind::Keyword)),
+-        "Top-level completion should not suggest `return`, got: {:?}",
++        "Top-level script completion should suggest `return`, got: {:?}",
+         items.iter().map(|i| i.label.clone()).collect::<Vec<_>>()
+     );
+ }
 diff --git a/tests/integration/completion_named_args.rs b/tests/integration/completion_named_args.rs
 --- a/tests/integration/completion_named_args.rs
 +++ b/tests/integration/completion_named_args.rs

@@ -14,7 +14,7 @@ readonly-interface-forbidden	readonly	keyword	<?php\ninterface I {\npublic rea	0
 enum-backing-int	int	keyword	<?php\nenum E: in	000000011111	https://www.php.net/manual/en/language.enumerations.backed.php
 yield-in-function	yield	keyword	<?php\nfunction f(){\nyiel	111111111111	https://www.php.net/manual/en/language.generators.syntax.php
 return-in-function	return	keyword	<?php\nfunction f(){\nretur	111111111111	https://www.php.net/manual/en/functions.returning-values.php
-return-outside-function	return	keyword	<?php\nretur	000000000000	https://www.php.net/manual/en/functions.returning-values.php
+return-outside-function	return	keyword	<?php\nretur	111111111111	https://www.php.net/manual/en/functions.returning-values.php
 parameter-string	string	type	<?php\nfunction f(strin	011111111111	https://www.php.net/manual/en/language.types.declarations.php
 parameter-int	int	type	<?php\nfunction f(in	011111111111	https://www.php.net/manual/en/language.types.declarations.php
 parameter-float	float	type	<?php\nfunction f(floa	011111111111	https://www.php.net/manual/en/language.types.declarations.php
@@ -105,3 +105,45 @@ class-constant-false	false	type	<?php\nclass C {\nconst fals	000000000111	https:
 dnf-return-string	string	type	<?php\nclass A {}\nclass B {}\nfunction f(): (A&B)|str	000000001111	https://www.php.net/manual/en/language.types.declarations.php
 dnf-parameter-string	string	type	<?php\nclass A {}\nclass B {}\nfunction f((A&B)|str	000000001111	https://www.php.net/manual/en/language.types.declarations.php
 dnf-intersection-native-forbidden	string	type	<?php\nclass A {}\nclass B {}\nfunction f(): A|(B&str	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+p4-const-union	int	type	<?php\nclass A {}\nclass B {}\nclass C { const string|in	000000000111	https://www.php.net/manual/en/language.types.declarations.php
+p4-const-union-no-functions	*	any-function	<?php\nclass A {}\nclass B {}\nclass C { const string|in	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+p4-const-nullable	string	type	<?php\nclass A {}\nclass B {}\nclass C { const ?str	000000000111	https://www.php.net/manual/en/language.types.declarations.php
+p4-const-nullable-no-functions	*	any-function	<?php\nclass A {}\nclass B {}\nclass C { const ?str	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+p4-const-intersection	B	class	<?php\nclass A {}\nclass B {}\nclass C { const A&B	000000000111	https://www.php.net/manual/en/language.types.declarations.php
+p4-const-intersection-no-functions	*	any-function	<?php\nclass A {}\nclass B {}\nclass C { const A&B	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+p4-const-dnf	string	type	<?php\nclass A {}\nclass B {}\nclass C { const (A&B)|str	000000000111	https://www.php.net/manual/en/language.types.declarations.php
+p4-const-dnf-no-functions	*	any-function	<?php\nclass A {}\nclass B {}\nclass C { const (A&B)|str	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+p4-const-union-class	B	class	<?php\nclass A {}\nclass B {}\nclass C { const A|B	000000000111	https://www.php.net/manual/en/language.types.declarations.php
+p4-const-union-class-no-functions	*	any-function	<?php\nclass A {}\nclass B {}\nclass C { const A|B	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+p4-const-nullable-class	B	class	<?php\nclass A {}\nclass B {}\nclass C { const ?B	000000000111	https://www.php.net/manual/en/language.types.declarations.php
+p4-const-nullable-class-no-functions	*	any-function	<?php\nclass A {}\nclass B {}\nclass C { const ?B	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+p4-const-dnf-class	C	class	<?php\nclass A {}\nclass B {}\nclass C { const (A&B)|C	000000000111	https://www.php.net/manual/en/language.types.declarations.php
+p4-const-dnf-class-no-functions	*	any-function	<?php\nclass A {}\nclass B {}\nclass C { const (A&B)|C	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+p4-const-name-native-forbidden	int	type	<?php\nclass C { const int NAME	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+p4-const-untyped-name-forbidden	int	type	<?php\nclass C { const NAME	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+p4-previous-mixed	int	type	<?php\nfunction f(): MiXeD|in	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+p4-previous-mixed-spaces	int	type	<?php\nfunction f(): MiXeD  |in	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+p4-previous-mixed-lower	int	type	<?php\nfunction f(): mixed|in	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+p4-previous-void	int	type	<?php\nfunction f(): VoId|in	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+p4-previous-void-lower	int	type	<?php\nfunction f(): void|in	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+p4-previous-never	int	type	<?php\nfunction f(): NeVeR|in	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+p4-previous-never-lower	int	type	<?php\nfunction f(): never|in	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+p4-previous-bool-false	false	type	<?php\nfunction f(): BoOl|fals	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+p4-previous-bool-true	true	type	<?php\nfunction f(): bOoL|tru	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+p4-previous-false-bool	bool	type	<?php\nfunction f(): FaLsE|boo	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+p4-previous-true-bool	bool	type	<?php\nfunction f(): TrUe|boo	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+p4-previous-array-iterable	iterable	type	<?php\nfunction f(): ArRaY|iterabl	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+p4-previous-iterable-array	array	type	<?php\nfunction f(): ItErAbLe|arra	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+p4-previous-duplicate	string	type	<?php\nfunction f(): StRiNg|str	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+p4-class-case-preserved	MiXeDBox	class	<?php\nclass First {}\nclass MiXeDBox {}\nfunction f(): First|miX	000000111111	https://www.php.net/manual/en/language.types.declarations.php
+p4-return-namespace	return	keyword	<?php\nnamespace App {\nretur	111111111111	https://www.php.net/manual/en/function.return.php
+p4-return-conditional-file	return	keyword	<?php\nif (!defined("ALLOWED")) {\nretur	111111111111	https://www.php.net/manual/en/function.return.php
+p4-return-method	return	keyword	<?php\nclass C { function f() {\nretur	111111111111	https://www.php.net/manual/en/function.return.php
+p4-return-class-body	return	keyword	<?php\nclass C {\nretur	000000000000	https://www.php.net/manual/en/function.return.php
+p4-return-trait-body	return	keyword	<?php\ntrait T {\nretur	000000000000	https://www.php.net/manual/en/function.return.php
+p4-return-interface-body	return	keyword	<?php\ninterface I {\nretur	000000000000	https://www.php.net/manual/en/function.return.php
+p4-yield-file-forbidden	yield	keyword	<?php\nyiel	000000000000	https://www.php.net/manual/en/language.generators.syntax.php
+p4-yield-method	yield	keyword	<?php\nclass C { function f(){\nyiel	111111111111	https://www.php.net/manual/en/language.generators.syntax.php
+p4-const-uppercase-keyword	int	type	<?php\nclass C { CONST STRING|in	000000000111	https://www.php.net/manual/en/language.types.declarations.php
+p4-const-uppercase-keyword-no-functions	*	any-function	<?php\nclass C { CONST STRING|in	000000000000	https://www.php.net/manual/en/language.types.declarations.php
+p4-const-import-native-forbidden	string	type	<?php\nuse const str	000000000000	https://www.php.net/manual/en/language.namespaces.importing.php
