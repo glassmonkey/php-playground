@@ -5,7 +5,11 @@ import {
 	isStaleDocumentVersion,
 	phpVersionInitializationError,
 } from './php-version.mjs';
-import { versions } from '../../php-wasm/php';
+import {
+	isPhpantomWorkerBootstrapMessage,
+	reviewedArtifactFor,
+	reviewedPhpVersions,
+} from './artifact-registry';
 
 type JsonRpcId = string | number | null;
 type JsonRpcMessage = {
@@ -27,11 +31,20 @@ type PhpantomExports = WebAssembly.Exports & {
 
 type OpenDocument = { version: number };
 
-const PHPANTOM_VERSION = '0.11.1';
-const PHPANTOM_VERSIONED_BUILD = '0.11.1+php-version-setting.3';
-const WASM_SHA256 =
-	'605854cd7d868c2432223c73d18002b2e39e86ea2c26e00655181a2345db6c4e';
-const WASM_URL = `/lsp/phpantom/phpantom_lsp.wasm?sha256=${WASM_SHA256}`;
+const bootstrap = new Promise<{
+	phpVersion: string;
+	module?: WebAssembly.Module;
+	error?: string;
+}>((resolve) => {
+	self.addEventListener('message', (event: MessageEvent<unknown>) => {
+		if (!isPhpantomWorkerBootstrapMessage(event.data)) return;
+		resolve({
+			phpVersion: event.data.phpVersion,
+			module: event.data.module,
+			error: event.data.error,
+		});
+	});
+});
 const documents = new Map<string, OpenDocument>();
 let runtime: Promise<PhpantomExports> | undefined;
 let queue = Promise.resolve();
@@ -50,14 +63,10 @@ function loadRuntime(): Promise<PhpantomExports> {
 }
 
 async function instantiateRuntime(): Promise<PhpantomExports> {
-	const response = await fetch(WASM_URL);
-	if (!response.ok) {
-		throw new Error(
-			`Could not load PHPantom ${PHPANTOM_VERSION} WASM (${response.status}).`
-		);
-	}
-
-	const bytes = await response.arrayBuffer();
+	const candidate = await bootstrap;
+	if (candidate.error) throw new Error(candidate.error);
+	if (!candidate.module)
+		throw new Error('PHPantom preview module is missing.');
 	const wasi = new WASI(
 		[],
 		[],
@@ -71,8 +80,7 @@ async function instantiateRuntime(): Promise<PhpantomExports> {
 			),
 		]
 	);
-	const module = await WebAssembly.compile(bytes);
-	const instance = await WebAssembly.instantiate(module, {
+	const instance = await WebAssembly.instantiate(candidate.module, {
 		wasi_snapshot_preview1: wasi.wasiImport,
 	});
 	wasi.initialize(
@@ -137,11 +145,22 @@ function isMessage(value: unknown): value is JsonRpcMessage {
 	return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function initializeVersionError(message: JsonRpcMessage): string | undefined {
+async function initializeVersionError(
+	message: JsonRpcMessage
+): Promise<string | undefined> {
 	if (message.method !== 'initialize' || !isMessage(message.params)) return;
 	const options = message.params.initializationOptions;
 	if (!isMessage(options)) return;
-	return phpVersionInitializationError(options, versions);
+	const phpVersion = options.phpVersion ?? '8.5';
+	const selected = await bootstrap;
+	if (phpVersion !== selected.phpVersion) {
+		return `PHPantom worker is configured for PHP ${selected.phpVersion ?? 'unknown'} but initialize requested PHP ${String(phpVersion)}.`;
+	}
+	const error = phpVersionInitializationError(options, reviewedPhpVersions());
+	if (error) return error;
+	if (!reviewedArtifactFor(String(phpVersion)))
+		return `No reviewed PHPantom WASM artifact for PHP ${String(phpVersion)}.`;
+	return undefined;
 }
 
 function shouldIgnoreStaleChange(message: JsonRpcMessage): boolean {
@@ -201,7 +220,7 @@ async function handleMessage(data: unknown): Promise<void> {
 	}
 	const message = data;
 	if (shouldIgnoreStaleChange(message)) return;
-	const versionError = initializeVersionError(message);
+	const versionError = await initializeVersionError(message);
 	if (versionError) {
 		if (message.id !== undefined)
 			self.postMessage(errorResponse(message.id, -32602, versionError));
@@ -227,14 +246,15 @@ async function handleMessage(data: unknown): Promise<void> {
 				typeof initializationOptions.phpVersion === 'string'
 					? initializationOptions.phpVersion
 					: '8.5';
-			if (
-				serverInfo?.version !==
-				`${PHPANTOM_VERSIONED_BUILD}:php${configuredPhpVersion}`
-			) {
+			const artifact = reviewedArtifactFor(configuredPhpVersion);
+			if (!artifact || serverInfo?.version !== artifact.buildIdentity) {
 				throw new Error(
-					`PHPantom WASM does not include PHP ${configuredPhpVersion} selection. Supported targets: ${versions.join(', ')}. Rebuild with make build-phpantom-runtime.`
+					`PHPantom WASM build identity mismatch for selected PHP ${configuredPhpVersion}.`
 				);
 			}
+			console.info(
+				`PHPantom ready: PHP ${configuredPhpVersion}; artifact ${artifact.sha256}; build ${artifact.buildIdentity}.`
+			);
 		}
 		updateDocumentState(message);
 		if (response !== null) self.postMessage(response);
@@ -248,6 +268,8 @@ async function handleMessage(data: unknown): Promise<void> {
 }
 
 self.addEventListener('message', (event: MessageEvent<unknown>) => {
+	if (isMessage(event.data) && event.data.type === 'phpantom:bootstrap')
+		return;
 	queue = queue.then(() => handleMessage(event.data));
 });
 

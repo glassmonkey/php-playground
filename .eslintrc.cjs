@@ -30,10 +30,13 @@ module.exports = {
 		"src/wasm/build-assets/*.js",
 		"src/wasm-assets/*.js"
 	],
-	// The build module has two explicit Node validation CLIs.
+	// Node validation CLIs; the UI harness also contains browser callbacks.
 	overrides: [{
 		files: ['src/lsp/wasm/smoke-test.mjs', 'src/lsp/wasm/versioned-wasi-test.mjs'],
 		env: { node: true, browser: false },
+	}, {
+		files: ['src/lsp/wasm/versioned-ui-test.mjs'],
+		env: { node: true, browser: true },
 	}],
 	plugins: ['react', '@typescript-eslint'],
 	rules: {
