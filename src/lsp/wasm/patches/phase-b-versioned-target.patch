@@ -1,0 +1,3485 @@
+diff --git a/build.rs b/build.rs
+--- a/build.rs
++++ b/build.rs
+@@ -64,6 +64,8 @@
+ use flate2::read::GzDecoder;
+ use tar::Archive;
+ 
++#[path = "build_support/stub_availability.rs"]
++mod stub_availability;
+ #[path = "src/stub_map.rs"]
+ mod stub_map;
+ use stub_map::parse_section;
+@@ -104,7 +106,31 @@
+     (out_stubs, needs_fetch)
+ }
+ 
++const SUPPORTED_PHP_TARGETS: &[&str] = &[
++    "5.6", "7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2", "8.3", "8.4", "8.5",
++];
++
++fn configure_wasi_php_target() {
++    println!("cargo:rerun-if-env-changed=PHPANTOM_TARGET_PHP_VERSION");
++    let is_wasi = env::var("CARGO_CFG_TARGET_ARCH").as_deref() == Ok("wasm32")
++        && env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("wasi");
++    if !is_wasi {
++        return;
++    }
++
++    let target = env::var("PHPANTOM_TARGET_PHP_VERSION")
++        .unwrap_or_else(|_| panic!("PHPANTOM_TARGET_PHP_VERSION is required for WASI builds"));
++    if !SUPPORTED_PHP_TARGETS.contains(&target.as_str()) {
++        panic!(
++            "unsupported PHPANTOM_TARGET_PHP_VERSION {target:?}; expected one of {}",
++            SUPPORTED_PHP_TARGETS.join(", ")
++        );
++    }
++    println!("cargo:rustc-env=PHPANTOM_TARGET_PHP_VERSION={target}");
++}
++
+ fn main() {
++    configure_wasi_php_target();
+     // Watch the project root directory so that creating/removing `stubs/`
+     // (which is gitignored) is detected via the directory mtime change.
+     // Without this, Cargo's default "any package file" check ignores
+@@ -291,11 +317,45 @@
+         // directory to avoid fragile relative path arithmetic.
+         let abs = stubs_path.join(rel_path);
+         let abs_str = abs.to_string_lossy().replace('\\', "/");
+-        out.push_str(&format!("    include_str!(\"{}\")", abs_str));
++        if stub_availability::php_version_domain(rel_path) {
++            out.push_str(&format!(
++                "    concat!({:?}, include_str!({:?}))",
++                stub_availability::PHP_DOC_MARKER,
++                abs_str
++            ));
++        } else {
++            out.push_str(&format!("    include_str!({:?})", abs_str));
++        }
+         out.push_str(",\n");
+     }
+     out.push_str("];\n\n");
+ 
++    let mut availability = Vec::new();
++    for rel in &existing_files {
++        let source = fs::read_to_string(stubs_path.join(rel)).expect("verified stub file");
++        for entry in stub_availability::entries(&source, stub_availability::php_version_domain(rel))
++        {
++            let name = if entry.kind == "constant" {
++                entry.name.clone()
++            } else {
++                entry.name.to_ascii_lowercase()
++            };
++            availability.push((
++                format!("{}:{name}", entry.kind),
++                entry.from,
++                entry.to,
++                entry.removed,
++            ));
++        }
++    }
++    availability.sort();
++    availability.dedup();
++    out.push_str("pub(crate) static STUB_AVAILABILITY: &[(&str, u16, u16, u16)] = &[\n");
++    for (key, from, to, removed) in availability {
++        out.push_str(&format!("    ({key:?}, {from}, {to}, {removed}),\n"));
++    }
++    out.push_str("];\n");
++
+     // 2. Class name → file index mapping.
+     let class_entries: Vec<(&str, usize)> = class_map
+         .iter()
+@@ -624,6 +684,7 @@
+         "pub(crate) static STUB_FILES: [&str; 0] = [];\n",
+         "pub(crate) static STUB_CLASS_MAP: [(&str, usize); 0] = [];\n",
+         "pub(crate) static STUB_FUNCTION_MAP: [(&str, usize); 0] = [];\n",
++        "pub(crate) static STUB_AVAILABILITY: &[(&str, u16, u16, u16)] = &[];\n",
+         "pub(crate) static STUB_CONSTANT_MAP: [(&str, usize); 0] = [];\n",
+     );
+     write_if_changed(content);
+diff --git a/build_support/stub_availability.rs b/build_support/stub_availability.rs
+--- a/build_support/stub_availability.rs
++++ b/build_support/stub_availability.rs
+@@ -0,0 +1,647 @@
++//! Metadata-only PHP stub scanner, shared by cold indexes and stub parsing.
++//! Numeric @since/@removed tags are PHP versions only for bundled PHP domains.
++#[path = "../src/stub_metadata.rs"]
++mod metadata;
++pub use metadata::PHP_DOC_MARKER;
++use metadata::{doc_version, is_availability_attribute, version};
++#[derive(Clone, Debug, PartialEq, Eq)]
++pub struct Entry {
++    pub kind: &'static str,
++    pub name: String,
++    pub from: u16,
++    pub to: u16,
++    pub removed: u16,
++}
++pub fn php_version_domain(path: &str) -> bool {
++    matches!(
++        path.split('/').next().unwrap_or(""),
++        "Core"
++            | "standard"
++            | "SPL"
++            | "Reflection"
++            | "date"
++            | "random"
++            | "json"
++            | "pcre"
++            | "hash"
++            | "filter"
++            | "session"
++            | "tokenizer"
++            | "mbstring"
++            | "iconv"
++            | "ctype"
++            | "fileinfo"
++            | "zlib"
++            | "bz2"
++            | "openssl"
++            | "sodium"
++            | "sockets"
++            | "curl"
++            | "gd"
++            | "intl"
++            | "zip"
++            | "Phar"
++            | "PDO"
++            | "mysql"
++            | "mysqli"
++            | "pgsql"
++            | "sqlite3"
++            | "dom"
++            | "SimpleXML"
++            | "xml"
++            | "xmlreader"
++            | "xmlwriter"
++            | "xsl"
++            | "libxml"
++            | "ftp"
++            | "imap"
++            | "ldap"
++            | "soap"
++            | "bcmath"
++            | "calendar"
++            | "dba"
++            | "enchant"
++            | "exif"
++            | "gettext"
++            | "gmp"
++            | "pcntl"
++            | "posix"
++            | "pspell"
++            | "readline"
++            | "shmop"
++            | "snmp"
++            | "sysvmsg"
++            | "sysvsem"
++            | "sysvshm"
++            | "tidy"
++            | "FFI"
++            | "Zend OPcache"
++            | "sybase"
++            | "mssql"
++            | "mcrypt"
++            | "recode"
++            | "wddx"
++            | "SQLite"
++            | "fpm"
++            | "uri"
++            | "io"
++    )
++}
++// Tokenize strings/comments/attributes instead of matching declaration-looking prose.
++fn tokens(source: &str) -> Vec<&str> {
++    let b = source.as_bytes();
++    let mut out = Vec::new();
++    let mut i = 0;
++    while i < b.len() {
++        let start = i;
++        if b[i].is_ascii_whitespace() {
++            i += 1;
++            continue;
++        }
++        if source[i..].starts_with("//") || (b[i] == b'#' && !source[i..].starts_with("#[")) {
++            i += source[i..].find('\n').unwrap_or(b.len() - i);
++            continue;
++        }
++        if source[i..].starts_with("/*") {
++            i += 2 + source[i + 2..].find("*/").unwrap_or(b.len() - i - 2);
++            i = (i + 2).min(b.len());
++            if source[start..].starts_with("/**") {
++                out.push(&source[start..i]);
++            }
++            continue;
++        }
++        if source[i..].starts_with("<<<") {
++            // PHP's flexible heredoc/nowdoc end marker may be indented. Treat the body as opaque.
++            let header_end = source[i..].find('\n').map_or(b.len(), |n| i + n);
++            let label = source[i + 3..header_end].trim().trim_matches(['\'', '"']);
++            if !label.is_empty()
++                && label
++                    .bytes()
++                    .all(|c| c.is_ascii_alphanumeric() || c == b'_')
++            {
++                i = (header_end + 1).min(b.len());
++                while i < b.len() {
++                    let end = source[i..].find('\n').map_or(b.len(), |n| i + n);
++                    let line = source[i..end].trim_start_matches([' ', '\t']);
++                    if let Some(rest) = line.strip_prefix(label)
++                        && !rest
++                            .bytes()
++                            .next()
++                            .is_some_and(|c| c.is_ascii_alphanumeric() || c == b'_')
++                    {
++                        i = end - line.len() + label.len();
++                        break;
++                    }
++                    i = (end + 1).min(b.len());
++                }
++                continue;
++            }
++        }
++        if b[i] == b'\'' || b[i] == b'"' || b[i] == b'`' {
++            let quote = b[i];
++            i += 1;
++            while i < b.len() {
++                if b[i] == b'\\' {
++                    i = (i + 2).min(b.len());
++                } else if b[i] == quote {
++                    i += 1;
++                    break;
++                } else {
++                    i += 1;
++                }
++            }
++        } else if b[i].is_ascii_alphanumeric() || b[i] == b'_' || b[i] == b'\\' || b[i] >= 128 {
++            i += 1;
++            while i < b.len()
++                && (b[i].is_ascii_alphanumeric() || b[i] == b'_' || b[i] == b'\\' || b[i] >= 128)
++            {
++                i += 1;
++            }
++        } else {
++            i += 1;
++        }
++        out.push(&source[start..i]);
++    }
++    out
++}
++fn unquote(s: &str) -> &str {
++    s.trim_matches(['\'', '"'])
++}
++fn availability_attribute(attrs: &str, imports: &[(&str, &str)], namespace: &str) -> (u16, u16) {
++    let normalized = attrs.replace("# [", "#[");
++    let t = tokens(&normalized);
++    let mut nesting = 0usize;
++    for i in 0..t.len().saturating_sub(1) {
++        if t[i] == "(" {
++            nesting += 1;
++            continue;
++        }
++        if t[i] == ")" {
++            nesting = nesting.saturating_sub(1);
++            continue;
++        }
++        if nesting != 0 || !is_availability_attribute(t[i], imports, namespace) || t[i + 1] != "(" {
++            continue;
++        }
++        let mut from = 0;
++        let mut to = u16::MAX;
++        let mut j = i + 2;
++        // Only this attribute's own argument list contributes bounds.
++        while j < t.len() && t[j] != ")" {
++            if (t[j] == "from" || t[j] == "to") && t.get(j + 1) == Some(&":") {
++                if let Some(value) = t.get(j + 2).and_then(|v| version(unquote(v))) {
++                    if t[j] == "from" {
++                        from = value;
++                    } else {
++                        to = value;
++                    }
++                }
++                j += 3;
++            } else if j == i + 2 {
++                if let Some(value) = version(unquote(t[j])) {
++                    from = value;
++                }
++                j += 1;
++            } else {
++                j += 1;
++            }
++        }
++        return (from, to);
++    }
++    (0, u16::MAX)
++}
++pub fn entries(source: &str, php_domain: bool) -> Vec<Entry> {
++    let t = tokens(source);
++    let mut imports: Vec<(String, String)> = Vec::new();
++    let mut i = 0;
++    let mut doc = "";
++    let mut attrs = String::new();
++    let mut ns = String::new();
++    let mut depth = 0usize;
++    let mut class_depths = Vec::new();
++    let mut pending_class = false;
++    let mut ns_depth = None;
++    let mut result = Vec::new();
++    while i < t.len() {
++        let token = t[i];
++        if token.starts_with("/**") {
++            doc = token;
++            attrs.clear();
++            i += 1;
++            continue;
++        }
++        if token == "#" && t.get(i + 1) == Some(&"[") {
++            let start = i;
++            i += 2;
++            let mut n = 1;
++            while i < t.len() && n > 0 {
++                if t[i] == "[" {
++                    n += 1;
++                }
++                if t[i] == "]" {
++                    n -= 1;
++                }
++                i += 1;
++            }
++            attrs.push_str(&t[start..i].join(" "));
++            continue;
++        }
++        if token == "namespace" {
++            imports.clear();
++            if let Some(name) = t.get(i + 1) {
++                if *name != "{" {
++                    ns = name.trim_start_matches('\\').to_string();
++                } else {
++                    ns.clear();
++                }
++            }
++            if let Some(next) = t[i + 1..].iter().position(|v| *v == "{" || *v == ";")
++                && t[i + 1 + next] == "{"
++            {
++                ns_depth = Some(depth + 1);
++            }
++            doc = "";
++            attrs.clear();
++            i += 1;
++            continue;
++        }
++        if token == "use" && class_depths.is_empty() && depth == ns_depth.unwrap_or(0) {
++            let end = t[i..]
++                .iter()
++                .position(|v| *v == ";")
++                .map_or(t.len(), |n| i + n);
++            if !matches!(t.get(i + 1), Some(&"function") | Some(&"const")) {
++                let parts = &t[i + 1..end];
++                let group = parts.iter().position(|v| *v == "{");
++                let prefix = group.map_or("", |g| parts[g - 1]);
++                let body = group.map_or(parts, |g| {
++                    &parts[g + 1..parts.iter().rposition(|v| *v == "}").unwrap_or(parts.len())]
++                });
++                for item in body.split(|v| *v == ",") {
++                    if let Some(name) = item.first() {
++                        let target = format!("{}{}", prefix, name)
++                            .trim_start_matches('\\')
++                            .to_string();
++                        let alias = if item.get(1) == Some(&"as") {
++                            item.get(2).copied().unwrap_or("")
++                        } else {
++                            target.rsplit('\\').next().unwrap_or(&target)
++                        };
++                        imports.retain(|(old, _)| !old.eq_ignore_ascii_case(alias));
++                        imports.push((alias.to_string(), target));
++                    }
++                }
++            }
++            i = (end + 1).min(t.len());
++            continue;
++        }
++        if token == "{" {
++            depth += 1;
++            if pending_class {
++                class_depths.push(depth);
++                pending_class = false;
++            }
++            doc = "";
++            attrs.clear();
++            i += 1;
++            continue;
++        }
++        if token == "}" {
++            if class_depths.last() == Some(&depth) {
++                class_depths.pop();
++            }
++            if ns_depth == Some(depth) {
++                ns.clear();
++                imports.clear();
++                ns_depth = None;
++            }
++            depth = depth.saturating_sub(1);
++            doc = "";
++            attrs.clear();
++            i += 1;
++            continue;
++        }
++        if token == "const" {
++            let mut end = i + 1;
++            let mut nesting = 0usize;
++            let mut start = end;
++            while end < t.len() {
++                match t[end] {
++                    "(" | "[" | "{" => nesting += 1,
++                    ")" | "]" | "}" => nesting = nesting.saturating_sub(1),
++                    "," | ";" if nesting == 0 => {
++                        let declarator = &t[start..end];
++                        if class_depths.is_empty()
++                            && let Some(eq) = declarator.iter().position(|v| *v == "=")
++                            && eq > 0
++                        {
++                            let name = declarator[eq - 1];
++                            let refs = imports
++                                .iter()
++                                .map(|(a, t)| (a.as_str(), t.as_str()))
++                                .collect::<Vec<_>>();
++                            let (attr_from, attr_to) = availability_attribute(&attrs, &refs, &ns);
++                            result.push(Entry {
++                                kind: "constant",
++                                name: if ns.is_empty() {
++                                    name.to_string()
++                                } else {
++                                    format!("{ns}\\{name}")
++                                },
++                                from: doc_version(doc, "@since", php_domain)
++                                    .unwrap_or(0)
++                                    .max(attr_from),
++                                to: attr_to,
++                                removed: doc_version(doc, "@removed", php_domain)
++                                    .unwrap_or(u16::MAX),
++                            });
++                        }
++                        start = end + 1;
++                        if t[end] == ";" {
++                            break;
++                        }
++                    }
++                    _ => {}
++                }
++                end += 1;
++            }
++            doc = "";
++            attrs.clear();
++            i = (end + 1).min(t.len());
++            continue;
++        }
++        let kind = match token {
++            "function" => Some("function"),
++            "class" | "interface" | "trait" | "enum" => Some("class"),
++            "const" | "define" => Some("constant"),
++            _ => None,
++        };
++        if let Some(kind) = kind {
++            let mut n = i + 1;
++            if t.get(n) == Some(&"&") {
++                n += 1;
++            }
++            if token == "define" {
++                if t.get(n) != Some(&"(") {
++                    i += 1;
++                    continue;
++                }
++                n += 1;
++            }
++            if let Some(raw) = t.get(n) {
++                let name = unquote(raw);
++                let declaration = name
++                    .bytes()
++                    .next()
++                    .is_some_and(|b| b.is_ascii_alphabetic() || b == b'_' || b >= 128);
++                if declaration
++                    && class_depths.is_empty()
++                    && t.get(i.wrapping_sub(1)) != Some(&":")
++                    && !(kind == "class" && t.get(i.wrapping_sub(1)) == Some(&"new"))
++                {
++                    let fqn = if ns.is_empty() || token == "define" {
++                        name.to_string()
++                    } else {
++                        format!("{ns}\\{name}")
++                    };
++                    let refs = imports
++                        .iter()
++                        .map(|(a, t)| (a.as_str(), t.as_str()))
++                        .collect::<Vec<_>>();
++                    let (attr_from, attr_to) = availability_attribute(&attrs, &refs, &ns);
++                    let from = doc_version(doc, "@since", php_domain)
++                        .unwrap_or(0)
++                        .max(attr_from);
++                    let removed = doc_version(doc, "@removed", php_domain).unwrap_or(u16::MAX);
++                    let to = attr_to;
++                    result.push(Entry {
++                        kind,
++                        name: fqn,
++                        from,
++                        to,
++                        removed,
++                    });
++                }
++            }
++            if kind == "class" && t.get(i.wrapping_sub(1)) != Some(&":") {
++                pending_class = true;
++            }
++            if kind == "function"
++                && t.get(n).is_some_and(|name| {
++                    name.bytes()
++                        .next()
++                        .is_some_and(|b| b.is_ascii_alphabetic() || b == b'_' || b >= 128)
++                })
++            {
++                i = n;
++            }
++            doc = "";
++            attrs.clear();
++        }
++        if token == ";" {
++            doc = "";
++            attrs.clear();
++        }
++        i += 1;
++    }
++    result
++}
++#[cfg(test)]
++mod tests {
++    use super::*;
++    #[test]
++    fn domain_and_owner_are_not_inferred_from_indentation() {
++        let src = "<?php namespace Random { /** @since 7.0 */ function random_bytes() {} /** @since 8.2 */ class Randomizer { /** @since 8.3 */ function getFloat() {} } }";
++        assert_eq!(
++            entries(src, true),
++            vec![
++                Entry {
++                    kind: "function",
++                    name: "Random\\random_bytes".into(),
++                    from: 700,
++                    to: 65535,
++                    removed: 65535
++                },
++                Entry {
++                    kind: "class",
++                    name: "Random\\Randomizer".into(),
++                    from: 802,
++                    to: 65535,
++                    removed: 65535
++                }
++            ]
++        );
++    }
++    #[test]
++    fn extension_release_is_not_a_php_release() {
++        let src = "<?php /** @since 5.2.0 */ function redis_example() {}";
++        assert_eq!(entries(src, false)[0].from, 0);
++        assert_eq!(entries(src, true)[0].from, 502);
++    }
++    #[test]
++    fn ranges_and_removals_are_per_declaration() {
++        let src = "<?php /** @removed 8.0 */ #[PhpStormStubsElementAvailable(from: '5.6', to: '7.4')] function old_name() {} /** @since 8.1 */ define('FUTURE', 1);";
++        let e = entries(src, true);
++        assert_eq!((e[0].from, e[0].to, e[0].removed), (506, 704, 800));
++        assert_eq!(e[1].from, 801);
++    }
++
++    #[test]
++    fn unrelated_attribute_bounds_are_not_php_availability() {
++        let src = "<?php #[Unrelated(from: '8.5')] function existing() {}";
++        assert_eq!(
++            (entries(src, true)[0].from, entries(src, true)[0].to),
++            (0, 65535)
++        );
++    }
++    #[test]
++    fn attribute_bounds_do_not_bleed_across_attributes() {
++        let src = "<?php #[Unrelated(from: '8.5'), PhpStormStubsElementAvailable(to: '7.4'), Other(from: '8.3')] function existing() {}";
++        assert_eq!(
++            (entries(src, true)[0].from, entries(src, true)[0].to),
++            (0, 704)
++        );
++    }
++    #[test]
++    fn availability_fqn_alias_and_positional_are_recognized() {
++        let src = "<?php use JetBrains\\PhpStorm\\Internal\\PhpStormStubsElementAvailable as Available; #[Available('8.1')] function first() {} #[\\JetBrains\\PhpStorm\\Internal\\PhpStormStubsElementAvailable(from: '8.2')] function second() {}";
++        assert_eq!(
++            entries(src, true)
++                .iter()
++                .map(|e| e.from)
++                .collect::<Vec<_>>(),
++            vec![801, 802]
++        );
++    }
++    #[test]
++    fn unrelated_namespace_and_nested_attributes_are_not_availability() {
++        let src = "<?php use Other\\PhpStormStubsElementAvailable; #[PhpStormStubsElementAvailable(from: '8.5')] function first() {} #[Unrelated(new \\JetBrains\\PhpStorm\\Internal\\PhpStormStubsElementAvailable(from: '8.5'))] function second() {}";
++        assert_eq!(
++            entries(src, true)
++                .iter()
++                .map(|e| e.from)
++                .collect::<Vec<_>>(),
++            vec![0, 0]
++        );
++    }
++    #[test]
++    fn since_does_not_leak_from_classes_constants_or_comments_to_functions() {
++        let source = "<?php /** @since 8.0.2 */ #[Pure] function introduced_in_core(): void {} /** @since 8.1 */ class Type { /** @since 8.2 */ public function method_since(): void {} } /** @since 8.3 */ // function mentioned is not a declaration\nconst DOCUMENTED_CONSTANT = 'function not_a_function';";
++        let got = entries(source, true)
++            .into_iter()
++            .filter(|e| e.kind == "function")
++            .map(|e| (e.name, e.from))
++            .collect::<Vec<_>>();
++        assert_eq!(got, vec![("introduced_in_core".to_string(), 800)]);
++    }
++}
++
++#[cfg(test)]
++mod release_regressions {
++    use super::*;
++    #[test]
++    fn all_constant_declarators_share_the_statement_metadata() {
++        let e = entries(
++            "<?php /** @since 8.4 */ const A = [1, 2], B = 2, C = foo(1, 2);",
++            true,
++        );
++        assert_eq!(
++            e.iter()
++                .map(|e| (e.name.as_str(), e.from))
++                .collect::<Vec<_>>(),
++            vec![("A", 804), ("B", 804), ("C", 804)]
++        );
++    }
++    #[test]
++    fn grouped_availability_import_resolves_its_own_alias() {
++        let src = r"<?php use JetBrains\PhpStorm\Internal\{Other, PhpStormStubsElementAvailable as Available}; #[Available(from: '8.4')] function future() {}";
++        assert_eq!(entries(src, true)[0].from, 804);
++    }
++    #[test]
++    fn imports_do_not_leak_between_namespace_scopes() {
++        let src = r"<?php namespace A { use JetBrains\PhpStorm\Internal\PhpStormStubsElementAvailable as Available; #[Available(from:'8.4')] function future() {} } namespace B { use Other\Available; #[Available(from:'8.4')] function existing() {} }";
++        assert_eq!(
++            entries(src, true)
++                .iter()
++                .map(|e| (e.name.as_str(), e.from))
++                .collect::<Vec<_>>(),
++            vec![("A\\future", 804), ("B\\existing", 0)]
++        );
++    }
++    #[test]
++    fn heredoc_and_nowdoc_contents_never_become_declarations_or_imports() {
++        let src = "<?php $s=<<<TXT\n/** @since 8.5 */ function phantom() {}\nuse Wrong\\Available;\nTXT;\n$s=<<<'RAW'\nclass Phantom {}\nfunction phantom_again() {}\nRAW;\nfunction real() {}";
++        assert_eq!(
++            entries(src, true)
++                .iter()
++                .map(|e| e.name.as_str())
++                .collect::<Vec<_>>(),
++            vec!["real"]
++        );
++    }
++    #[test]
++    fn anonymous_class_members_and_quoted_declarations_are_not_global_functions() {
++        let src = r#"<?php $x = new class { function member() {} }; $s="function quoted() {}"; $f = function () use ($x) {}; function real() {}"#;
++        assert_eq!(
++            entries(src, true)
++                .iter()
++                .map(|e| e.name.as_str())
++                .collect::<Vec<_>>(),
++            vec!["real"]
++        );
++    }
++}
++
++#[cfg(test)]
++mod ownership_regressions {
++    use super::*;
++    #[test]
++    fn anonymous_extends_and_class_name_literals_do_not_change_declaration_ownership() {
++        let source = "<?php $x=new class extends Base { function member() {} }; Foo::class; function enum() {} function real() {}";
++        let names = entries(source, true)
++            .into_iter()
++            .map(|e| (e.kind, e.name))
++            .collect::<Vec<_>>();
++        assert_eq!(
++            names,
++            vec![
++                ("function", "enum".to_string()),
++                ("function", "real".to_string())
++            ]
++        );
++    }
++}
++
++#[cfg(test)]
++mod nested_owner_regressions {
++    use super::*;
++    #[test]
++    fn nested_anonymous_classes_restore_the_enclosing_owner() {
++        let source = "<?php namespace N { class Outer { function first() { $x=new class { function nested(){ $y=new class { function inner(){} }; } }; } /** @since 8.4 */ function outerMethod() {} /** @since 8.4 */ const OUTER_CONST=1; } function real() {} const TOP=1; }";
++        let entries = entries(source, true);
++        assert_eq!(
++            entries
++                .iter()
++                .map(|e| (e.kind, e.name.as_str()))
++                .collect::<Vec<_>>(),
++            vec![
++                ("class", "N\\Outer"),
++                ("function", "N\\real"),
++                ("constant", "N\\TOP")
++            ]
++        );
++    }
++    #[test]
++    fn nested_named_class_restores_outer_method_and_constant_ownership() {
++        let source = "<?php class Outer { function first() { class Inner { function inner() {} const INNER=1; } } /** @since 8.4 */ function outerMethod() {} const OUTER_CONST=1; } function real() {} const TOP=1;";
++        let entries = entries(source, true);
++        assert_eq!(
++            entries
++                .iter()
++                .filter(|e| e.kind != "class")
++                .map(|e| (e.kind, e.name.as_str()))
++                .collect::<Vec<_>>(),
++            vec![("function", "real"), ("constant", "TOP")]
++        );
++    }
++}
+diff --git a/src/backend/construction.rs b/src/backend/construction.rs
+--- a/src/backend/construction.rs
++++ b/src/backend/construction.rs
+@@ -200,6 +200,10 @@
+     /// the PHP standard library stubs.
+     pub fn new_headless() -> Self {
+         Self::from_state(BackendState {
++            // Headless callers issue sequential operations without a client
++            // refresh loop. A completed edit must publish its symbols before
++            // the next request; otherwise rename completion races the parse.
++            sync_ast_updates: true,
+             skip_reference_index: true,
+             ..BackendState::defaults()
+         })
+diff --git a/src/backend/settings.rs b/src/backend/settings.rs
+--- a/src/backend/settings.rs
++++ b/src/backend/settings.rs
+@@ -1,7 +1,6 @@
+ //! The project configuration, the indexing filters compiled from it, and
+ //! the PHP version the stubs are filtered for.
+ 
+-use std::collections::HashMap;
+ use std::sync::Arc;
+ 
+ use crate::{Backend, classmap_scanner, config, stubs, types};
+@@ -110,27 +109,23 @@
+     /// `stub_constant_index` to remove entries that do not exist in
+     /// the given PHP version.
+     pub fn set_php_version(&self, version: types::PhpVersion) {
++        let version_changed = self.php_version() != version;
+         *self.workspace.php_version.lock() = version;
+-        // Every symbol a stub file declares shares that file's `&'static str`,
+-        // so each file is scanned once for its removed declarations and the
+-        // filter below is a set lookup per symbol.
+-        let mut removed_by_file: HashMap<usize, Option<stubs::RemovedStubNames<'static>>> =
+-            HashMap::new();
+-        let mut is_removed = |source: &'static str, name: &str, kind: stubs::StubSymbolKind| {
+-            removed_by_file
+-                .entry(source.as_ptr() as usize)
+-                .or_insert_with(|| stubs::removed_stub_names(source, version))
+-                .as_ref()
+-                .is_some_and(|names| names.contains(kind, name))
+-        };
+         self.stub_function_index
+             .write()
+-            .retain(|name, source| !is_removed(source, name, stubs::StubSymbolKind::Function));
++            .retain(|name, _| stubs::stub_symbol_available("function", name, version));
+         self.stub_index
+             .write()
+-            .retain(|name, source| !is_removed(source, name, stubs::StubSymbolKind::Class));
++            .retain(|name, _| stubs::stub_symbol_available("class", name, version));
+         self.stub_constant_index
+             .write()
+-            .retain(|name, source| !is_removed(source, name, stubs::StubSymbolKind::Constant));
++            .retain(|name, _| stubs::stub_symbol_available("constant", name, version));
++        if version_changed {
++            self.symbols
++                .global_functions
++                .write()
++                .retain(|_, (uri, _)| !uri.starts_with(stubs::STUB_FUNCTION_URI_PREFIX));
++            self.symbols.function_not_found_cache.write().clear();
++        }
+     }
+ }
+diff --git a/src/completion/context/class_completion/context_detect.rs b/src/completion/context/class_completion/context_detect.rs
+--- a/src/completion/context/class_completion/context_detect.rs
++++ b/src/completion/context/class_completion/context_detect.rs
+@@ -97,6 +97,16 @@
+ /// Walks backward from the cursor past identifiers, whitespace, and
+ /// comma-separated lists to find the preceding keyword.
+ pub(crate) fn detect_class_name_context(content: &str, position: Position) -> ClassNameContext {
++    use crate::completion::import_context::{ImportKind, detect_import_context};
++    if let Some(context) = detect_import_context(content, position) {
++        return match context.kind {
++            ImportKind::Class => ClassNameContext::UseImport,
++            ImportKind::Function => ClassNameContext::UseFunction,
++            ImportKind::Const => ClassNameContext::UseConst,
++            ImportKind::Trait => ClassNameContext::TraitUse,
++        };
++    }
++
+     let chars: Vec<char> = content.chars().collect();
+     let Some(offset) = position_to_char_offset(&chars, position) else {
+         return ClassNameContext::Any;
+diff --git a/src/completion/context/function_completion.rs b/src/completion/context/function_completion.rs
+--- a/src/completion/context/function_completion.rs
++++ b/src/completion/context/function_completion.rs
+@@ -34,6 +34,7 @@
+     insert_text_format: Option<InsertTextFormat>,
+     is_deprecated: bool,
+     additional_text_edits: Option<Vec<TextEdit>>,
++    replacement_range: Option<Range>,
+ }
+ 
+ impl FunctionItemBuilder {
+@@ -56,6 +57,7 @@
+             insert_text_format: None,
+             is_deprecated: false,
+             additional_text_edits: None,
++            replacement_range: None,
+         }
+     }
+ 
+@@ -79,7 +81,18 @@
+         self
+     }
+ 
++    fn replace_range(mut self, range: Option<Range>) -> Self {
++        self.replacement_range = range;
++        self
++    }
++
+     fn build(self) -> CompletionItem {
++        let text_edit = self.replacement_range.map(|range| {
++            CompletionItemTextEdit::TextEdit(TextEdit {
++                range,
++                new_text: self.insert_text.clone(),
++            })
++        });
+         let detail = self.return_type;
+         let data = serde_json::to_value(CompletionItemData {
+             class_name: String::new(),
+@@ -94,6 +107,7 @@
+             kind: Some(CompletionItemKind::Function),
+             detail,
+             insert_text: Some(self.insert_text),
++            text_edit,
+             insert_text_format: self.insert_text_format,
+             filter_text: Some(self.filter_text),
+             sort_text: Some(self.sort_text),
+@@ -181,6 +195,79 @@
+ 
+         // Pre-compute use-block info for auto-import insertion.
+         let use_block = content.map(|content| self.use_block_at(uri, content, position));
++        // Monaco's PHP word range excludes backslashes. Replace the entire written name explicitly.
++        let replacement_range = content.map(|text| {
++            let end =
++                (crate::text_position::position_to_offset(text, position) as usize).min(text.len());
++            let units = text[..end]
++                .chars()
++                .rev()
++                .take_while(|c| {
++                    c.is_ascii_alphanumeric() || *c == '_' || *c == '\\' || !c.is_ascii()
++                })
++                .map(char::len_utf16)
++                .sum::<usize>() as u32;
++            Range {
++                start: Position {
++                    line: position.line,
++                    character: position.character.saturating_sub(units),
++                },
++                end: position,
++            }
++        });
++
++        // The selected FQN is an identity; insertion must preserve it in the consumer scope.
++        let scope = content.map(|text| {
++            self.file_context_at(
++                uri,
++                crate::text_position::position_to_offset(text, position),
++            )
++        });
++        let namespace = scope
++            .as_ref()
++            .map(|ctx| ctx.namespace.as_ref())
++            .unwrap_or(file_namespace.as_ref());
++        let mut declared_functions: HashSet<String> = self
++            .symbols
++            .global_functions
++            .read()
++            .iter_folded()
++            .map(|(_, name, _)| name.to_ascii_lowercase())
++            .collect();
++        declared_functions.extend(
++            self.symbols
++                .autoload_function_index
++                .read()
++                .iter_folded()
++                .map(|(_, name, _)| name.to_ascii_lowercase()),
++        );
++        let call_spelling = |fqn: &str| -> (String, bool) {
++            let short = short_name(fqn);
++            if let Some(imports) = scope.as_ref().map(|ctx| &ctx.symbol_imports.functions) {
++                if let Some((alias, _)) = imports
++                    .iter()
++                    .find(|(_, target)| target.eq_ignore_ascii_case(fqn))
++                {
++                    return (alias.clone(), false);
++                }
++                if imports.iter().any(|(alias, target)| {
++                    alias.eq_ignore_ascii_case(short) && !target.eq_ignore_ascii_case(fqn)
++                }) {
++                    return (format!("\\{fqn}"), false);
++                }
++            }
++            let local = namespace
++                .map(|ns| format!("{ns}\\{short}"))
++                .unwrap_or_else(|| short.to_string());
++            if local.eq_ignore_ascii_case(fqn) {
++                return (short.to_string(), false);
++            }
++            if !fqn.contains('\\') || declared_functions.contains(&local.to_ascii_lowercase()) {
++                return (format!("\\{fqn}"), false);
++            }
++            // A foreign namespaced function may use the existing collision-free import edit.
++            (short.to_string(), true)
++        };
+ 
+         // ── 1. User-defined functions (from parsed files) ───────────
+         {
+@@ -223,42 +310,17 @@
+                 } else {
+                     let label = build_callable_label(&info.name, &info.parameters);
+ 
+-                    // No import needed when the function lives in the
+-                    // same namespace as the current file.
+-                    let same_ns = file_namespace
+-                        .as_ref()
+-                        .zip(info.namespace.as_ref())
+-                        .is_some_and(|(file_ns, func_ns)| file_ns.eq_ignore_ascii_case(func_ns));
+-
+-                    // Check for import conflict: another function with
+-                    // the same short name is already imported.
+-                    let has_conflict = is_namespaced
+-                        && !same_ns
+-                        && use_block
+-                            .as_ref()
+-                            .is_some_and(|ub| ub.function_import_conflicts(&fqn));
+-
+-                    let additional_text_edits = if is_namespaced && !same_ns && !has_conflict {
++                    let (call_name, needs_import) = call_spelling(&fqn);
++                    let additional_text_edits = if needs_import {
+                         use_block
+                             .as_ref()
+                             .and_then(|ub| build_use_function_edit(&fqn, ub))
+                     } else {
+                         None
+                     };
++                    let insert_text = build_callable_snippet(&call_name, &info.parameters);
++                    let filter_text = info.name.to_string();
+ 
+-                    // When there's a conflict, use the leading-backslash
+-                    // FQN so the call resolves without an import.
+-                    let (insert_text, filter_text) = if has_conflict {
+-                        let fqn_snippet =
+-                            format!("\\{}", build_callable_snippet(&fqn, &info.parameters));
+-                        (fqn_snippet, format!("\\{}", fqn))
+-                    } else {
+-                        (
+-                            build_callable_snippet(&info.name, &info.parameters),
+-                            info.name.to_string(),
+-                        )
+-                    };
+-
+                     let origin_tier = origin_sort_tier(self.completion_origin_for_uri(_uri));
+                     items.push(
+                         FunctionItemBuilder::new(
+@@ -273,6 +335,7 @@
+                         .snippet()
+                         .deprecated(is_deprecated)
+                         .additional_edits(additional_text_edits)
++                        .replace_range(replacement_range)
+                         .build(),
+                     );
+                 }
+@@ -303,25 +366,17 @@
+                 if for_use_import {
+                     items.push(build_use_import_item(fqn.to_owned(), fqn, "4", false, uri));
+                 } else {
+-                    let has_conflict = is_namespaced
+-                        && use_block
+-                            .as_ref()
+-                            .is_some_and(|ub| ub.function_import_conflicts(fqn));
+-
+-                    let additional_text_edits = if is_namespaced && !has_conflict {
++                    let (call_name, needs_import) = call_spelling(fqn);
++                    let additional_text_edits = if needs_import {
+                         use_block
+                             .as_ref()
+                             .and_then(|ub| build_use_function_edit(fqn, ub))
+                     } else {
+                         None
+                     };
++                    let insert_text = format!("{call_name}()$0");
++                    let filter_text = sn.to_string();
+ 
+-                    let (insert_text, filter_text) = if has_conflict {
+-                        (format!("\\{fqn}()$0"), format!("\\{fqn}"))
+-                    } else {
+-                        (format!("{sn}()$0"), sn.to_string())
+-                    };
+-
+                     let origin = self
+                         .symbols
+                         .autoload_function_origin_index
+@@ -341,6 +396,7 @@
+                         )
+                         .snippet()
+                         .additional_edits(additional_text_edits)
++                        .replace_range(replacement_range)
+                         .build(),
+                     );
+                 }
+@@ -376,7 +432,8 @@
+                     uri,
+                 ));
+             } else {
+-                let additional_text_edits = if is_namespaced {
++                let (call_name, needs_import) = call_spelling(name);
++                let additional_text_edits = if needs_import {
+                     use_block
+                         .as_ref()
+                         .and_then(|ub| build_use_function_edit(name, ub))
+@@ -387,7 +444,7 @@
+                 items.push(
+                     FunctionItemBuilder::new(
+                         sn.to_string(),
+-                        format!("{sn}()$0"),
++                        format!("{call_name}()$0"),
+                         sn.to_string(),
+                         flat_symbol_sort_text(
+                             sn,
+@@ -400,6 +457,7 @@
+                     )
+                     .snippet()
+                     .additional_edits(additional_text_edits)
++                    .replace_range(replacement_range)
+                     .build(),
+                 );
+             }
+diff --git a/src/completion/context/import_context.rs b/src/completion/context/import_context.rs
+--- a/src/completion/context/import_context.rs
++++ b/src/completion/context/import_context.rs
+@@ -0,0 +1,374 @@
++//! The active import item, shared by classification, candidate search and edits.
++use mago_allocator::LocalArena;
++use mago_database::file::FileId;
++use mago_span::HasSpan;
++use mago_syntax::cst::{Node, UseItem, UseItems, UseType};
++use mago_syntax::settings::ParserSettings;
++use tower_lsp_server::gen_lsp_types::*;
++
++#[derive(Debug, Clone, Copy, PartialEq, Eq)]
++pub(crate) enum ImportKind {
++    Class,
++    Function,
++    Const,
++    Trait,
++}
++
++#[derive(Debug, Clone, PartialEq, Eq)]
++pub(crate) struct ImportContext {
++    pub kind: ImportKind,
++    pub group_prefix: Option<String>,
++    pub prefix: String,
++    pub range: Range,
++    pub append_semicolon: bool,
++}
++
++fn kind(value: Option<&UseType<'_>>) -> ImportKind {
++    match value {
++        Some(UseType::Function(_)) => ImportKind::Function,
++        Some(UseType::Const(_)) => ImportKind::Const,
++        None => ImportKind::Class,
++    }
++}
++
++impl ImportContext {
++    pub fn search_prefix(&self) -> String {
++        match &self.group_prefix {
++            Some(group) => format!("{group}\\{}", self.prefix),
++            None => self.prefix.clone(),
++        }
++    }
++
++    /// Importing a symbol is not invoking it or adding another use statement.
++    /// Preserve the canonical data used by resolve, but own every edit field.
++    pub fn edit_items(&self, items: Vec<CompletionItem>) -> Vec<CompletionItem> {
++        items
++            .into_iter()
++            .filter_map(|mut item| {
++                let fqn = item
++                    .data
++                    .as_ref()
++                    .and_then(|d| d.get("m"))
++                    .and_then(|v| v.as_str())
++                    .or_else(|| {
++                        (item.kind == Some(CompletionItemKind::Module))
++                            .then_some(item.filter_text.as_deref())
++                            .flatten()
++                    })?;
++                let fqn = fqn.trim_start_matches('\\');
++                let relative = if let Some(group) = &self.group_prefix {
++                    let head = fqn.get(..group.len())?;
++                    if !head.eq_ignore_ascii_case(group)
++                        || fqn.as_bytes().get(group.len()) != Some(&b'\\')
++                    {
++                        return None;
++                    }
++                    &fqn[group.len() + 1..]
++                } else {
++                    fqn
++                };
++                let mut text = relative.to_owned();
++                if item.kind == Some(CompletionItemKind::Module) {
++                    if !text.ends_with('\\') {
++                        text.push('\\');
++                    }
++                } else if self.append_semicolon {
++                    text.push(';');
++                }
++                item.filter_text = Some(relative.to_owned());
++                item.insert_text = Some(text.clone());
++                item.insert_text_format = Some(InsertTextFormat::PlainText);
++                item.insert_text_mode = None;
++                item.text_edit = Some(CompletionItemTextEdit::TextEdit(TextEdit {
++                    range: self.range,
++                    new_text: text,
++                }));
++                item.text_edit_text = None;
++                item.additional_text_edits = None;
++                item.command = None;
++                Some(item)
++            })
++            .collect()
++    }
++}
++
++fn item_context(
++    content: &str,
++    cursor: usize,
++    kind: ImportKind,
++    group_prefix: Option<String>,
++    item: &UseItem<'_>,
++) -> Option<ImportContext> {
++    let span = item.name.span();
++    let start = span.start.offset as usize;
++    if cursor < start || cursor > span.end.offset as usize {
++        return None;
++    }
++    // Retain the rest of a name when completion is requested mid-token. An
++    // alias and neighbouring group items are outside this replacement range.
++    let mut end = cursor;
++    let bytes = content.as_bytes();
++    while end < bytes.len() && (crate::text_scan::is_ident_byte(bytes[end]) || bytes[end] == b'\\')
++    {
++        end += 1;
++    }
++    let following = crate::text_scan::skip_php_trivia(bytes, end);
++    let append_semicolon = group_prefix.is_none()
++        && !matches!(bytes.get(following), Some(b';' | b','))
++        && !crate::text_scan::keyword_starts_at(bytes, following, b"as");
++    Some(ImportContext {
++        kind,
++        group_prefix,
++        prefix: content[start..cursor].to_owned(),
++        range: Range {
++            start: crate::text_position::offset_to_position(content, start),
++            end: crate::text_position::offset_to_position(content, end),
++        },
++        append_semicolon,
++    })
++}
++
++pub(crate) fn detect_import_context(content: &str, position: Position) -> Option<ImportContext> {
++    let cursor =
++        (crate::text_position::position_to_offset(content, position) as usize).min(content.len());
++    let prefix = &content[..cursor];
++    if !prefix
++        .as_bytes()
++        .windows(3)
++        .any(|w| w.eq_ignore_ascii_case(b"use"))
++    {
++        return None;
++    }
++    crate::util::catch_panic_unwind_safe("completion import context", "<completion>", None, || {
++        // A group closes BEFORE its statement terminator; class/namespace
++        // owners close AFTER it. Try the two grammar forms, accepting only
++        // the matching CST shape. A synthetic identifier also retains an
++        // empty item after `{`, `,`, or its kind keyword. Only the source up
++        // to the real cursor is used as the search prefix and edit range.
++        let closing = "}".repeat(prefix.bytes().filter(|&b| b == b'{').count());
++        for grouped in [true, false] {
++            let recoverable = if grouped {
++                format!("{prefix}__phpantom_completion__}};{closing}")
++            } else {
++                format!("{prefix}__phpantom_completion__;{closing}")
++            };
++            let arena = LocalArena::new();
++            let program = mago_syntax::parser::parse_file_content_with_settings(
++                &arena,
++                FileId::new(b"completion-import.php"),
++                recoverable.as_bytes(),
++                ParserSettings {
++                    recover_incomplete: true,
++                    ..Default::default()
++                },
++            );
++            let mut nodes = vec![Node::Program(program)];
++            while let Some(node) = nodes.pop() {
++                let span = node.span();
++                if cursor < span.start.offset as usize || cursor > span.end.offset as usize {
++                    continue;
++                }
++                match node {
++                    Node::Use(import)
++                        if cursor <= import.terminator.span().start.offset as usize =>
++                    {
++                        let result = match &import.items {
++                            UseItems::Sequence(items) if !grouped => {
++                                items.items.iter().find_map(|item| {
++                                    item_context(content, cursor, ImportKind::Class, None, item)
++                                })
++                            }
++                            UseItems::TypedSequence(items) if !grouped => {
++                                items.items.iter().find_map(|item| {
++                                    item_context(
++                                        content,
++                                        cursor,
++                                        kind(Some(&items.r#type)),
++                                        None,
++                                        item,
++                                    )
++                                })
++                            }
++                            UseItems::TypedList(items) if grouped => {
++                                let group = String::from_utf8_lossy(items.namespace.value())
++                                    .trim_start_matches('\\')
++                                    .to_owned();
++                                items.items.iter().find_map(|item| {
++                                    item_context(
++                                        content,
++                                        cursor,
++                                        kind(Some(&items.r#type)),
++                                        Some(group.clone()),
++                                        item,
++                                    )
++                                })
++                            }
++                            UseItems::MixedList(items) if grouped => {
++                                let group = String::from_utf8_lossy(items.namespace.value())
++                                    .trim_start_matches('\\')
++                                    .to_owned();
++                                items.items.iter().find_map(|item| {
++                                    item_context(
++                                        content,
++                                        cursor,
++                                        kind(item.r#type.as_ref()),
++                                        Some(group.clone()),
++                                        &item.item,
++                                    )
++                                })
++                            }
++                            _ => None,
++                        };
++                        if result.is_some() {
++                            return result;
++                        }
++                    }
++                    Node::TraitUse(import)
++                        if !grouped
++                            && cursor <= import.specification.span().start.offset as usize =>
++                    {
++                        return Some(ImportContext {
++                            kind: ImportKind::Trait,
++                            group_prefix: None,
++                            prefix: String::new(),
++                            range: Range {
++                                start: position,
++                                end: position,
++                            },
++                            append_semicolon: false,
++                        });
++                    }
++                    Node::ClosureUseClause(_) => {}
++                    _ => node.visit_children(|child| nodes.push(child)),
++                }
++            }
++        }
++        None
++    })
++    .flatten()
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    fn at_end(source: &str) -> Option<ImportKind> {
++        let lines = source.split('\n').collect::<Vec<_>>();
++        detect_import_context(
++            source,
++            Position {
++                line: lines.len() as u32 - 1,
++                character: lines.last().unwrap().encode_utf16().count() as u32,
++            },
++        )
++        .map(|context| context.kind)
++    }
++    #[test]
++    fn comments_preserve_namespace_import_kinds() {
++        for (suffix, expected) in [
++            ("use /*x*/ const str", ImportKind::Const),
++            ("use /*x*/ function str", ImportKind::Function),
++            ("use /*x*/ Vendor\\str", ImportKind::Class),
++        ] {
++            assert_eq!(
++                at_end(&format!("<?php namespace App; {suffix}")),
++                Some(expected)
++            );
++            assert_eq!(
++                at_end(&format!("<?php namespace App {{ {suffix}")),
++                Some(expected)
++            );
++        }
++    }
++    #[test]
++    fn capture_and_trait_use_are_distinct_nodes() {
++        assert_eq!(at_end("<?php $x=1; $f=function() use /*x*/ ($x"), None);
++        for source in [
++            "<?php class C { use /*x*/ Vendor\\T",
++            "<?php namespace App { class C { use /* } } */ Vendor\\T",
++        ] {
++            assert_eq!(at_end(source), Some(ImportKind::Trait));
++        }
++    }
++    #[test]
++    fn group_items_keep_their_own_kind() {
++        for (source, expected) in [
++            (
++                "<?php namespace App { use Vendor\\{const VAL",
++                ImportKind::Const,
++            ),
++            (
++                "<?php namespace App { use Vendor\\{function wor",
++                ImportKind::Function,
++            ),
++            (
++                "<?php namespace App { use Vendor\\{Widget, const VAL",
++                ImportKind::Const,
++            ),
++            (
++                "<?php namespace App { use function Vendor\\{wor",
++                ImportKind::Function,
++            ),
++        ] {
++            assert_eq!(at_end(source), Some(expected), "{source}");
++        }
++    }
++    #[test]
++    fn structured_group_context_preserves_prefix_kind_and_utf16_range() {
++        for (before, typed, after, expected_kind, prefix) in [
++            (
++                "<?php use Vendor\\{const ",
++                "VAL",
++                " as Picked};",
++                ImportKind::Const,
++                "VAL",
++            ),
++            (
++                "<?php namespace App { use Vendor\\{Widget, function ",
++                "wor",
++                "}; }",
++                ImportKind::Function,
++                "wor",
++            ),
++            (
++                "<?php use /* 🐈 */ function Vendor\\{",
++                "wor",
++                "};",
++                ImportKind::Function,
++                "wor",
++            ),
++            ("<?php use Vendor\\{", "", "};", ImportKind::Class, ""),
++            ("<?php use Vendor\\{const ", "", "};", ImportKind::Const, ""),
++        ] {
++            let source = format!("{before}{typed}{after}");
++            let cursor = Position {
++                line: 0,
++                character: format!("{before}{typed}").encode_utf16().count() as u32,
++            };
++            let want = ImportContext {
++                kind: expected_kind,
++                group_prefix: Some("Vendor".to_owned()),
++                prefix: prefix.to_owned(),
++                range: Range {
++                    start: Position {
++                        line: 0,
++                        character: before.encode_utf16().count() as u32,
++                    },
++                    end: cursor,
++                },
++                append_semicolon: false,
++            };
++            assert_eq!(
++                detect_import_context(&source, cursor),
++                Some(want),
++                "{source}"
++            );
++        }
++    }
++    #[test]
++    fn preceding_completed_import_is_not_the_active_context() {
++        assert_eq!(
++            at_end("<?php use const STR_PAD_BOTH;\nfunction f(): str"),
++            None
++        );
++    }
++}
+diff --git a/src/completion/context/keyword_completion.rs b/src/completion/context/keyword_completion.rs
+--- a/src/completion/context/keyword_completion.rs
++++ b/src/completion/context/keyword_completion.rs
+@@ -6,7 +6,7 @@
+ use crate::class_lookup::find_class_at_offset;
+ use crate::completion::class_completion::ClassNameContext;
+ use crate::symbol_map::SymbolMap;
+-use crate::types::{ClassInfo, ClassLikeKind};
++use crate::types::{ClassInfo, ClassLikeKind, PhpVersion};
+ 
+ /// Cursor context used to gate context-sensitive PHP keywords.
+ #[derive(Debug, Clone, Copy)]
+@@ -30,6 +30,7 @@
+     /// Cursor is right after a class-member modifier chain followed by
+     /// whitespace (e.g. `public `, `private static `).
+     pub after_member_modifier_chain: bool,
++    pub has_static_member_modifier: bool,
+ }
+ 
+ /// Core PHP keywords that can be completed in generic code contexts.
+@@ -291,6 +292,12 @@
+         ),
+         class_body_kind,
+         after_member_modifier_chain,
++        has_static_member_modifier: content[..(cursor_offset as usize).min(content.len())]
++            .rsplit(['{', '}', ';', '\n', '\r'])
++            .next()
++            .unwrap_or("")
++            .split_whitespace()
++            .any(|word| word == "static"),
+     }
+ }
+ 
+@@ -352,6 +359,7 @@
+     prefix: &str,
+     class_ctx: ClassNameContext,
+     ctx: KeywordContext,
++    version: PhpVersion,
+ ) -> Vec<CompletionItem> {
+     if !matches!(class_ctx, ClassNameContext::Any) {
+         return Vec::new();
+@@ -363,6 +371,7 @@
+         .enumerate()
+         .filter(|(_, keyword)| keyword.starts_with(&prefix_lower))
+         .filter(|(_, keyword)| keyword_allowed(keyword, ctx))
++        .filter(|(_, keyword)| keyword_available(keyword, ctx, version))
+         .map(|(idx, keyword)| CompletionItem {
+             label: (*keyword).to_string(),
+             kind: Some(CompletionItemKind::Keyword),
+@@ -376,7 +385,13 @@
+ }
+ 
+ /// Build completion items for enum backing types (`string`, `int`).
+-pub(crate) fn build_backed_enum_type_completions(prefix: &str) -> Vec<CompletionItem> {
++pub(crate) fn build_backed_enum_type_completions(
++    prefix: &str,
++    version: PhpVersion,
++) -> Vec<CompletionItem> {
++    if version < PhpVersion::new(8, 1) {
++        return Vec::new();
++    }
+     let prefix_lower = prefix.to_ascii_lowercase();
+     BACKED_ENUM_TYPES
+         .iter()
+@@ -400,7 +415,8 @@
+     }
+ 
+     match *keyword {
+-        "return" | "yield" => ctx.in_function_like,
++        "return" => true, // PHP permits return from a script/eval/include as well as a function.
++        "yield" => ctx.in_function_like,
+         "break" => ctx.in_breakable,
+         "continue" => ctx.in_loop,
+         "case" | "default" => ctx.in_switch,
+@@ -432,4 +448,30 @@
+             "public" | "protected" | "private" | "static" | "function" | "const" | "use" | "case"
+         ),
+     }
++}
++
++/// Exhaustive policy for the emitted keyword inventory. Existing syntax-context gates still apply.
++/// PHP manual: migration74/80/81.new-features and language.oop5.basic (readonly classes).
++fn keyword_available(keyword: &str, ctx: KeywordContext, version: PhpVersion) -> bool {
++    let since = match keyword {
++        "fn" => (7, 4),
++        "match" => (8, 0),
++        "enum" => (8, 1),
++        "readonly" if ctx.class_body_kind.is_some() => {
++            if ctx.has_static_member_modifier {
++                return false;
++            }
++            (8, 1)
++        }
++        "readonly" => (8, 2),
++        "abstract" | "as" | "break" | "case" | "catch" | "class" | "clone" | "const"
++        | "continue" | "declare" | "default" | "die" | "do" | "echo" | "else" | "elseif"
++        | "empty" | "eval" | "exit" | "extends" | "final" | "finally" | "for" | "foreach"
++        | "function" | "global" | "goto" | "if" | "implements" | "include" | "include_once"
++        | "instanceof" | "interface" | "isset" | "list" | "namespace" | "new" | "print"
++        | "private" | "protected" | "public" | "require" | "require_once" | "return" | "static"
++        | "switch" | "throw" | "trait" | "try" | "unset" | "use" | "while" | "yield" => (5, 6),
++        _ => return false,
++    };
++    version >= PhpVersion::new(since.0, since.1)
+ }
+diff --git a/src/completion/context/mod.rs b/src/completion/context/mod.rs
+--- a/src/completion/context/mod.rs
++++ b/src/completion/context/mod.rs
+@@ -22,3 +22,5 @@
+ pub(crate) mod override_completion;
+ pub(crate) mod symbol_ranking;
+ pub(crate) mod type_hint_completion;
++
++pub(crate) mod import_context;
+diff --git a/src/completion/context/override_completion/position.rs b/src/completion/context/override_completion/position.rs
+--- a/src/completion/context/override_completion/position.rs
++++ b/src/completion/context/override_completion/position.rs
+@@ -329,6 +329,14 @@
+ }
+ 
+ pub(crate) fn is_member_declaration_name_position_at_offset(content: &str, cursor: usize) -> bool {
++    if super::super::import_context::detect_import_context(
++        content,
++        crate::text_position::offset_to_position(content, cursor),
++    )
++    .is_some()
++    {
++        return false;
++    }
+     let bytes = content.as_bytes();
+     let cursor = cursor.min(bytes.len());
+     is_function_or_const_name_position_at_offset(bytes, cursor)
+diff --git a/src/completion/context/type_hint_completion.rs b/src/completion/context/type_hint_completion.rs
+--- a/src/completion/context/type_hint_completion.rs
++++ b/src/completion/context/type_hint_completion.rs
+@@ -30,6 +30,16 @@
+     "iterable", "never", "self", "static", "parent", "true", "false",
+ ];
+ 
++/// Native declaration positions; PHPDoc deliberately uses its separate enrichment path.
++#[derive(Debug, Clone, Copy, PartialEq, Eq)]
++pub(crate) enum TypeHintSite {
++    Parameter,
++    PromotedParameter,
++    ClassConstant,
++    Return,
++    Property,
++}
++
+ /// Context returned when the cursor is at a type-hint position.
+ #[derive(Debug, Clone, PartialEq, Eq)]
+ pub(crate) struct TypeHintContext {
+@@ -43,6 +53,8 @@
+     /// right after `:` needs a space so that the result is `: string`
+     /// rather than `:string`.
+     pub needs_space_prefix: bool,
++    pub site: TypeHintSite,
++    pub preceding_types: String,
+ }
+ 
+ /// Detect whether the cursor is at a type-hint position inside a
+@@ -57,10 +69,16 @@
+ ) -> Option<TypeHintContext> {
+     let chars: Vec<char> = content.chars().collect();
+     let cursor = position_to_char_offset(&chars, position)?;
++    if super::import_context::detect_import_context(content, position).is_some() {
++        return None;
++    }
+ 
+     // Member *names* after `function` / `const` / `case` are not types.
+     // Without this, `public const ST` looks like a property type position
+     // (modifier keyword earlier on the line) and steals completion.
++    if let Some(context) = class_constant_type_context(&chars, cursor) {
++        return Some(context);
++    }
+     if is_function_or_const_name_position(content, position) {
+         return None;
+     }
+@@ -119,6 +137,8 @@
+         return Some(TypeHintContext {
+             partial,
+             needs_space_prefix: needs_space,
++            site: TypeHintSite::Return,
++            preceding_types: String::new(),
+         });
+     }
+ 
+@@ -145,17 +165,21 @@
+             return Some(TypeHintContext {
+                 partial,
+                 needs_space_prefix: false,
++                site: TypeHintSite::Parameter,
++                preceding_types: String::new(),
+             });
+         }
+     }
+ 
+     // ── Check: type modifier `?`, `|`, `&` in a type context ────────
+     if (prev_char == '?' || prev_char == '|' || prev_char == '&')
+-        && is_type_modifier_in_definition(&chars, before - 1)
++        && let Some((site, anchor)) = type_modifier_anchor(&chars, before - 1)
+     {
+         return Some(TypeHintContext {
+             partial,
+             needs_space_prefix: false,
++            site,
++            preceding_types: chars[anchor..partial_start].iter().collect(),
+         });
+     }
+ 
+@@ -201,12 +225,78 @@
+         return Some(TypeHintContext {
+             partial,
+             needs_space_prefix: false,
++            site: modifier_site(&chars, before),
++            preceding_types: String::new(),
+         });
+     }
+ 
+     None
+ }
+ 
++/// Keep the complete type fragment after const, including nullable/union/intersection/DNF.
++/// A following identifier after a complete type is a constant name, not another type.
++fn class_constant_type_context(chars: &[char], cursor: usize) -> Option<TypeHintContext> {
++    let start = chars[..cursor]
++        .iter()
++        .rposition(|c| matches!(c, ';' | '{' | '}'))
++        .map_or(0, |p| p + 1);
++    let segment = &chars[start..cursor];
++    let mut constant_end = None;
++    for i in 0..segment.len().saturating_sub(4) {
++        if segment[i..i + 5]
++            .iter()
++            .zip("const".chars())
++            .all(|(a, b)| a.eq_ignore_ascii_case(&b))
++            && (i == 0 || !is_identifier_char(segment[i - 1]))
++            && (i + 5 == segment.len() || !is_identifier_char(segment[i + 5]))
++        {
++            constant_end = Some(start + i + 5);
++        }
++    }
++    let anchor = constant_end?;
++    if chars[anchor..cursor]
++        .iter()
++        .any(|c| matches!(c, '=' | ',' | '$'))
++    {
++        return None;
++    }
++    let mut partial_start = cursor;
++    while partial_start > anchor && is_identifier_char(chars[partial_start - 1]) {
++        partial_start -= 1;
++    }
++    let partial = chars[partial_start..cursor].iter().collect::<String>();
++    let preceding = chars[anchor..partial_start].iter().collect::<String>();
++    let preceding = preceding.trim();
++    if preceding.is_empty() {
++        if !partial.starts_with(|c: char| c.is_ascii_lowercase())
++            || !PHP_NATIVE_TYPES.iter().any(|ty| ty.starts_with(&partial))
++        {
++            return None;
++        }
++    } else if !preceding.ends_with(['?', '|', '&', '(']) {
++        return None;
++    }
++    Some(TypeHintContext {
++        partial,
++        needs_space_prefix: false,
++        site: TypeHintSite::ClassConstant,
++        preceding_types: preceding.to_string(),
++    })
++}
++
++fn is_identifier_char(c: char) -> bool {
++    c.is_alphanumeric() || matches!(c, '_' | '\\')
++}
++
++/// Native comparison keys only; never rewrite user class names or insertion spellings.
++fn preceding_type_keys(ctx: &TypeHintContext) -> Vec<String> {
++    ctx.preceding_types
++        .split(['|', '&', '?', '(', ')'])
++        .map(|t| t.trim().to_ascii_lowercase())
++        .filter(|t| !t.is_empty())
++        .collect()
++}
++
+ /// Whether the cursor is typing a declared member *name* (not a type).
+ ///
+ /// True for positions like:
+@@ -219,6 +309,9 @@
+ /// by `$`.  Type positions like `protected User|` intentionally still
+ /// offer class names.
+ pub(crate) fn is_function_or_const_name_position(content: &str, position: Position) -> bool {
++    if super::import_context::detect_import_context(content, position).is_some() {
++        return false;
++    }
+     let cursor = (position_to_offset(content, position) as usize).min(content.len());
+     super::override_completion::is_function_or_const_name_position_at_offset(
+         content.as_bytes(),
+@@ -293,87 +386,167 @@
+ /// Walks backward past existing type names and modifiers until it finds
+ /// the structural character that anchors the context (one of `(`, `,`,
+ /// `:` for return type, or a modifier keyword for property declarations).
+-fn is_type_modifier_in_definition(chars: &[char], mod_pos: usize) -> bool {
+-    // Walk backward past the preceding type name (if any) and any
+-    // further type modifiers, collecting context anchors.
+-    let mut i = mod_pos;
++fn modifier_site(chars: &[char], position: usize) -> TypeHintSite {
++    if find_enclosing_open_paren(chars, position)
++        .is_some_and(|open| is_function_definition_paren(chars, open))
++    {
++        TypeHintSite::PromotedParameter
++    } else {
++        TypeHintSite::Property
++    }
++}
+ 
+-    // Allow chained modifiers:  `A|B|`  or `?A|`
++fn type_modifier_anchor(chars: &[char], mod_pos: usize) -> Option<(TypeHintSite, usize)> {
++    let mut i = mod_pos;
+     loop {
+-        // Skip whitespace
+         i = skip_whitespace_backward(chars, i);
+-
+         if i == 0 {
+-            return false;
++            return None;
+         }
+-
+-        // Walk backward through type identifier
+-        let type_end = i;
+-        while i > 0
+-            && (chars[i - 1].is_alphanumeric() || chars[i - 1] == '_' || chars[i - 1] == '\\')
+-        {
++        while i > 0 && (chars[i - 1].is_alphanumeric() || matches!(chars[i - 1], '_' | '\\')) {
+             i -= 1;
+         }
+-
+-        // Skip whitespace
+         i = skip_whitespace_backward(chars, i);
+-
+         if i == 0 {
+-            return false;
++            return None;
+         }
+-
+-        let prev = chars[i - 1];
+-
+-        match prev {
+-            // Another type modifier — keep walking.
++        match chars[i - 1] {
+             '?' | '|' | '&' => {
+                 i -= 1;
+-                continue;
+             }
+-            '(' => {
+-                // Check if this paren is a function definition.
+-                return is_function_definition_paren(chars, i - 1);
++            ')' => {
++                i = find_matching_paren_backward(chars, i - 1)?;
+             }
++            ':' if is_return_type_colon(chars, i - 1) => return Some((TypeHintSite::Return, i)),
++            '(' if is_function_definition_paren(chars, i - 1) => {
++                return Some((TypeHintSite::Parameter, i));
++            }
+             ',' => {
+-                // Find enclosing paren and check if it's a function definition.
+-                if let Some(open) = find_enclosing_open_paren(chars, i - 1)
+-                    && is_function_definition_paren(chars, open)
+-                {
+-                    // Verify the previous param segment has a `$`
+-                    let between: String = chars[open + 1..i - 1].iter().collect();
+-                    if let Some(last_seg) = between.rsplit(',').next() {
+-                        return last_seg.contains('$');
+-                    }
+-                }
+-                return false;
++                let open = find_enclosing_open_paren(chars, i - 1)?;
++                return is_function_definition_paren(chars, open)
++                    .then_some((TypeHintSite::Parameter, i));
+             }
+-            ':' => {
+-                // Return type colon.
+-                return is_return_type_colon(chars, i - 1);
++            c if c.is_alphabetic() && is_after_modifier_keyword(chars, i) => {
++                return Some((modifier_site(chars, i), i));
+             }
+-            _ => {
+-                // Could be after a modifier keyword (property or promoted param).
+-                if prev.is_alphabetic() {
+-                    if is_after_modifier_keyword(chars, i) {
+-                        return true;
+-                    }
+-                    // Could also be: we already consumed the type name above
+-                    // and now the preceding text ends with a modifier.
+-                    // But if type_end == i we didn't consume anything, so this
+-                    // isn't a type context.
+-                    if type_end == i {
+-                        return false;
+-                    }
+-                    // We consumed a type name; check if what's before it is a
+-                    // modifier keyword (e.g. `public ?string|`).
+-                    return is_after_modifier_keyword(chars, i);
+-                }
+-                return false;
+-            }
++            _ => return None,
+         }
+     }
+ }
+ 
++/// PHP manual language.types.declarations: declaration-site and composition availability.
++pub(crate) fn declaration_available(
++    ctx: &TypeHintContext,
++    version: crate::types::PhpVersion,
++) -> bool {
++    use crate::types::PhpVersion;
++    let min = match ctx.site {
++        TypeHintSite::Parameter => (5, 6),
++        TypeHintSite::Return => (7, 0),
++        TypeHintSite::Property => (7, 4),
++        TypeHintSite::PromotedParameter => (8, 0),
++        TypeHintSite::ClassConstant => (8, 3),
++    };
++    let previous = preceding_type_keys(ctx);
++    if previous
++        .iter()
++        .any(|ty| matches!(ty.as_str(), "mixed" | "void" | "never"))
++    {
++        return false;
++    }
++    version >= PhpVersion::new(min.0, min.1)
++        && (!ctx.preceding_types.contains('?') || version >= PhpVersion::new(7, 1))
++        && (!ctx.preceding_types.contains('|') || version >= PhpVersion::new(8, 0))
++        && (!ctx.preceding_types.contains('&') || version >= PhpVersion::new(8, 1))
++        && (!(ctx.preceding_types.contains('&') && ctx.preceding_types.contains('|'))
++            || version >= PhpVersion::new(8, 2))
++}
++
++pub(crate) fn native_type_available(
++    ty: &str,
++    ctx: &TypeHintContext,
++    version: crate::types::PhpVersion,
++    in_class: bool,
++    has_parent: bool,
++) -> bool {
++    use crate::types::PhpVersion;
++    if !declaration_available(ctx, version) {
++        return false;
++    }
++    let union = ctx.preceding_types.contains('|');
++    let nullable = ctx.preceding_types.contains('?');
++    let mut depth = 0usize;
++    let mut last_operator = None;
++    for c in ctx.preceding_types.chars() {
++        match c {
++            '(' => depth += 1,
++            ')' => depth = depth.saturating_sub(1),
++            '|' | '&' if depth == 0 => last_operator = Some(c),
++            _ => {}
++        }
++    }
++    if depth > 0 || last_operator == Some('&') {
++        return false;
++    } // Intersections accept class names only.
++    let since = match ty {
++        "array" | "callable" | "self" | "parent" => (5, 6),
++        "string" | "int" | "float" | "bool" => (7, 0),
++        "iterable" | "void" => (7, 1),
++        "object" => (7, 2),
++        "mixed" | "static" => (8, 0),
++        "never" => (8, 1),
++        "true" => (8, 2),
++        "false" | "null" if union => (8, 0),
++        "false" | "null" => (8, 2),
++        _ => return false,
++    };
++    if version < PhpVersion::new(since.0, since.1) {
++        return false;
++    }
++    if matches!(ty, "void" | "never" | "static") && ctx.site != TypeHintSite::Return {
++        return false;
++    }
++    if matches!(
++        ctx.site,
++        TypeHintSite::Property | TypeHintSite::PromotedParameter | TypeHintSite::ClassConstant
++    ) && ty == "callable"
++    {
++        return false;
++    }
++    if ctx.site == TypeHintSite::ClassConstant && !in_class {
++        return false;
++    }
++    if matches!(ty, "self" | "parent" | "static") && !in_class {
++        return false;
++    }
++    if ty == "parent" && !has_parent {
++        return false;
++    }
++    if union && matches!(ty, "void" | "never" | "mixed")
++        || nullable && matches!(ty, "void" | "never" | "mixed" | "null")
++    {
++        return false;
++    }
++    let previous = preceding_type_keys(ctx);
++    let has = |name: &str| previous.iter().any(|t| t == name);
++    if previous.iter().any(|p| p.eq_ignore_ascii_case(ty)) {
++        return false;
++    }
++    if has("mixed") || has("never") || has("void") {
++        return false;
++    }
++    if ty == "bool" && (has("true") || has("false"))
++        || matches!(ty, "true" | "false") && has("bool")
++        || ty == "true" && has("false")
++        || ty == "false" && has("true")
++        || ty == "array" && has("iterable")
++        || ty == "iterable" && has("array")
++    {
++        return false;
++    }
++    true
++}
++
+ /// Check whether the text ending at `pos` (exclusive) is one of the PHP
+ /// modifier keywords that can precede a type hint: `public`, `protected`,
+ /// `private`, `readonly`, or `static`.
+diff --git a/src/completion/context/type_hint_completion_tests.rs b/src/completion/context/type_hint_completion_tests.rs
+--- a/src/completion/context/type_hint_completion_tests.rs
++++ b/src/completion/context/type_hint_completion_tests.rs
+@@ -604,4 +604,61 @@
+     assert!(!PHP_NATIVE_TYPES.contains(&"positive-int"));
+     assert!(!PHP_NATIVE_TYPES.contains(&"non-empty-string"));
+     assert!(!PHP_NATIVE_TYPES.contains(&"resource"));
++}
++
++#[test]
++fn lowercase_native_class_constant_type_keeps_its_distinct_declaration_site() {
++    let source = "<?php\nclass C {\npublic const str";
++    let context = detect(source, 2, 16).unwrap();
++    assert_eq!(context.site, TypeHintSite::ClassConstant);
++    assert_eq!(context.partial, "str");
++    assert!(!declaration_available(
++        &context,
++        crate::types::PhpVersion::new(8, 2)
++    ));
++    assert!(declaration_available(
++        &context,
++        crate::types::PhpVersion::new(8, 3)
++    ));
+ }
++
++#[test]
++fn existing_uppercase_constant_name_remains_a_name_context() {
++    assert!(detect("<?php\nclass C {\npublic const ST", 2, 15).is_none());
++}
++
++#[test]
++fn class_constant_compound_types_keep_the_declaration_site_and_prefix() {
++    for tail in ["string|in", "?str", "A&B", "(A&B)|str"] {
++        let source = format!("<?php\nclass C {{ const {tail}");
++        let context = detect(&source, 1, source.lines().last().unwrap().len() as u32).unwrap();
++        assert_eq!(context.site, TypeHintSite::ClassConstant);
++        assert!(!context.preceding_types.is_empty());
++        assert!(!declaration_available(
++            &context,
++            crate::types::PhpVersion::new(8, 2)
++        ));
++        assert!(declaration_available(
++            &context,
++            crate::types::PhpVersion::new(8, 3)
++        ));
++    }
++    assert!(detect("<?php\nclass C { const string NAME", 1, 27).is_none());
++}
++
++#[test]
++fn previous_native_type_keys_are_case_insensitive_without_rewriting_user_names() {
++    let source = "<?php\nfunction f(): MiXeD|in";
++    let context = detect(source, 1, source.lines().last().unwrap().len() as u32).unwrap();
++    assert_eq!(context.preceding_types, " MiXeD|");
++    assert!(!declaration_available(
++        &context,
++        crate::types::PhpVersion::new(8, 0)
++    ));
++}
++
++#[test]
++fn constant_import_is_not_a_native_class_constant_type() {
++    assert!(detect("<?php\nuse const str", 1, 13).is_none());
++    assert!(detect("<?php\nUsE CoNsT str", 1, 13).is_none());
++}
+diff --git a/src/completion/handler/class_constant.rs b/src/completion/handler/class_constant.rs
+--- a/src/completion/handler/class_constant.rs
++++ b/src/completion/handler/class_constant.rs
+@@ -60,12 +60,20 @@
+ fn filter_current_file_functions(
+     items: Vec<CompletionItem>,
+     current_uri: &str,
++    namespace: &Option<String>,
+     backend: &Backend,
+ ) -> Vec<CompletionItem> {
+     let current_funcs: HashSet<String> = {
+         let fmap = backend.global_functions().read();
+         fmap.iter()
+-            .filter(|(_, (uri, _))| uri == current_uri)
++            .filter(|(_, (uri, info))| {
++                uri == current_uri
++                    && info
++                        .namespace
++                        .as_deref()
++                        .unwrap_or("")
++                        .eq_ignore_ascii_case(namespace.as_deref().unwrap_or(""))
++            })
+             .map(|(key, _)| key.to_owned())
+             .collect()
+     };
+@@ -86,12 +94,19 @@
+ fn filter_current_file_constants(
+     items: Vec<CompletionItem>,
+     current_uri: &str,
++    namespace: &Option<String>,
+     backend: &Backend,
+ ) -> Vec<CompletionItem> {
+     let current_consts: HashSet<String> = {
+         let dmap = backend.global_defines().read();
+         dmap.iter()
+-            .filter(|(_, info)| info.file_uri.as_str() == current_uri)
++            .filter(|(name, info)| {
++                info.file_uri.as_str() == current_uri
++                    && name
++                        .rsplit_once('\\')
++                        .map_or("", |(ns, _)| ns)
++                        .eq_ignore_ascii_case(namespace.as_deref().unwrap_or(""))
++            })
+             .map(|(name, _)| name.clone())
+             .collect()
+     };
+@@ -160,12 +175,29 @@
+         position: Position,
+         uri: &str,
+     ) -> Option<CompletionResponse> {
++        let version = self.php_version();
++        if !crate::completion::type_hint_completion::declaration_available(th_ctx, version) {
++            return None;
++        }
++        let class = crate::class_lookup::find_class_at_offset(
++            &ctx.classes,
++            position_to_offset(content, position),
++        );
+         let partial_lower = th_ctx.partial.to_lowercase();
+         let space_prefix = if th_ctx.needs_space_prefix { " " } else { "" };
+         let mut items: Vec<CompletionItem> =
+             crate::completion::type_hint_completion::PHP_NATIVE_TYPES
+                 .iter()
+                 .filter(|t| t.to_lowercase().starts_with(&partial_lower))
++                .filter(|t| {
++                    crate::completion::type_hint_completion::native_type_available(
++                        t,
++                        th_ctx,
++                        version,
++                        class.is_some(),
++                        class.is_some_and(|c| c.parent_class.is_some()),
++                    )
++                })
+                 .enumerate()
+                 .map(|(idx, t)| CompletionItem {
+                     label: t.to_string(),
+@@ -370,8 +402,10 @@
+         if let Some(partial) =
+             crate::completion::keyword_completion::enum_backing_type_partial(content, position)
+         {
+-            let items =
+-                crate::completion::keyword_completion::build_backed_enum_type_completions(&partial);
++            let items = crate::completion::keyword_completion::build_backed_enum_type_completions(
++                &partial,
++                self.php_version(),
++            );
+             if items.is_empty() {
+                 return None;
+             }
+@@ -388,6 +422,79 @@
+         }
+ 
+         let class_ctx = detect_class_name_context(content, position);
++        if let Some(import) =
++            crate::completion::import_context::detect_import_context(content, position)
++            && import.kind != crate::completion::import_context::ImportKind::Trait
++        {
++            use crate::completion::import_context::ImportKind;
++            // Group use declarations are PHP7+; ordinary imports remain available on5.6.
++            if import.group_prefix.is_some()
++                && self.php_version() < crate::types::PhpVersion::new(7, 0)
++            {
++                return Some(CompletionResponse::CompletionItemList(Vec::new()));
++            }
++            let search = import.search_prefix();
++            let (items, incomplete) = match import.kind {
++                ImportKind::Function => self.build_function_completions(
++                    &search,
++                    true,
++                    Some(content),
++                    &ctx.namespace,
++                    current_uri,
++                    position,
++                ),
++                ImportKind::Const => {
++                    self.build_constant_completions(&search, current_uri, position)
++                }
++                ImportKind::Class => self.build_class_name_completions(ClassCompletionParams {
++                    file_use_map: &HashMap::new(),
++                    file_namespace: &ctx.namespace,
++                    prefix: &search,
++                    content,
++                    context: ClassNameContext::UseImport,
++                    position,
++                    affinity_table_override: None,
++                    uri: current_uri,
++                }),
++                ImportKind::Trait => unreachable!(),
++            };
++            let items = match import.kind {
++                ImportKind::Function => {
++                    filter_current_file_functions(items, current_uri, &ctx.namespace, self)
++                }
++                ImportKind::Const => {
++                    filter_current_file_constants(items, current_uri, &ctx.namespace, self)
++                }
++                ImportKind::Class => filter_current_file_classes(items, ctx),
++                ImportKind::Trait => items,
++            };
++            let mut items = import.edit_items(items);
++            if import.kind == ImportKind::Class {
++                for keyword in ["function", "const"] {
++                    if keyword.starts_with(&import.prefix) {
++                        items.insert(
++                            0,
++                            CompletionItem {
++                                label: keyword.to_owned(),
++                                kind: Some(CompletionItemKind::Keyword),
++                                detail: Some(format!("use {keyword} import")),
++                                insert_text: Some(format!("{keyword} ")),
++                                filter_text: Some(keyword.to_owned()),
++                                sort_text: Some(format!("0_!{keyword}")),
++                                ..CompletionItem::default()
++                            },
++                        );
++                    }
++                }
++            }
++            return Some(CompletionResponse::CompletionList(CompletionList {
++                is_incomplete: incomplete,
++                items,
++                apply_kind: None,
++                item_defaults: None,
++            }));
++        }
++
+         let keyword_ctx = {
+             let cursor_offset = position_to_offset(content, position);
+             let map = self.symbol_map_for(current_uri);
+@@ -418,6 +525,7 @@
+                         "",
+                         class_ctx,
+                         keyword_ctx,
++                        self.php_version(),
+                     );
+                     if items.is_empty() {
+                         return None;
+@@ -439,7 +547,8 @@
+                 current_uri,
+                 position,
+             );
+-            let function_items = filter_current_file_functions(function_items, current_uri, self);
++            let function_items =
++                filter_current_file_functions(function_items, current_uri, &ctx.namespace, self);
+             let items = append_semicolon_to_insert_text(function_items);
+             return Some(CompletionResponse::CompletionList(CompletionList {
+                 is_incomplete: func_incomplete,
+@@ -453,7 +562,8 @@
+         if matches!(class_ctx, ClassNameContext::UseConst) {
+             let (constant_items, const_incomplete) =
+                 self.build_constant_completions(&partial, current_uri, position);
+-            let constant_items = filter_current_file_constants(constant_items, current_uri, self);
++            let constant_items =
++                filter_current_file_constants(constant_items, current_uri, &ctx.namespace, self);
+             let items = append_semicolon_to_insert_text(constant_items);
+             return Some(CompletionResponse::CompletionList(CompletionList {
+                 is_incomplete: const_incomplete,
+@@ -596,6 +706,7 @@
+             &partial,
+             class_ctx,
+             keyword_ctx,
++            self.php_version(),
+         );
+         let (constant_items, const_incomplete) =
+             self.build_constant_completions(&partial, current_uri, position);
+diff --git a/src/completion/handler/member_access.rs b/src/completion/handler/member_access.rs
+--- a/src/completion/handler/member_access.rs
++++ b/src/completion/handler/member_access.rs
+@@ -427,6 +427,7 @@
+                 &partial,
+                 crate::completion::class_completion::ClassNameContext::Any,
+                 keyword_ctx,
++                self.php_version(),
+             )
+         };
+ 
+diff --git a/src/completion/handler/named_args.rs b/src/completion/handler/named_args.rs
+--- a/src/completion/handler/named_args.rs
++++ b/src/completion/handler/named_args.rs
+@@ -14,7 +14,7 @@
+     NamedArgContext, cursor_inside_nested_bracket, parse_existing_args,
+ };
+ use crate::text_position::position_to_offset;
+-use crate::types::FileContext;
++use crate::types::{FileContext, PhpVersion};
+ 
+ impl Backend {
+     /// Collect `name:` argument completion items inside function/method
+@@ -31,6 +31,10 @@
+         position: Position,
+         ctx: &FileContext,
+     ) -> Vec<CompletionItem> {
++        if self.php_version() < PhpVersion::new(8, 0) {
++            return Vec::new();
++        }
++
+         // ── Primary path: AST-based detection via symbol map ────────
+         // The symbol map's `CallSite` data handles chains, nesting,
+         // and strings correctly.  Fall back to text scanning when the
+diff --git a/src/completion/mod.rs b/src/completion/mod.rs
+--- a/src/completion/mod.rs
++++ b/src/completion/mod.rs
+@@ -109,5 +109,6 @@
+ // context/
+ pub(crate) use context::catch_completion;
+ pub(crate) use context::class_completion;
++pub(crate) use context::import_context;
+ pub(crate) use context::keyword_completion;
+ pub(crate) use context::type_hint_completion;
+diff --git a/src/completion/resolve.rs b/src/completion/resolve.rs
+--- a/src/completion/resolve.rs
++++ b/src/completion/resolve.rs
+@@ -132,7 +132,7 @@
+ 
+             // ── Standalone function ─────────────────────────────────
+             "function" => {
+-                self.resolve_function(&mut item, &data, &ctx, &content);
++                self.resolve_function(&mut item, &data, &content);
+             }
+ 
+             // ── Class / interface / trait / enum reference ───────────
+@@ -270,11 +270,10 @@
+         &self,
+         item: &mut CompletionItem,
+         data: &CompletionItemData,
+-        ctx: &FileContext,
+         content: &str,
+     ) {
+-        let function_loader = self.function_loader(ctx);
+-        if let Some(func) = function_loader(&data.member_name, 0) {
++        // CompletionItemData stores the selected indexed FQN, not a PHP source spelling.
++        if let Some(func) = self.find_or_load_function(&[&data.member_name]) {
+             let resolved_see = self.resolve_see_refs(&func.see_refs, &data.uri, content);
+             let provenance = self.provenance_line_for_function(&data.member_name);
+             let hover = hover_for_function(&func, Some(&resolved_see), provenance, false);
+diff --git a/src/completion/use_edit.rs b/src/completion/use_edit.rs
+--- a/src/completion/use_edit.rs
++++ b/src/completion/use_edit.rs
+@@ -212,28 +212,6 @@
+     /// nor `use const`.
+     pub(crate) fn has_class_imports(&self) -> bool {
+         self.existing.iter().any(|(_, k)| Self::key_group(k) == 0)
+-    }
+-
+-    /// Check whether a `use function` import already exists whose short
+-    /// name (case-insensitive) matches the given short name but whose
+-    /// FQN differs from `fqn`.  This indicates a conflict: the short
+-    /// name is already taken by a different function.
+-    pub(crate) fn function_import_conflicts(&self, fqn: &str) -> bool {
+-        let short = crate::util::short_name(fqn).to_lowercase();
+-        let target_key = format!("function {}", fqn.to_lowercase());
+-        self.existing.iter().any(|(_, k)| {
+-            if !k.starts_with("function ") {
+-                return false;
+-            }
+-            if k == &target_key {
+-                // Same FQN — not a conflict, it's already imported.
+-                return false;
+-            }
+-            // Extract short name from the sort key.
+-            let existing_fqn = k.strip_prefix("function ").unwrap_or(k);
+-            let existing_short = existing_fqn.rsplit('\\').next().unwrap_or(existing_fqn);
+-            existing_short == short
+-        })
+     }
+ }
+ 
+diff --git a/src/docblock/tags.rs b/src/docblock/tags.rs
+--- a/src/docblock/tags.rs
++++ b/src/docblock/tags.rs
+@@ -616,6 +616,7 @@
+ pub(crate) fn merge_param_docblock_into_parameters(
+     info: &DocblockInfo,
+     parameters: &mut Vec<ParameterInfo>,
++    excluded_parameters: &std::collections::HashSet<String>,
+     template_bounds: &crate::atom::AtomMap<PhpType>,
+ ) {
+     for param in parameters.iter_mut() {
+@@ -699,6 +700,10 @@
+     // These document parameters accessed via `func_get_args()` or
+     // similar mechanisms and should appear in hover/signature.
+     for (tag_name, tag_type) in extract_all_param_tags_from_info(info) {
++        let parameter_name = tag_name.strip_prefix('$').unwrap_or(&tag_name);
++        if excluded_parameters.contains(parameter_name) {
++            continue;
++        }
+         if !parameters.iter().any(|p| p.name == tag_name) {
+             let description = extract_param_description_from_info(info, &tag_name);
+             parameters.push(ParameterInfo {
+@@ -1154,6 +1159,28 @@
+ mod tests {
+     use super::*;
+ 
++    #[test]
++    fn excluded_native_parameter_does_not_hide_other_docblock_parameters() {
++        let info = parse_docblock_for_tags(
++            "/**\n * @param bool $before_needle PHP 8.3 parameter\n * @param string $virtual_extra Documented extra parameter\n */",
++        )
++        .unwrap();
++        let mut parameters = Vec::new();
++        merge_param_docblock_into_parameters(
++            &info,
++            &mut parameters,
++            &std::collections::HashSet::from(["before_needle".to_string()]),
++            &crate::atom::AtomMap::default(),
++        );
++
++        assert_eq!(parameters.len(), 1);
++        assert_eq!(parameters[0].name.as_str(), "$virtual_extra");
++        assert_eq!(
++            parameters[0].description.as_deref(),
++            Some("Documented extra parameter")
++        );
++    }
++
+     // ── extract_deprecation_message ─────────────────────────────────
+ 
+     #[test]
+diff --git a/src/lib.rs b/src/lib.rs
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -315,6 +315,7 @@
+ mod signature_help;
+ mod signature_render;
+ pub mod stub_map;
++mod stub_metadata;
+ pub mod stub_patches;
+ pub mod stubs;
+ mod symbol_index;
+diff --git a/src/lsp_dispatch.rs b/src/lsp_dispatch.rs
+--- a/src/lsp_dispatch.rs
++++ b/src/lsp_dispatch.rs
+@@ -40,9 +40,12 @@
+ 
+ impl LspDispatcher {
+     pub fn new() -> LspDispatcher {
+-        LspDispatcher {
+-            backend: Backend::new_headless(),
+-        }
++        let target = env!("PHPANTOM_TARGET_PHP_VERSION");
++        let version = crate::types::PhpVersion::from_composer_constraint(target)
++            .expect("the build script validates the configured PHP target");
++        let backend = Backend::new_headless();
++        backend.set_php_version(version);
++        LspDispatcher { backend }
+     }
+ 
+     /// Handle one LSP JSON-RPC message. Returns a JSON-RPC response string for
+diff --git a/src/parser/ast_update.rs b/src/parser/ast_update.rs
+--- a/src/parser/ast_update.rs
++++ b/src/parser/ast_update.rs
+@@ -401,7 +401,7 @@
+             let doc_ctx = DocblockCtx {
+                 trivias: program.trivia.as_slice(),
+                 content,
+-                php_version: Some(self.php_version()),
++                php_version: crate::stubs::is_embedded_stub_uri(uri).then(|| self.php_version()),
+                 use_map: HashMap::new(),
+                 namespace: None,
+             };
+@@ -432,6 +432,14 @@
+             // breaking closure parameter inference for the rest of the
+             // session.
+             if crate::stubs::is_embedded_stub_uri(uri) {
++                functions.retain(|f| {
++                    let fqn = f
++                        .namespace
++                        .as_ref()
++                        .map(|ns| format!("{ns}\\{}", f.name))
++                        .unwrap_or_else(|| f.name.to_string());
++                    crate::stubs::stub_symbol_available("function", &fqn, self.php_version())
++                });
+                 for func in &mut functions {
+                     crate::stub_patches::apply_function_stub_patches(func);
+                 }
+@@ -461,6 +469,10 @@
+             );
+             let defines: Vec<(String, DefineInfo)> = define_entries
+                 .into_iter()
++                .filter(|(name, _, _)| {
++                    !crate::stubs::is_embedded_stub_uri(uri)
++                        || crate::stubs::stub_symbol_available("constant", name, self.php_version())
++                })
+                 .map(|(name, offset, value)| {
+                     (
+                         name,
+diff --git a/src/parser/classes/members.rs b/src/parser/classes/members.rs
+--- a/src/parser/classes/members.rs
++++ b/src/parser/classes/members.rs
+@@ -63,6 +63,18 @@
+                     extract_constants(member, constant, doc_ctx, &mut extracted.constants);
+                 }
+                 ClassLikeMember::EnumCase(enum_case) => {
++                    if doc_ctx.is_some_and(|ctx| {
++                        ctx.php_version.is_some_and(|ver| {
++                            crate::parser::is_doc_unavailable_for_version(member, ctx, ver)
++                                || !crate::parser::is_available_for_version(
++                                    &enum_case.attribute_lists,
++                                    ctx,
++                                    ver,
++                                )
++                        })
++                    }) {
++                        continue;
++                    }
+                     extracted
+                         .constants
+                         .push(extract_enum_case(member, enum_case, doc_ctx));
+@@ -91,6 +103,14 @@
+     doc_ctx: Option<&DocblockCtx<'_>>,
+     constants: &mut Vec<ConstantInfo>,
+ ) {
++    if doc_ctx.is_some_and(|ctx| {
++        ctx.php_version.is_some_and(|ver| {
++            crate::parser::is_doc_unavailable_for_version(member, ctx, ver)
++                || !crate::parser::is_available_for_version(&constant.attribute_lists, ctx, ver)
++        })
++    }) {
++        return;
++    }
+     let type_hint = constant.hint.as_ref().map(|h| extract_hint_type(h));
+     let visibility = extract_visibility(constant.modifiers.iter());
+     let const_docblock_text = doc_ctx
+diff --git a/src/parser/classes/methods.rs b/src/parser/classes/methods.rs
+--- a/src/parser/classes/methods.rs
++++ b/src/parser/classes/methods.rs
+@@ -50,6 +50,7 @@
+     }
+     let Signature {
+         mut parameters,
++        excluded_parameters,
+         native_return_type,
+         return_type,
+         conditional_return,
+@@ -81,6 +82,7 @@
+         docblock::merge_param_docblock_into_parameters(
+             info,
+             &mut parameters,
++            &excluded_parameters,
+             &template_bounds_in_scope(
+                 class_template_param_bounds,
+                 // A constructor binding the class's templates takes on
+diff --git a/src/parser/classes/mod.rs b/src/parser/classes/mod.rs
+--- a/src/parser/classes/mod.rs
++++ b/src/parser/classes/mod.rs
+@@ -26,7 +26,7 @@
+ use crate::atom::{Atom, atom};
+ use crate::types::*;
+ 
+-use super::{DocblockCtx, for_each_nested_statement_list, is_removed_for_version};
++use super::{DocblockCtx, for_each_nested_statement_list, is_doc_unavailable_for_version};
+ 
+ impl Backend {
+     /// De-duplicate parsed class-likes by `(name, namespace)`, keeping the
+@@ -92,7 +92,17 @@
+         for statement in statements {
+             match statement {
+                 Statement::Class(class) => {
+-                    if removed_in_target_version(class, doc_ctx) {
++                    if removed_in_target_version(class, doc_ctx)
++                        || doc_ctx.is_some_and(|ctx| {
++                            ctx.php_version.is_some_and(|ver| {
++                                !crate::parser::is_available_for_version(
++                                    &class.attribute_lists,
++                                    ctx,
++                                    ver,
++                                )
++                            })
++                        })
++                    {
+                         continue;
+                     }
+                     classes.push(class_likes::extract_class(class, doc_ctx));
+@@ -100,14 +110,34 @@
+                     Self::find_anonymous_classes_in_members(class.members.iter(), classes, doc_ctx);
+                 }
+                 Statement::Interface(iface) => {
+-                    if removed_in_target_version(iface, doc_ctx) {
++                    if removed_in_target_version(iface, doc_ctx)
++                        || doc_ctx.is_some_and(|ctx| {
++                            ctx.php_version.is_some_and(|ver| {
++                                !crate::parser::is_available_for_version(
++                                    &iface.attribute_lists,
++                                    ctx,
++                                    ver,
++                                )
++                            })
++                        })
++                    {
+                         continue;
+                     }
+                     classes.push(class_likes::extract_interface(iface, doc_ctx));
+                     Self::find_anonymous_classes_in_members(iface.members.iter(), classes, doc_ctx);
+                 }
+                 Statement::Trait(trait_def) => {
+-                    if removed_in_target_version(trait_def, doc_ctx) {
++                    if removed_in_target_version(trait_def, doc_ctx)
++                        || doc_ctx.is_some_and(|ctx| {
++                            ctx.php_version.is_some_and(|ver| {
++                                !crate::parser::is_available_for_version(
++                                    &trait_def.attribute_lists,
++                                    ctx,
++                                    ver,
++                                )
++                            })
++                        })
++                    {
+                         continue;
+                     }
+                     classes.push(class_likes::extract_trait(trait_def, doc_ctx));
+@@ -118,7 +148,17 @@
+                     );
+                 }
+                 Statement::Enum(enum_def) => {
+-                    if removed_in_target_version(enum_def, doc_ctx) {
++                    if removed_in_target_version(enum_def, doc_ctx)
++                        || doc_ctx.is_some_and(|ctx| {
++                            ctx.php_version.is_some_and(|ver| {
++                                !crate::parser::is_available_for_version(
++                                    &enum_def.attribute_lists,
++                                    ctx,
++                                    ver,
++                                )
++                            })
++                        })
++                    {
+                         continue;
+                     }
+                     classes.push(class_likes::extract_enum(enum_def, doc_ctx));
+@@ -167,7 +207,7 @@
+ fn removed_in_target_version(node: &impl HasSpan, doc_ctx: Option<&DocblockCtx<'_>>) -> bool {
+     doc_ctx.is_some_and(|ctx| {
+         ctx.php_version
+-            .is_some_and(|ver| is_removed_for_version(node, ctx, ver))
++            .is_some_and(|ver| is_doc_unavailable_for_version(node, ctx, ver))
+     })
+ }
+ 
+diff --git a/src/parser/classes/properties.rs b/src/parser/classes/properties.rs
+--- a/src/parser/classes/properties.rs
++++ b/src/parser/classes/properties.rs
+@@ -37,6 +37,15 @@
+         Property::Hooked(h) => &h.attribute_lists,
+     };
+ 
++    if doc_ctx.is_some_and(|ctx| {
++        ctx.php_version.is_some_and(|ver| {
++            crate::parser::is_doc_unavailable_for_version(member, ctx, ver)
++                || !crate::parser::is_available_for_version(prop_attr_lists, ctx, ver)
++        })
++    }) {
++        return Vec::new();
++    }
++
+     // Apply #[LanguageLevelTypeAware] override to property types.  When
+     // present, the attribute's version-appropriate type string replaces
+     // the native type hint.
+diff --git a/src/parser/functions.rs b/src/parser/functions.rs
+--- a/src/parser/functions.rs
++++ b/src/parser/functions.rs
+@@ -121,6 +121,7 @@
+                 Statement::Function(func) => {
+                     let Some(Signature {
+                         mut parameters,
++                        excluded_parameters,
+                         native_return_type,
+                         return_type,
+                         conditional_return,
+@@ -187,6 +188,7 @@
+                         docblock::merge_param_docblock_into_parameters(
+                             info,
+                             &mut parameters,
++                            &excluded_parameters,
+                             &func_template_param_bounds,
+                         );
+                     }
+diff --git a/src/parser/signature.rs b/src/parser/signature.rs
+--- a/src/parser/signature.rs
++++ b/src/parser/signature.rs
+@@ -7,6 +7,7 @@
+ 
+ use mago_span::HasSpan;
+ use mago_syntax::cst::*;
++use std::collections::HashSet;
+ 
+ use crate::atom::{Atom, AtomMap, atom};
+ use crate::docblock::{self, DocblockInfo};
+@@ -15,13 +16,15 @@
+ 
+ use super::{
+     DocblockCtx, apply_array_shape_override, extract_hint_type, extract_language_level_type,
+-    extract_parameters, is_available_for_version, is_removed_for_version,
++    extract_parameters, is_available_for_version, is_doc_unavailable_for_version,
+ };
+ 
+ /// The pieces of a function or method signature computed by
+ /// [`extract_signature`].
+ pub(super) struct Signature<'a> {
+     pub parameters: Vec<ParameterInfo>,
++    /// Native parameters omitted by version-gated stub attributes.
++    pub excluded_parameters: HashSet<String>,
+     /// The native return hint, or the `#[LanguageLevelTypeAware]` type
+     /// that replaces it for the target PHP version.
+     pub native_return_type: Option<PhpType>,
+@@ -63,11 +66,31 @@
+     if let Some(ctx) = doc_ctx
+         && let Some(ver) = php_version
+         && (!is_available_for_version(attribute_lists, ctx, ver)
+-            || is_removed_for_version(node, ctx, ver))
++            || is_doc_unavailable_for_version(node, ctx, ver))
+     {
+         return None;
+     }
+ 
++    let excluded_parameters = if let (Some(version), Some(ctx)) = (php_version, doc_ctx) {
++        parameter_list
++            .parameters
++            .iter()
++            .filter(|param| !super::is_param_available_for_version(param, ctx, version))
++            .filter(|param| {
++                !parameter_list.parameters.iter().any(|variant| {
++                    variant.variable.name == param.variable.name
++                        && super::is_param_available_for_version(variant, ctx, version)
++                })
++            })
++            .map(|param| {
++                crate::atom::bytes_to_str(param.variable.name)
++                    .trim_start_matches('$')
++                    .to_string()
++            })
++            .collect()
++    } else {
++        HashSet::new()
++    };
+     let parameters = extract_parameters(
+         parameter_list,
+         doc_ctx.map(|ctx| ctx.content),
+@@ -100,6 +123,7 @@
+         let return_type = finish_return_type(native_return_type.clone(), attribute_lists, doc_ctx);
+         return Some(Signature {
+             parameters,
++            excluded_parameters,
+             native_return_type,
+             return_type,
+             conditional_return: None,
+@@ -199,6 +223,7 @@
+ 
+     Some(Signature {
+         parameters,
++        excluded_parameters,
+         native_return_type,
+         return_type,
+         conditional_return,
+diff --git a/src/parser/stub_attributes.rs b/src/parser/stub_attributes.rs
+--- a/src/parser/stub_attributes.rs
++++ b/src/parser/stub_attributes.rs
+@@ -13,12 +13,6 @@
+ 
+ use super::DocblockCtx;
+ 
+-/// FQN constants for the JetBrains stub attributes we recognise.
+-/// Matching is done on the last segment of the resolved FQN so that
+-/// `#[PhpStormStubsElementAvailable]`, `#[\JetBrains\PhpStorm\Internal\PhpStormStubsElementAvailable]`,
+-/// and any `use ... as Alias` form all work.
+-const ATTR_ELEMENT_AVAILABLE: &str = "PhpStormStubsElementAvailable";
+-
+ /// Last segment of the `LanguageLevelTypeAware` attribute FQN.
+ const ATTR_LANGUAGE_LEVEL_TYPE_AWARE: &str = "LanguageLevelTypeAware";
+ 
+@@ -48,9 +42,16 @@
+ 
+     /// Check whether `attr_short_name` resolves to `PhpStormStubsElementAvailable`.
+     pub(crate) fn is_element_available_attr(&self, attr_short_name: &[u8]) -> bool {
+-        let name_str = bytes_to_str(attr_short_name);
+-        let canonical = self.resolve_attr_last_segment(name_str).unwrap_or(name_str);
+-        canonical == ATTR_ELEMENT_AVAILABLE
++        let imports = self
++            .use_map
++            .iter()
++            .map(|(alias, target)| (alias.as_str(), target.as_str()))
++            .collect::<Vec<_>>();
++        crate::stub_metadata::is_availability_attribute(
++            bytes_to_str(attr_short_name),
++            &imports,
++            self.namespace.as_deref().unwrap_or(""),
++        )
+     }
+ 
+     /// Check whether `attr_short_name` resolves to `LanguageLevelTypeAware`.
+@@ -101,27 +102,23 @@
+     }
+ }
+ 
+-/// Check whether a function, method, or class has been removed in the
+-/// target PHP version based on a `@removed X.Y` docblock tag.
+-///
+-/// Returns `true` when the element has `@removed X.Y` and the target
+-/// PHP version is >= X.Y (meaning it was removed before or at the
+-/// target version).
+-///
+-/// Returns `false` when there is no `@removed` tag or the target
+-/// version is older than the removal version.
+-pub(crate) fn is_removed_for_version(
++/// PHP introduction/removal docs only come from explicitly marked bundled stubs.
++pub(crate) fn is_doc_unavailable_for_version(
+     node: &impl HasSpan,
+     ctx: &DocblockCtx<'_>,
+-    php_version: PhpVersion,
++    version: PhpVersion,
+ ) -> bool {
+-    let docblock_text = crate::docblock::get_docblock_text_for_node(ctx.trivias, ctx.content, node);
+-    if let Some(text) = docblock_text
+-        && let Some(removed_ver) = crate::docblock::extract_removed_version(text)
+-    {
+-        return php_version >= removed_ver;
+-    }
+-    false
++    let Some(doc) = crate::docblock::get_docblock_text_for_node(ctx.trivias, ctx.content, node)
++    else {
++        return false;
++    };
++    let php_domain = ctx
++        .content
++        .starts_with(crate::stub_metadata::PHP_DOC_MARKER);
++    let target = u16::from(version.major) * 100 + u16::from(version.minor);
++    crate::stub_metadata::doc_version(doc, "@since", php_domain).is_some_and(|v| target < v)
++        || crate::stub_metadata::doc_version(doc, "@removed", php_domain)
++            .is_some_and(|v| target >= v)
+ }
+ 
+ /// Check whether a parameter is available for the given PHP version
+@@ -161,7 +158,7 @@
+ ) -> Option<VersionAvailability> {
+     for attr_list in attribute_lists.iter() {
+         for attr in attr_list.attributes.iter() {
+-            if !ctx.is_element_available_attr(last_segment(attr.name.value())) {
++            if !ctx.is_element_available_attr(attr.name.value()) {
+                 continue;
+             }
+ 
+diff --git a/src/resolution/functions.rs b/src/resolution/functions.rs
+--- a/src/resolution/functions.rs
++++ b/src/resolution/functions.rs
+@@ -200,6 +200,15 @@
+         let _parse_guard = crate::parser::with_parse_cache(stub_content);
+         let ver = Some(self.php_version());
+         let mut functions = self.parse_functions_versioned(stub_content, ver);
++        let version = self.php_version();
++        functions.retain(|function| {
++            let name = function
++                .namespace
++                .as_ref()
++                .map(|namespace| format!("{namespace}\\{}", function.name))
++                .unwrap_or_else(|| function.name.to_string());
++            crate::stubs::stub_function_available(&name, version)
++        });
+         if functions.is_empty() {
+             return None;
+         }
+diff --git a/src/stub_metadata.rs b/src/stub_metadata.rs
+--- a/src/stub_metadata.rs
++++ b/src/stub_metadata.rs
+@@ -0,0 +1,43 @@
++//! Shared, PHP-provenance-aware interpretation of stub version metadata.
++pub const PHP_DOC_MARKER: &str = "<?php /* PHPANTOM_PHP_VERSION_DOCS */ ?>\n";
++pub fn version(value: &str) -> Option<u16> {
++    let mut parts = value.trim().split('.');
++    let major = parts.next()?.parse::<u16>().ok()?;
++    let minor = parts.next()?.parse::<u16>().ok()?;
++    Some(major * 100 + minor)
++}
++pub fn doc_version(doc: &str, tag: &str, php_domain: bool) -> Option<u16> {
++    doc.lines().find_map(|line| {
++        let (_, rest) = line.split_once(tag)?;
++        let mut rest = rest.trim();
++        let explicit = rest.starts_with("PHP ");
++        if explicit {
++            rest = rest.strip_prefix("PHP ")?.trim_start();
++        }
++        if !php_domain && !explicit {
++            return None;
++        }
++        let raw = rest.split_whitespace().next()?.trim_end_matches("*/");
++        version(raw)
++    })
++}
++pub fn is_availability_attribute(name: &str, imports: &[(&str, &str)], namespace: &str) -> bool {
++    const FQN: &str = "JetBrains\\PhpStorm\\Internal\\PhpStormStubsElementAvailable";
++    if let Some(name) = name.strip_prefix('\\') {
++        return name.eq_ignore_ascii_case(FQN);
++    }
++    let first = name.split('\\').next().unwrap_or(name);
++    if let Some((_, target)) = imports
++        .iter()
++        .find(|(alias, _)| alias.eq_ignore_ascii_case(first))
++    {
++        return format!("{target}{}", &name[first.len()..]).eq_ignore_ascii_case(FQN);
++    }
++    let resolved = if namespace.is_empty() {
++        name.to_string()
++    } else {
++        format!("{namespace}\\{name}")
++    };
++    resolved.eq_ignore_ascii_case(FQN)
++        || namespace.is_empty() && name.eq_ignore_ascii_case("PhpStormStubsElementAvailable")
++}
+diff --git a/src/stubs.rs b/src/stubs.rs
+--- a/src/stubs.rs
++++ b/src/stubs.rs
+@@ -46,6 +46,35 @@
+ /// built without them.
+ pub const STUBS_VERSION: &str = env!("PHPANTOM_STUBS_VERSION");
+ 
++/// Whether a function declared by phpstorm-stubs exists in this PHP release.
++pub(crate) fn stub_function_available(name: &str, version: crate::types::PhpVersion) -> bool {
++    stub_symbol_available("function", name, version)
++}
++pub(crate) fn stub_symbol_available(
++    kind: &str,
++    name: &str,
++    version: crate::types::PhpVersion,
++) -> bool {
++    let name = if kind == "constant" {
++        name.to_string()
++    } else {
++        name.to_ascii_lowercase()
++    };
++    let key = format!("{kind}:{name}");
++    let entries = STUB_AVAILABILITY;
++    let start = entries.partition_point(|entry| entry.0 < key.as_str());
++    let matching = entries[start..].iter().take_while(|entry| entry.0 == key);
++    let v = u16::from(version.major) * 100 + u16::from(version.minor);
++    let mut found = false;
++    for (_, from, to, removed) in matching {
++        found = true;
++        if v >= *from && v <= *to && v < *removed {
++            return true;
++        }
++    }
++    !found
++}
++
+ /// Warning shown when the binary embeds no stubs, so a broken package
+ /// says why everything built in is reported as unknown.
+ pub(crate) const MISSING_STUBS_WARNING: &str = "PHPantom was built without the PHP standard library stubs, so every built-in function, class, and constant is reported as unknown. Rebuild it with network access, or with PHPANTOM_STUBS_DIR pointing at phpstorm-stubs.";
+diff --git a/tests/integration/completion_basic.rs b/tests/integration/completion_basic.rs
+--- a/tests/integration/completion_basic.rs
++++ b/tests/integration/completion_basic.rs
+@@ -143,7 +143,7 @@
+ }
+ 
+ #[tokio::test]
+-async fn test_completion_does_not_suggest_return_at_top_level() {
++async fn test_completion_suggests_return_at_top_level() {
+     let backend = create_test_backend();
+ 
+     let uri = Uri::parse("file:///keywords_top_level.php").unwrap();
+@@ -158,10 +158,10 @@
+         None => Vec::new(),
+     };
+     assert!(
+-        !items
++        items
+             .iter()
+             .any(|i| i.label == "return" && i.kind == Some(CompletionItemKind::Keyword)),
+-        "Top-level completion should not suggest `return`, got: {:?}",
++        "Top-level script completion should suggest `return`, got: {:?}",
+         items.iter().map(|i| i.label.clone()).collect::<Vec<_>>()
+     );
+ }
+diff --git a/tests/integration/completion_named_args.rs b/tests/integration/completion_named_args.rs
+--- a/tests/integration/completion_named_args.rs
++++ b/tests/integration/completion_named_args.rs
+@@ -1,6 +1,53 @@
+ use crate::common::{complete_at, create_test_backend, filter_texts};
++use phpantom_lsp::types::PhpVersion;
+ use tower_lsp_server::gen_lsp_types::*;
+ 
++#[tokio::test]
++async fn named_argument_completion_requires_php_80_but_variable_completion_remains() {
++    let backend = create_test_backend();
++    backend.set_php_version(PhpVersion::new(7, 4));
++    let uri = Uri::parse("file:///na_php74.php").unwrap();
++    let source = concat!(
++        "<?php\n",
++        "function acceptsOptions(string $firstOption): void {}\n",
++        "function example(string $localValue): void {\n",
++        "    acceptsOptions(\n",
++        "}\n",
++    );
++
++    let items = complete_at(&backend, &uri, source, 3, 19).await;
++    assert!(
++        !filter_texts(&items).contains(&"firstOption"),
++        "PHP 7.4 must not suggest named arguments"
++    );
++
++    let variable_source = "<?php\nfunction example(string $localValue): void { $loc }";
++    let variable_items = complete_at(&backend, &uri, variable_source, 1, 55).await;
++    assert!(
++        filter_texts(&variable_items).contains(&"$localValue"),
++        "the named-argument version gate must preserve ordinary variable completion"
++    );
++}
++
++#[tokio::test]
++async fn named_argument_completion_remains_available_from_php_80() {
++    let backend = create_test_backend();
++    backend.set_php_version(PhpVersion::new(8, 0));
++    let uri = Uri::parse("file:///na_php80.php").unwrap();
++    let source = concat!(
++        "<?php\n",
++        "function acceptsOptions(string $firstOption): void {}\n",
++        "acceptsOptions(\n",
++    );
++
++    let items = complete_at(&backend, &uri, source, 2, 16).await;
++
++    assert!(
++        filter_texts(&items).contains(&"firstOption"),
++        "PHP 8.0 must retain named-argument suggestions"
++    );
++}
++
+ // ─── Basic: method on same-file class ───────────────────────────────────────
+ 
+ /// Named arg completion for `$this->method(|)` inside the same class.
+diff --git a/tests/integration/completion_stub_functions.rs b/tests/integration/completion_stub_functions.rs
+--- a/tests/integration/completion_stub_functions.rs
++++ b/tests/integration/completion_stub_functions.rs
+@@ -1,5 +1,6 @@
+ use crate::common::{
+-    complete_at, create_test_backend, create_test_backend_with_function_stubs, open_php,
++    complete_at, create_test_backend, create_test_backend_with_function_stubs, filter_texts,
++    open_php,
+ };
+ use phpantom_lsp::Backend;
+ use phpantom_lsp::atom::atom;
+@@ -67,6 +68,62 @@
+     );
+ }
+ 
++#[tokio::test]
++async fn php_74_hides_core_functions_added_later_on_cold_and_warm_requests() {
++    let backend = Backend::new_test_with_full_stubs();
++    backend.set_php_version(phpantom_lsp::types::PhpVersion::new(7, 4));
++
++    for (uri, source, cursor_after, unavailable) in [
++        (
++            "file:///since-str.php",
++            "<?php\nstr_c",
++            "str_c",
++            "str_contains",
++        ),
++        (
++            "file:///since-array-first.php",
++            "<?php\narray_f",
++            "array_f",
++            "array_first",
++        ),
++        (
++            "file:///since-array-last.php",
++            "<?php\narray_l",
++            "array_l",
++            "array_last",
++        ),
++    ] {
++        let uri = Uri::parse(uri).unwrap();
++        let column = cursor_after.len() as u32;
++        let cold = complete_at(&backend, &uri, source, 1, column).await;
++        assert!(
++            !filter_texts(&cold).contains(&unavailable),
++            "PHP 7.4 cold completion should omit {unavailable}"
++        );
++
++        let warm = complete_at(&backend, &uri, source, 1, column).await;
++        assert!(
++            !filter_texts(&warm).contains(&unavailable),
++            "PHP 7.4 warm completion should omit {unavailable}"
++        );
++    }
++}
++
++#[tokio::test]
++async fn php_74_keeps_user_defined_str_contains_completion() {
++    let backend = Backend::new_test_with_full_stubs();
++    backend.set_php_version(phpantom_lsp::types::PhpVersion::new(7, 4));
++    let uri = Uri::parse("file:///user-str-contains.php").unwrap();
++    let source = "<?php\nfunction str_contains(string $value): bool {}\nstr_con";
++
++    let items = complete_at(&backend, &uri, source, 2, 7).await;
++
++    assert!(
++        filter_texts(&items).contains(&"str_contains"),
++        "version filtering must preserve the same-named user function"
++    );
++}
++
+ /// Verify that stub functions are cached in `global_functions` after the
+ /// first lookup, so subsequent lookups are fast (Phase 1 hit).
+ #[tokio::test]
+diff --git a/tests/integration/php_version.rs b/tests/integration/php_version.rs
+--- a/tests/integration/php_version.rs
++++ b/tests/integration/php_version.rs
+@@ -3,7 +3,7 @@
+ //! Tests that `#[PhpStormStubsElementAvailable]` attributes on functions,
+ //! methods, and parameters are respected when a target PHP version is set.
+ 
+-use crate::common::{create_test_backend, hover_at, hover_text};
++use crate::common::{complete_at, create_test_backend, filter_texts, hover_at, hover_text};
+ use phpantom_lsp::Backend;
+ use phpantom_lsp::types::PhpVersion;
+ 
+@@ -1217,3 +1217,24 @@
+         "OLD_CONST (@removed 8.0) should survive when targeting PHP 7.4"
+     );
+ }
++
++#[tokio::test]
++async fn strrchr_docblock_does_not_restore_a_version_filtered_parameter() {
++    let backend = Backend::new_test_with_full_stubs();
++    let uri = tower_lsp_server::gen_lsp_types::Uri::parse("file:///strrchr-php80.php").unwrap();
++    let source = "<?php\nstrrchr(\"haystack\", \"needle\", ";
++    backend.set_php_version(PhpVersion::new(8, 0));
++
++    let php80 = complete_at(&backend, &uri, source, 1, 31).await;
++    assert!(
++        !filter_texts(&php80).contains(&"before_needle"),
++        "PHP 8.0 must not regain the parameter from the function docblock"
++    );
++
++    backend.set_php_version(PhpVersion::new(8, 3));
++    let php83 = complete_at(&backend, &uri, source, 1, 31).await;
++    assert!(
++        filter_texts(&php83).contains(&"before_needle"),
++        "PHP 8.3 must retain the newly available parameter"
++    );
++}
+diff --git a/tests/native_versioned_embedded.rs b/tests/native_versioned_embedded.rs
+--- a/tests/native_versioned_embedded.rs
++++ b/tests/native_versioned_embedded.rs
+@@ -0,0 +1,353 @@
++use phpantom_lsp::{Backend, types::PhpVersion};
++use tower_lsp_server::LanguageServer;
++use tower_lsp_server::gen_lsp_types::*;
++
++fn backend(major: u8, minor: u8) -> Backend {
++    let backend = Backend::new_headless();
++    backend.set_php_version(PhpVersion::new(major, minor));
++    backend
++}
++
++async fn open(backend: &Backend, uri: &Uri, source: &str) {
++    backend
++        .did_open(DidOpenTextDocumentParams {
++            text_document: TextDocumentItem {
++                uri: uri.clone(),
++                language_id: "php".to_string().into(),
++                version: 1,
++                text: source.to_string(),
++            },
++        })
++        .await;
++}
++
++async fn complete(backend: &Backend, uri: &Uri, line: u32, character: u32) -> Vec<CompletionItem> {
++    let response = backend
++        .completion(CompletionParams {
++            text_document_position_params: TextDocumentPositionParams {
++                text_document: TextDocumentIdentifier { uri: uri.clone() },
++                position: Position { line, character },
++            },
++            work_done_progress_params: WorkDoneProgressParams::default(),
++            partial_result_params: PartialResultParams::default(),
++            context: None,
++        })
++        .await
++        .unwrap();
++
++    match response {
++        Some(CompletionResponse::CompletionItemList(items)) => items,
++        Some(CompletionResponse::CompletionList(list)) => list.items,
++        None => Vec::new(),
++    }
++}
++
++fn labels(items: &[CompletionItem]) -> Vec<&str> {
++    items.iter().map(|item| item.label.as_str()).collect()
++}
++
++fn record(failures: &mut Vec<String>, label: &str, passed: bool, actual: impl std::fmt::Debug) {
++    if passed {
++        eprintln!("PASS {label}");
++    } else {
++        let failure = format!("{label}: actual={actual:?}");
++        eprintln!("FAIL {failure}");
++        failures.push(failure);
++    }
++}
++
++fn finish(failures: &[String]) {
++    assert!(
++        failures.is_empty(),
++        "{} failed native checks: {failures:#?}",
++        failures.len()
++    );
++}
++
++fn signature_params(signature: &SignatureHelp) -> Vec<String> {
++    let signature = signature.signatures.first().expect("one signature");
++    signature
++        .parameters
++        .as_ref()
++        .expect("signature parameters")
++        .iter()
++        .map(|parameter| match &parameter.label {
++            ParameterInformationLabel::String(label) => label.clone(),
++            ParameterInformationLabel::Tuple((start, end)) => {
++                signature.label[*start as usize..*end as usize].to_string()
++            }
++        })
++        .collect()
++}
++
++async fn signature_help(
++    backend: &Backend,
++    uri: &Uri,
++    line: u32,
++    character: u32,
++) -> Option<SignatureHelp> {
++    backend
++        .signature_help(SignatureHelpParams {
++            text_document_position_params: TextDocumentPositionParams {
++                text_document: TextDocumentIdentifier { uri: uri.clone() },
++                position: Position { line, character },
++            },
++            work_done_progress_params: WorkDoneProgressParams::default(),
++            context: None,
++        })
++        .await
++        .unwrap()
++}
++
++async fn builtin_case(major: u8, minor: u8, expected: bool) {
++    let mut failures = Vec::new();
++    let backend = backend(major, minor);
++    let string_uri = Uri::parse("file:///versioned_str_contains.php").unwrap();
++    open(&backend, &string_uri, "<?php\nstr_con").await;
++    let cold_string = complete(&backend, &string_uri, 1, 7).await;
++    let cold_string_labels = labels(&cold_string);
++    record(
++        &mut failures,
++        &format!("PHP {major}.{minor} cold str_contains"),
++        cold_string_labels.contains(&"str_contains") == expected,
++        &cold_string_labels,
++    );
++
++    for (prefix, symbol) in [("array_f", "array_first"), ("array_l", "array_last")] {
++        let uri = Uri::parse(&format!("file:///versioned_{symbol}.php")).unwrap();
++        open(&backend, &uri, &format!("<?php\n{prefix}")).await;
++        let items = complete(&backend, &uri, 1, prefix.len() as u32).await;
++        let actual = labels(&items);
++        record(
++            &mut failures,
++            &format!("PHP {major}.{minor} cold {symbol}"),
++            actual.contains(&symbol) == expected,
++            &actual,
++        );
++    }
++
++    let abs_uri = Uri::parse("file:///sibling_resolve.php").unwrap();
++    open(&backend, &abs_uri, "<?php\nabs").await;
++    let abs_items = complete(&backend, &abs_uri, 1, 3).await;
++    let abs = abs_items.iter().find(|item| item.label == "abs");
++    record(
++        &mut failures,
++        &format!("PHP {major}.{minor} sibling abs completion"),
++        abs.is_some(),
++        &labels(&abs_items),
++    );
++    if let Some(abs) = abs {
++        let resolved = backend.completion_resolve(abs.clone()).await.unwrap();
++        record(
++            &mut failures,
++            &format!("PHP {major}.{minor} sibling abs resolve"),
++            resolved.label == abs.label,
++            &resolved.label,
++        );
++    }
++
++    let warm_string_items = complete(&backend, &string_uri, 1, 7).await;
++    let warm_string = labels(&warm_string_items);
++    record(
++        &mut failures,
++        &format!("PHP {major}.{minor} warm str_contains after sibling resolve"),
++        warm_string.contains(&"str_contains") == expected,
++        &warm_string,
++    );
++    for (prefix, symbol) in [("array_f", "array_first"), ("array_l", "array_last")] {
++        let uri = Uri::parse(&format!("file:///warm_{symbol}.php")).unwrap();
++        open(&backend, &uri, &format!("<?php\n{prefix}")).await;
++        let items = complete(&backend, &uri, 1, prefix.len() as u32).await;
++        let actual = labels(&items);
++        record(
++            &mut failures,
++            &format!("PHP {major}.{minor} warm {symbol} after sibling resolve"),
++            actual.contains(&symbol) == expected,
++            &actual,
++        );
++    }
++    finish(&failures);
++}
++
++#[tokio::test]
++async fn php74_cold_warm_builtin_and_sibling_resolve() {
++    builtin_case(7, 4, false).await;
++}
++
++#[tokio::test]
++async fn php85_cold_warm_builtin_and_sibling_resolve() {
++    builtin_case(8, 5, true).await;
++}
++
++#[tokio::test]
++async fn php74_same_name_user_function_and_local_symbols_survive() {
++    let mut failures = Vec::new();
++    let backend = backend(7, 4);
++    let uri = Uri::parse("file:///same_name_user_function.php").unwrap();
++    let source = concat!(
++        "<?php\n",
++        "namespace EvalProbe;\n",
++        "/**\n",
++        " * EVAL_USER_SAME_NAME_MARKER\n",
++        " */\n",
++        "function str_contains(string $haystack, string $needle): bool {}\n",
++        "function local_probe_function(string $label): void {}\n",
++        "class LocalProbe { public function member_probe(): void {} }\n",
++        "$localProbe = new LocalProbe();\n",
++        "str_con\n",
++        "local_probe_f\n",
++        "$localP\n",
++        "$localProbe->",
++    );
++    open(&backend, &uri, source).await;
++
++    let same_name = complete(&backend, &uri, 9, 7).await;
++    record(
++        &mut failures,
++        "PHP 7.4 same-name user function completion",
++        same_name.iter().any(|item| {
++            item.filter_text
++                .as_deref()
++                .is_some_and(|name| name.eq_ignore_ascii_case("str_contains"))
++                && item
++                    .data
++                    .as_ref()
++                    .and_then(|data| data.get("m"))
++                    .and_then(|name| name.as_str())
++                    .is_some_and(|name| name.eq_ignore_ascii_case("EvalProbe\\str_contains"))
++        }),
++        &same_name
++            .iter()
++            .map(|item| (&item.label, &item.filter_text, &item.data))
++            .collect::<Vec<_>>(),
++    );
++    if let Some(item) = same_name.iter().find(|item| {
++        item.filter_text
++            .as_deref()
++            .is_some_and(|name| name.eq_ignore_ascii_case("str_contains"))
++            && item
++                .data
++                .as_ref()
++                .and_then(|data| data.get("m"))
++                .and_then(|name| name.as_str())
++                .is_some_and(|name| name.eq_ignore_ascii_case("EvalProbe\\str_contains"))
++    }) {
++        let resolved = backend.completion_resolve(item.clone()).await.unwrap();
++        let details = format!("{:?} {:?}", resolved.detail, resolved.documentation);
++        record(
++            &mut failures,
++            "PHP 7.4 same-name user signature resolve",
++            resolved.detail.as_deref() == Some("bool"),
++            &details,
++        );
++        eprintln!(
++            "INFO PHP 7.4 same-name user documentation resolve: {:?}",
++            resolved.documentation
++        );
++    }
++
++    for (line, character, expected) in [
++        (10, 13, "local_probe_function"),
++        (11, 7, "$localProbe"),
++        (12, 13, "member_probe"),
++    ] {
++        let items = complete(&backend, &uri, line, character).await;
++        let actual = labels(&items);
++        let found = if expected.starts_with('$') {
++            items.iter().any(|item| item.label.contains(expected))
++        } else {
++            actual.iter().any(|label| label.starts_with(expected))
++        };
++        record(
++            &mut failures,
++            &format!("PHP 7.4 {expected} completion at line {line}"),
++            found,
++            &actual,
++        );
++    }
++    finish(&failures);
++}
++
++async fn named_argument_case(major: u8, minor: u8, expected: bool) {
++    let backend = backend(major, minor);
++    let uri = Uri::parse(&format!("file:///named_arguments_{major}_{minor}.php")).unwrap();
++    let source = concat!(
++        "<?php\n",
++        "function eval_named_feature(string $firstOption, string $secondOption): void {}\n",
++        "eval_named_feature("
++    );
++    open(&backend, &uri, source).await;
++    let items = complete(&backend, &uri, 2, "eval_named_feature(".len() as u32).await;
++    let params = items
++        .iter()
++        .filter_map(|item| item.filter_text.as_deref())
++        .collect::<Vec<_>>();
++    assert_eq!(
++        params.contains(&"firstOption"),
++        expected,
++        "PHP {major}.{minor} named-argument completion: {params:?}"
++    );
++}
++
++#[tokio::test]
++async fn php74_named_argument_feature_boundary() {
++    named_argument_case(7, 4, false).await;
++}
++
++#[tokio::test]
++async fn php85_named_argument_feature_boundary() {
++    named_argument_case(8, 5, true).await;
++}
++
++async fn strrchr_case(major: u8, minor: u8, expected: bool) {
++    let mut failures = Vec::new();
++    let backend = backend(major, minor);
++    let uri = Uri::parse(&format!("file:///strrchr_{major}_{minor}.php")).unwrap();
++    let source = "<?php\nstrrchr(\"haystack\", \"needle\",";
++    let line = 1;
++    let character = source.lines().nth(line as usize).unwrap().len() as u32;
++    open(&backend, &uri, source).await;
++
++    let items = complete(&backend, &uri, line, character).await;
++    let parameter_items = items
++        .iter()
++        .filter_map(|item| item.filter_text.as_deref())
++        .collect::<Vec<_>>();
++    record(
++        &mut failures,
++        &format!("PHP {major}.{minor} strrchr parameter completion"),
++        parameter_items.contains(&"before_needle") == expected,
++        &parameter_items,
++    );
++
++    let signature = signature_help(&backend, &uri, line, character).await;
++    record(
++        &mut failures,
++        &format!("PHP {major}.{minor} strrchr signature available"),
++        signature.is_some(),
++        &signature.as_ref().map(|value| &value.signatures),
++    );
++    if let Some(signature) = signature {
++        let parameters = signature_params(&signature);
++        record(
++            &mut failures,
++            &format!("PHP {major}.{minor} strrchr signature parameter"),
++            parameters
++                .iter()
++                .any(|parameter| parameter.contains("before_needle"))
++                == expected,
++            &parameters,
++        );
++    }
++    finish(&failures);
++}
++
++#[tokio::test]
++async fn php80_strrchr_parameter_boundary() {
++    strrchr_case(8, 0, false).await;
++}
++
++#[tokio::test]
++async fn php83_strrchr_parameter_boundary() {
++    strrchr_case(8, 3, true).await;
++}
