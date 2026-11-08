@@ -137,3 +137,9 @@ scanner は class owner の深さを stack で保存・復元します。入れ�
 namespace の import 種別は固定版 PHP parser の CST で判定します。`use` と `function` / `const` の間に空白やコメントがあっても種別を保ち、closure の capture と trait use は別の構文として扱います。同じファイルの別 namespace にある function/const は import 候補へ残します。21 fixture を全12対象の公開 native completion と、生成対象ごとの WASI completion で検査します。
 
 未完成の class/namespace では、parser へ渡す一時入力の末尾だけに終端記号と閉じ括弧を補い、元の cursor と span を保持します。補完する文書自体は書き換えません。コメント内の括弧で import と trait use が入れ替わらないことと、trait use に通常 class が混入しないことも検査します。
+
+Group import では、共通 namespace、現在 item の class/function/const 種別、入力中の名前、UTF-16 の置換範囲を一つの context として候補生成へ渡します。group の `}` を statement の `;` より前に補って CST を回復し、空 item に使う一時 identifier は検索名や実文書へ含めません。挿入するのは共通 prefix に対する相対名だけです。明示した primary edit を返し、呼出し snippet、別の use 追加、二重 prefix は返しません。既存 alias、隣の item、文書内の group 終端は保持します。
+
+27 fixture は mixed/typed group、2番目 item、alias と同名の利用者定義、コメント・改行・UTF-16、相対 namespace、通常 import、token 途中の cursor を含みます。公開 completion と resolve の編集 payload 全体と、全編集適用後の文書を独立期待値と比較します。必須 native CI と各対象の standalone WASI の双方で実行します。[PHP 7.0 の group use 導入](https://www.php.net/manual/en/migration70.new-features.php)に従い、5.6 では group の負、通常 import の正を検査します。元の全12対象の通常 import・trait use・closure capture と言語型の検査も維持します。LSP 編集の適用と実 PHP の binding 確認は、Monaco での accept 実測とは区別します。
+
+native の headless Backend は、didChange 完了時に解析結果も公開するようにします。client がない逐次操作では refresh 通知を待てず、以前は rename 直後の completion が古い function index と競合しました。headless constructor の同期設定を直し、即時の group function rename と既存の doc/edit 回帰を検査します。client 付き LSP の background 設定は変更しません。WASI dispatcher は従来から文書変更を同期で登録します。

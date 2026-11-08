@@ -1,6 +1,6 @@
 {
-  "completePatchSha256": "4b147cb3a7ec776942a695d3cebdfd27cd7e584f895e239e98188dd1cab0b20e",
-  "fileCount": 36,
+  "completePatchSha256": "0581b67c401a5a26f56241d69404cc95a6a658c07e39f6a785dc12181aab8ba6",
+  "fileCount": 37,
   "files": [
     {
       "path": "build.rs",
@@ -11,12 +11,16 @@
       "sha256": "b3961938f64624f59926072af0e911183f63902532767b7a0e9f7cab20f49e60"
     },
     {
+      "path": "src/backend/construction.rs",
+      "sha256": "79cd22d952f1effa7070a81e6a36749f3224d222fbf52cbec7e387530d7020b9"
+    },
+    {
       "path": "src/backend/settings.rs",
       "sha256": "e62fe48083bfc15807d8cdb39652e4012c8d5fdd4bfc51ada3615d83d7727217"
     },
     {
       "path": "src/completion/context/class_completion/context_detect.rs",
-      "sha256": "177c8616463db7d04ceebfa3d6b54740ef5addb3a1de79655e1d80de768ca15c"
+      "sha256": "7ccf080a49cf1aa962e25d7ead41ab1fe9a6cec3f26c1cd112e05747512a2301"
     },
     {
       "path": "src/completion/context/function_completion.rs",
@@ -24,7 +28,7 @@
     },
     {
       "path": "src/completion/context/import_context.rs",
-      "sha256": "9da3f7f147a60ddc96918c2d61b2e6ba0ce2dbc1507d7428be53b0735272a64c"
+      "sha256": "fd6de96200b3d77155c50dedf70a239fdb41e7fc116c5541dd13641166b6cbf3"
     },
     {
       "path": "src/completion/context/keyword_completion.rs",
@@ -48,7 +52,7 @@
     },
     {
       "path": "src/completion/handler/class_constant.rs",
-      "sha256": "38f0b07512351ba48ef1b7df4cdaea0e325ec178ed0e6a0128d404c4ccd94fd9"
+      "sha256": "805e9225a4ee7feaf031ea03cf5bcc7f81edee35373016e84a5f34c3d2589caf"
     },
     {
       "path": "src/completion/handler/member_access.rs",

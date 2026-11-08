@@ -17,10 +17,10 @@ const reviewedDiff = manifest.source?.reviewedPhaseBDiffSha256
 assert.equal(reviewedDiff,
 	'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d');
 assert.equal(manifest.source?.appliedPhaseBPatchSha256,
-    '4b147cb3a7ec776942a695d3cebdfd27cd7e584f895e239e98188dd1cab0b20e',
+    '0581b67c401a5a26f56241d69404cc95a6a658c07e39f6a785dc12181aab8ba6',
     'current applied PHPantom patch is required before WASM instantiation');
 assert.equal(manifest.source?.appliedFileManifestSha256,
-    '4bf904e14107a8591dc21eb0be980bac7eadd78a6fdcab73c33b8ddc06a57904',
+    'df9756e6a1f1618bc14b6bdd290b348b74442185b16240c383cf9c42771d21fd',
     'current applied file manifest is required before WASM instantiation');
 assert.equal(manifest.stubs?.commit, '2049ca3cfa1feabf52db074108fe776a5713cf02');
 if (manifest.stubs?.resolvedCommitMarker) {
@@ -455,6 +455,81 @@ async function releaseImportOracle() {
     }
 }
 
+function importEditPayload(item) {
+    return { primary:item.textEdit??null, insertText:item.insertText??null,
+        format:item.insertTextFormat??null, mode:item.insertTextMode??null,
+        textEditText:item.textEditText??null, additional:item.additionalTextEdits??null, command:item.command??null };
+}
+async function releaseImportEditOracle() {
+    const rows=(await readFile(new URL('./native-probe/tests/fixtures/import-edits.tsv',import.meta.url),'utf8'))
+        .split('\n').filter(row=>row&&!row.startsWith('#')).map(row=>row.split('\t').map(value=>value.replaceAll('\\n','\n')));
+    assert.equal(rows.length,27,'complete independent accepted-edit inventory');
+    assert.equal(new Set(rows.map(row=>row[0])).size,27,'unique edit case IDs');
+    const endPosition=text=>{const lines=text.split('\n');return {line:lines.length-1,character:lines.at(-1).length};};
+    for (const [name,before,typed,after,newText,expectedDocument,fqn,kind,,availability] of rows) {
+        await freshEngine();
+        const uri='file:///release/import-edits.php';
+        const source=before+typed+after;const position=endPosition(before+typed);
+        open(uri,source);
+        for (const warm of [false,true]) {
+            const items=completionItems(request('textDocument/completion',{textDocument:{uri},position}));
+            assert.match(availability,/^[01]{12}$/,'each target has an explicit independent availability');
+            if (availability[supportedTargets.indexOf(target)]==='0') {
+                check(`${target} group imports unavailable ${name} warm=${warm}`,items.length===0,items);
+                continue;
+            }
+            const item=items.find(value=>value.kind===Number(kind)&&value.data?.m===fqn);
+            assert.ok(item,`${target} ${name} requires ${fqn}: ${JSON.stringify(items)}`);
+            const end={...position};if(name==='cursor-middle')end.character+=3;
+            const expected={primary:{range:{start:endPosition(before),end},newText},insertText:newText,
+                format:1,mode:null,textEditText:null,additional:null,command:null};
+            assert.deepEqual(importEditPayload(item),expected,`${name} complete primary/additional payload`);
+            const applied=applyCompletion(source,item);
+            assert.equal(applied,expectedDocument,`${name} complete accepted document`);
+            const resolved=request('completionItem/resolve',item).result;
+            assert.deepEqual(importEditPayload(resolved),expected,`${name} resolve preserves editing payload`);
+            assert.equal(applyCompletion(source,resolved),expectedDocument,`${name} resolved accepted document`);
+            check(`${target} import edit ${name} warm=${warm}`,items.every(value=>value.kind===Number(kind)),items);
+            console.log(`IMPORT_EDIT_RESPONSE ${JSON.stringify({target,name,warm,source,position,item,resolved,applied,expectedDocument})}`);
+        }
+    }
+}
+
+async function releaseImportRenameOracle() {
+    await freshEngine();
+    const uri='file:///release/import-renamed.php';
+    const first='<?php namespace Vendor { /** OLD_IMPORT_DOC */ function old_name(): string { return "old"; } } namespace App { use function Vendor\\{old_na';
+    open(uri,first);
+    const endPosition=text=>{const lines=text.split('\n');return {line:lines.length-1,character:lines.at(-1).length};};
+    const old=completionItems(request('textDocument/completion',{textDocument:{uri},position:endPosition(first)}))
+        .find(item=>item.data?.m==='Vendor\\old_name');
+    if (target==='5.6') { check(`${target} renamed group import unavailable`,old===undefined,old); return; }
+    assert.ok(old,'old group function is publicly offered');
+    const oldDocs=request('completionItem/resolve',old).result.documentation?.value;
+    check(`${target} old group function warmed`,oldDocs?.includes('OLD_IMPORT_DOC'),oldDocs);
+    for (const [version,before,typed,after,symbol,marker,value] of [
+        [2,'<?php namespace Vendor { /** FIRST_IMPORT_DOC */ function new_name(): string { return "first"; } } namespace App { use function Vendor\\{','new_na','}; echo new_name(); }','new_name','FIRST_IMPORT_DOC','first'],
+        [3,'<?php namespace Vendor { /** SECOND_IMPORT_DOC */ function latest_name(): string { return "second"; } } namespace App { use Vendor\\{function ','latest_na','}; echo latest_name(); }','latest_name','SECOND_IMPORT_DOC','second'],
+    ]) {
+        const source=before+typed+after;
+        notify('textDocument/didChange',{textDocument:{uri,version},contentChanges:[{text:source}]});
+        const position=endPosition(before+typed);
+        const items=completionItems(request('textDocument/completion',{textDocument:{uri},position}));
+        const item=items.find(value=>value.data?.m===`Vendor\\${symbol}`);
+        assert.ok(item,`${symbol} is available immediately after didChange`);
+        const expected={primary:{range:{start:endPosition(before),end:position},newText:symbol},insertText:symbol,
+            format:1,mode:null,textEditText:null,additional:null,command:null};
+        assert.deepEqual(importEditPayload(item),expected,'edited group keeps the complete binding edit');
+        const resolved=request('completionItem/resolve',item).result;
+        assert.deepEqual(importEditPayload(resolved),expected,'resolve keeps the edited group binding');
+        const docs=resolved.documentation?.value;
+        const applied=applyCompletion(source,resolved);const expectedDocument=before+symbol+after;
+        assert.equal(applied,expectedDocument);
+        check(`${target} renamed group function ${symbol}`,docs?.includes(marker)&&!docs.includes('OLD_IMPORT_DOC'),docs);
+        console.log(`IMPORT_RENAME_RESPONSE ${JSON.stringify({target,symbol,source,item,resolved,applied,expectedDocument,expectedPhpStdout:value})}`);
+    }
+}
+
 async function releaseSharedConstantDeclarations() {
     for (const symbol of ['PHP_SBINDIR','PHP_OUTPUT_HANDLER_PROCESSED']) {
         await freshEngine();
@@ -485,6 +560,8 @@ await releaseMemberAndTypeBoundaries();
 await releaseSharedConstantDeclarations();
 await releaseLanguageOracle();
 await releaseImportOracle();
+await releaseImportEditOracle();
+await releaseImportRenameOracle();
 console.log(JSON.stringify({
 	target,
 	artifactSha256: actualSha,
