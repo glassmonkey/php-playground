@@ -5,6 +5,10 @@
 
 PHP Playground let you to execute basic PHP code in real time.
 
+Automatic PHP completion is enabled by default. Use `ac=0` in a shared URL to
+disable it, or `ac=1` to enable it explicitly; missing or unrecognized values
+leave completion enabled.
+
 https://php-play.dev
 
 ![demo](doc/demo.gif)

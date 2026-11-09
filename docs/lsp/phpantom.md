@@ -12,7 +12,8 @@ Browser runtime adapters and version helpers live in `src/lsp/phpantom/`.
 The Docker builder, pinned patches, native probe, and Node validation tools live
 in the sibling build module `src/lsp/wasm/`, like `src/php-wasm/` and `src/wasm/`.
 The build module is excluded from browser TypeScript declaration generation;
-ESLint checks its two Node CLIs with the Node environment. Browser runtime
+ESLint checks the Node CLIs with explicit environments; the UI validation
+harness also contains browser callbacks. Browser runtime
 checks remain unchanged, and build tools are not browser entrypoints.
 `build-wasm.sh` resolves the repository root three levels above the build module.
 Docker uses the repository root as context with the module-specific

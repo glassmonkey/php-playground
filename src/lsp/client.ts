@@ -33,6 +33,7 @@ type LspCompletionItem = {
 	insertText?: string;
 	insertTextFormat?: number;
 	textEdit?: LspTextEdit;
+	additionalTextEdits?: Array<{ range: LspRange; newText: string }>;
 	command?: LspCommand;
 };
 type LspCompletionList = {
@@ -68,10 +69,40 @@ type ClientOptions = {
 	monaco: typeof Monaco;
 	phpVersion: Version;
 	onStatus: (status: ClientStatus, message?: string) => void;
+	signal?: AbortSignal;
 };
 
 const REQUEST_TIMEOUT_MS = 15_000;
 const phpDocumentSelector = { language: 'php' };
+const REQUEST_CANCELLED = Symbol('request-cancelled');
+
+function raceCancellation<T>(
+	request: Promise<T>,
+	token: Monaco.CancellationToken
+): Promise<T | typeof REQUEST_CANCELLED> {
+	let cancellationListener: Monaco.IDisposable | undefined;
+	const cancellation = new Promise<typeof REQUEST_CANCELLED>((resolve) => {
+		if (token.isCancellationRequested) {
+			resolve(REQUEST_CANCELLED);
+			return;
+		}
+		cancellationListener = token.onCancellationRequested(() =>
+			resolve(REQUEST_CANCELLED)
+		);
+	});
+	return Promise.race([request, cancellation]).finally(() =>
+		cancellationListener?.dispose()
+	);
+}
+
+// Monaco resets its per-item resolve cache only for a cancellation rejection.
+// Fulfilling a cancelled request would mark an incomplete item resolved.
+class CompletionResolutionCancelled extends Error {
+	constructor() {
+		super('Canceled');
+		this.name = 'Canceled';
+	}
+}
 
 function rpcError(message: RpcMessage): Error {
 	return new Error(message.error?.message ?? 'LSP request failed.');
@@ -135,7 +166,7 @@ export class LspClient {
 	>();
 	private readonly completionData = new WeakMap<
 		Monaco.languages.CompletionItem,
-		LspCompletionItem
+		{ item: LspCompletionItem; version: number }
 	>();
 	private readonly disposables: Monaco.IDisposable[] = [];
 	private readonly uri: string;
@@ -150,7 +181,11 @@ export class LspClient {
 
 	static async connect(options: ClientOptions): Promise<LspClient> {
 		const client = new LspClient(options);
+		const cancel = () => client.dispose();
+		options.signal?.addEventListener('abort', cancel, { once: true });
 		try {
+			if (options.signal?.aborted)
+				throw new Error('LSP connection cancelled.');
 			await client.request('initialize', {
 				processId: null,
 				rootUri: null,
@@ -165,15 +200,35 @@ export class LspClient {
 				},
 				initializationOptions: { phpVersion: options.phpVersion },
 			});
+			client.assertConnectionActive();
 			client.notify('initialized', {});
+			client.assertConnectionActive();
 			client.openDocument();
 			client.registerProviders();
+			client.assertConnectionActive();
 			options.onStatus('ready');
+			client.assertConnectionActive();
 			return client;
 		} catch (error) {
 			client.dispose();
 			throw error;
+		} finally {
+			options.signal?.removeEventListener('abort', cancel);
 		}
+	}
+
+	private assertConnectionActive(): void {
+		if (this.disposed || this.options.signal?.aborted)
+			throw new Error('LSP connection cancelled.');
+	}
+
+	private keepDisposable(disposable: Monaco.IDisposable): void {
+		// Public registration callbacks may synchronously abort before returning.
+		if (this.disposed) {
+			disposable.dispose();
+			this.assertConnectionActive();
+		}
+		this.disposables.push(disposable);
 	}
 
 	private readonly handleMessage = (event: MessageEvent<RpcMessage>) => {
@@ -192,6 +247,7 @@ export class LspClient {
 		);
 		for (const pending of this.pending.values()) pending.reject(error);
 		this.pending.clear();
+		this.dispose();
 		this.options.onStatus('error', error.message);
 		if (event instanceof ErrorEvent) event.preventDefault();
 	};
@@ -240,7 +296,7 @@ export class LspClient {
 				text: this.options.model.getValue(),
 			},
 		});
-		this.disposables.push(
+		this.keepDisposable(
 			this.options.model.onDidChangeContent(() => {
 				if (!this.disposed) {
 					this.notify('textDocument/didChange', {
@@ -266,26 +322,32 @@ export class LspClient {
 		const isCurrentModel = (requestedModel: Monaco.editor.ITextModel) =>
 			!this.disposed && requestedModel.uri.toString() === this.uri;
 
-		this.disposables.push(
+		this.keepDisposable(
 			monaco.languages.registerCompletionItemProvider(
 				phpDocumentSelector,
 				{
 					triggerCharacters: ['$', '>', ':', '\\'],
 					provideCompletionItems: async (
 						requestedModel,
-						position
+						position,
+						_context,
+						token
 					) => {
 						if (!isCurrentModel(requestedModel))
 							return { suggestions: [] };
 						const version = requestedModel.getVersionId();
 						try {
-							const result = await this.request<
-								LspCompletionList | LspCompletionItem[]
-							>('textDocument/completion', {
-								textDocument: { uri: this.uri },
-								position: currentPosition(position),
-							});
+							const result = await raceCancellation(
+								this.request<
+									LspCompletionList | LspCompletionItem[]
+								>('textDocument/completion', {
+									textDocument: { uri: this.uri },
+									position: currentPosition(position),
+								}),
+								token
+							);
 							if (
+								result === REQUEST_CANCELLED ||
 								!isCurrentModel(requestedModel) ||
 								requestedModel.getVersionId() !== version
 							)
@@ -341,11 +403,23 @@ export class LspClient {
 															.InsertAsSnippet
 													: undefined,
 											range: insertRange,
+											additionalTextEdits:
+												item.additionalTextEdits?.map(
+													(edit) => ({
+														range: lspRangeToMonaco(
+															edit.range
+														),
+														text: edit.newText,
+													})
+												),
 											command: item.command as
 												| Monaco.languages.Command
 												| undefined,
 										};
-									this.completionData.set(suggestion, item);
+									this.completionData.set(suggestion, {
+										item,
+										version,
+									});
 									return [suggestion];
 								}
 							);
@@ -362,42 +436,80 @@ export class LspClient {
 							return { suggestions: [] };
 						}
 					},
-					resolveCompletionItem: async (item) => {
+					resolveCompletionItem: async (item, token) => {
 						const data = this.completionData.get(item);
 						if (data === undefined) return item;
+						const isCurrent = () =>
+							!this.disposed &&
+							this.options.model.getVersionId() === data.version;
+						if (!isCurrent())
+							return { ...item, additionalTextEdits: undefined };
+						if (token.isCancellationRequested)
+							throw new CompletionResolutionCancelled();
 						try {
-							const resolved =
-								await this.request<LspCompletionItem>(
+							const resolved = await raceCancellation(
+								this.request<LspCompletionItem>(
 									'completionItem/resolve',
-									data
-								);
-							item.detail = resolved.detail ?? item.detail;
-							item.documentation =
-								documentationText(resolved.documentation) ??
-								item.documentation;
-							return item;
-						} catch {
-							return item;
+									data.item
+								),
+								token
+							);
+							if (!isCurrent())
+								return {
+									...item,
+									additionalTextEdits: undefined,
+								};
+							if (
+								resolved === REQUEST_CANCELLED ||
+								token.isCancellationRequested
+							)
+								throw new CompletionResolutionCancelled();
+							const completion = {
+								...item,
+								detail: resolved.detail ?? item.detail,
+								documentation:
+									documentationText(resolved.documentation) ??
+									item.documentation,
+								// Replace rather than concatenate imports already supplied initially.
+								additionalTextEdits:
+									resolved.additionalTextEdits?.map(
+										(edit) => ({
+											range: lspRangeToMonaco(edit.range),
+											text: edit.newText,
+										})
+									) ?? item.additionalTextEdits,
+							};
+							this.completionData.set(completion, data);
+							return completion;
+						} catch (error) {
+							if (error instanceof CompletionResolutionCancelled)
+								throw error;
+							if (token.isCancellationRequested && isCurrent())
+								throw new CompletionResolutionCancelled();
+							return isCurrent()
+								? item
+								: { ...item, additionalTextEdits: undefined };
 						}
 					},
 				}
 			)
 		);
 
-		this.disposables.push(
+		this.keepDisposable(
 			monaco.languages.registerHoverProvider(phpDocumentSelector, {
-				provideHover: async (requestedModel, position) => {
+				provideHover: async (requestedModel, position, token) => {
 					if (!isCurrentModel(requestedModel)) return null;
 					const version = requestedModel.getVersionId();
 					try {
-						const result = await this.request<LspHover>(
-							'textDocument/hover',
-							{
+						const result = await raceCancellation(
+							this.request<LspHover>('textDocument/hover', {
 								textDocument: { uri: this.uri },
 								position: currentPosition(position),
-							}
+							}),
+							token
 						);
 						if (
+							result === REQUEST_CANCELLED ||
 							!result.contents ||
 							!isCurrentModel(requestedModel) ||
 							requestedModel.getVersionId() !== version
@@ -423,7 +535,7 @@ export class LspClient {
 			})
 		);
 
-		this.disposables.push(
+		this.keepDisposable(
 			monaco.languages.registerSignatureHelpProvider(
 				phpDocumentSelector,
 				{
