@@ -3486,7 +3486,7 @@ diff --git a/tests/native_versioned_embedded.rs b/tests/native_versioned_embedde
 diff --git a/src/symbol_map/docblock.rs b/src/symbol_map/docblock.rs
 --- a/src/symbol_map/docblock.rs
 +++ b/src/symbol_map/docblock.rs
-@@ -96,7 +96,25 @@
+@@ -96,7 +96,26 @@
      node: &impl HasSpan,
  ) -> Option<(&'a str, u32)> {
      use crate::atom::bytes_to_str;
@@ -3496,7 +3496,8 @@ diff --git a/src/symbol_map/docblock.rs b/src/symbol_map/docblock.rs
 +    let mut attributes = Vec::new();
 +    // Declaration spans include their attribute lists. PHPDoc may precede,
 +    // follow, or separate those lists. Walk only the leading lists, using
-+    // the shared balanced scanner so brackets in strings/comments are inert.
++    // the shared balanced scanner so quoted and document-string bodies,
++    // including brackets and comment-looking text, remain opaque.
 +    while bytes
 +        .get(declaration_start..)
 +        .is_some_and(|s| s.starts_with(b"#["))
@@ -3513,7 +3514,7 @@ diff --git a/src/symbol_map/docblock.rs b/src/symbol_map/docblock.rs
      let candidate_idx = trivia.partition_point(|t| t.span.start.offset < node_start);
      if candidate_idx == 0 {
          return None;
-@@ -107,12 +125,35 @@
+@@ -107,12 +126,35 @@
  
      for i in (0..candidate_idx).rev() {
          let t = &trivia[i];
@@ -3555,7 +3556,7 @@ diff --git a/src/symbol_map/docblock.rs b/src/symbol_map/docblock.rs
              return None;
          }
  
-@@ -1325,6 +1366,40 @@
+@@ -1325,6 +1367,40 @@
                      is_docblock_reference: true,
                  },
              });
@@ -3596,3 +3597,209 @@ diff --git a/src/symbol_map/docblock.rs b/src/symbol_map/docblock.rs
          }
      }
  }
+diff --git a/src/text_scan.rs b/src/text_scan.rs
+--- a/src/text_scan.rs
++++ b/src/text_scan.rs
+@@ -2,11 +2,9 @@
+ //! string literals and comments while searching source text for other
+ //! syntax (matching delimiters, call boundaries, etc.).
+ //!
+-//! These are intentionally simple, non-heredoc-aware scanners. The
+-//! classmap scanner (`classmap_scanner.rs`) has its own single-pass,
+-//! `memchr`-driven state machine for the same job because it also has to
+-//! track heredoc/nowdoc bodies and is a hot path over entire files; it is
+-//! kept separate rather than routed through here.
++//! Forward delimiter matching shares the initializer scanner's heredoc/nowdoc
++//! skipper. Bodies and quoted strings are opaque to delimiter matching; the
++//! classmap scanner still has its own whole-file state machine.
+ 
+ use std::borrow::Cow;
+ 
+@@ -475,7 +473,7 @@
+ ///
+ /// `open` and `close` are the opening and closing byte values (e.g.
+ /// `b'{'` / `b'}'` or `b'('` / `b')'`).  The scan is aware of string
+-/// literals (`'…'` and `"…"` with backslash escaping) and PHP comments
++/// literals (`'…'`, `"…"`, heredoc and nowdoc) and PHP comments
+ /// (see [`skip_php_comment`]), so delimiters inside strings or comments
+ /// are not counted.
+ pub(crate) fn find_matching_forward(
+@@ -518,6 +516,10 @@
+     while pos < bytes.len() {
+         if let Some(past) = skip_php_comment(bytes, pos) {
+             pos = past;
++            continue;
++        }
++        if bytes[pos..].starts_with(b"<<<") {
++            pos = skip_heredoc(bytes, pos);
+             continue;
+         }
+         match bytes[pos] {
+@@ -539,6 +541,41 @@
+     None
+ }
+ 
++/// The offset just past the heredoc or nowdoc whose `<<<` is at `start`:
++/// past its closing label, or the end of `bytes` when it is never closed.
++pub(crate) fn skip_heredoc(bytes: &[u8], start: usize) -> usize {
++    let is_name_byte = |b: u8| b.is_ascii_alphanumeric() || b == b'_' || b >= 0x80;
++    let mut i = start + 3;
++    while matches!(bytes.get(i), Some(b' ' | b'\t')) {
++        i += 1;
++    }
++    if matches!(bytes.get(i), Some(b'\'' | b'"')) {
++        i += 1;
++    }
++    let label_start = i;
++    while bytes.get(i).is_some_and(|&b| is_name_byte(b)) {
++        i += 1;
++    }
++    let label = &bytes[label_start..i];
++    if label.is_empty() {
++        return i;
++    }
++    // The body starts on the next line, and ends at the first line that,
++    // after any indentation, starts with the label and does not continue
++    // it.
++    while let Some(newline) = find_byte(bytes, i, b'\n') {
++        i = newline + 1;
++        while matches!(bytes.get(i), Some(b' ' | b'\t')) {
++            i += 1;
++        }
++        let end = i + label.len();
++        if bytes[i..].starts_with(label) && !bytes.get(end).is_some_and(|&b| is_name_byte(b)) {
++            return end;
++        }
++    }
++    bytes.len()
++}
++
+ /// The byte offsets of `bytes` that are code: not inside a quote
+ /// (`'…'` or `"…"`, with backslash escapes) or a PHP comment (see
+ /// [`skip_php_comment`]).
+@@ -1189,5 +1226,70 @@
+             find_matching_forward(text, 0, b'(', b')'),
+             Some(text.len() - 1)
+         );
++    }
++}
++
++#[cfg(test)]
++mod attribute_document_string_tests {
++    use super::*;
++    use mago_allocator::LocalArena;
++    use mago_database::file::FileId;
++    use mago_span::HasSpan;
++    use mago_syntax::cst::Node;
++
++    #[test]
++    fn opaque_attribute_ends_match_the_pinned_parser_spans() {
++        for value in [
++            "'] ] [ /** fake */'",
++            "\"] ] [ /** fake */\"",
++            "<<<'DOC'\n] ] [ /** fake */\nDOC",
++            "<<<DOC\n] ] [ /** fake */\nDOC",
++            "<<<\"DOC\"\n] ] [ /** fake */\nDOC",
++            "<<<'DOC'\n    ] ] [ /** fake */\n    DOC",
++            "<<<DOC\r\n] ] [ /** fake */\r\nDOC",
++            "<<<'DOC'\nDOC_suffix ] ] [ /** fake */\nDOC",
++        ] {
++            let source = format!(
++                "<?php #[A([/** ARG */ {value}, \"[\"])] /** OWN */ #[B] class Target {{}}"
++            );
++            let arena = LocalArena::new();
++            let program = mago_syntax::parser::parse_file_content(
++                &arena,
++                FileId::new(b"opaque.php"),
++                source.as_bytes(),
++            );
++            let mut nodes = vec![Node::Program(program)];
++            let mut checked = false;
++            while let Some(node) = nodes.pop() {
++                if let Node::Class(class) = node {
++                    for list in class.attribute_lists.iter() {
++                        let span = list.span();
++                        assert_eq!(
++                            find_matching_forward(
++                                &source,
++                                span.start.offset as usize + 1,
++                                b'[',
++                                b']'
++                            ),
++                            Some(span.end.offset as usize - 1),
++                            "{source}"
++                        );
++                    }
++                    assert_eq!(
++                        crate::symbol_map::docblock::get_docblock_text_with_offset(
++                            program.trivia.as_slice(),
++                            &source,
++                            class
++                        )
++                        .map(|v| v.0),
++                        Some("/** OWN */"),
++                        "{source}"
++                    );
++                    checked = true;
++                }
++                node.visit_children(|child| nodes.push(child));
++            }
++            assert!(checked);
++        }
+     }
+ }
+diff --git a/src/parser/initializers.rs b/src/parser/initializers.rs
+--- a/src/parser/initializers.rs
++++ b/src/parser/initializers.rs
+@@ -45,7 +45,7 @@
+         } else if let Some(end) = text_scan::skip_php_comment(bytes, i) {
+             i = end;
+         } else if bytes[i..].starts_with(b"<<<") {
+-            i = skip_heredoc(bytes, i);
++            i = text_scan::skip_heredoc(bytes, i);
+             after_access = false;
+         } else if bytes[i..].starts_with(b"::") || bytes[i..].starts_with(b"->") {
+             i += 2;
+@@ -127,42 +127,8 @@
+         match text_scan::skip_php_comment(bytes, i) {
+             Some(after) => i = after,
+             None => return bytes[i..].starts_with(b"::"),
+-        }
+-    }
+-}
+-
+-/// The offset just past the heredoc or nowdoc whose `<<<` is at `start`:
+-/// past its closing label, or the end of `bytes` when it is never closed.
+-fn skip_heredoc(bytes: &[u8], start: usize) -> usize {
+-    let mut i = start + 3;
+-    while matches!(bytes.get(i), Some(b' ' | b'\t')) {
+-        i += 1;
+-    }
+-    if matches!(bytes.get(i), Some(b'\'' | b'"')) {
+-        i += 1;
+-    }
+-    let label_start = i;
+-    while bytes.get(i).is_some_and(|&b| is_name_byte(b)) {
+-        i += 1;
+-    }
+-    let label = &bytes[label_start..i];
+-    if label.is_empty() {
+-        return i;
+-    }
+-    // The body starts on the next line, and ends at the first line that,
+-    // after any indentation, starts with the label and does not continue
+-    // it.
+-    while let Some(newline) = text_scan::find_byte(bytes, i, b'\n') {
+-        i = newline + 1;
+-        while matches!(bytes.get(i), Some(b' ' | b'\t')) {
+-            i += 1;
+         }
+-        let end = i + label.len();
+-        if bytes[i..].starts_with(label) && !bytes.get(end).is_some_and(|&b| is_name_byte(b)) {
+-            return end;
+-        }
+     }
+-    bytes.len()
+ }
+ 
+ /// Whether a name starts at `at`.

@@ -149,3 +149,5 @@ PHPDoc は属性の前・後・複数属性の間に置かれた場合も、宣�
 ライセンス原文と帰属情報の入力は`src/lsp/wasm/third-party/`にまとめています。PHPantomのMIT、phpstorm-stubsのLICENSEとREADME全文、固定Mago sourceのMIT/Apache原文を改変せず保存し、manifest.jsonに原典のcommit・URL・hashを記録します。ATTRIBUTIONS.mdは、実際の埋込定義に残るPHP Documentation Group、Aerospike、DataStax、Tawanaのヘッダーを参照する本プロジェクトの索引です。upstream NOTICE原文や完全なRust SBOMを意味しません。
 
 `make install-phpantom-runtime`はbuild成功後、原文と索引のSHA256SUMSを照合してから、指定版のWASM/provenanceと`assets/lsp/phpantom/third-party/`を配置します。builder失敗時は配置先へ進みません。stubsのPHP manual由来文面の帰属説明は、LICENSEだけでなく[固定READMEのLicense節](https://github.com/JetBrains/phpstorm-stubs/blob/2049ca3cfa1feabf52db074108fe776a5713cf02/README.md#license)を参照します。UI側のasset manifestと公開先の更新は、別の採用gateでこの同梱pathと原典URLを対応付けます。
+
+属性終端を探す共通scannerは、initializerの既存heredoc/nowdocスキッパーを共有します。本文中のbracketやコメントに見える文字を区切りとせず、引用label、字下げ、CRLF、終端labelの識別子境界を扱います。固定parserの実attribute spanとの対照と、独立PHP Reflectionに基づく別ファイルconsumerからのclass/function/method resolveを検査します。従来17 fixtureを保持し、追加84 fixtureではcold/warm、同名FQN、UTF-16位置、docなし・隣の宣言・属性argumentの偽docも確認します。

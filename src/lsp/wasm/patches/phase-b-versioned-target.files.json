@@ -1,6 +1,6 @@
 {
-  "completePatchSha256": "8b55b87dcf04d1fc16d00baa45fff9f061e31c0c02d3af864212a63c0210a841",
-  "fileCount": 38,
+  "completePatchSha256": "78a0295031c43b88fb79d3ed466954d372846b3e3d5eaef0f4e2ad80015920ff",
+  "fileCount": 40,
   "files": [
     {
       "path": "build.rs",
@@ -111,6 +111,10 @@
       "sha256": "91dc8163694613d5f3e36a319b41a45eee2d51bd59c592f0904153a8c70708de"
     },
     {
+      "path": "src/parser/initializers.rs",
+      "sha256": "c9cabbaccd0a121ba56fe3ff41204a26de34bb3032403abc42407945705b12e9"
+    },
+    {
       "path": "src/parser/signature.rs",
       "sha256": "0a2fc1bc4cc2fbf85e0d919bfa6cc69cafa1187fcd979a3d0ec31538f5449a07"
     },
@@ -132,7 +136,11 @@
     },
     {
       "path": "src/symbol_map/docblock.rs",
-      "sha256": "cdf59ea65f56ac86b57caee7d07fecba00020b8822ba5a5414314c51af50b1fa"
+      "sha256": "4c2a37d827e78dcc7bd3bcd6c63d5b941240a5ba1ae394c16ee56c84797da1f5"
+    },
+    {
+      "path": "src/text_scan.rs",
+      "sha256": "0f0c9b350491f95ea0e60303eb2e250046c52f3be805dfb804fa738d60854fb7"
     },
     {
       "path": "tests/integration/completion_basic.rs",

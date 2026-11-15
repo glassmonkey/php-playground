@@ -17,10 +17,10 @@ const reviewedDiff = manifest.source?.reviewedPhaseBDiffSha256
 assert.equal(reviewedDiff,
 	'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d');
 assert.equal(manifest.source?.appliedPhaseBPatchSha256,
-    '8b55b87dcf04d1fc16d00baa45fff9f061e31c0c02d3af864212a63c0210a841',
+    '78a0295031c43b88fb79d3ed466954d372846b3e3d5eaef0f4e2ad80015920ff',
     'current applied PHPantom patch is required before WASM instantiation');
 assert.equal(manifest.source?.appliedFileManifestSha256,
-    'b3f47d28bbb4f1bf3791082a371a665c3d93c3d6e0dca899e0775a5e7234387f',
+    'f316511fcf3c593515786008c937eb5c31b21f3200cbe35972cd0c21d6052897',
     'current applied file manifest is required before WASM instantiation');
 assert.equal(manifest.stubs?.commit, '2049ca3cfa1feabf52db074108fe776a5713cf02');
 if (manifest.stubs?.resolvedCommitMarker) {
@@ -553,6 +553,29 @@ async function releaseAttributeDocOracle() {
     }
 }
 
+async function releaseOpaqueAttributeDocOracle() {
+    if (!targetAtLeast(8,0)) return;
+    const rows=(await readFile(new URL('./native-probe/tests/fixtures/attribute-opaque-docs.tsv',import.meta.url),'utf8'))
+        .split('\n').filter(Boolean).map(row=>row.split('\t').map(value=>value.replaceAll('\\n','\n').replaceAll('\\r','\r')));
+    assert.equal(rows.length,84,'complete opaque attribute inventory');
+    assert.equal(new Set(rows.map(row=>row[6])).size,84,'unique opaque attribute cases');
+    for (const [declaration,source,member,owner,kind,marker,name] of rows) {
+        await freshEngine(); open('file:///release/declaration.php',declaration);
+        const uri='file:///release/consumer.php';open(uri,source);
+        const lines=source.split('\n');const position={line:lines.length-1,character:lines.at(-1).length};
+        for (const warm of [false,true]) {
+            const items=completionItems(request('textDocument/completion',{textDocument:{uri},position}));
+            const item=items.find(value=>value.kind===Number(kind)&&value.data?.m===member&&(!owner||value.data?.c===owner));
+            assert.ok(item,`${target} ${name} selected FQN ${owner}::${member}`);
+            const resolved=request('completionItem/resolve',item).result;
+            const docs=resolved.documentation?.value??resolved.documentation??'';
+            const valid=typeof docs==='string'&&(marker?docs.includes(marker):!docs.includes('OWN_DOC_'))&&!['FAKE_ARGUMENT','FAKE_BODY','NEIGHBOR_DOC','OTHER_DOC'].some(value=>docs.includes(value));
+            check(`${target} opaque attribute PHPDoc ${name} warm=${warm}`,valid,{item,resolved});
+            console.log(`ATTRIBUTE_OPAQUE_DOC_RESPONSE ${JSON.stringify({target,name,warm,declaration,source,position,item,resolved})}`);
+        }
+    }
+}
+
 async function releaseSharedConstantDeclarations() {
     for (const symbol of ['PHP_SBINDIR','PHP_OUTPUT_HANDLER_PROCESSED']) {
         await freshEngine();
@@ -586,6 +609,7 @@ await releaseImportOracle();
 await releaseImportEditOracle();
 await releaseImportRenameOracle();
 await releaseAttributeDocOracle();
+await releaseOpaqueAttributeDocOracle();
 console.log(JSON.stringify({
 	target,
 	artifactSha256: actualSha,
