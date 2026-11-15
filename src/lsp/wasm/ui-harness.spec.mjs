@@ -396,6 +396,52 @@ describe('UI runner public contracts', () => {
 		const build = join(directory, 'build');
 		await mkdir(build);
 		await writeFile(join(build, 'index.html'), 'fixture');
+		// This tests HTTP/journal behavior, not hashing the production twelve-WASM batch.
+		// An isolated checkout keeps the existing child deadline independent of unrelated unit work.
+		const repo = join(directory, 'repo');
+		const paths = [
+			'src/lsp/client.ts',
+			'src/editor.tsx',
+			'src/lsp/phpantom/artifact-registry.ts',
+			'src/lsp/wasm/versioned-ui-test.mjs',
+			'src/lsp/wasm/review-ui-test.mjs',
+			'src/lsp/wasm/ui-observation.mjs',
+			'src/lsp/wasm/ui-contracts.mjs',
+			'src/lsp/wasm/ui-process.mjs',
+			'src/lsp/wasm/ui-harness.spec.mjs',
+			'src/lsp/wasm/release-ui-test.mjs',
+			'assets/lsp/phpantom/manifest.json',
+			'.github/workflows/playwright.yml',
+		];
+		for (const path of paths) {
+			await mkdir(resolve(repo, path, '..'), { recursive: true });
+			await writeFile(
+				join(repo, path),
+				await readFile(resolve(import.meta.dirname, '../../..', path))
+			);
+		}
+		await writeFile(
+			join(repo, 'assets/lsp/phpantom/php-8.5.wasm'),
+			new Uint8Array([0, 97, 115, 109])
+		);
+		const git = (...args) =>
+			execFileSync('git', args, {
+				cwd: repo,
+				timeout: 2000,
+				encoding: 'utf8',
+			}).trim();
+		git('init', '-q');
+		git('add', '.');
+		git(
+			'-c',
+			'user.name=Fixture',
+			'-c',
+			'user.email=fixture@example.test',
+			'commit',
+			'-qm',
+			'fixture'
+		);
+
 		const output = join(directory, 'journal');
 		const server = createServer(() => {});
 		await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
@@ -404,7 +450,7 @@ describe('UI runner public contracts', () => {
 			const actual = await runBounded(
 				[
 					process.execPath,
-					resolve(import.meta.dirname, 'release-ui-test.mjs'),
+					join(repo, 'src/lsp/wasm/release-ui-test.mjs'),
 				],
 				{
 					cwd: directory,
