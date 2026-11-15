@@ -50,6 +50,10 @@ async function inventory(path) {
 const sources = [
 	'src/lsp/client.ts',
 	'src/editor.tsx',
+	'src/lsp/natural-middle-completion.ts',
+	'src/lsp/editor-context.ts',
+	'src/lsp/__test__/natural-middle-completion.spec.ts',
+	'src/lsp/__test__/editor-context.spec.ts',
 	'src/lsp/phpantom/artifact-registry.ts',
 	'src/lsp/wasm/ui-harness.spec.mjs',
 	'src/lsp/wasm/versioned-ui-test.mjs',

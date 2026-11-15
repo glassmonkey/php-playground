@@ -402,6 +402,10 @@ describe('UI runner public contracts', () => {
 		const paths = [
 			'src/lsp/client.ts',
 			'src/editor.tsx',
+			'src/lsp/natural-middle-completion.ts',
+			'src/lsp/editor-context.ts',
+			'src/lsp/__test__/natural-middle-completion.spec.ts',
+			'src/lsp/__test__/editor-context.spec.ts',
 			'src/lsp/phpantom/artifact-registry.ts',
 			'src/lsp/wasm/versioned-ui-test.mjs',
 			'src/lsp/wasm/review-ui-test.mjs',
