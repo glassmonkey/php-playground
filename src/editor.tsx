@@ -16,6 +16,7 @@ import { Preview } from './preview';
 import type { PreviewTheme } from './preview-theme';
 import type * as Monaco from 'monaco-editor';
 import { LspClient } from './lsp/client';
+import { bindNaturalMiddleCompletion } from './lsp/natural-middle-completion';
 import { createWorker } from './lsp/phpantom';
 
 function LoadSpinner() {
@@ -48,6 +49,7 @@ function PhpEditor(params: {
 
 		const controller = new AbortController();
 		let client: LspClient | undefined;
+		let middleCompletion: Monaco.IDisposable | undefined;
 		let cancelled = false;
 
 		void createWorker(params.version, { signal: controller.signal })
@@ -60,6 +62,7 @@ function PhpEditor(params: {
 					phpVersion: params.version,
 					onStatus: (status, message) => {
 						if (status === 'error') {
+							middleCompletion?.dispose();
 							console.error(
 								'PHPantom completion failed:',
 								message
@@ -74,6 +77,11 @@ function PhpEditor(params: {
 					return;
 				}
 				client = connectedClient;
+				middleCompletion = bindNaturalMiddleCompletion({
+					...lspBinding,
+					phpVersion: params.version,
+					signal: controller.signal,
+				});
 			})
 			.catch((error: unknown) => {
 				if (!cancelled) {
@@ -86,6 +94,7 @@ function PhpEditor(params: {
 
 		return () => {
 			cancelled = true;
+			middleCompletion?.dispose();
 			controller.abort();
 			void lspBinding.editor.getAction('hideSuggestWidget')?.run();
 			void lspBinding.editor.getAction('editor.action.hideHover')?.run();

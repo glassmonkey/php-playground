@@ -258,3 +258,60 @@ export async function installWorkerTrace(page) {
 		});
 	});
 }
+
+// didChange acknowledges the model, not the browser's next layout/paint.
+export async function waitForHoverPoint(page, source) {
+	const point = await page.waitForFunction(
+		(expected) => {
+			const monaco =
+				window.monaco ?? window.require?.('vs/editor/editor.main');
+			const editor = monaco?.editor?.getEditors?.()[0];
+			if (!editor || editor.getValue() !== expected) return false;
+			const line = editor.getDomNode().querySelectorAll('.view-line')[1];
+			if (!line) return false;
+			const walker = document.createTreeWalker(
+				line,
+				NodeFilter.SHOW_TEXT
+			);
+			let node;
+			while ((node = walker.nextNode())) {
+				const offset = node.textContent.indexOf('strrchr');
+				if (offset < 0) continue;
+				const range = document.createRange();
+				range.setStart(node, offset + 3);
+				range.setEnd(node, offset + 4);
+				const rect = range.getBoundingClientRect();
+				if (!(rect.width > 0 && rect.height > 0)) {
+					(window.__quality.geometryRejected ??= []).push({
+						at: performance.now(),
+						width: rect.width,
+						height: rect.height,
+						version: editor.getModel().getVersionId(),
+					});
+					return false;
+				}
+				const point = {
+					x: rect.x + rect.width / 2,
+					y: rect.y + rect.height / 2,
+				};
+				const hit = document.elementFromPoint(point.x, point.y);
+				const target = editor.getTargetAtClientPoint(point.x, point.y);
+				if (
+					!hit?.closest('.view-line') ||
+					!editor.getDomNode().contains(hit) ||
+					target?.position?.lineNumber !== 2 ||
+					target.position.column < 4 ||
+					target.position.column > 5
+				)
+					return false;
+				window.__quality.hoverPoint = point;
+				window.__qualityCapture('before-original-hover-moves', point);
+				return point;
+			}
+			return false;
+		},
+		source,
+		{ timeout: 5000 }
+	);
+	return point.jsonValue();
+}

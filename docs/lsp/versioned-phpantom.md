@@ -58,7 +58,7 @@ are checked by natural typing.
 
 必須の Playwright workflow は、通常の E2E に加えて
 `node src/lsp/wasm/release-ui-test.mjs` を実行する。production build を専用の
-preview で開き、PHP 8.0・8.3・8.5 の26ケースと review の26ケースを確認する。
+preview で開き、PHP 8.0・8.3・8.5 の26ケースと review の40ケースを確認する。
 元の全12版101ケースは残してあり、この部分集合を全版の保証とは扱わない。
 名前付き引数のケースは明示的な補完要求であり、通常の自然入力の証拠と区別する。
 
@@ -76,7 +76,7 @@ manifest の `candidateBatchIndexSha256` は候補一覧を、各行の `candida
 upstream と stubs の pin、および license は変更しない。資産採用と実ブラウザの成功、出荷判定は区別する。
 
 review には grouped import の自然入力6ケース、明示要求の補助2ケース、初期化・Worker error・版の往復4ケースを含める。
-単語途中の自然入力2ケースは Monaco の自動要求が発生しない問題を未解決のまま検出する。
+単語途中の自然入力2ケースは app 側の限定した補完 hook も対象にする。
 補助2ケースで範囲置換が成功しても、自然入力の成功には数えない。元の失敗や assertion を削除しない。
 
 検証器は `build/phpantom-release-evidence/` に source/head/build の hash、
@@ -123,3 +123,22 @@ source capture は、fallible な処理を始める前に START を保存する�
 テキスト差分は WASM を除外した `source.diff` に直接保存し、12 binary は path・byte数・SHA-256 で識別する。
 `capture.json` と `source.json` を分け、capture 失敗時も startup error・result・EXIT と実際の数値 exit を残す。
 差分取得は5秒、テキスト差分の保存量は16 MiBを上限とする。binary patch を同期出力 buffer に蓄積しない。
+
+hover の準備では、didChange と一致する model の確認だけで mouse 座標を確定しない。
+描画された token の range が正の幅・高さを持ち、実際の hit target が同じ editor の対象位置であることを確認する。
+その後に元の mouse 操作を行い、provider・RPC・可視 tooltip 本文を検証する。ゼロ矩形を一度だけ返す制御 fixture も用意する。
+過去の失敗記録がこの原因と結び付いていない場合は、修正後の成功だけで原因を断定しない。
+
+単語途中の補完は接続済みの PHP model と Auto complete が有効な期間だけ購読する。
+公開 key/model event から、選択を置換しない単一 identifier 文字の挿入と model version を確認する。
+通常の単語末、paste、削除、IME の途中、programmatic な変更には追加要求を行わない。
+既に候補 widget が開いている場合は、選択や resolve を再開し直さない。OFF・版切替・model 変更・unmount・Worker error では購読を解除する。
+
+字句判定は稀な対象入力でのみ公開 tokenize を使い、先行行の状態を含む全文を渡す。
+CDN Monaco 0.55.1 が heredoc 本文を identifier と分類するため、PHP operator token で確認した開始と対応する終端だけを補助する。
+[PHP の文字列構文](https://www.php.net/manual/en/language.types.string.php)と
+[PHP 7.3 の変更](https://www.php.net/manual/en/migration73.new-features.php)に従い、quoted label、identifier 境界、改行、indent と版の違いを扱う。
+本文は判定用のコピーだけで UTF16 長と改行を維持して空白に置換する。model、候補の FQN、engine の絞り込みは変更しない。
+不明な字句状態や tokenize の例外では追加要求を抑制する。一般の PHP parser や診断器としては使用しない。
+閉じた heredoc ごとに判定用 tokenize を再計算する。全文の長さと interval 数による処理量は残り、数値の性能保証はここでは設定しない。
+review の追加14ケースは、コメント・文字列・HTML・heredoc/nowdoc の要求抑制、終端後の PHP と 7.2/7.3 の境界を実ブラウザと PHP 出力で確認する。

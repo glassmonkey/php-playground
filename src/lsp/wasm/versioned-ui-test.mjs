@@ -11,7 +11,11 @@ import {
 	expectedStrrchrSignature,
 } from './ui-contracts.mjs';
 import { chromium, expect } from '@playwright/test';
-import { installWorkerTrace, hoverState } from './ui-observation.mjs';
+import {
+	installWorkerTrace,
+	hoverState,
+	waitForHoverPoint,
+} from './ui-observation.mjs';
 
 const allVersions = expectedPhpTargets;
 const versions =
@@ -1185,36 +1189,40 @@ async function hoverSignatureCase(page, version, shouldHaveThirdParameter) {
 		source,
 		{ timeout: 10_000 }
 	);
-	const position = await page
-		.locator('.view-line')
-		.nth(1)
-		.evaluate((line) => {
-			const walker = document.createTreeWalker(
-				line,
-				NodeFilter.SHOW_TEXT
-			);
-			let node;
-			while ((node = walker.nextNode())) {
-				const start = node.textContent.indexOf('strrchr');
-				if (start < 0) continue;
-				const range = document.createRange();
-				range.setStart(node, start + 3);
-				range.setEnd(node, start + 4);
-				const rect = range.getBoundingClientRect();
-				const point = {
-					x: rect.x + rect.width / 2,
-					y: rect.y + rect.height / 2,
-				};
-				window.__quality.hoverPoint = point;
-				window.__qualityCapture('before-original-hover-moves', point);
-				return point;
-			}
-			return null;
+	// A controlled regression replays the original zero-rectangle observation once.
+	if (process.env.PHPANTOM_MATRIX_HOVER_ZERO_RECT_ONCE === '1')
+		await page.evaluate(() => {
+			const original = Range.prototype.getBoundingClientRect;
+			window.__quality.zeroRectFixture = {
+				injected: false,
+				pointerEventsAtInjection: null,
+			};
+			Range.prototype.getBoundingClientRect = function () {
+				const node = this.startContainer;
+				if (node.textContent?.includes('strrchr')) {
+					Range.prototype.getBoundingClientRect = original;
+					window.__quality.zeroRectFixture = {
+						injected: true,
+						pointerEventsAtInjection:
+							window.__quality.events.length,
+					};
+					return new DOMRect(0, 0, 0, 0);
+				}
+				return original.call(this);
+			};
 		});
-	requireThat(
-		position,
-		'could not locate strrchr token in rendered Monaco line'
-	);
+	const position = await waitForHoverPoint(page, source);
+	if (process.env.PHPANTOM_MATRIX_HOVER_ZERO_RECT_ONCE === '1')
+		requireThat(
+			await page.evaluate(
+				() =>
+					window.__quality.zeroRectFixture?.injected &&
+					window.__quality.geometryRejected?.some(
+						(row) => row.width === 0 && row.height === 0
+					)
+			),
+			'controlled zero-rectangle fixture was not observed and rejected'
+		);
 	const beforeCount = openedDocument.worker.sent.filter(
 		(message) => message.method === 'textDocument/hover'
 	).length;

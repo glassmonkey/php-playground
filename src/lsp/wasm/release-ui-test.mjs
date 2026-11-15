@@ -264,7 +264,7 @@ try {
 			'review',
 			['src/lsp/wasm/review-ui-test.mjs'],
 			{ PHPANTOM_REVIEW_CASE: 'all' },
-			26
+			40
 		);
 	if (phase === 'semantics')
 		await run(

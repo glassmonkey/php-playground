@@ -27,23 +27,26 @@ if (
 		'semantics',
 		'imports',
 		'lifecycle',
+		'middle-context',
 	].includes(selection)
 )
 	throw new Error('Unknown review case selection');
 async function run(name, action) {
-	const group = name.startsWith('grouped import ')
-		? 'imports'
-		: name.startsWith('lifecycle ')
-			? 'lifecycle'
-			: name.startsWith('semantic ')
-				? 'semantics'
-				: name.startsWith('cancelled resolve')
-					? 'cancellation'
-					: name.startsWith('namespaced DateTime')
-						? 'DateTime'
-						: name.startsWith('namespaced project')
-							? 'Widget'
-							: 'startup';
+	const group = name.startsWith('editor middle ')
+		? 'middle-context'
+		: name.startsWith('grouped import ')
+			? 'imports'
+			: name.startsWith('lifecycle ')
+				? 'lifecycle'
+				: name.startsWith('semantic ')
+					? 'semantics'
+					: name.startsWith('cancelled resolve')
+						? 'cancellation'
+						: name.startsWith('namespaced DateTime')
+							? 'DateTime'
+							: name.startsWith('namespaced project')
+								? 'Widget'
+								: 'startup';
 	if (selection !== 'all' && selection !== group) return;
 	console.log(`START ${name}`);
 	const context = await browser.newContext();
@@ -709,11 +712,21 @@ try {
 								item.additionalTextEdits ?? null,
 						}).toEqual(expected);
 					await expect.poll(() => text(page)).toBe(want);
+					const completionRequests = (await workers(page))
+						.at(-1)
+						.sent.filter(
+							(message) =>
+								message.method === 'textDocument/completion'
+						);
+					if (!explicitRequest)
+						expect(completionRequests).toHaveLength(1);
+
 					await expect(
 						page.getByTestId('preview-console')
 					).toHaveText(stdout);
 					return {
 						id,
+						completionRequests,
 						inputMode: explicitRequest
 							? 'explicit-completion'
 							: 'natural-typing',
@@ -728,6 +741,153 @@ try {
 				}
 			);
 		}
+
+	const middleFixtures = [
+		{
+			name: 'line comment',
+			marked: '<?php\n// Wi|get\necho "ok";',
+			stdout: 'ok',
+		},
+		{
+			name: 'multiline comment',
+			marked: '<?php\n/*\nWi|get\n*/ echo "ok";',
+			stdout: 'ok',
+		},
+		{
+			name: 'single quoted string',
+			marked: "<?php\n$s='Wi|get';echo 'ok';",
+			stdout: 'ok',
+		},
+		{
+			name: 'multiline string',
+			marked: '<?php\n$s="open\nWi|get\n";echo "ok";',
+			stdout: 'ok',
+		},
+		{
+			name: 'HTML',
+			marked: '<div>Wi|get</div>',
+			stdout: '<div>Widget</div>',
+		},
+		...['5.6', '7.2', '7.3', '8.5'].map((version) => ({
+			name: `heredoc PHP${version}`,
+			version,
+			marked: '<?php\n$s=<<<TXT\nWi|get\nTXT;\necho "ok";',
+			stdout: 'ok',
+		})),
+		{
+			name: 'nowdoc',
+			marked: "<?php\n$s=<<<'TXT'\nWi|get\nTXT;\necho 'ok';",
+			stdout: 'ok',
+		},
+		{
+			name: 'PHP-looking heredoc',
+			marked: '<?php\n$s=<<<TXT\n?> " /*\nWi|get\n<<<OTHER\nTXT;\necho "ok";',
+			stdout: 'ok',
+		},
+		{
+			name: 'code after opaque body',
+			marked: '<?php\n$s=<<<TXT\n" /* ?>\nTXT;echo strl|n("x");',
+			key: 'e',
+			stdout: '1',
+			requests: 1,
+			label: 'strlen',
+		},
+	];
+	middleFixtures.push(
+		{
+			name: 'indented closing PHP7.3',
+			version: '7.3',
+			marked: '<?php\n$s=<<<TXT\n  body\n  TXT;echo strl|n("x");',
+			key: 'e',
+			stdout: '1',
+			requests: 1,
+			label: 'strlen',
+		},
+		{
+			name: 'indented closing PHP7.2 rejected',
+			version: '7.2',
+			marked: '<?php\n$s=<<<TXT\n  body\n  TXT;echo strl|n("x");',
+			key: 'e',
+			stdoutError: 'Parse error',
+			requests: 0,
+		}
+	);
+
+	for (const fixture of middleFixtures)
+		await run(`editor middle ${fixture.name}`, async (page) => {
+			const version = fixture.version ?? '8.5',
+				offset = fixture.marked.indexOf('|'),
+				source = fixture.marked.replace('|', ''),
+				key = fixture.key ?? 'd';
+			const expected = fixture.marked.replace('|', key);
+			await open(page, source, version);
+			await ready(page, version);
+			await page.evaluate((offset) => {
+				const m =
+					window.monaco ?? window.require('vs/editor/editor.main');
+				const e = m.editor.getEditors()[0];
+				e.focus();
+				e.setPosition(e.getModel().getPositionAt(offset));
+			}, offset);
+			const before = await modelSnapshot(page);
+			const prefix = source.slice(0, offset).split('\n');
+			expect({
+				text: before.text,
+				cursor: before.cursor,
+				selection:
+					before.selection.startColumn === before.selection.endColumn,
+			}).toEqual({
+				text: source,
+				cursor: {
+					lineNumber: prefix.length,
+					column: prefix.at(-1).length + 1,
+				},
+				selection: true,
+			});
+			const count = (await workers(page))
+				.at(-1)
+				.sent.filter(
+					(m) => m.method === 'textDocument/completion'
+				).length;
+			await page.keyboard.type(key);
+			await expect.poll(() => text(page)).toBe(expected);
+			if (fixture.stdoutError)
+				await expect(page.getByTestId('preview-console')).toContainText(
+					fixture.stdoutError
+				);
+			else
+				await expect(page.getByTestId('preview-console')).toHaveText(
+					fixture.stdout
+				);
+			if (fixture.label)
+				await expect(
+					page
+						.locator('.suggest-widget .label-name')
+						.filter({ hasText: new RegExp(`^${fixture.label}$`) })
+				).toBeVisible();
+			const after = await modelSnapshot(page),
+				worker = (await workers(page)).at(-1);
+			const requests = worker.sent
+				.filter((m) => m.method === 'textDocument/completion')
+				.slice(count);
+			expect({
+				text: after.text,
+				changed: after.version > before.version,
+				requests: requests.length,
+			}).toEqual({
+				text: expected,
+				changed: true,
+				requests: fixture.requests ?? 0,
+			});
+			return {
+				version,
+				before,
+				after,
+				requests,
+				stdout: fixture.stdout,
+				worker,
+			};
+		});
 	for (const mode of ['off', 'version'])
 		await run(`lifecycle ${mode} during held initialize`, async (page) => {
 			await page.addInitScript(() => {
