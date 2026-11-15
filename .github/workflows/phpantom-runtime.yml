@@ -33,10 +33,10 @@ jobs:
           node-version: "22"
       - name: Check native classifier and immutable candidate regressions
         run: node --test src/lsp/wasm/test-build-tools.mjs
-      - name: Run native regression probe
+      - name: Require clean native baseline and release-quality family regressions
         run: make test-phpantom-runtime-native
       - name: Build and test selected WASI version boundaries
         run: |
-          for php_version in 7.4 8.0 8.3 8.5; do
+          for php_version in 7.4 8.0 8.3 8.4 8.5; do
             make build-phpantom-runtime PHPANTOM_TARGET_VERSION="$php_version"
           done

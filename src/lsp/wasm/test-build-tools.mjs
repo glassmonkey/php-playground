@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import { mkdtempSync, writeFileSync, readFileSync, mkdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -52,7 +53,7 @@ test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 `;
 
 for (const { name, log, rawExit, want } of [
-	{ name: 'exact complete known failure', log: completeKnown, rawExit: 101, want: [0, true, true, 0] },
+	{ name: 'complete former baseline failure is rejected', log: completeKnown, rawExit: 101, want: [1, false, false, 1] },
 	{ name: 'all seven clean', log: clean, rawExit: 0, want: [0, true, false, 0] },
 	{ name: 'known FAIL followed by same-test unwrap panic', log: completeKnown.replace('PHPANTOM_NATIVE_ASSERTIONS_FAILED: 1 failed native checks: [', 'called Result::unwrap() on an Err value'), rawExit: 101, want: [1, false, false, 1] },
 	{ name: 'panic before finish sentinel', log: completeKnown.replace('PHPANTOM_NATIVE_FINISH php74_same_name_user_function_and_local_symbols_survive failures=1\n', ''), rawExit: 101, want: [1, false, false, 1] },
@@ -111,4 +112,36 @@ for (const { name, mutate, want } of [
 			rmSync(root, { recursive: true, force: true });
 		}
 	});
+}
+
+const currentPatch = createHash('sha256').update(readFileSync(path.join(moduleDir, 'patches/phase-b-versioned-target.patch'))).digest('hex');
+const currentFileManifest = createHash('sha256').update(readFileSync(path.join(moduleDir, 'patches/phase-b-versioned-target.files.json'))).digest('hex');
+for (const [field, expectedMessage, current, historical] of [
+    ['appliedPhaseBPatchSha256', 'current applied PHPantom patch is required', currentPatch, '4996a41403b2c570ba3e6a5a67c86bbe2833129c95bca62f19c5e39581a4b31d'],
+    ['appliedFileManifestSha256', 'current applied file manifest is required', currentFileManifest, 'b15beb40bcac3d50ab75f722c874aba5cb93dcab55aa41aef1e54108c6d35598'],
+]) {
+    for (const [name, value] of [['missing', undefined], ['historical', historical], ['different', '0'.repeat(64)]]) {
+        test(`release WASI provenance rejects ${name} ${field} before opening a binary`, () => {
+            const dir = mkdtempSync(path.join(tmpdir(), 'phpantom-release-provenance-'));
+            try {
+                const source = {
+                    commit: '49b9a7513ed19cbbfb79d5d08a3f3693ffb2b668',
+                    reviewedPhaseBDiffSha256: 'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d',
+                    reviewedSourceBundleSha256: '60aad10373b97a65da73196aa28e6893a77480a21d5687ad1b140e6d74bd30a3',
+                    appliedPhaseBPatchSha256: currentPatch,
+                    appliedFileManifestSha256: currentFileManifest,
+                };
+                assert.equal(source[field], current);
+                if (value === undefined) delete source[field]; else source[field] = value;
+                const fixture = path.join(dir, 'provenance.json');
+                writeFileSync(fixture, JSON.stringify({ phase: 'B', phpTarget: '8.0', source, artifact: {path: 'deliberately-missing.wasm'} }));
+                const result = spawnSync(process.execPath, [path.join(moduleDir, 'versioned-wasi-test.mjs'), fixture], { encoding: 'utf8' });
+                assert.equal(result.status, 1);
+                assert.ok(result.stderr.includes(expectedMessage), result.stderr);
+                assert.ok(!result.stderr.includes('ENOENT'), result.stderr);
+            } finally {
+                rmSync(dir, {recursive: true, force: true});
+            }
+        });
+    }
 }

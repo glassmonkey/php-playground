@@ -16,16 +16,12 @@ const reviewedDiff = manifest.source?.reviewedPhaseBDiffSha256
 	?? manifest.source?.reviewedPatchSha256;
 assert.equal(reviewedDiff,
 	'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d');
-if (manifest.source?.appliedPhaseBPatchSha256) {
-	assert.equal(manifest.source.appliedPhaseBPatchSha256,
-		'4996a41403b2c570ba3e6a5a67c86bbe2833129c95bca62f19c5e39581a4b31d');
-	assert.equal(manifest.source.appliedFileManifestSha256,
-		'b15beb40bcac3d50ab75f722c874aba5cb93dcab55aa41aef1e54108c6d35598');
-} else {
-	assert.equal(manifest.source?.reviewedSourceBundleSha256,
-		'60aad10373b97a65da73196aa28e6893a77480a21d5687ad1b140e6d74bd30a3',
-		'legacy frozen-artifact provenance identifies the verified source bundle');
-}
+assert.equal(manifest.source?.appliedPhaseBPatchSha256,
+    '0581b67c401a5a26f56241d69404cc95a6a658c07e39f6a785dc12181aab8ba6',
+    'current applied PHPantom patch is required before WASM instantiation');
+assert.equal(manifest.source?.appliedFileManifestSha256,
+    'df9756e6a1f1618bc14b6bdd290b348b74442185b16240c383cf9c42771d21fd',
+    'current applied file manifest is required before WASM instantiation');
 assert.equal(manifest.stubs?.commit, '2049ca3cfa1feabf52db074108fe776a5713cf02');
 if (manifest.stubs?.resolvedCommitMarker) {
 	assert.equal(manifest.stubs.resolvedCommitMarker, manifest.stubs.commit,
@@ -43,9 +39,9 @@ const actualSha = createHash('sha256').update(bytes).digest('hex');
 assert.equal(actualSha, artifactRecord.sha256, 'artifact bytes match provenance SHA-256');
 assert.equal(bytes.byteLength, artifactRecord.bytes, 'artifact bytes match provenance size');
 
-const wasi = new WASI({ version: 'preview1', args: [], env: {} });
+let wasi = new WASI({ version: 'preview1', args: [], env: {} });
 const module = await WebAssembly.compile(bytes);
-const instance = await WebAssembly.instantiate(module, wasi.getImportObject());
+let instance = await WebAssembly.instantiate(module, wasi.getImportObject());
 wasi.initialize(instance);
 for (const name of ['memory', 'lsp_alloc', 'lsp_dealloc', 'lsp_handle', 'lsp_response_len']) {
 	assert.ok(name in instance.exports, `WASI artifact exports ${name}`);
@@ -54,7 +50,6 @@ const encoder = new TextEncoder();
 const decoder = new TextDecoder('utf-8', { fatal: true });
 let nextId = 1;
 let assertions = 0;
-const knownLimits = [];
 const [targetMajor, targetMinor] = target.split('.').map(Number);
 
 function targetAtLeast(major, minor) {
@@ -218,10 +213,7 @@ function userSymbolsAndBaselineDocs() {
 		const resolved = request('completionItem/resolve', userFunction).result;
 		check(`${target} same-name user function retains signature`, resolved?.detail === 'bool', resolved);
 		const hasMarker = JSON.stringify(resolved).includes('EVAL_USER_SAME_NAME_MARKER');
-		if (!hasMarker) {
-			knownLimits.push('same-name user documentation marker absent; matches the corrected Phase A baseline');
-			console.log(`KNOWN_LIMIT ${target} same-name user docs marker absent (baseline case)`);
-		}
+		check(`${target} same-name user function retains documentation`, hasMarker, resolved);
 	}
 	for (const [marker, expected] of [
 		['local_probe_f', 'local_probe_function'],
@@ -289,15 +281,290 @@ function strrchrBoundary() {
 			&& (!expectedNamedParameters || !serialized.includes('before_needle')), userNamed);
 }
 
+async function releaseFamilyOracle() {
+    const allRows=(await readFile(new URL('./native-probe/tests/fixtures/minimum-availability.tsv',import.meta.url),'utf8')).split('\n')
+        .filter(line=>line && !line.startsWith('#')).map(line=>line.split('\t'));
+    const symbols=[['class','Attribute'],['class','Fiber'],['class','Random\\Randomizer'],['constant','JSON_THROW_ON_ERROR'],['constant','PHP_FLOAT_EPSILON'],['function','array_is_list'],['function','intdiv'],['function','random_bytes'],['function','str_ends_with'],['interface','Throwable'],['member','DateTime::createFromImmutable'],['removed','create_function'],['removed','each'],['removed','get_magic_quotes_gpc']];
+    assert.equal(allRows.length,168,'the independent oracle is exactly 14 symbols by 12 targets');
+    assert.ok(allRows.every(row=>row.length===6 && ['true','false'].includes(row[3])));
+    assert.deepEqual(allRows.map(row=>row.slice(0,3).join(':')).sort(),supportedTargets.flatMap(version=>symbols.map(([family,symbol])=>[version,family,symbol].join(':'))).sort());
+    const rows=allRows.filter(row=>row[0]===target);
+    assert.equal(rows.length,14,'the independent minimum oracle has 14 declarations per target');
+    for (const [,family,symbol,available,location] of rows) {
+        // Fresh engine per case: a previous fixture cannot warm the cold result.
+        wasi=new WASI({version:'preview1',args:[],env:{}});
+        instance=await WebAssembly.instantiate(module,wasi.getImportObject());wasi.initialize(instance);initialize();
+        const tail=family==='class'?`new ${symbol.slice(0,-1)}`:family==='interface'?`function f(${symbol.slice(0,-1)}`:family==='member'?'DateTime::createFromI':symbol.slice(0,-1);
+        const uri=`file:///release/${family}/${symbol.replaceAll('\\','_').replaceAll('::','_')}.php`;const source=`<?php\n${tail}`;open(uri,source);
+        const offered=items=>items.some(item=>item.data?.m===symbol || item.filterText===symbol || item.label===symbol.split('\\').at(-1) || item.label?.startsWith(symbol.split('::').at(-1)+'('));
+        const get=()=>completionItems(request('textDocument/completion',{textDocument:{uri},position:{line:source.split('\n').length-1,character:tail.length}}));
+        check(`${target} ${family} ${symbol} cold`,offered(get())===(available==='true'),{expected:available,location});
+        const siblings={
+            'random/random.php':['mt_ran','mt_rand'], 'standard/standard_9.php':['array_chun','array_chunk'],
+            'standard/standard_3.php':['ab','abs'], 'Core/Core_c.php':['new Exceptio','Exception'],
+            'Core/Core_d.php':['PHP_O','PHP_OS'], 'json/json.php':['json_encod','json_encode'],
+            'date/date_c.php':['new DateTim','DateTime'], 'Core/Core.php':['class_exist','class_exists'],
+        };
+        const [prefix,warmSymbol]=siblings[location.split(':')[0]];const warmUri='file:///release/warm.php';const warmSource=`<?php\n${prefix}`;open(warmUri,warmSource);
+        const sibling=completionItems(completion(warmUri,warmSource,prefix)).find(item=>item.data?.m===warmSymbol);
+        check(`${target} ${symbol} shared-source sibling exists`,Boolean(sibling),warmSymbol);
+        request('completionItem/resolve',sibling);
+        check(`${target} ${family} ${symbol} warm`,offered(get())===(available==='true'),{expected:available,location});
+    }
+}
+function applyCompletion(source, item) {
+    assert.ok(item?.textEdit?.range, 'function completion carries an explicit replacement range');
+    const offset = position => source.split('\n').slice(0, position.line)
+        .reduce((sum, line) => sum + line.length + 1, 0) + position.character;
+    const edits = [item.textEdit, ...(item.additionalTextEdits ?? [])]
+        .sort((a, b) => offset(b.range.start) - offset(a.range.start));
+    return edits.reduce((text, edit) => text.slice(0, offset(edit.range.start))
+        + edit.newText + text.slice(offset(edit.range.end)), source);
+}
+
+async function freshEngine() {
+    wasi = new WASI({ version: 'preview1', args: [], env: {} });
+    instance = await WebAssembly.instantiate(module, wasi.getImportObject());
+    wasi.initialize(instance);
+    initialize();
+}
+
+async function releaseInsertionIdentity() {
+    for (const warm of [false, true]) {
+        await freshEngine();
+        const uri = 'file:///release/binding.php';
+        const source = '<?php\nnamespace ReleaseBinding;\n/** USER_BINDING_DOC */\nfunction strlen(string $ownOnly): bool { return true; }\n\\strle';
+        open(uri, source);
+        if (warm) {
+            const siblingUri = 'file:///release/sibling.php';
+            const siblingSource = '<?php\nstrle';
+            open(siblingUri, siblingSource);
+            const sibling = completionItems(completion(siblingUri, siblingSource, 'strle'))
+                .find(item => item.data?.m === 'strlen');
+            assert.ok(sibling, 'the public sibling request finds the builtin');
+            request('completionItem/resolve', sibling);
+        }
+        const items = completionItems(completion(uri, source, '\\strle'));
+        const global = items.find(item => item.data?.m === 'strlen');
+        const user = items.find(item => item.data?.m === 'ReleaseBinding\\strlen');
+        const globalCall = warm ? '\\strlen(${1:\\$string})$0' : '\\strlen()$0';
+        const common = source.slice(0, source.lastIndexOf('\\strle'));
+        check(`${target} global full edit preserves identity warm=${warm}`,
+            applyCompletion(source, global) === common + globalCall, global);
+        check(`${target} user full edit preserves identity warm=${warm}`,
+            applyCompletion(source, user) === common + 'strlen(${1:\\$ownOnly})$0', user);
+        const globalDoc = JSON.stringify(request('completionItem/resolve', global).result);
+        const userDoc = JSON.stringify(request('completionItem/resolve', user).result);
+        check(`${target} global docs do not resolve to user warm=${warm}`,
+            !globalDoc.includes('USER_BINDING_DOC') && globalDoc.includes('string $string'), globalDoc);
+        check(`${target} selected user docs preserve marker warm=${warm}`,
+            userDoc.includes('USER_BINDING_DOC'), userDoc);
+    }
+    await freshEngine();
+    const uri = 'file:///release/qualified.php';
+    const source = '<?php\nnamespace Vendor { /** VENDOR_DOC */ function chosen(int $value): string {} }\nnamespace Consumer {\nuse function Vendor\\chosen as picked;\nVendor\\chos';
+    open(uri, source);
+    // The first occurrence is inside the import; the public request must target the call.
+    const callPosition = positionAfter(source, 'Vendor\\chos', 1);
+    assert.deepEqual(callPosition, { line: 4, character: 11 }, 'qualified fixture call cursor');
+    assert.equal(source.split('\n')[callPosition.line], 'Vendor\\chos',
+        'the request line is exactly the unfinished call, not the import');
+    assert.equal(callPosition.line, source.split('\n').length - 1, 'the call is the final line');
+    assert.notDeepEqual(positionAfter(source, 'Vendor\\chos'), callPosition,
+        'the repeated import prefix must not become the request cursor');
+    const item = completionItems(request('textDocument/completion', {
+        textDocument: { uri }, position: callPosition,
+    }))
+        .find(item => item.data?.m === 'Vendor\\chosen');
+    const expected = '<?php\nnamespace Vendor { /** VENDOR_DOC */ function chosen(int $value): string {} }\nnamespace Consumer {\nuse function Vendor\\chosen as picked;\npicked(${1:\\$value})$0';
+    check(`${target} qualified prefix and all edits select the imported alias`,
+        applyCompletion(source, item) === expected, item);
+    check(`${target} qualified alias docs select the indexed FQN`,
+        JSON.stringify(request('completionItem/resolve', item).result).includes('VENDOR_DOC'), item);
+}
+
+async function releaseMemberAndTypeBoundaries() {
+    for (const [tail, symbol, expected] of [
+        ['DateTime::RFC3339_EXT', 'RFC3339_EXTENDED', targetAtLeast(7, 0)],
+        ["$d=new DateInterval('PT1S');\n$d->f", 'f', targetAtLeast(7, 1)],
+    ]) {
+        await freshEngine();
+        const uri = 'file:///release/member.php';
+        const source = `<?php\n${tail}`;
+        open(uri, source);
+        const items = completionItems(completion(uri, source, tail));
+        check(`${target} member ${symbol} own metadata boundary`,
+            items.some(item => item.label === symbol || item.filterText === symbol) === expected, items);
+    }
+    for (const [tail, marker, expected] of [
+        ['substr("abc", 0,', 'false', !targetAtLeast(8, 0)],
+        ['$d=new DateTime();\n$d->setTime(1,2,3,', 'microsecond', targetAtLeast(7, 1)],
+    ]) {
+        await freshEngine();
+        const uri = 'file:///release/signature.php';
+        const source = `<?php\n${tail}`;
+        open(uri, source);
+        const signature = request('textDocument/signatureHelp', {
+            textDocument: { uri }, position: positionAfter(source, tail),
+        }).result?.signatures?.[0]?.label;
+        check(`${target} signature ${marker} version boundary`,
+            typeof signature === 'string' && signature.includes(marker) === expected, signature);
+    }
+}
+
+async function releaseLanguageOracle() {
+    const rows=(await readFile(new URL('./native-probe/tests/fixtures/language-completion.tsv',import.meta.url),'utf8'))
+        .split('\n').filter(row=>row&&!row.startsWith('#')).map(row=>row.split('\t'));
+    assert.equal(rows.length,148,'the complete independent language/context inventory is required');
+    assert.equal(new Set(rows.map(row=>row[0])).size,148,'language case IDs must be unique');
+    const targetIndex=supportedTargets.indexOf(target);
+    for (const [name,label,category,encodedSource,expectedTargets] of rows) {
+        assert.match(expectedTargets,/^[01]{12}$/,'every supported PHP target has an explicit expectation');
+        await freshEngine();
+        const uri='file:///release/language.php';
+        const source=encodedSource.replaceAll('\\n','\n');
+        open(uri,source);
+        const lines=source.split('\n');
+        const position={line:lines.length-1,character:lines.at(-1).length};
+        // Fixtures request the end of the document, never a first substring occurrence.
+        const items=completionItems(request('textDocument/completion',{textDocument:{uri},position}));
+        const kind=category==='function'||category==='any-function'?3:category==='class'?7:14;
+        const actual=items.some(item=>item.kind===kind && (category!=='type'||item.detail==='PHP built-in type')
+            && (category==='any-function' || item.filterText===label || item.label===label));
+        check(`${target} language ${name}`,actual===(expectedTargets[targetIndex]==='1'),{position,expected:expectedTargets[targetIndex],items});
+    }
+}
+
+async function releaseImportOracle() {
+    const rows=(await readFile(new URL('./native-probe/tests/fixtures/import-completion.tsv',import.meta.url),'utf8'))
+        .split('\n').filter(row=>row&&!row.startsWith('#')).map(row=>row.split('\t'));
+    assert.equal(rows.length,21,'complete independent import inventory');
+    assert.equal(new Set(rows.map(row=>row[0])).size,21,'unique import case IDs');
+    for (const [name,encodedSource,symbol,kind,forbidden] of rows) {
+        await freshEngine();
+        const uri='file:///release/import.php';
+        const source=encodedSource.replaceAll('\\n','\n');
+        open(uri,source);
+        const lines=source.split('\n');
+        const position={line:lines.length-1,character:lines.at(-1).length};
+        const items=completionItems(request('textDocument/completion',{textDocument:{uri},position}));
+        const expectedKind=Number(kind);
+        const found=items.some(item=>item.kind===expectedKind &&
+            (item.label===symbol||item.filterText===symbol||item.data?.m===symbol));
+        check(`${target} import ${name}`,found&&items.every(item=>item.kind===expectedKind && (forbidden==='-' || !(item.label===forbidden||item.filterText===forbidden||item.data?.m===forbidden))),{position,symbol,expectedKind,items});
+    }
+}
+
+function importEditPayload(item) {
+    return { primary:item.textEdit??null, insertText:item.insertText??null,
+        format:item.insertTextFormat??null, mode:item.insertTextMode??null,
+        textEditText:item.textEditText??null, additional:item.additionalTextEdits??null, command:item.command??null };
+}
+async function releaseImportEditOracle() {
+    const rows=(await readFile(new URL('./native-probe/tests/fixtures/import-edits.tsv',import.meta.url),'utf8'))
+        .split('\n').filter(row=>row&&!row.startsWith('#')).map(row=>row.split('\t').map(value=>value.replaceAll('\\n','\n')));
+    assert.equal(rows.length,27,'complete independent accepted-edit inventory');
+    assert.equal(new Set(rows.map(row=>row[0])).size,27,'unique edit case IDs');
+    const endPosition=text=>{const lines=text.split('\n');return {line:lines.length-1,character:lines.at(-1).length};};
+    for (const [name,before,typed,after,newText,expectedDocument,fqn,kind,,availability] of rows) {
+        await freshEngine();
+        const uri='file:///release/import-edits.php';
+        const source=before+typed+after;const position=endPosition(before+typed);
+        open(uri,source);
+        for (const warm of [false,true]) {
+            const items=completionItems(request('textDocument/completion',{textDocument:{uri},position}));
+            assert.match(availability,/^[01]{12}$/,'each target has an explicit independent availability');
+            if (availability[supportedTargets.indexOf(target)]==='0') {
+                check(`${target} group imports unavailable ${name} warm=${warm}`,items.length===0,items);
+                continue;
+            }
+            const item=items.find(value=>value.kind===Number(kind)&&value.data?.m===fqn);
+            assert.ok(item,`${target} ${name} requires ${fqn}: ${JSON.stringify(items)}`);
+            const end={...position};if(name==='cursor-middle')end.character+=3;
+            const expected={primary:{range:{start:endPosition(before),end},newText},insertText:newText,
+                format:1,mode:null,textEditText:null,additional:null,command:null};
+            assert.deepEqual(importEditPayload(item),expected,`${name} complete primary/additional payload`);
+            const applied=applyCompletion(source,item);
+            assert.equal(applied,expectedDocument,`${name} complete accepted document`);
+            const resolved=request('completionItem/resolve',item).result;
+            assert.deepEqual(importEditPayload(resolved),expected,`${name} resolve preserves editing payload`);
+            assert.equal(applyCompletion(source,resolved),expectedDocument,`${name} resolved accepted document`);
+            check(`${target} import edit ${name} warm=${warm}`,items.every(value=>value.kind===Number(kind)),items);
+            console.log(`IMPORT_EDIT_RESPONSE ${JSON.stringify({target,name,warm,source,position,item,resolved,applied,expectedDocument})}`);
+        }
+    }
+}
+
+async function releaseImportRenameOracle() {
+    await freshEngine();
+    const uri='file:///release/import-renamed.php';
+    const first='<?php namespace Vendor { /** OLD_IMPORT_DOC */ function old_name(): string { return "old"; } } namespace App { use function Vendor\\{old_na';
+    open(uri,first);
+    const endPosition=text=>{const lines=text.split('\n');return {line:lines.length-1,character:lines.at(-1).length};};
+    const old=completionItems(request('textDocument/completion',{textDocument:{uri},position:endPosition(first)}))
+        .find(item=>item.data?.m==='Vendor\\old_name');
+    if (target==='5.6') { check(`${target} renamed group import unavailable`,old===undefined,old); return; }
+    assert.ok(old,'old group function is publicly offered');
+    const oldDocs=request('completionItem/resolve',old).result.documentation?.value;
+    check(`${target} old group function warmed`,oldDocs?.includes('OLD_IMPORT_DOC'),oldDocs);
+    for (const [version,before,typed,after,symbol,marker,value] of [
+        [2,'<?php namespace Vendor { /** FIRST_IMPORT_DOC */ function new_name(): string { return "first"; } } namespace App { use function Vendor\\{','new_na','}; echo new_name(); }','new_name','FIRST_IMPORT_DOC','first'],
+        [3,'<?php namespace Vendor { /** SECOND_IMPORT_DOC */ function latest_name(): string { return "second"; } } namespace App { use Vendor\\{function ','latest_na','}; echo latest_name(); }','latest_name','SECOND_IMPORT_DOC','second'],
+    ]) {
+        const source=before+typed+after;
+        notify('textDocument/didChange',{textDocument:{uri,version},contentChanges:[{text:source}]});
+        const position=endPosition(before+typed);
+        const items=completionItems(request('textDocument/completion',{textDocument:{uri},position}));
+        const item=items.find(value=>value.data?.m===`Vendor\\${symbol}`);
+        assert.ok(item,`${symbol} is available immediately after didChange`);
+        const expected={primary:{range:{start:endPosition(before),end:position},newText:symbol},insertText:symbol,
+            format:1,mode:null,textEditText:null,additional:null,command:null};
+        assert.deepEqual(importEditPayload(item),expected,'edited group keeps the complete binding edit');
+        const resolved=request('completionItem/resolve',item).result;
+        assert.deepEqual(importEditPayload(resolved),expected,'resolve keeps the edited group binding');
+        const docs=resolved.documentation?.value;
+        const applied=applyCompletion(source,resolved);const expectedDocument=before+symbol+after;
+        assert.equal(applied,expectedDocument);
+        check(`${target} renamed group function ${symbol}`,docs?.includes(marker)&&!docs.includes('OLD_IMPORT_DOC'),docs);
+        console.log(`IMPORT_RENAME_RESPONSE ${JSON.stringify({target,symbol,source,item,resolved,applied,expectedDocument,expectedPhpStdout:value})}`);
+    }
+}
+
+async function releaseSharedConstantDeclarations() {
+    for (const symbol of ['PHP_SBINDIR','PHP_OUTPUT_HANDLER_PROCESSED']) {
+        await freshEngine();
+        const uri='file:///release/shared-constant.php';
+        const source=`<?php\n${symbol.slice(0,-1)}`;
+        open(uri,source);
+        const get=()=>completionItems(request('textDocument/completion',{textDocument:{uri},position:{line:1,character:symbol.length-1}}));
+        const offered=items=>items.some(item=>item.filterText===symbol || item.label===symbol || item.data?.m===symbol);
+        const expected=targetAtLeast(8,4);
+        check(`${target} shared declaration ${symbol} cold`,offered(get())===expected,{expected});
+        const siblingUri='file:///release/shared-constant-warm.php';
+        const siblingSource='<?php\nPHP_O';open(siblingUri,siblingSource);
+        const sibling=completionItems(completion(siblingUri,siblingSource,'PHP_O')).find(item=>item.data?.m==='PHP_OS');
+        assert.ok(sibling,'the same Core_d source is warmed through public resolve');
+        request('completionItem/resolve',sibling);
+        check(`${target} shared declaration ${symbol} warm`,offered(get())===expected,{expected});
+    }
+}
+
 initialize();
 versionedBuiltinAvailability();
 namedArgumentFeature();
 strrchrBoundary();
 userSymbolsAndBaselineDocs();
+await releaseInsertionIdentity();
+await releaseFamilyOracle();
+await releaseMemberAndTypeBoundaries();
+await releaseSharedConstantDeclarations();
+await releaseLanguageOracle();
+await releaseImportOracle();
+await releaseImportEditOracle();
+await releaseImportRenameOracle();
 console.log(JSON.stringify({
 	target,
 	artifactSha256: actualSha,
 	buildIdentity,
 	assertionsPassed: assertions,
-	knownLimits,
 }, null, 2));

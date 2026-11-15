@@ -14,8 +14,6 @@ TESTS = {
     'php80_strrchr_parameter_boundary',
     'php83_strrchr_parameter_boundary',
 }
-KNOWN_TEST = 'php74_same_name_user_function_and_local_symbols_survive'
-KNOWN_ASSERTION = 'PHP 7.4 same-name user documentation marker (known baseline)'
 
 
 def classify(log, raw_exit):
@@ -27,25 +25,14 @@ def classify(log, raw_exit):
                 and len(summaries) == 1)
     passed, failed = (int(summaries[0][1]), int(summaries[0][2])) if len(summaries) == 1 else (0, 0)
     failures = re.findall(r'^FAIL (.*)$', log, re.M)
-    panics = re.findall(r"^thread '([^']+)' .*panicked at [^\n]+:\n([^\n]+)", log, re.M)
-    known = (complete and raw_exit == 101 and summaries[0][0] == 'FAILED'
-             and (passed, failed) == (6, 1)
-             and dict(finishes) == {name: ('1' if name == KNOWN_TEST else '0') for name in TESTS}
-             and dict(outcomes) == {name: ('FAILED' if name == KNOWN_TEST else 'ok') for name in TESTS}
-             and len(failures) == 1 and failures[0].startswith(KNOWN_ASSERTION + ': actual=')
-             and panics == [(KNOWN_TEST, 'PHPANTOM_NATIVE_ASSERTIONS_FAILED: 1 failed native checks: [')]
-             and len(re.findall(r'panicked at', log)) == 1
-             and log.index(f'PHPANTOM_NATIVE_FINISH {KNOWN_TEST} failures=1') < log.index('panicked at')
-             and re.findall(r'\nfailures:\n((?:    \w+\n)+)\n', log) == [f'    {KNOWN_TEST}\n'])
     clean = (complete and raw_exit == 0 and summaries[0][0] == 'ok'
              and (passed, failed) == (7, 0) and not failures and 'panicked at' not in log
              and all(count == '0' for _, count in finishes)
              and all(status == 'ok' for _, status in outcomes))
     return {
         'nativeRawExit': raw_exit, 'nativePassed': passed, 'nativeFailed': failed,
-        'knownLimitMatched': known, 'unexpectedFailures': 0 if known or clean else 1,
-        'knownLimitAssertion': KNOWN_ASSERTION, 'knownLimitTest': KNOWN_TEST,
-        'complete': complete, 'accepted': known or clean,
+        'knownLimitMatched': False, 'unexpectedFailures': 0 if clean else 1,
+        'complete': complete, 'accepted': clean,
     }
 
 
