@@ -18,10 +18,10 @@ const reviewedDiff = manifest.source?.reviewedPhaseBDiffSha256
 assert.equal(reviewedDiff,
 	'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d');
 assert.equal(manifest.source?.appliedPhaseBPatchSha256,
-    '23aa7269fadd87cd61d960227d7f0a268115c7bf1246a471d57d01924f1e6a7c',
+    '02e0dc4c200daf99acf883ad7991045b12194c5f25886fd553d7b0381acb6867',
     'current applied PHPantom patch is required before WASM instantiation');
 assert.equal(manifest.source?.appliedFileManifestSha256,
-    'b7ebe6fefe6c457ff54ca2459f0974b69b77d43b6aefc3f75f860c44e2a9d97b',
+    'a7e2b65ec57c9e1cbb930eb0c9001a4bf872bae5ad8cd3827585557eb2a481e9',
     'current applied file manifest is required before WASM instantiation');
 assert.equal(manifest.stubs?.commit, '2049ca3cfa1feabf52db074108fe776a5713cf02');
 if (manifest.stubs?.resolvedCommitMarker) {

@@ -1,6 +1,6 @@
 {
-  "completePatchSha256": "23aa7269fadd87cd61d960227d7f0a268115c7bf1246a471d57d01924f1e6a7c",
-  "fileCount": 44,
+  "completePatchSha256": "02e0dc4c200daf99acf883ad7991045b12194c5f25886fd553d7b0381acb6867",
+  "fileCount": 46,
   "files": [
     {
       "path": "build.rs",
@@ -28,11 +28,15 @@
     },
     {
       "path": "src/completion/context/class_completion/mod.rs",
-      "sha256": "80a20eb7e95c92c7656e8bf7c1d9e9c6e41a6b8c7587392b0a4e14ee70b8824b"
+      "sha256": "3f2c1f7d47d211b49950721432870dbd2f6f9dbb8d07f53d4276ed62722f083d"
+    },
+    {
+      "path": "src/completion/context/constant_completion.rs",
+      "sha256": "c5d4a387e8f3f8d6823f5c59e0c2bba5f5c1d250ef3ddb124fc593ccb62817d0"
     },
     {
       "path": "src/completion/context/function_completion.rs",
-      "sha256": "5edcb79abb7572cc267dbd5d85c0200f6e2c0a2f1494c3a4522ccca23f80d883"
+      "sha256": "1b3c85905222650800ae2ff68f1dce5a2e836c73fd1e774e21f1827267d64e82"
     },
     {
       "path": "src/completion/context/import_context.rs",
@@ -60,19 +64,23 @@
     },
     {
       "path": "src/completion/handler/class_constant.rs",
-      "sha256": "805e9225a4ee7feaf031ea03cf5bcc7f81edee35373016e84a5f34c3d2589caf"
+      "sha256": "7856ca51f6940da804d6fb30e71b6e8ca944ec23d0f8404cf3afdbb581b462ed"
     },
     {
       "path": "src/completion/handler/member_access.rs",
       "sha256": "0a5cdb574c98bdc2d2dde541803ee98363be3db9c356324c97fd99e25c00f059"
     },
     {
+      "path": "src/completion/handler/mod.rs",
+      "sha256": "1d9aed184d5243cc3af779bf73f9f11e9f694a973ca0450b4db0f2bad021d1b6"
+    },
+    {
       "path": "src/completion/handler/named_args.rs",
-      "sha256": "80b2326a57356fc393a84663a3797b04eb22910439b01f603a76e09c6ecde88d"
+      "sha256": "b4df932d5a269691c659b505733fb8d46dc2fd94fcdc4a4876cbe989dc17586e"
     },
     {
       "path": "src/completion/mod.rs",
-      "sha256": "e9053b3b4e4830ab754c4dc2f813c1a743b3a5e86321ca74ca56d561bb2aff81"
+      "sha256": "f37019a93f0a7f188a631454cb59afb3a6cacfefd7b41fffc229823147eb1864"
     },
     {
       "path": "src/completion/resolve.rs",

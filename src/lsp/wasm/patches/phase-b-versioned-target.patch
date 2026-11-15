@@ -835,73 +835,42 @@ diff --git a/src/completion/context/class_completion/context_detect.rs b/src/com
 diff --git a/src/completion/context/function_completion.rs b/src/completion/context/function_completion.rs
 --- a/src/completion/context/function_completion.rs
 +++ b/src/completion/context/function_completion.rs
-@@ -34,6 +34,7 @@
-     insert_text_format: Option<InsertTextFormat>,
-     is_deprecated: bool,
-     additional_text_edits: Option<Vec<TextEdit>>,
+@@ -36,0 +37 @@
 +    replacement_range: Option<Range>,
- }
- 
- impl FunctionItemBuilder {
-@@ -56,6 +57,7 @@
-             insert_text_format: None,
-             is_deprecated: false,
-             additional_text_edits: None,
+@@ -58,0 +60 @@
 +            replacement_range: None,
-         }
-     }
- 
-@@ -79,7 +81,18 @@
-         self
-     }
- 
+@@ -81,0 +84,5 @@
 +    fn replace_range(mut self, range: Option<Range>) -> Self {
 +        self.replacement_range = range;
 +        self
 +    }
 +
-     fn build(self) -> CompletionItem {
+@@ -82,0 +90,6 @@
 +        let text_edit = self.replacement_range.map(|range| {
 +            CompletionItemTextEdit::TextEdit(TextEdit {
 +                range,
 +                new_text: self.insert_text.clone(),
 +            })
 +        });
-         let detail = self.return_type;
-         let data = serde_json::to_value(CompletionItemData {
-             class_name: String::new(),
-@@ -94,6 +107,7 @@
-             kind: Some(CompletionItemKind::Function),
-             detail,
-             insert_text: Some(self.insert_text),
+@@ -96,0 +110 @@
 +            text_edit,
-             insert_text_format: self.insert_text_format,
-             filter_text: Some(self.filter_text),
-             sort_text: Some(self.sort_text),
-@@ -181,6 +195,79 @@
- 
-         // Pre-compute use-block info for auto-import insertion.
-         let use_block = content.map(|content| self.use_block_at(uri, content, position));
-+        // Monaco's PHP word range excludes backslashes. Replace the entire written name explicitly.
-+        let replacement_range = content.map(|text| {
-+            let end =
-+                (crate::text_position::position_to_offset(text, position) as usize).min(text.len());
-+            let units = text[..end]
-+                .chars()
-+                .rev()
-+                .take_while(|c| {
-+                    c.is_ascii_alphanumeric() || *c == '_' || *c == '\\' || !c.is_ascii()
+@@ -183,0 +198,69 @@
++        // Structured import context owns its item range; its search prefix may
++        // contain a group namespace that is not written at the cursor.
++        let replacement_range = if for_use_import {
++            None
++        } else if let Some(text) = content {
++            let Some(range) =
++                crate::completion::name_replacement_range(text, position, prefix, |ch| {
++                    crate::completion::is_php_name_char(ch) || ch == '\\'
 +                })
-+                .map(char::len_utf16)
-+                .sum::<usize>() as u32;
-+            Range {
-+                start: Position {
-+                    line: position.line,
-+                    character: position.character.saturating_sub(units),
-+                },
-+                end: position,
-+            }
-+        });
++            else {
++                return (Vec::new(), false);
++            };
++            Some(range)
++        } else {
++            None
++        };
 +
 +        // The selected FQN is an identity; insertion must preserve it in the consumer scope.
 +        let scope = content.map(|text| {
@@ -955,13 +924,7 @@ diff --git a/src/completion/context/function_completion.rs b/src/completion/cont
 +            // A foreign namespaced function may use the existing collision-free import edit.
 +            (short.to_string(), true)
 +        };
- 
-         // ── 1. User-defined functions (from parsed files) ───────────
-         {
-@@ -223,42 +310,17 @@
-                 } else {
-                     let label = build_callable_label(&info.name, &info.parameters);
- 
+@@ -226,16 +309,2 @@
 -                    // No import needed when the function lives in the
 -                    // same namespace as the current file.
 -                    let same_ns = file_namespace
@@ -980,15 +943,10 @@ diff --git a/src/completion/context/function_completion.rs b/src/completion/cont
 -                    let additional_text_edits = if is_namespaced && !same_ns && !has_conflict {
 +                    let (call_name, needs_import) = call_spelling(&fqn);
 +                    let additional_text_edits = if needs_import {
-                         use_block
-                             .as_ref()
-                             .and_then(|ub| build_use_function_edit(&fqn, ub))
-                     } else {
-                         None
-                     };
+@@ -247,0 +317,2 @@
 +                    let insert_text = build_callable_snippet(&call_name, &info.parameters);
 +                    let filter_text = info.name.to_string();
- 
+@@ -249,13 +319,0 @@
 -                    // When there's a conflict, use the leading-backslash
 -                    // FQN so the call resolves without an import.
 -                    let (insert_text, filter_text) = if has_conflict {
@@ -1002,21 +960,9 @@ diff --git a/src/completion/context/function_completion.rs b/src/completion/cont
 -                        )
 -                    };
 -
-                     let origin_tier = origin_sort_tier(self.completion_origin_for_uri(_uri));
-                     items.push(
-                         FunctionItemBuilder::new(
-@@ -273,6 +335,7 @@
-                         .snippet()
-                         .deprecated(is_deprecated)
-                         .additional_edits(additional_text_edits)
+@@ -275,0 +334 @@
 +                        .replace_range(replacement_range)
-                         .build(),
-                     );
-                 }
-@@ -303,25 +366,17 @@
-                 if for_use_import {
-                     items.push(build_use_import_item(fqn.to_owned(), fqn, "4", false, uri));
-                 } else {
+@@ -306,6 +365,2 @@
 -                    let has_conflict = is_namespaced
 -                        && use_block
 -                            .as_ref()
@@ -1025,59 +971,27 @@ diff --git a/src/completion/context/function_completion.rs b/src/completion/cont
 -                    let additional_text_edits = if is_namespaced && !has_conflict {
 +                    let (call_name, needs_import) = call_spelling(fqn);
 +                    let additional_text_edits = if needs_import {
-                         use_block
-                             .as_ref()
-                             .and_then(|ub| build_use_function_edit(fqn, ub))
-                     } else {
-                         None
-                     };
+@@ -317,0 +373,2 @@
 +                    let insert_text = format!("{call_name}()$0");
 +                    let filter_text = sn.to_string();
- 
+@@ -319,6 +375,0 @@
 -                    let (insert_text, filter_text) = if has_conflict {
 -                        (format!("\\{fqn}()$0"), format!("\\{fqn}"))
 -                    } else {
 -                        (format!("{sn}()$0"), sn.to_string())
 -                    };
 -
-                     let origin = self
-                         .symbols
-                         .autoload_function_origin_index
-@@ -341,6 +396,7 @@
-                         )
-                         .snippet()
-                         .additional_edits(additional_text_edits)
+@@ -343,0 +395 @@
 +                        .replace_range(replacement_range)
-                         .build(),
-                     );
-                 }
-@@ -376,7 +432,8 @@
-                     uri,
-                 ));
-             } else {
+@@ -379 +431,2 @@
 -                let additional_text_edits = if is_namespaced {
 +                let (call_name, needs_import) = call_spelling(name);
 +                let additional_text_edits = if needs_import {
-                     use_block
-                         .as_ref()
-                         .and_then(|ub| build_use_function_edit(name, ub))
-@@ -387,7 +444,7 @@
-                 items.push(
-                     FunctionItemBuilder::new(
-                         sn.to_string(),
+@@ -390 +443 @@
 -                        format!("{sn}()$0"),
 +                        format!("{call_name}()$0"),
-                         sn.to_string(),
-                         flat_symbol_sort_text(
-                             sn,
-@@ -400,6 +457,7 @@
-                     )
-                     .snippet()
-                     .additional_edits(additional_text_edits)
+@@ -402,0 +456 @@
 +                    .replace_range(replacement_range)
-                     .build(),
-                 );
-             }
 diff --git a/src/completion/context/import_context.rs b/src/completion/context/import_context.rs
 --- a/src/completion/context/import_context.rs
 +++ b/src/completion/context/import_context.rs
@@ -2051,16 +1965,33 @@ diff --git a/src/completion/context/type_hint_completion_tests.rs b/src/completi
 diff --git a/src/completion/handler/class_constant.rs b/src/completion/handler/class_constant.rs
 --- a/src/completion/handler/class_constant.rs
 +++ b/src/completion/handler/class_constant.rs
-@@ -60,12 +60,20 @@
- fn filter_current_file_functions(
-     items: Vec<CompletionItem>,
-     current_uri: &str,
+@@ -17,0 +18,23 @@
++/// An existing identifier can be replaced from its start even when no prefix
++/// lies to the left. Reuse the extractor's variable/member/tag exclusions.
++fn existing_name_at_cursor(content: &str, position: Position) -> bool {
++    let cursor = crate::text_position::position_to_byte_offset(content, position);
++    if crate::text_position::offset_to_position(content, cursor) != position {
++        return false;
++    }
++    let rest = &content[cursor..];
++    let Some(first) = rest.chars().next() else {
++        return false;
++    };
++    if !(first.is_ascii_alphabetic() || first == '_' || first == '\\' || !first.is_ascii()) {
++        return false;
++    }
++    let suffix_bytes = rest
++        .chars()
++        .take_while(|&ch| crate::completion::is_php_name_char(ch) || ch == '\\')
++        .map(char::len_utf8)
++        .sum::<usize>();
++    let end = crate::text_position::offset_to_position(content, cursor + suffix_bytes);
++    Backend::extract_partial_class_name(content, end).is_some()
++}
++
+@@ -62,0 +86 @@
 +    namespace: &Option<String>,
-     backend: &Backend,
- ) -> Vec<CompletionItem> {
-     let current_funcs: HashSet<String> = {
-         let fmap = backend.global_functions().read();
-         fmap.iter()
+@@ -68 +92,8 @@
 -            .filter(|(_, (uri, _))| uri == current_uri)
 +            .filter(|(_, (uri, info))| {
 +                uri == current_uri
@@ -2070,19 +2001,9 @@ diff --git a/src/completion/handler/class_constant.rs b/src/completion/handler/c
 +                        .unwrap_or("")
 +                        .eq_ignore_ascii_case(namespace.as_deref().unwrap_or(""))
 +            })
-             .map(|(key, _)| key.to_owned())
-             .collect()
-     };
-@@ -86,12 +94,19 @@
- fn filter_current_file_constants(
-     items: Vec<CompletionItem>,
-     current_uri: &str,
+@@ -88,0 +120 @@
 +    namespace: &Option<String>,
-     backend: &Backend,
- ) -> Vec<CompletionItem> {
-     let current_consts: HashSet<String> = {
-         let dmap = backend.global_defines().read();
-         dmap.iter()
+@@ -94 +126,7 @@
 -            .filter(|(_, info)| info.file_uri.as_str() == current_uri)
 +            .filter(|(name, info)| {
 +                info.file_uri.as_str() == current_uri
@@ -2091,13 +2012,7 @@ diff --git a/src/completion/handler/class_constant.rs b/src/completion/handler/c
 +                        .map_or("", |(ns, _)| ns)
 +                        .eq_ignore_ascii_case(namespace.as_deref().unwrap_or(""))
 +            })
-             .map(|(name, _)| name.clone())
-             .collect()
-     };
-@@ -160,12 +175,29 @@
-         position: Position,
-         uri: &str,
-     ) -> Option<CompletionResponse> {
+@@ -162,0 +201,8 @@
 +        let version = self.php_version();
 +        if !crate::completion::type_hint_completion::declaration_available(th_ctx, version) {
 +            return None;
@@ -2106,12 +2021,7 @@ diff --git a/src/completion/handler/class_constant.rs b/src/completion/handler/c
 +            &ctx.classes,
 +            position_to_offset(content, position),
 +        );
-         let partial_lower = th_ctx.partial.to_lowercase();
-         let space_prefix = if th_ctx.needs_space_prefix { " " } else { "" };
-         let mut items: Vec<CompletionItem> =
-             crate::completion::type_hint_completion::PHP_NATIVE_TYPES
-                 .iter()
-                 .filter(|t| t.to_lowercase().starts_with(&partial_lower))
+@@ -168,0 +215,9 @@
 +                .filter(|t| {
 +                    crate::completion::type_hint_completion::native_type_available(
 +                        t,
@@ -2121,26 +2031,14 @@ diff --git a/src/completion/handler/class_constant.rs b/src/completion/handler/c
 +                        class.is_some_and(|c| c.parent_class.is_some()),
 +                    )
 +                })
-                 .enumerate()
-                 .map(|(idx, t)| CompletionItem {
-                     label: t.to_string(),
-@@ -370,8 +402,10 @@
-         if let Some(partial) =
-             crate::completion::keyword_completion::enum_backing_type_partial(content, position)
-         {
+@@ -373,2 +428,4 @@
 -            let items =
 -                crate::completion::keyword_completion::build_backed_enum_type_completions(&partial);
 +            let items = crate::completion::keyword_completion::build_backed_enum_type_completions(
 +                &partial,
 +                self.php_version(),
 +            );
-             if items.is_empty() {
-                 return None;
-             }
-@@ -388,6 +422,79 @@
-         }
- 
-         let class_ctx = detect_class_name_context(content, position);
+@@ -390,0 +448,73 @@
 +        if let Some(import) =
 +            crate::completion::import_context::detect_import_context(content, position)
 +            && import.kind != crate::completion::import_context::ImportKind::Trait
@@ -2163,7 +2061,7 @@ diff --git a/src/completion/handler/class_constant.rs b/src/completion/handler/c
 +                    position,
 +                ),
 +                ImportKind::Const => {
-+                    self.build_constant_completions(&search, current_uri, position)
++                    self.build_constant_completions(&search, current_uri, position, None)
 +                }
 +                ImportKind::Class => self.build_class_name_completions(ClassCompletionParams {
 +                    file_use_map: &HashMap::new(),
@@ -2214,45 +2112,26 @@ diff --git a/src/completion/handler/class_constant.rs b/src/completion/handler/c
 +            }));
 +        }
 +
-         let keyword_ctx = {
-             let cursor_offset = position_to_offset(content, position);
-             let map = self.symbol_map_for(current_uri);
-@@ -418,6 +525,7 @@
-                         "",
-                         class_ctx,
-                         keyword_ctx,
+@@ -420,0 +551 @@
 +                        self.php_version(),
-                     );
-                     if items.is_empty() {
-                         return None;
-@@ -439,7 +547,8 @@
-                 current_uri,
-                 position,
-             );
+@@ -425,0 +557,2 @@
++                } else if existing_name_at_cursor(content, position) {
++                    String::new()
+@@ -442 +575,2 @@
 -            let function_items = filter_current_file_functions(function_items, current_uri, self);
 +            let function_items =
 +                filter_current_file_functions(function_items, current_uri, &ctx.namespace, self);
-             let items = append_semicolon_to_insert_text(function_items);
-             return Some(CompletionResponse::CompletionList(CompletionList {
-                 is_incomplete: func_incomplete,
-@@ -453,7 +562,8 @@
-         if matches!(class_ctx, ClassNameContext::UseConst) {
-             let (constant_items, const_incomplete) =
-                 self.build_constant_completions(&partial, current_uri, position);
+@@ -455,2 +589,3 @@
+-                self.build_constant_completions(&partial, current_uri, position);
 -            let constant_items = filter_current_file_constants(constant_items, current_uri, self);
++                self.build_constant_completions(&partial, current_uri, position, Some(content));
 +            let constant_items =
 +                filter_current_file_constants(constant_items, current_uri, &ctx.namespace, self);
-             let items = append_semicolon_to_insert_text(constant_items);
-             return Some(CompletionResponse::CompletionList(CompletionList {
-                 is_incomplete: const_incomplete,
-@@ -596,6 +706,7 @@
-             &partial,
-             class_ctx,
-             keyword_ctx,
+@@ -598,0 +734 @@
 +            self.php_version(),
-         );
-         let (constant_items, const_incomplete) =
-             self.build_constant_completions(&partial, current_uri, position);
+@@ -601 +737 @@
+-            self.build_constant_completions(&partial, current_uri, position);
++            self.build_constant_completions(&partial, current_uri, position, Some(content));
 diff --git a/src/completion/handler/member_access.rs b/src/completion/handler/member_access.rs
 --- a/src/completion/handler/member_access.rs
 +++ b/src/completion/handler/member_access.rs
@@ -2267,26 +2146,69 @@ diff --git a/src/completion/handler/member_access.rs b/src/completion/handler/me
 diff --git a/src/completion/handler/named_args.rs b/src/completion/handler/named_args.rs
 --- a/src/completion/handler/named_args.rs
 +++ b/src/completion/handler/named_args.rs
-@@ -14,7 +14,7 @@
-     NamedArgContext, cursor_inside_nested_bracket, parse_existing_args,
- };
- use crate::text_position::position_to_offset;
+@@ -17 +17 @@
 -use crate::types::FileContext;
 +use crate::types::{FileContext, PhpVersion};
- 
- impl Backend {
-     /// Collect `name:` argument completion items inside function/method
-@@ -31,6 +31,10 @@
-         position: Position,
-         ctx: &FileContext,
-     ) -> Vec<CompletionItem> {
+@@ -33,0 +34,4 @@
 +        if self.php_version() < PhpVersion::new(8, 0) {
 +            return Vec::new();
 +        }
 +
-         // ── Primary path: AST-based detection via symbol map ────────
-         // The symbol map's `CallSite` data handles chains, nesting,
-         // and strings correctly.  Fall back to text scanning when the
+@@ -69,0 +74,14 @@
++        let Some(range) = crate::completion::name_replacement_range(
++            content,
++            position,
++            &na_ctx.prefix,
++            crate::completion::is_php_name_char,
++        ) else {
++            return Vec::new();
++        };
++        let end = crate::text_position::position_to_byte_offset(content, range.end);
++        let next = crate::text_scan::skip_php_trivia(content.as_bytes(), end);
++        let has_colon = content.as_bytes().get(next) == Some(&b':');
++        if has_colon && content.as_bytes().get(next + 1) == Some(&b':') {
++            return Vec::new();
++        }
+@@ -70,0 +89,23 @@
++            .into_iter()
++            .map(|mut item| {
++                let name = item
++                    .filter_text
++                    .as_deref()
++                    .expect("named argument has a parameter name");
++                let text = if has_colon {
++                    name.to_owned()
++                } else {
++                    format!("{name}: ")
++                };
++                item.insert_text = Some(text.clone());
++                item.text_edit = Some(
++                    tower_lsp_server::gen_lsp_types::CompletionItemTextEdit::TextEdit(
++                        tower_lsp_server::gen_lsp_types::TextEdit {
++                            range,
++                            new_text: text,
++                        },
++                    ),
++                );
++                item
++            })
++            .collect()
+@@ -108,7 +149,8 @@
+-        let mut word_start = cursor_byte_offset as usize;
+-        while word_start > 0 && {
+-            let b = bytes[word_start - 1];
+-            b.is_ascii_alphanumeric() || b == b'_'
+-        } {
+-            word_start -= 1;
+-        }
++        let cursor = cursor_byte_offset as usize;
++        let word_start = content
++            .get(..cursor)?
++            .char_indices()
++            .rev()
++            .take_while(|&(_, ch)| crate::completion::is_php_name_char(ch))
++            .last()
++            .map_or(cursor, |(offset, _)| offset);
 diff --git a/src/completion/resolve.rs b/src/completion/resolve.rs
 --- a/src/completion/resolve.rs
 +++ b/src/completion/resolve.rs
@@ -3590,13 +3512,9 @@ diff --git a/src/symbol_map/docblock.rs b/src/symbol_map/docblock.rs
 diff --git a/src/completion/mod.rs b/src/completion/mod.rs
 --- a/src/completion/mod.rs
 +++ b/src/completion/mod.rs
-@@ -109,5 +109,43 @@
- // context/
- pub(crate) use context::catch_completion;
- pub(crate) use context::class_completion;
+@@ -111,0 +112 @@
 +pub(crate) use context::import_context;
- pub(crate) use context::keyword_completion;
- pub(crate) use context::type_hint_completion;
+@@ -113,0 +115,85 @@
 +
 +/// PHP identifier continuation characters (PHP permits every non-ASCII byte).
 +pub(crate) fn is_php_name_char(ch: char) -> bool {
@@ -3633,6 +3551,54 @@ diff --git a/src/completion/mod.rs b/src/completion/mod.rs
 +        start: start_position,
 +        end: crate::text_position::offset_to_position(content, cursor + suffix_bytes),
 +    })
++}
++
++#[cfg(test)]
++mod replacement_range_tests {
++    use super::{is_php_name_char, name_replacement_range};
++    use tower_lsp_server::gen_lsp_types::{Position, Range};
++
++    #[test]
++    fn current_utf16_word_range_covers_its_right_suffix() {
++        let content = "<?php\n🌟 FooBar";
++        for (character, prefix) in [(3, ""), (6, "Foo"), (9, "FooBar")] {
++            assert_eq!(
++                name_replacement_range(
++                    content,
++                    Position { line: 1, character },
++                    prefix,
++                    is_php_name_char
++                ),
++                Some(Range {
++                    start: Position {
++                        line: 1,
++                        character: 3
++                    },
++                    end: Position {
++                        line: 1,
++                        character: 9
++                    }
++                })
++            );
++        }
++    }
++
++    #[test]
++    fn stale_prefix_and_noncanonical_utf16_coordinates_cannot_edit() {
++        let content = "<?php\n🌟 FooBar";
++        for (line, character, prefix) in [(1, 6, "Fox"), (1, 1, ""), (1, 99, "FooBar"), (99, 0, "")]
++        {
++            assert_eq!(
++                name_replacement_range(
++                    content,
++                    Position { line, character },
++                    prefix,
++                    is_php_name_char
++                ),
++                None
++            );
++        }
++    }
 +}
 diff --git a/src/completion/variable/completion.rs b/src/completion/variable/completion.rs
 --- a/src/completion/variable/completion.rs
@@ -3676,40 +3642,71 @@ diff --git a/src/completion/variable/completion.rs b/src/completion/variable/com
 diff --git a/src/completion/context/class_completion/mod.rs b/src/completion/context/class_completion/mod.rs
 --- a/src/completion/context/class_completion/mod.rs
 +++ b/src/completion/context/class_completion/mod.rs
-@@ -126,9 +126,7 @@
- 
-         // Walk backwards through identifier characters (including `\`)
-         let mut i = col;
+@@ -129,3 +129 @@
 -        while i > 0
 -            && (chars[i - 1].is_alphanumeric() || chars[i - 1] == '_' || chars[i - 1] == '\\')
 -        {
 +        while i > 0 && (crate::completion::is_php_name_char(chars[i - 1]) || chars[i - 1] == '\\') {
-             i -= 1;
-         }
- 
-@@ -197,14 +195,17 @@
-         } = params;
-         let is_new = context.is_new();
-         let is_attribute = context.is_attribute();
+@@ -199,0 +198,3 @@
 +        if is_attribute && self.php_version().major < 8 {
 +            return (Vec::new(), false);
 +        }
-         let is_use_import = matches!(context, ClassNameContext::UseImport);
-         // In FQN mode (except UseImport), try to shorten references
-         // using the file's existing `use` imports.  E.g. if the user
-         // has `use Cassandra\Exception;`, typing `Exception\Al` should
-         // insert `Exception\AlreadyExistsException` rather than the
-         // full FQN.
+@@ -200,0 +202,41 @@
++        // When the user is typing a namespace-qualified reference (e.g.
++        // `http\En`, `\App\Models\U`, or `\Demo`), the editor may treat
++        // `\` as a word boundary and only replace the text after the
++        // last `\`.  Provide an explicit replacement range covering the
++        // entire typed prefix so the editor replaces it in full.
++        // Group-import search prefixes include a namespace not written at the
++        // cursor; its structured import context owns the actual item range.
++        let import_context = is_use_import
++            .then(|| crate::completion::import_context::detect_import_context(content, position))
++            .flatten();
++        let fqn_replace_range = if is_use_import {
++            import_context.as_ref().map(|import| import.range)
++        } else {
++            crate::completion::name_replacement_range(content, position, prefix, |ch| {
++                crate::completion::is_php_name_char(ch) || ch == '\\'
++            })
++        };
++        if fqn_replace_range.is_none() {
++            return (Vec::new(), false);
++        }
++        let range = fqn_replace_range.expect("validated replacement range");
++        let name_start = crate::text_position::position_to_byte_offset(content, range.start);
++        let name_end = crate::text_position::position_to_byte_offset(content, range.end);
++        let written_name = &content[name_start..name_end];
++        // The right-hand spelling is authoritative at word start as well.
++        // Resolve only this lexical name; retention never discovers new symbols.
++        let exact_fqn = if written_name.is_empty() {
++            None
++        } else if let Some(import) = &import_context {
++            (import.kind == crate::completion::import_context::ImportKind::Class).then(|| {
++                match &import.group_prefix {
++                    Some(group) => format!("{group}\\{written_name}"),
++                    None => written_name.trim_start_matches('\\').to_owned(),
++                }
++            })
++        } else {
++            Some(
++                self.file_context_at(uri, name_start as u32)
++                    .resolve_name_at(written_name, name_start as u32),
++            )
++        };
+@@ -206,2 +248,2 @@
 -        let should_shorten_via_imports = !is_use_import;
-         let has_leading_backslash = prefix.starts_with('\\');
+-        let has_leading_backslash = prefix.starts_with('\\');
++        let has_leading_backslash = written_name.starts_with('\\');
 +        let should_shorten_via_imports = !is_use_import && !has_leading_backslash;
-         let normalized = strip_fqn_prefix(prefix);
-         let prefix_lower = normalized.to_lowercase();
-         // In UseImport context, always treat the prefix as FQN so that
-@@ -236,19 +237,19 @@
-         // `\` as a word boundary and only replace the text after the
-         // last `\`.  Provide an explicit replacement range covering the
-         // entire typed prefix so the editor replaces it in full.
+@@ -213 +255 @@
+-        let is_fqn_prefix = has_leading_backslash || normalized.contains('\\') || is_use_import;
++        let is_fqn_prefix = has_leading_backslash || written_name.contains('\\') || is_use_import;
+@@ -234,18 +275,0 @@
+-        // When the user is typing a namespace-qualified reference (e.g.
+-        // `http\En`, `\App\Models\U`, or `\Demo`), the editor may treat
+-        // `\` as a word boundary and only replace the text after the
+-        // last `\`.  Provide an explicit replacement range covering the
+-        // entire typed prefix so the editor replaces it in full.
 -        let fqn_replace_range = if is_fqn_prefix {
 -            Some(Range {
 -                start: Position {
@@ -3722,34 +3719,13 @@ diff --git a/src/completion/context/class_completion/mod.rs b/src/completion/con
 -            })
 -        } else {
 -            None
-+        // Group-import search prefixes include a namespace not written at the
-+        // cursor; its structured import context owns the actual item range.
-+        let fqn_replace_range = if is_use_import {
-+            crate::completion::import_context::detect_import_context(content, position)
-+                .map(|import| import.range)
-+        } else {
-+            crate::completion::name_replacement_range(content, position, prefix, |ch| {
-+                crate::completion::is_php_name_char(ch) || ch == '\\'
-+            })
-         };
-+        if fqn_replace_range.is_none() {
-+            return (Vec::new(), false);
-+        }
-         let mut seen_fqns: HashSet<String> = HashSet::new();
-         let mut items: Vec<CompletionItem> = Vec::new();
- 
-@@ -294,6 +295,7 @@
-             file_namespace: effective_namespace,
-             affinity_table,
-             quality_prefix,
+-        };
+@@ -275 +299 @@
+-            normalized.contains('\\') || has_leading_backslash || is_use_import;
++            written_name.contains('\\') || has_leading_backslash || is_use_import;
+@@ -296,0 +321 @@
 +            written_prefix_lower: prefix_lower.clone(),
-             prefix_has_namespace,
-             uri,
-         };
-@@ -377,7 +379,12 @@
-             .collect();
-         for fqn in &fqn_keys {
-             let sn = short_name(fqn);
+@@ -380 +405,6 @@
 -            if !matches_class_prefix(sn, fqn, &prefix_lower, is_fqn_prefix, expanded_prefix_lower) {
 +            let import_matches = should_shorten_via_imports
 +                && items::shorten_fqn_via_use_map(fqn, file_use_map, &prefix_lower)
@@ -3757,13 +3733,7 @@ diff --git a/src/completion/context/class_completion/mod.rs b/src/completion/con
 +            if !matches_class_prefix(sn, fqn, &prefix_lower, is_fqn_prefix, expanded_prefix_lower)
 +                && !import_matches
 +            {
-                 continue;
-             }
-             if !seen_fqns.insert(fqn.clone()) {
-@@ -411,7 +418,12 @@
-         let stub_keys: Vec<String> = self.stub_index.read().keys().map(str::to_owned).collect();
-         for fqn in &stub_keys {
-             let sn = short_name(fqn);
+@@ -414 +444,6 @@
 -            if !matches_class_prefix(sn, fqn, &prefix_lower, is_fqn_prefix, expanded_prefix_lower) {
 +            let import_matches = should_shorten_via_imports
 +                && items::shorten_fqn_via_use_map(fqn, file_use_map, &prefix_lower)
@@ -3771,9 +3741,23 @@ diff --git a/src/completion/context/class_completion/mod.rs b/src/completion/con
 +            if !matches_class_prefix(sn, fqn, &prefix_lower, is_fqn_prefix, expanded_prefix_lower)
 +                && !import_matches
 +            {
-                 continue;
-             }
-             if !seen_fqns.insert(fqn.to_string()) {
+@@ -548,0 +584,16 @@
++            // Retain the current name only after the existing eligibility filters.
++            // Keep the ordinary ranking and cap, replacing at most one tail item.
++            if let Some(exact) = &exact_fqn
++                && let Some(index) = items.iter().position(|item| {
++                    item.data.as_ref().is_some_and(|data| {
++                        data.get("k").and_then(|k| k.as_str()) == Some("class")
++                            && data
++                                .get("m")
++                                .and_then(|m| m.as_str())
++                                .is_some_and(|fqn| fqn.eq_ignore_ascii_case(exact))
++                    })
++                })
++                && index >= Self::MAX_CLASS_COMPLETIONS
++            {
++                items.swap(Self::MAX_CLASS_COMPLETIONS - 1, index);
++            }
 diff --git a/src/completion/context/class_completion/items.rs b/src/completion/context/class_completion/items.rs
 --- a/src/completion/context/class_completion/items.rs
 +++ b/src/completion/context/class_completion/items.rs
@@ -4325,3 +4309,82 @@ diff --git a/src/text_scan.rs b/src/text_scan.rs
 +        assert!(failures.is_empty(), "{failures:?}");
 +    }
 +}
+diff --git a/src/completion/context/constant_completion.rs b/src/completion/context/constant_completion.rs
+--- a/src/completion/context/constant_completion.rs
++++ b/src/completion/context/constant_completion.rs
+@@ -85,0 +86 @@
++        content: Option<&str>,
+@@ -91,16 +92,11 @@
+-        // When the user is typing a namespace-qualified constant
+-        // reference (e.g. `PHPStan\PHP`), the editor may treat `\` as
+-        // a word boundary and only replace the text after the last `\`.
+-        // Provide an explicit replacement range covering the entire
+-        // typed prefix so the editor replaces it in full, avoiding
+-        // duplicate namespace prefixes like `PHPStan\PHPStan\PHP_VERSION_ID`.
+-        let replace_range = if prefix.contains('\\') {
+-            Some(Range {
+-                start: Position {
+-                    line: position.line,
+-                    character: position
+-                        .character
+-                        .saturating_sub(prefix.chars().count() as u32),
+-                },
+-                end: position,
+-            })
++        // Import contexts supply their own structural range. Standalone
++        // references replace the full qualified name, including its suffix.
++        let replace_range = if let Some(content) = content {
++            let Some(range) =
++                crate::completion::name_replacement_range(content, position, prefix, |ch| {
++                    crate::completion::is_php_name_char(ch) || ch == '\\'
++                })
++            else {
++                return (Vec::new(), false);
++            };
++            Some(range)
+diff --git a/src/completion/handler/mod.rs b/src/completion/handler/mod.rs
+--- a/src/completion/handler/mod.rs
++++ b/src/completion/handler/mod.rs
+@@ -91,6 +91,7 @@
+-    let rest = &content[byte_off..];
+-    // Skip past any partial identifier the user has typed
+-    // (ASCII letters, digits, underscore, backslash for namespaced names).
+-    let after_ident =
+-        rest.trim_start_matches(|c: char| c.is_ascii_alphanumeric() || c == '_' || c == '\\');
+-    after_ident.starts_with('(')
++    let identifier_bytes = content[byte_off..]
++        .chars()
++        .take_while(|&ch| crate::completion::is_php_name_char(ch) || ch == '\\')
++        .map(char::len_utf8)
++        .sum::<usize>();
++    let next = crate::text_scan::skip_php_trivia(content.as_bytes(), byte_off + identifier_bytes);
++    content.as_bytes().get(next) == Some(&b'(')
+@@ -133,2 +134,2 @@
+-/// format and replaces the insert text with just the name from
+-/// `filter_text`.
++/// format while keeping the producer's callable spelling, including aliases
++/// and namespace qualification.
+@@ -149,10 +150,13 @@
+-                // Replace the snippet with just the name
+-                // (the filter_text already holds it).
+-                if let Some(ref name) = item.filter_text {
+-                    item.insert_text = Some(name.clone());
+-                }
+-                // Also clear any text_edit that carries the snippet text.
+-                if let Some(CompletionItemTextEdit::TextEdit(ref mut te)) = item.text_edit
+-                    && let Some(ref name) = item.filter_text
+-                {
+-                    te.new_text = name.clone();
++                // Filtering may use a short name while the actual call uses
++                // an alias or leading backslash. Keep the producer's spelling.
++                let insertion = match &item.text_edit {
++                    Some(CompletionItemTextEdit::TextEdit(edit)) => Some(edit.new_text.as_str()),
++                    _ => item.insert_text.as_deref(),
++                };
++                let Some((name, _)) = insertion.and_then(|text| text.split_once('(')) else {
++                    return item;
++                };
++                let name = name.to_owned();
++                item.insert_text = Some(name.clone());
++                if let Some(CompletionItemTextEdit::TextEdit(ref mut edit)) = item.text_edit {
++                    edit.new_text = name;
