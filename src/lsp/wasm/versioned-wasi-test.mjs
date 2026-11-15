@@ -17,10 +17,10 @@ const reviewedDiff = manifest.source?.reviewedPhaseBDiffSha256
 assert.equal(reviewedDiff,
 	'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d');
 assert.equal(manifest.source?.appliedPhaseBPatchSha256,
-    '0581b67c401a5a26f56241d69404cc95a6a658c07e39f6a785dc12181aab8ba6',
+    '8b55b87dcf04d1fc16d00baa45fff9f061e31c0c02d3af864212a63c0210a841',
     'current applied PHPantom patch is required before WASM instantiation');
 assert.equal(manifest.source?.appliedFileManifestSha256,
-    'df9756e6a1f1618bc14b6bdd290b348b74442185b16240c383cf9c42771d21fd',
+    'b3f47d28bbb4f1bf3791082a371a665c3d93c3d6e0dca899e0775a5e7234387f',
     'current applied file manifest is required before WASM instantiation');
 assert.equal(manifest.stubs?.commit, '2049ca3cfa1feabf52db074108fe776a5713cf02');
 if (manifest.stubs?.resolvedCommitMarker) {
@@ -530,6 +530,29 @@ async function releaseImportRenameOracle() {
     }
 }
 
+async function releaseAttributeDocOracle() {
+    // These declarations are valid PHP8 attribute syntax; earlier targets keep
+    // their existing baseline/user-PHPDoc tests without claiming PHP8 syntax.
+    if (!targetAtLeast(8,0)) return;
+    const rows=(await readFile(new URL('./native-probe/tests/fixtures/attribute-docs.tsv',import.meta.url),'utf8'))
+        .split('\n').filter(row=>row&&!row.startsWith('#')).map(row=>row.split('\t').map(value=>value.replaceAll('\\n','\n')));
+    assert.equal(rows.length,17,'complete independent attribute-doc inventory');
+    assert.equal(new Set(rows.map(row=>row[4])).size,17,'unique required markers');
+    for (const [source,member,className,kind,marker,rejected] of rows) {
+        await freshEngine();const uri='file:///release/attribute-docs.php';open(uri,source);
+        const lines=source.split('\n');const position={line:lines.length-1,character:lines.at(-1).length};
+        for (const warm of [false,true]) {
+            const items=completionItems(request('textDocument/completion',{textDocument:{uri},position}));
+            const item=items.find(value=>value.kind===Number(kind)&&value.data?.m===member&&(!className||value.data?.c===className));
+            assert.ok(item,`${target} ${marker} selected FQN ${className}::${member}`);
+            const resolved=request('completionItem/resolve',item).result;
+            const docs=resolved.documentation?.value??resolved.documentation??'';
+            check(`${target} attribute PHPDoc ${marker} warm=${warm}`,typeof docs==='string'&&docs.includes(marker)&&!docs.includes(rejected),{item,resolved});
+            console.log(`ATTRIBUTE_DOC_RESPONSE ${JSON.stringify({target,marker,warm,source,item,resolved})}`);
+        }
+    }
+}
+
 async function releaseSharedConstantDeclarations() {
     for (const symbol of ['PHP_SBINDIR','PHP_OUTPUT_HANDLER_PROCESSED']) {
         await freshEngine();
@@ -562,6 +585,7 @@ await releaseLanguageOracle();
 await releaseImportOracle();
 await releaseImportEditOracle();
 await releaseImportRenameOracle();
+await releaseAttributeDocOracle();
 console.log(JSON.stringify({
 	target,
 	artifactSha256: actualSha,

@@ -143,3 +143,5 @@ Group import では、共通 namespace、現在 item の class/function/const �
 27 fixture は mixed/typed group、2番目 item、alias と同名の利用者定義、コメント・改行・UTF-16、相対 namespace、通常 import、token 途中の cursor を含みます。公開 completion と resolve の編集 payload 全体と、全編集適用後の文書を独立期待値と比較します。必須 native CI と各対象の standalone WASI の双方で実行します。[PHP 7.0 の group use 導入](https://www.php.net/manual/en/migration70.new-features.php)に従い、5.6 では group の負、通常 import の正を検査します。元の全12対象の通常 import・trait use・closure capture と言語型の検査も維持します。LSP 編集の適用と実 PHP の binding 確認は、Monaco での accept 実測とは区別します。
 
 native の headless Backend は、didChange 完了時に解析結果も公開するようにします。client がない逐次操作では refresh 通知を待てず、以前は rename 直後の completion が古い function index と競合しました。headless constructor の同期設定を直し、即時の group function rename と既存の doc/edit 回帰を検査します。client 付き LSP の background 設定は変更しません。WASI dispatcher は従来から文書変更を同期で登録します。
+
+PHPDoc は属性の前・後・複数属性の間に置かれた場合も、宣言の共通探索で関連付けます。属性を含む AST span の先頭だけで探索を切らず、leading attribute の範囲を透過します。属性argument内のDocコメントは宣言のPHPDocとして採用しません。独立PHP Reflectionで確認したPHP8のclass/function/method配置と、属性なし・同名FQN・warm resolveをnative/実WASIで検査します。user sourceの版provenance、PHPDoc enrichment、native parameter版フィルタは維持します。

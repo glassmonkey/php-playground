@@ -1,6 +1,6 @@
 {
-  "completePatchSha256": "0581b67c401a5a26f56241d69404cc95a6a658c07e39f6a785dc12181aab8ba6",
-  "fileCount": 37,
+  "completePatchSha256": "8b55b87dcf04d1fc16d00baa45fff9f061e31c0c02d3af864212a63c0210a841",
+  "fileCount": 38,
   "files": [
     {
       "path": "build.rs",
@@ -129,6 +129,10 @@
     {
       "path": "src/stubs.rs",
       "sha256": "932a0b72e18e5f54e1891b3927eee2ffe60db171df89be8ef6491d47ecfa75a2"
+    },
+    {
+      "path": "src/symbol_map/docblock.rs",
+      "sha256": "cdf59ea65f56ac86b57caee7d07fecba00020b8822ba5a5414314c51af50b1fa"
     },
     {
       "path": "tests/integration/completion_basic.rs",

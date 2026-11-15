@@ -3483,3 +3483,116 @@ diff --git a/tests/native_versioned_embedded.rs b/tests/native_versioned_embedde
 +async fn php83_strrchr_parameter_boundary() {
 +    strrchr_case(8, 3, true).await;
 +}
+diff --git a/src/symbol_map/docblock.rs b/src/symbol_map/docblock.rs
+--- a/src/symbol_map/docblock.rs
++++ b/src/symbol_map/docblock.rs
+@@ -96,7 +96,25 @@
+     node: &impl HasSpan,
+ ) -> Option<(&'a str, u32)> {
+     use crate::atom::bytes_to_str;
+-    let node_start = node.span().start.offset;
++    let bytes = &content.as_bytes()[..(node.span().end.offset as usize).min(content.len())];
++    let mut declaration_start = node.span().start.offset as usize;
++    let mut attributes = Vec::new();
++    // Declaration spans include their attribute lists. PHPDoc may precede,
++    // follow, or separate those lists. Walk only the leading lists, using
++    // the shared balanced scanner so brackets in strings/comments are inert.
++    while bytes
++        .get(declaration_start..)
++        .is_some_and(|s| s.starts_with(b"#["))
++    {
++        let Some(close) =
++            crate::text_scan::find_matching_forward_bytes(bytes, declaration_start + 1, b'[', b']')
++        else {
++            break;
++        };
++        attributes.push((declaration_start, close + 1));
++        declaration_start = crate::text_scan::skip_php_trivia(bytes, close + 1);
++    }
++    let node_start = declaration_start as u32;
+     let candidate_idx = trivia.partition_point(|t| t.span.start.offset < node_start);
+     if candidate_idx == 0 {
+         return None;
+@@ -107,12 +125,35 @@
+ 
+     for i in (0..candidate_idx).rev() {
+         let t = &trivia[i];
+-        let t_end = t.span.end.offset;
+-
+-        let gap = content_bytes
+-            .get(t_end as usize..covered_from as usize)
+-            .unwrap_or(&[]);
+-        if !gap.iter().all(u8::is_ascii_whitespace) {
++        // An argument's comment belongs to the attribute expression, not
++        // to the declaration. Do not let it override a real leading PHPDoc.
++        if attributes.iter().any(|&(start, end)| {
++            (t.span.start.offset as usize) >= start && (t.span.start.offset as usize) < end
++        }) {
++            continue;
++        }
++        let mut gap_start = t.span.end.offset as usize;
++        let gap_end = covered_from as usize;
++        for &(start, end) in &attributes {
++            if end <= gap_start || start >= gap_end {
++                continue;
++            }
++            if !content_bytes
++                .get(gap_start..start.max(gap_start))
++                .unwrap_or(&[])
++                .iter()
++                .all(u8::is_ascii_whitespace)
++            {
++                return None;
++            }
++            gap_start = end.min(gap_end);
++        }
++        if !content_bytes
++            .get(gap_start..gap_end)
++            .unwrap_or(&[])
++            .iter()
++            .all(u8::is_ascii_whitespace)
++        {
+             return None;
+         }
+ 
+@@ -1325,6 +1366,40 @@
+                     is_docblock_reference: true,
+                 },
+             });
++        }
++    }
++}
++
++#[cfg(test)]
++mod attribute_association_tests {
++    use super::*;
++    use mago_allocator::LocalArena;
++    #[test]
++    fn actual_class_cst_keeps_docs_outside_attribute_arguments() {
++        for source in [
++            "<?php /** REQUIRED */ #[A] class Target {}",
++            "<?php #[A] /** REQUIRED */ class Target {}",
++            "<?php #[A] /** REQUIRED */ #[B] class Target {}",
++            "<?php /** REQUIRED */ #[A([/** FAKE */ \"]\", [\"[\"]])] class Target {}",
++            "<?php /** REQUIRED */ class Target {}",
++        ] {
++            let arena = LocalArena::new();
++            let program = mago_syntax::parser::parse_file_content(
++                &arena,
++                FileId::new(b"attribute-doc.php"),
++                source.as_bytes(),
++            );
++            let mut nodes = vec![Node::Program(program)];
++            let mut found = None;
++            while let Some(node) = nodes.pop() {
++                if let Node::Class(class) = node {
++                    found = get_docblock_text_with_offset(program.trivia.as_slice(), source, class)
++                        .map(|(doc, _)| doc.to_owned());
++                    break;
++                }
++                node.visit_children(|child| nodes.push(child));
++            }
++            assert_eq!(found.as_deref(), Some("/** REQUIRED */"), "{source}");
+         }
+     }
+ }
