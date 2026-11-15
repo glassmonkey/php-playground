@@ -145,3 +145,7 @@ Group import では、共通 namespace、現在 item の class/function/const �
 native の headless Backend は、didChange 完了時に解析結果も公開するようにします。client がない逐次操作では refresh 通知を待てず、以前は rename 直後の completion が古い function index と競合しました。headless constructor の同期設定を直し、即時の group function rename と既存の doc/edit 回帰を検査します。client 付き LSP の background 設定は変更しません。WASI dispatcher は従来から文書変更を同期で登録します。
 
 PHPDoc は属性の前・後・複数属性の間に置かれた場合も、宣言の共通探索で関連付けます。属性を含む AST span の先頭だけで探索を切らず、leading attribute の範囲を透過します。属性argument内のDocコメントは宣言のPHPDocとして採用しません。独立PHP Reflectionで確認したPHP8のclass/function/method配置と、属性なし・同名FQN・warm resolveをnative/実WASIで検査します。user sourceの版provenance、PHPDoc enrichment、native parameter版フィルタは維持します。
+
+ライセンス原文と帰属情報の入力は`src/lsp/wasm/third-party/`にまとめています。PHPantomのMIT、phpstorm-stubsのLICENSEとREADME全文、固定Mago sourceのMIT/Apache原文を改変せず保存し、manifest.jsonに原典のcommit・URL・hashを記録します。ATTRIBUTIONS.mdは、実際の埋込定義に残るPHP Documentation Group、Aerospike、DataStax、Tawanaのヘッダーを参照する本プロジェクトの索引です。upstream NOTICE原文や完全なRust SBOMを意味しません。
+
+`make install-phpantom-runtime`はbuild成功後、原文と索引のSHA256SUMSを照合してから、指定版のWASM/provenanceと`assets/lsp/phpantom/third-party/`を配置します。builder失敗時は配置先へ進みません。stubsのPHP manual由来文面の帰属説明は、LICENSEだけでなく[固定READMEのLicense節](https://github.com/JetBrains/phpstorm-stubs/blob/2049ca3cfa1feabf52db074108fe776a5713cf02/README.md#license)を参照します。UI側のasset manifestと公開先の更新は、別の採用gateでこの同梱pathと原典URLを対応付けます。

@@ -17,9 +17,12 @@ build-phpantom-runtime:
 
 # Explicit asset adoption; a failed build never reaches these copies.
 install-phpantom-runtime: build-phpantom-runtime
+	cd src/lsp/wasm/third-party && shasum -a 256 -c SHA256SUMS
 	mkdir -p "$(PHPANTOM_ASSET_DIR)"
 	cp "$(PHPANTOM_BUILD_DIR)/$(PHPANTOM_TARGET_VERSION)/php-$(PHPANTOM_TARGET_VERSION).wasm" "$(PHPANTOM_ASSET_DIR)/php-$(PHPANTOM_TARGET_VERSION).wasm"
 	cp "$(PHPANTOM_BUILD_DIR)/$(PHPANTOM_TARGET_VERSION)/php-$(PHPANTOM_TARGET_VERSION).provenance.json" "$(PHPANTOM_ASSET_DIR)/php-$(PHPANTOM_TARGET_VERSION).provenance.json"
+	mkdir -p "$(PHPANTOM_ASSET_DIR)/third-party"
+	cp -R src/lsp/wasm/third-party/. "$(PHPANTOM_ASSET_DIR)/third-party/"
 	@echo "Installed PHPantom PHP $(PHPANTOM_TARGET_VERSION): $(PHPANTOM_ASSET_DIR)/php-$(PHPANTOM_TARGET_VERSION).wasm"
 
 test-phpantom-runtime-native:
