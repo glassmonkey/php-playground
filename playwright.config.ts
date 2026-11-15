@@ -79,7 +79,7 @@ export default defineConfig({
 
   /* Serve the app and source-only runtime harness through the same Vite server. */
   webServer: {
-    command: 'npm run dev -- --host 127.0.0.1 --port 8888 --strictPort',
+    command: 'npm run dev -- --config e2e/vite.config.mjs --host 127.0.0.1 --port 8888 --strictPort',
     url: 'http://127.0.0.1:8888',
     reuseExistingServer: false,
     timeout: 1000 * 60,
