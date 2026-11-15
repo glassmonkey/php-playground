@@ -114,6 +114,11 @@ export async function captureSource(root, directory) {
 		encoding: 'utf8',
 		timeout: 5000,
 	}).trim();
+	const headPath = join(directory, 'HEAD.json');
+	await writeFile(headPath, JSON.stringify({ head }, null, 2) + '\n', {
+		flag: 'wx',
+	});
+	await chmod(headPath, 0o444);
 	const path = join(directory, 'source.diff');
 	const fd = openSync(path, 'wx');
 	let result;

@@ -121,6 +121,7 @@ PHPantom専用の検証CLIとhelperもbuild module内の `src/lsp/wasm` に置�
 
 source capture は、fallible な処理を始める前に START を保存する。
 テキスト差分は WASM を除外した `source.diff` に直接保存し、12 binary は path・byte数・SHA-256 で識別する。
+`HEAD.json` を最初の Git 確認直後に保存し、binary/build の capture に失敗しても取得済み head を終了記録に残す。
 `capture.json` と `source.json` を分け、capture 失敗時も startup error・result・EXIT と実際の数値 exit を残す。
 差分取得は5秒、テキスト差分の保存量は16 MiBを上限とする。binary patch を同期出力 buffer に蓄積しない。
 

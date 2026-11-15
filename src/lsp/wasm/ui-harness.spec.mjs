@@ -335,6 +335,7 @@ describe('UI runner public contracts', () => {
 			'-qm',
 			'fixture'
 		);
+		const expectedHead = git('rev-parse', 'HEAD');
 		const got = await runBounded(
 			[process.execPath, join(module, 'release-ui-test.mjs')],
 			{
@@ -359,6 +360,7 @@ describe('UI runner public contracts', () => {
 			actualExit: got.exitCode,
 			deadline: got.deadlineReached,
 			root: start.root,
+			head: exit.head,
 			code: error.code,
 			sourceFailure: error.error.includes('assets/lsp/phpantom'),
 			resultExit: result.exitCode,
@@ -368,6 +370,7 @@ describe('UI runner public contracts', () => {
 			actualExit: 1,
 			deadline: false,
 			root: repo,
+			head: expectedHead,
 			code: 'ENOENT',
 			sourceFailure: true,
 			resultExit: 1,

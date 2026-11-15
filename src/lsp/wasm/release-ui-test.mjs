@@ -77,7 +77,7 @@ await save('START.json', {
 	startedAt: new Date().toISOString(),
 	pid: process.pid,
 	invocation: process.argv,
-	identityFiles: ['capture.json', 'source.json'],
+	identityFiles: ['HEAD.json', 'capture.json', 'source.json'],
 	root,
 	phase,
 	baseURL,
@@ -278,6 +278,10 @@ try {
 			5
 		);
 } catch (error) {
+	if (!head)
+		head = await readFile(join(directory, 'HEAD.json'), 'utf8')
+			.then((text) => JSON.parse(text).head)
+			.catch(() => undefined);
 	if (!start?.buildFiles)
 		await save('startup-error.json', {
 			error: String(error),
