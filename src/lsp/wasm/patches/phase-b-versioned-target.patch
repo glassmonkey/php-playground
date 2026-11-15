@@ -3587,291 +3587,6 @@ diff --git a/src/symbol_map/docblock.rs b/src/symbol_map/docblock.rs
          }
      }
  }
-diff --git a/src/parser/initializers.rs b/src/parser/initializers.rs
---- a/src/parser/initializers.rs
-+++ b/src/parser/initializers.rs
-@@ -45,7 +45,7 @@
-         } else if let Some(end) = text_scan::skip_php_comment(bytes, i) {
-             i = end;
-         } else if bytes[i..].starts_with(b"<<<") {
--            i = skip_heredoc(bytes, i);
-+            i = text_scan::skip_heredoc(bytes, i);
-             after_access = false;
-         } else if bytes[i..].starts_with(b"::") || bytes[i..].starts_with(b"->") {
-             i += 2;
-@@ -127,42 +127,8 @@
-         match text_scan::skip_php_comment(bytes, i) {
-             Some(after) => i = after,
-             None => return bytes[i..].starts_with(b"::"),
--        }
--    }
--}
--
--/// The offset just past the heredoc or nowdoc whose `<<<` is at `start`:
--/// past its closing label, or the end of `bytes` when it is never closed.
--fn skip_heredoc(bytes: &[u8], start: usize) -> usize {
--    let mut i = start + 3;
--    while matches!(bytes.get(i), Some(b' ' | b'\t')) {
--        i += 1;
--    }
--    if matches!(bytes.get(i), Some(b'\'' | b'"')) {
--        i += 1;
--    }
--    let label_start = i;
--    while bytes.get(i).is_some_and(|&b| is_name_byte(b)) {
--        i += 1;
--    }
--    let label = &bytes[label_start..i];
--    if label.is_empty() {
--        return i;
--    }
--    // The body starts on the next line, and ends at the first line that,
--    // after any indentation, starts with the label and does not continue
--    // it.
--    while let Some(newline) = text_scan::find_byte(bytes, i, b'\n') {
--        i = newline + 1;
--        while matches!(bytes.get(i), Some(b' ' | b'\t')) {
--            i += 1;
-         }
--        let end = i + label.len();
--        if bytes[i..].starts_with(label) && !bytes.get(end).is_some_and(|&b| is_name_byte(b)) {
--            return end;
--        }
-     }
--    bytes.len()
- }
- 
- /// Whether a name starts at `at`.
-diff --git a/src/text_scan.rs b/src/text_scan.rs
---- a/src/text_scan.rs
-+++ b/src/text_scan.rs
-@@ -2,11 +2,9 @@
- //! string literals and comments while searching source text for other
- //! syntax (matching delimiters, call boundaries, etc.).
- //!
--//! These are intentionally simple, non-heredoc-aware scanners. The
--//! classmap scanner (`classmap_scanner.rs`) has its own single-pass,
--//! `memchr`-driven state machine for the same job because it also has to
--//! track heredoc/nowdoc bodies and is a hot path over entire files; it is
--//! kept separate rather than routed through here.
-+//! Forward delimiter matching shares the initializer scanner's heredoc/nowdoc
-+//! skipper. Bodies and quoted strings are opaque to delimiter matching; the
-+//! classmap scanner still has its own whole-file state machine.
- 
- use std::borrow::Cow;
- 
-@@ -475,7 +473,7 @@
- ///
- /// `open` and `close` are the opening and closing byte values (e.g.
- /// `b'{'` / `b'}'` or `b'('` / `b')'`).  The scan is aware of string
--/// literals (`'…'` and `"…"` with backslash escaping) and PHP comments
-+/// literals (`'…'`, `"…"`, heredoc and nowdoc) and PHP comments
- /// (see [`skip_php_comment`]), so delimiters inside strings or comments
- /// are not counted.
- pub(crate) fn find_matching_forward(
-@@ -520,6 +518,10 @@
-             pos = past;
-             continue;
-         }
-+        if bytes[pos..].starts_with(b"<<<") {
-+            pos = skip_heredoc(bytes, pos);
-+            continue;
-+        }
-         match bytes[pos] {
-             b'\'' | b'"' => {
-                 pos = skip_string_forward(bytes, pos);
-@@ -537,6 +539,57 @@
-         pos += 1;
-     }
-     None
-+}
-+
-+/// PHP label continuation bytes, including non-ASCII identifier bytes.
-+pub(crate) fn is_document_label_byte(byte: u8) -> bool {
-+    byte.is_ascii_alphanumeric() || byte == b'_' || byte >= 0x80
-+}
-+
-+/// End of a closing document-string label at a line's first non-indent byte.
-+/// Punctuation belongs to the surrounding PHP expression; identifier bytes
-+/// continue the body (for example DOC_suffix and DOCé are not DOC).
-+pub(crate) fn document_label_end(bytes: &[u8], start: usize, label: &[u8]) -> Option<usize> {
-+    let end = start.checked_add(label.len())?;
-+    (!label.is_empty()
-+        && bytes.get(start..)?.starts_with(label)
-+        && !bytes
-+            .get(end)
-+            .is_some_and(|&byte| is_document_label_byte(byte)))
-+    .then_some(end)
-+}
-+
-+/// The offset just past the heredoc or nowdoc whose `<<<` is at `start`:
-+/// past its closing label, or the end of `bytes` when it is never closed.
-+pub(crate) fn skip_heredoc(bytes: &[u8], start: usize) -> usize {
-+    let mut i = start + 3;
-+    while matches!(bytes.get(i), Some(b' ' | b'\t')) {
-+        i += 1;
-+    }
-+    if matches!(bytes.get(i), Some(b'\'' | b'"')) {
-+        i += 1;
-+    }
-+    let label_start = i;
-+    while bytes.get(i).is_some_and(|&b| is_document_label_byte(b)) {
-+        i += 1;
-+    }
-+    let label = &bytes[label_start..i];
-+    if label.is_empty() {
-+        return i;
-+    }
-+    // The body starts on the next line, and ends at the first line that,
-+    // after any indentation, starts with the label and does not continue
-+    // it.
-+    while let Some(newline) = find_byte(bytes, i, b'\n') {
-+        i = newline + 1;
-+        while matches!(bytes.get(i), Some(b' ' | b'\t')) {
-+            i += 1;
-+        }
-+        if let Some(end) = document_label_end(bytes, i, label) {
-+            return end;
-+        }
-+    }
-+    bytes.len()
- }
- 
- /// The byte offsets of `bytes` that are code: not inside a quote
-@@ -1191,3 +1244,68 @@
-         );
-     }
- }
-+
-+#[cfg(test)]
-+mod attribute_document_string_tests {
-+    use super::*;
-+    use mago_allocator::LocalArena;
-+    use mago_database::file::FileId;
-+    use mago_span::HasSpan;
-+    use mago_syntax::cst::Node;
-+
-+    #[test]
-+    fn opaque_attribute_ends_match_the_pinned_parser_spans() {
-+        for value in [
-+            "'] ] [ /** fake */'",
-+            "\"] ] [ /** fake */\"",
-+            "<<<'DOC'\n] ] [ /** fake */\nDOC",
-+            "<<<DOC\n] ] [ /** fake */\nDOC",
-+            "<<<\"DOC\"\n] ] [ /** fake */\nDOC",
-+            "<<<'DOC'\n    ] ] [ /** fake */\n    DOC",
-+            "<<<DOC\r\n] ] [ /** fake */\r\nDOC",
-+            "<<<'DOC'\nDOC_suffix ] ] [ /** fake */\nDOC",
-+        ] {
-+            let source = format!(
-+                "<?php #[A([/** ARG */ {value}, \"[\"])] /** OWN */ #[B] class Target {{}}"
-+            );
-+            let arena = LocalArena::new();
-+            let program = mago_syntax::parser::parse_file_content(
-+                &arena,
-+                FileId::new(b"opaque.php"),
-+                source.as_bytes(),
-+            );
-+            let mut nodes = vec![Node::Program(program)];
-+            let mut checked = false;
-+            while let Some(node) = nodes.pop() {
-+                if let Node::Class(class) = node {
-+                    for list in class.attribute_lists.iter() {
-+                        let span = list.span();
-+                        assert_eq!(
-+                            find_matching_forward(
-+                                &source,
-+                                span.start.offset as usize + 1,
-+                                b'[',
-+                                b']'
-+                            ),
-+                            Some(span.end.offset as usize - 1),
-+                            "{source}"
-+                        );
-+                    }
-+                    assert_eq!(
-+                        crate::symbol_map::docblock::get_docblock_text_with_offset(
-+                            program.trivia.as_slice(),
-+                            &source,
-+                            class
-+                        )
-+                        .map(|v| v.0),
-+                        Some("/** OWN */"),
-+                        "{source}"
-+                    );
-+                    checked = true;
-+                }
-+                node.visit_children(|child| nodes.push(child));
-+            }
-+            assert!(checked);
-+        }
-+    }
-+}
-diff --git a/src/completion/source/comment_position.rs b/src/completion/source/comment_position.rs
---- a/src/completion/source/comment_position.rs
-+++ b/src/completion/source/comment_position.rs
-@@ -188,23 +188,27 @@
-                 {
-                     // Possible heredoc / nowdoc
-                     i += 3;
--                    while i < len && bytes[i] == b' ' {
-+                    while i < len && matches!(bytes[i], b' ' | b'\t') {
-                         i += 1;
-                     }
--                    let is_nowdoc = i < len && bytes[i] == b'\'';
--                    if is_nowdoc {
-+                    let quote = bytes
-+                        .get(i)
-+                        .copied()
-+                        .filter(|byte| matches!(byte, b'\'' | b'"'));
-+                    let is_nowdoc = quote == Some(b'\'');
-+                    if quote.is_some() {
-                         i += 1;
-                     }
-                     heredoc_label.clear();
--                    while i < len && (bytes[i].is_ascii_alphanumeric() || bytes[i] == b'_') {
-+                    while i < len && crate::text_scan::is_document_label_byte(bytes[i]) {
-                         heredoc_label.push(bytes[i]);
-                         i += 1;
-                     }
-                     if !heredoc_label.is_empty() {
-+                        if quote.is_some_and(|quote| bytes.get(i) == Some(&quote)) {
-+                            i += 1;
-+                        }
-                         if is_nowdoc {
--                            if i < len && bytes[i] == b'\'' {
--                                i += 1;
--                            }
-                             state = Lexical::Nowdoc;
-                         } else {
-                             state = Lexical::Heredoc;
-@@ -274,20 +278,13 @@
-                     while i < len && (bytes[i] == b' ' || bytes[i] == b'\t') {
-                         i += 1;
-                     }
--                    if i + heredoc_label.len() <= len
--                        && &bytes[i..i + heredoc_label.len()] == heredoc_label.as_slice()
-+                    if let Some(after_label) =
-+                        crate::text_scan::document_label_end(bytes, i, &heredoc_label)
-                     {
--                        let after_label = i + heredoc_label.len();
--                        if after_label >= len
--                            || bytes[after_label] == b';'
--                            || bytes[after_label] == b'\n'
--                            || bytes[after_label] == b'\r'
--                        {
--                            i = after_label;
--                            state = Lexical::Code;
--                            brace_depth = 0;
--                            continue;
--                        }
-+                        i = after_label;
-+                        state = Lexical::Code;
-+                        brace_depth = 0;
-+                        continue;
-                     }
-                     // Not the closing label — the whitespace scanned past
-                     // above is part of the body, so no rewind is needed.
 diff --git a/src/completion/mod.rs b/src/completion/mod.rs
 --- a/src/completion/mod.rs
 +++ b/src/completion/mod.rs
@@ -4151,3 +3866,462 @@ diff --git a/src/completion/context/class_completion/items.rs b/src/completion/c
              (fqn.to_string(), texts.filter, None)
          } else {
              let ns = fqn.rsplit_once('\\').map(|(ns, _)| ns.to_string());
+diff --git a/src/completion/source/comment_position.rs b/src/completion/source/comment_position.rs
+--- a/src/completion/source/comment_position.rs
++++ b/src/completion/source/comment_position.rs
+@@ -188,23 +188,27 @@
+                 {
+                     // Possible heredoc / nowdoc
+                     i += 3;
+-                    while i < len && bytes[i] == b' ' {
++                    while i < len && matches!(bytes[i], b' ' | b'\t') {
+                         i += 1;
+                     }
+-                    let is_nowdoc = i < len && bytes[i] == b'\'';
+-                    if is_nowdoc {
++                    let quote = bytes
++                        .get(i)
++                        .copied()
++                        .filter(|byte| matches!(byte, b'\'' | b'"'));
++                    let is_nowdoc = quote == Some(b'\'');
++                    if quote.is_some() {
+                         i += 1;
+                     }
+                     heredoc_label.clear();
+-                    while i < len && (bytes[i].is_ascii_alphanumeric() || bytes[i] == b'_') {
++                    while i < len && crate::text_scan::is_php_identifier_byte(bytes[i]) {
+                         heredoc_label.push(bytes[i]);
+                         i += 1;
+                     }
+                     if !heredoc_label.is_empty() {
++                        if quote.is_some_and(|quote| bytes.get(i) == Some(&quote)) {
++                            i += 1;
++                        }
+                         if is_nowdoc {
+-                            if i < len && bytes[i] == b'\'' {
+-                                i += 1;
+-                            }
+                             state = Lexical::Nowdoc;
+                         } else {
+                             state = Lexical::Heredoc;
+@@ -216,7 +220,7 @@
+                 }
+             }
+             Lexical::LineComment => {
+-                if bytes[i] == b'\n' {
++                if matches!(bytes[i], b'\r' | b'\n') {
+                     state = Lexical::Code;
+                 }
+                 i += 1;
+@@ -268,26 +272,19 @@
+                 } else if interpolates && bytes[i] == b'}' && brace_depth > 0 {
+                     brace_depth -= 1;
+                     i += 1;
+-                } else if bytes[i] == b'\n' {
+-                    // Look for the closing label at the start of a line.
+-                    i += 1;
++                } else if matches!(bytes[i], b'\r' | b'\n') {
++                    // Look for the closing label after one PHP line ending.
++                    i = crate::text_scan::next_php_line_start(bytes, i).unwrap_or(len);
+                     while i < len && (bytes[i] == b' ' || bytes[i] == b'\t') {
+                         i += 1;
+                     }
+-                    if i + heredoc_label.len() <= len
+-                        && &bytes[i..i + heredoc_label.len()] == heredoc_label.as_slice()
++                    if let Some(after_label) =
++                        crate::text_scan::document_label_end(bytes, i, &heredoc_label)
+                     {
+-                        let after_label = i + heredoc_label.len();
+-                        if after_label >= len
+-                            || bytes[after_label] == b';'
+-                            || bytes[after_label] == b'\n'
+-                            || bytes[after_label] == b'\r'
+-                        {
+-                            i = after_label;
+-                            state = Lexical::Code;
+-                            brace_depth = 0;
+-                            continue;
+-                        }
++                        i = after_label;
++                        state = Lexical::Code;
++                        brace_depth = 0;
++                        continue;
+                     }
+                     // Not the closing label — the whitespace scanned past
+                     // above is part of the body, so no rewind is needed.
+@@ -317,35 +314,39 @@
+ /// All of these are valid interpolation starts in PHP double-quoted
+ /// strings, so completion should be allowed rather than suppressed.
+ fn is_simple_interpolation_site(bytes: &[u8], target: usize) -> bool {
++    let unescaped_dollar = |at: usize| {
++        bytes.get(at) == Some(&b'$')
++            && bytes[..at]
++                .iter()
++                .rev()
++                .take_while(|&&byte| byte == b'\\')
++                .count()
++                .is_multiple_of(2)
++    };
+     let mut pos = target;
+-
+-    // ── Case 1: member access `$identifier->` / `$identifier?->` ────
+-    // Check `?->` first so the longer operator is not partially matched.
+-    let has_arrow =
+-        if pos >= 3 && bytes[pos - 3] == b'?' && bytes[pos - 2] == b'-' && bytes[pos - 1] == b'>' {
+-            pos -= 3;
+-            true
+-        } else if pos >= 2 && bytes[pos - 2] == b'-' && bytes[pos - 1] == b'>' {
+-            pos -= 2;
+-            true
+-        } else {
+-            false
+-        };
+-
+-    // Walk back over the identifier `[a-zA-Z0-9_]*`.
+-    let before_ident = pos;
+-    while pos > 0 && (bytes[pos - 1].is_ascii_alphanumeric() || bytes[pos - 1] == b'_') {
++    // A partial property name may lie between the cursor and the arrow.
++    // PHP identifiers may include non-ASCII bytes, just like document labels.
++    while pos > 0 && crate::text_scan::is_php_identifier_byte(bytes[pos - 1]) {
+         pos -= 1;
+     }
+-    let ident_len = before_ident - pos;
+-
+-    // If we consumed an arrow, the identifier must be non-empty and
+-    // preceded by `$`.
++    let property_start = pos;
++    let has_arrow = if pos >= 3 && &bytes[pos - 3..pos] == b"?->" {
++        pos -= 3;
++        true
++    } else if pos >= 2 && &bytes[pos - 2..pos] == b"->" {
++        pos -= 2;
++        true
++    } else {
++        false
++    };
+     if has_arrow {
+-        return ident_len > 0 && pos > 0 && bytes[pos - 1] == b'$';
++        let receiver_end = pos;
++        while pos > 0 && crate::text_scan::is_php_identifier_byte(bytes[pos - 1]) {
++            pos -= 1;
++        }
++        receiver_end > pos && pos > 0 && unescaped_dollar(pos - 1)
++    } else {
++        // A bare dollar or partial variable name is an interpolation site.
++        property_start > 0 && unescaped_dollar(property_start - 1)
+     }
+-
+-    // ── Case 2: bare `$` or `$partialName` (variable interpolation) ─
+-    // The identifier may be empty (just `$`) or partially typed.
+-    pos > 0 && bytes[pos - 1] == b'$'
+ }
+diff --git a/src/parser/initializers.rs b/src/parser/initializers.rs
+--- a/src/parser/initializers.rs
++++ b/src/parser/initializers.rs
+@@ -45,7 +45,7 @@
+         } else if let Some(end) = text_scan::skip_php_comment(bytes, i) {
+             i = end;
+         } else if bytes[i..].starts_with(b"<<<") {
+-            i = skip_heredoc(bytes, i);
++            i = text_scan::skip_heredoc(bytes, i);
+             after_access = false;
+         } else if bytes[i..].starts_with(b"::") || bytes[i..].starts_with(b"->") {
+             i += 2;
+@@ -131,40 +131,6 @@
+     }
+ }
+ 
+-/// The offset just past the heredoc or nowdoc whose `<<<` is at `start`:
+-/// past its closing label, or the end of `bytes` when it is never closed.
+-fn skip_heredoc(bytes: &[u8], start: usize) -> usize {
+-    let mut i = start + 3;
+-    while matches!(bytes.get(i), Some(b' ' | b'\t')) {
+-        i += 1;
+-    }
+-    if matches!(bytes.get(i), Some(b'\'' | b'"')) {
+-        i += 1;
+-    }
+-    let label_start = i;
+-    while bytes.get(i).is_some_and(|&b| is_name_byte(b)) {
+-        i += 1;
+-    }
+-    let label = &bytes[label_start..i];
+-    if label.is_empty() {
+-        return i;
+-    }
+-    // The body starts on the next line, and ends at the first line that,
+-    // after any indentation, starts with the label and does not continue
+-    // it.
+-    while let Some(newline) = text_scan::find_byte(bytes, i, b'\n') {
+-        i = newline + 1;
+-        while matches!(bytes.get(i), Some(b' ' | b'\t')) {
+-            i += 1;
+-        }
+-        let end = i + label.len();
+-        if bytes[i..].starts_with(label) && !bytes.get(end).is_some_and(|&b| is_name_byte(b)) {
+-            return end;
+-        }
+-    }
+-    bytes.len()
+-}
+-
+ /// Whether a name starts at `at`.
+ fn starts_name(bytes: &[u8], at: usize) -> bool {
+     bytes.get(at).is_some_and(|&b| is_name_start(b))
+@@ -291,3 +257,20 @@
+         );
+     }
+ }
++
++#[cfg(test)]
++mod document_line_boundary_tests {
++    #[test]
++    fn initializer_qualifies_only_code_after_each_php_document_ending() {
++        for newline in ["\n", "\r", "\r\n"] {
++            let source = format!("<<<'TXT'{newline}Bogus::X ]{newline}TXT . Defaults::MODE");
++            let expected =
++                format!("<<<'TXT'{newline}Bogus::X ]{newline}TXT . \\Vendor\\Defaults::MODE");
++            assert_eq!(
++                super::qualify_class_names(&source, Some("Lib"), &|name| format!("Vendor\\{name}")),
++                Some(expected),
++                "newline={newline:?}"
++            );
++        }
++    }
++}
+diff --git a/src/text_scan.rs b/src/text_scan.rs
+--- a/src/text_scan.rs
++++ b/src/text_scan.rs
+@@ -2,11 +2,9 @@
+ //! string literals and comments while searching source text for other
+ //! syntax (matching delimiters, call boundaries, etc.).
+ //!
+-//! These are intentionally simple, non-heredoc-aware scanners. The
+-//! classmap scanner (`classmap_scanner.rs`) has its own single-pass,
+-//! `memchr`-driven state machine for the same job because it also has to
+-//! track heredoc/nowdoc bodies and is a hot path over entire files; it is
+-//! kept separate rather than routed through here.
++//! Forward delimiter matching shares the initializer scanner's heredoc/nowdoc
++//! skipper. Bodies and quoted strings are opaque to delimiter matching; the
++//! classmap scanner still has its own whole-file state machine.
+ 
+ use std::borrow::Cow;
+ 
+@@ -38,11 +36,25 @@
+     i
+ }
+ 
++/// PHP lexical line boundaries: CR, LF and CRLF. This is independent of
++/// conversion between LSP positions and the original document's byte offsets.
++pub(crate) fn next_php_line_start(bytes: &[u8], from: usize) -> Option<usize> {
++    let offset = from + memchr::memchr2(b'\r', b'\n', bytes.get(from..)?)?;
++    Some(
++        offset
++            + if bytes[offset] == b'\r' && bytes.get(offset + 1) == Some(&b'\n') {
++                2
++            } else {
++                1
++            },
++    )
++}
++
+ /// Skip past a line comment (`//…`) starting at `pos`. Returns the
+ /// position of the newline (or end of input).
+ pub(crate) fn skip_line_comment(bytes: &[u8], pos: usize) -> usize {
+     let mut i = pos;
+-    while i < bytes.len() && bytes[i] != b'\n' {
++    while i < bytes.len() && !matches!(bytes[i], b'\r' | b'\n') {
+         i += 1;
+     }
+     i
+@@ -475,7 +487,7 @@
+ ///
+ /// `open` and `close` are the opening and closing byte values (e.g.
+ /// `b'{'` / `b'}'` or `b'('` / `b')'`).  The scan is aware of string
+-/// literals (`'…'` and `"…"` with backslash escaping) and PHP comments
++/// literals (`'…'`, `"…"`, heredoc and nowdoc) and PHP comments
+ /// (see [`skip_php_comment`]), so delimiters inside strings or comments
+ /// are not counted.
+ pub(crate) fn find_matching_forward(
+@@ -520,6 +532,10 @@
+             pos = past;
+             continue;
+         }
++        if bytes[pos..].starts_with(b"<<<") {
++            pos = skip_heredoc(bytes, pos);
++            continue;
++        }
+         match bytes[pos] {
+             b'\'' | b'"' => {
+                 pos = skip_string_forward(bytes, pos);
+@@ -537,6 +553,57 @@
+         pos += 1;
+     }
+     None
++}
++
++/// PHP label continuation bytes, including non-ASCII identifier bytes.
++pub(crate) fn is_php_identifier_byte(byte: u8) -> bool {
++    byte.is_ascii_alphanumeric() || byte == b'_' || byte >= 0x80
++}
++
++/// End of a closing document-string label at a line's first non-indent byte.
++/// Punctuation belongs to the surrounding PHP expression; identifier bytes
++/// continue the body (for example DOC_suffix and DOCé are not DOC).
++pub(crate) fn document_label_end(bytes: &[u8], start: usize, label: &[u8]) -> Option<usize> {
++    let end = start.checked_add(label.len())?;
++    (!label.is_empty()
++        && bytes.get(start..)?.starts_with(label)
++        && !bytes
++            .get(end)
++            .is_some_and(|&byte| is_php_identifier_byte(byte)))
++    .then_some(end)
++}
++
++/// The offset just past the heredoc or nowdoc whose `<<<` is at `start`:
++/// past its closing label, or the end of `bytes` when it is never closed.
++pub(crate) fn skip_heredoc(bytes: &[u8], start: usize) -> usize {
++    let mut i = start + 3;
++    while matches!(bytes.get(i), Some(b' ' | b'\t')) {
++        i += 1;
++    }
++    if matches!(bytes.get(i), Some(b'\'' | b'"')) {
++        i += 1;
++    }
++    let label_start = i;
++    while bytes.get(i).is_some_and(|&b| is_php_identifier_byte(b)) {
++        i += 1;
++    }
++    let label = &bytes[label_start..i];
++    if label.is_empty() {
++        return i;
++    }
++    // The body starts on the next line, and ends at the first line that,
++    // after any indentation, starts with the label and does not continue
++    // it.
++    while let Some(next_line) = next_php_line_start(bytes, i) {
++        i = next_line;
++        while matches!(bytes.get(i), Some(b' ' | b'\t')) {
++            i += 1;
++        }
++        if let Some(end) = document_label_end(bytes, i, label) {
++            return end;
++        }
++    }
++    bytes.len()
+ }
+ 
+ /// The byte offsets of `bytes` that are code: not inside a quote
+@@ -1189,5 +1256,112 @@
+             find_matching_forward(text, 0, b'(', b')'),
+             Some(text.len() - 1)
+         );
++    }
++}
++
++#[cfg(test)]
++mod attribute_document_string_tests {
++    use super::*;
++    use mago_allocator::LocalArena;
++    use mago_database::file::FileId;
++    use mago_span::HasSpan;
++    use mago_syntax::cst::Node;
++
++    #[test]
++    fn opaque_attribute_ends_match_the_pinned_parser_spans() {
++        for value in [
++            "'] ] [ /** fake */'",
++            "\"] ] [ /** fake */\"",
++            "<<<'DOC'\n] ] [ /** fake */\nDOC",
++            "<<<DOC\n] ] [ /** fake */\nDOC",
++            "<<<\"DOC\"\n] ] [ /** fake */\nDOC",
++            "<<<'DOC'\n    ] ] [ /** fake */\n    DOC",
++            "<<<DOC\r\n] ] [ /** fake */\r\nDOC",
++            "<<<'DOC'\nDOC_suffix ] ] [ /** fake */\nDOC",
++        ] {
++            let source = format!(
++                "<?php #[A([/** ARG */ {value}, \"[\"])] /** OWN */ #[B] class Target {{}}"
++            );
++            let arena = LocalArena::new();
++            let program = mago_syntax::parser::parse_file_content(
++                &arena,
++                FileId::new(b"opaque.php"),
++                source.as_bytes(),
++            );
++            let mut nodes = vec![Node::Program(program)];
++            let mut checked = false;
++            while let Some(node) = nodes.pop() {
++                if let Node::Class(class) = node {
++                    for list in class.attribute_lists.iter() {
++                        let span = list.span();
++                        assert_eq!(
++                            find_matching_forward(
++                                &source,
++                                span.start.offset as usize + 1,
++                                b'[',
++                                b']'
++                            ),
++                            Some(span.end.offset as usize - 1),
++                            "{source}"
++                        );
++                    }
++                    assert_eq!(
++                        crate::symbol_map::docblock::get_docblock_text_with_offset(
++                            program.trivia.as_slice(),
++                            &source,
++                            class
++                        )
++                        .map(|v| v.0),
++                        Some("/** OWN */"),
++                        "{source}"
++                    );
++                    checked = true;
++                }
++                node.visit_children(|child| nodes.push(child));
++            }
++            assert!(checked);
++        }
+     }
+ }
++
++#[cfg(test)]
++mod document_line_boundary_tests {
++    use super::*;
++    use mago_allocator::LocalArena;
++    use mago_database::file::FileId;
++    use mago_span::HasSpan;
++    use mago_syntax::cst::Node;
++    #[test]
++    fn forward_attribute_boundary_covers_each_php_line_ending() {
++        let mut failures = Vec::new();
++        for newline in ["\n", "\r", "\r\n"] {
++            let body =
++                format!("#[A(<<<'TXT'{newline}]{newline}TXT)] /** REAL */ class Target {{}}");
++            let wanted = body.find(")] ").unwrap() + 1;
++            let actual = find_matching_forward(&body, 1, b'[', b']');
++            let source = format!("<?php\n{body}");
++            let arena = LocalArena::new();
++            let program = mago_syntax::parser::parse_file_content(
++                &arena,
++                FileId::new(b"line-boundary.php"),
++                source.as_bytes(),
++            );
++            let mut nodes = vec![Node::Program(program)];
++            let mut attrs = Vec::new();
++            while let Some(node) = nodes.pop() {
++                if let Node::Class(class) = node {
++                    attrs.extend(class.attribute_lists.iter().map(|attr| attr.span()));
++                }
++                node.visit_children(|child| nodes.push(child));
++            }
++            eprintln!(
++                "CST_BOUNDARY newline={newline:?} attributes={attrs:?} errors={:?} scanner={actual:?} wanted={wanted}",
++                program.errors
++            );
++            if actual != Some(wanted) {
++                failures.push((newline, actual, wanted));
++            }
++        }
++        assert!(failures.is_empty(), "{failures:?}");
++    }
++}

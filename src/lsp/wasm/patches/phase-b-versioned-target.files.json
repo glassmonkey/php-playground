@@ -1,5 +1,5 @@
 {
-  "completePatchSha256": "bd272e3d6109366d37acd32a653934149edfc4cbdece31ca42d050801455e513",
+  "completePatchSha256": "23aa7269fadd87cd61d960227d7f0a268115c7bf1246a471d57d01924f1e6a7c",
   "fileCount": 44,
   "files": [
     {
@@ -80,7 +80,7 @@
     },
     {
       "path": "src/completion/source/comment_position.rs",
-      "sha256": "82e42c281872dcda4fdb090231a930e3943f587cbcd7918397f8a7b56782d7dd"
+      "sha256": "4d90246cee7820f19b2a4f28ae22f8c7551621a090daaf18cad852fcbf1f4015"
     },
     {
       "path": "src/completion/use_edit.rs",
@@ -128,7 +128,7 @@
     },
     {
       "path": "src/parser/initializers.rs",
-      "sha256": "c9cabbaccd0a121ba56fe3ff41204a26de34bb3032403abc42407945705b12e9"
+      "sha256": "1d9a4d654c230ab1c27b4f2e09717d6999e5f46238c27b9186d7d223b45eed19"
     },
     {
       "path": "src/parser/signature.rs",
@@ -156,7 +156,7 @@
     },
     {
       "path": "src/text_scan.rs",
-      "sha256": "76e6f37540c6446db83588f0af35bf6044911794161875314fa29b734033db2d"
+      "sha256": "8e98b1b90e7446208610cb5c41a531566b3a323ebac7783d0df9d837ac22d928"
     },
     {
       "path": "tests/integration/completion_basic.rs",

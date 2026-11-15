@@ -1,0 +1,2 @@
+LF-after	<?php\n#[Attribute(Attribute::TARGET_ALL|Attribute::IS_REPEATABLE)] class A { public function __construct(...$x){} }\n#[A(<<<'TXT'\n] Tar\nTXT)] /** REAL_NOWDOC */ class Target {}	<?php\nTar;	REAL_NOWDOC
+CRonly-after	<?php\n#[Attribute(Attribute::TARGET_ALL|Attribute::IS_REPEATABLE)] class A { public function __construct(...$x){} }\n#[A(<<<'TXT'\r] Tar\rTXT)] /** REAL_NOWDOC */ class Target {}	<?php\nTar;	REAL_NOWDOC

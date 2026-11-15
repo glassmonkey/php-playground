@@ -1,3 +1,4 @@
+import {validateVariableAliasPair} from './completion-contract.mjs';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
@@ -17,10 +18,10 @@ const reviewedDiff = manifest.source?.reviewedPhaseBDiffSha256
 assert.equal(reviewedDiff,
 	'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d');
 assert.equal(manifest.source?.appliedPhaseBPatchSha256,
-    'bd272e3d6109366d37acd32a653934149edfc4cbdece31ca42d050801455e513',
+    '23aa7269fadd87cd61d960227d7f0a268115c7bf1246a471d57d01924f1e6a7c',
     'current applied PHPantom patch is required before WASM instantiation');
 assert.equal(manifest.source?.appliedFileManifestSha256,
-    '3f5935b759d4e8bfda1166aa534796e4240369aa2e9fde142c70a152dd3c3cc7',
+    'b7ebe6fefe6c457ff54ca2459f0974b69b77d43b6aefc3f75f860c44e2a9d97b',
     'current applied file manifest is required before WASM instantiation');
 assert.equal(manifest.stubs?.commit, '2049ca3cfa1feabf52db074108fe776a5713cf02');
 if (manifest.stubs?.resolvedCommitMarker) {
@@ -612,7 +613,6 @@ async function releaseVariableAliasOracle() {
     assert.deepEqual(rows.filter(row=>row[0].startsWith('alias-version-')).map(row=>row[13]),['5.6','7.0','7.1','7.2','7.3','7.4','8.0','8.1','8.2','8.3','8.4','8.5'],'independent exact target decisions');
     const selected=rows.filter(row=>row[0].startsWith('alias-version-')?row[13]===target:row[7]==='6'||targetAtLeast(8,0));
     assert.equal(selected.length,targetAtLeast(8,0)?25:13);
-    const offset=(source,p)=>source.split('\n').slice(0,p.line).reduce((n,line)=>n+line.length+1,0)+p.character;
     for (const [name,initial,source,line,character,label,identity,kind,start,end,text,wantDoc,, ,present] of selected) {
         await freshEngine();const uri='inmemory://model/1';open(uri,initial);
         notify('textDocument/didChange',{textDocument:{uri,version:2},contentChanges:[{text:source}]});
@@ -626,19 +626,62 @@ async function releaseVariableAliasOracle() {
             } else {
                 assert.ok(item,`${target} ${name} selected ${identity}`);
                 resolved=request('completionItem/resolve',item).result;
-                const primary=item.textEdit;assert.ok(primary?.range,'plain explicit edit');
-                const expectedRange={start:{line:Number(line),character:Number(start)},end:{line:Number(line),character:Number(end)}};
-                assert.deepEqual(primary,{range:expectedRange,newText:text},`${name} full primary payload`);
-                assert.deepEqual(item.additionalTextEdits??[],[],`${name} full additional payload`);
-                assert.equal(item.insertTextFormat,text.includes('$0')?2:undefined,`${name} snippet contract`);
-                assert.equal(item.filterText,text.startsWith('\\')?text:label,`${name} visible alias spelling`);
-                const edits=[primary,...(item.additionalTextEdits??[])].map(edit=>({start:offset(source,edit.range.start),end:offset(source,edit.range.end),text:item.insertTextFormat===2?edit.newText.replaceAll('$0',''):edit.newText})).sort((a,b)=>b.start-a.start);
-                accepted=source;for(const edit of edits)accepted=accepted.slice(0,edit.start)+edit.text+accepted.slice(edit.end);
-                check(`${target} variable/alias document ${name} warm=${warm}`,accepted===wantDoc&&(kind==='6'||resolved.data?.m===identity),{item,resolved,accepted,wantDoc});
+                const expected={label,identity,kind:Number(kind),text,range:{start:{line:Number(line),character:Number(start)},end:{line:Number(line),character:Number(end)}},filter:text.startsWith('\\')?text:label,format:text.includes('$0')?2:undefined,document:wantDoc};
+                const documents=validateVariableAliasPair(source,item,resolved,expected);
+                accepted=documents.initial;
+                check(`${target} variable/alias original+resolved ${name} warm=${warm}`,documents.initial===wantDoc&&documents.resolved===wantDoc,{item,resolved,documents});
+                if(name==='attribute-alias-ASCII-control'&&!warm){
+                    const original=JSON.stringify(item);
+                    for(const mutation of ['newText','range','additional']){
+                        const mutant=JSON.parse(JSON.stringify(resolved));
+                        if(mutation==='newText')mutant.textEdit.newText='Wrong';
+                        if(mutation==='range')mutant.textEdit.range.end.character-=1;
+                        if(mutation==='additional')mutant.additionalTextEdits=[{range:{start:{line:0,character:0},end:{line:0,character:0}},newText:'/* unexpected */'}];
+                        assert.deepEqual(mutant.data,resolved.data,'selected identity unchanged');
+                        assert.equal(JSON.stringify(item),original,'initial payload unchanged');
+                        assert.throws(()=>validateVariableAliasPair(source,item,mutant,expected),{name:'AssertionError'});
+                        check(`${target} resolved-only ${mutation} mutation rejected`,true);
+                    }
+                }
             }
             console.log(`VARIABLE_ALIAS_RESPONSE ${JSON.stringify({target,name,warm,source,position,response,item,resolved,accepted})}`);
         }
     }
+}
+
+async function releaseBoundaryInterpolationOracle() {
+    if(!targetAtLeast(8,0))return;
+    const rows=(await readFile(new URL('./native-probe/tests/fixtures/boundary-interpolation.tsv',import.meta.url),'utf8')).split('\n').filter(Boolean).map(row=>row.split('\t').map(value=>value.replaceAll('\\n','\n').replaceAll('\\r','\r').replaceAll('\\t','\t')));
+    assert.equal(rows.length,35,'complete independent boundary/interpolation table');
+    assert.equal(new Set(rows.map(row=>row[8])).size,35,'unique boundary/interpolation cases');
+    for(const [source,member,owner,kind,marker,line,character,present,name] of rows){
+        await freshEngine();const uri='file:///independent.php';open(uri,source);const position={line:Number(line),character:Number(character)};
+        for(const warm of [false,true]){
+            const response=request('textDocument/completion',{textDocument:{uri},position});const items=completionItems(response);
+            const item=items.find(value=>value.kind===Number(kind)&&value.data?.m===member&&(!owner||value.data?.c===owner));let resolved;
+            if(present==='0')check(`${target} literal boundary ${name} warm=${warm}`,items.length===0,{response});
+            else{
+                assert.ok(item,`${target} ${name} selected ${owner}::${member}`);resolved=request('completionItem/resolve',item).result;
+                const doc=resolved.documentation?.value??resolved.documentation??'';
+                for(const key of ['c','m','k'])assert.equal(resolved.data?.[key],item.data?.[key],`${name} resolved identity ${key}`);
+                for(const key of ['textEdit','additionalTextEdits','insertText','insertTextFormat','insertTextMode','textEditText','command'])assert.deepEqual(resolved[key],item[key],`${name} resolved full edit field ${key}`);
+                check(`${target} boundary/interpolation ${name} warm=${warm}`,typeof doc==='string'&&doc.includes(marker),{item,resolved});
+            }
+            console.log(`BOUNDARY_INTERPOLATION_RESPONSE ${JSON.stringify({target,name,warm,source,position,response,item,resolved})}`);
+        }
+    }
+    const consumers=(await readFile(new URL('./native-probe/tests/fixtures/boundary-doc-consumer.tsv',import.meta.url),'utf8')).split('\n').filter(Boolean).map(row=>row.split('\t').map(value=>value.replaceAll('\\n','\n').replaceAll('\\r','\r').replaceAll('\\t','\t')));
+    assert.equal(consumers.length,2,'LF/CR separate consumer controls');
+    for(const [name,declaration,source,marker] of consumers){
+        await freshEngine();open('file:///declaration.php',declaration);const uri='file:///consumer.php';open(uri,source);
+        for(const warm of [false,true]){
+            const items=completionItems(request('textDocument/completion',{textDocument:{uri},position:{line:1,character:3}}));const item=items.find(value=>value.kind===7&&value.data?.m==='Target');assert.ok(item,`${name} separate consumer Target`);const resolved=request('completionItem/resolve',item).result;
+            assert.equal(resolved.data?.m,'Target');for(const key of ['textEdit','additionalTextEdits','insertText','insertTextFormat','insertTextMode','textEditText','command'])assert.deepEqual(resolved[key],item[key],`${name} consumer edit field ${key}`);
+            const docs=resolved.documentation?.value??resolved.documentation??'';check(`${target} separate consumer ${name} warm=${warm}`,typeof docs==='string'&&docs.includes(marker),{item,resolved});
+            console.log(`SEPARATE_BOUNDARY_DOC_RESPONSE ${JSON.stringify({target,name,warm,declaration,source,item,resolved})}`);
+        }
+    }
+
 }
 
 async function releaseSharedConstantDeclarations() {
@@ -677,6 +720,7 @@ await releaseAttributeDocOracle();
 await releaseOpaqueAttributeDocOracle();
 await releaseDocumentStringCompletionOracle();
 await releaseVariableAliasOracle();
+await releaseBoundaryInterpolationOracle();
 console.log(JSON.stringify({
 	target,
 	artifactSha256: actualSha,
