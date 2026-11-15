@@ -4,10 +4,10 @@ import { reviewedArtifactFor } from '../phpantom/artifact-registry';
 let compiledPhpantomModule: typeof import('../phpantom/wasm-module-cache').compiledPhpantomModule;
 
 const artifactSha =
-	'176d7c61743098b0e4ba6ce74751716e7154e1d9c9885b3788096a426e159bf3';
+	'e62eeb4bab6f8e3ce2f72f0e5bd124ad580a40731c44d283fec26b8565ad7637';
 const artifact85Sha =
-	'e3ce4b1977686f1f0ac8f401b46d248f63a663a54340d40e557cb6568f28560d';
-const artifactSize = 18_504_747;
+	'd9ca44a41262cc262c4cab16a42976062f4361e1a72ffcb93ab0dc383f5451ac';
+const artifactSize = 19_189_147;
 
 function digestBytes(hex: string): ArrayBuffer {
 	const bytes = new Uint8Array(

@@ -1,9 +1,11 @@
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync, spawnSync } from 'node:child_process';
 import { constants } from 'node:os';
 import { Buffer } from 'node:buffer';
-import { writeFile, chmod } from 'node:fs/promises';
-import { join } from 'node:path';
+import { writeFile, chmod, readdir, stat } from 'node:fs/promises';
+import { join, relative } from 'node:path';
 import process from 'node:process';
+import { createHash } from 'node:crypto';
+import { createReadStream, openSync, closeSync } from 'node:fs';
 
 export function fetchWithin(url, timeoutMs, signal) {
 	return fetch(url, {
@@ -98,4 +100,62 @@ export async function journalProcess(directory, name, command, options) {
 		finishedAt: new Date().toISOString(),
 	});
 	return terminal;
+}
+
+// Stream binary identity and the text-only diff separately; WASM contents never enter a git output buffer.
+export async function hashFile(path) {
+	const hash = createHash('sha256');
+	for await (const chunk of createReadStream(path)) hash.update(chunk);
+	return { bytes: (await stat(path)).size, sha256: hash.digest('hex') };
+}
+export async function captureSource(root, directory) {
+	const head = execFileSync('git', ['rev-parse', 'HEAD'], {
+		cwd: root,
+		encoding: 'utf8',
+		timeout: 5000,
+	}).trim();
+	const path = join(directory, 'source.diff');
+	const fd = openSync(path, 'wx');
+	let result;
+	try {
+		result = spawnSync(
+			'git',
+			[
+				'diff',
+				'--no-ext-diff',
+				'--no-textconv',
+				'HEAD',
+				'--',
+				'.',
+				':(exclude,glob)**/*.wasm',
+			],
+			{
+				cwd: root,
+				timeout: 5000,
+				stdio: ['ignore', fd, 'pipe'],
+				maxBuffer: 65536,
+			}
+		);
+	} finally {
+		closeSync(fd);
+	}
+	if (result.error) throw result.error;
+	if (result.status !== 0)
+		throw new Error(`Text source capture exited ${result.status}`);
+	if ((await stat(path)).size > 16 * 1024 * 1024)
+		throw new Error('Text source diff exceeds 16 MiB evidence limit');
+	const binaryFiles = [];
+	const assets = join(root, 'assets/lsp/phpantom');
+	for (const entry of (await readdir(assets)).sort()) {
+		if (entry.endsWith('.wasm'))
+			binaryFiles.push({
+				path: relative(root, join(assets, entry)),
+				...(await hashFile(join(assets, entry))),
+			});
+	}
+	return {
+		head,
+		textDiff: { path: 'source.diff', ...(await hashFile(path)) },
+		binaryFiles,
+	};
 }

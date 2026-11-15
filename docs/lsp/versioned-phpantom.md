@@ -31,8 +31,7 @@ verifies output; the repository Makefile owns distribution through the explicit
 the selected versioned WASM and provenance into `PHPANTOM_ASSET_DIR`
 (default: `assets/lsp/phpantom`).
 
-This reorganization keeps all 12 reviewed UI assets, the public manifest, and the
-TypeScript registry unchanged. Installing different bytes for UI use requires a
+資産の配置だけでは採用済み metadata を自動で更新しません。 Installing different bytes for UI use requires a
 manual, reviewed update of the matching version row in both the manifest and
 registry, including its hash, size, build identity and provenance. Installation
 does not approve new metadata automatically. Use an isolated destination to
@@ -59,7 +58,7 @@ are checked by natural typing.
 
 必須の Playwright workflow は、通常の E2E に加えて
 `node src/lsp/wasm/release-ui-test.mjs` を実行する。production build を専用の
-preview で開き、PHP 8.0・8.3・8.5 の26ケースと review の14ケースを確認する。
+preview で開き、PHP 8.0・8.3・8.5 の26ケースと review の26ケースを確認する。
 元の全12版101ケースは残してあり、この部分集合を全版の保証とは扱わない。
 名前付き引数のケースは明示的な補完要求であり、通常の自然入力の証拠と区別する。
 
@@ -69,10 +68,16 @@ resolve に送った FQN、表示された説明、確定文書、実 PHP の呼
 resolve-only の import は制御した応答の fixture であり、実 engine がその形式を
 自然に返すことを証明するものではない。
 
-初期の固定 assets には user PHPDoc の欠落、別 symbol の説明の混入、
-namespace 内で global 関数を選択した際の呼出し先の誤りが残っている。
-新しい assertion はこれらを失敗として扱う。既知の制限や旧版と同じ結果という理由で
-成功へ変換しない。runtime 修正と検証済み12版 batch の採用は別の受入 gate を通す。
+初期 assets で失敗した user PHPDoc、同名 symbol の説明、global 関数の binding の記録は保存する。
+今回の12版は runtime source `be1e180cc1b495c46e34a2f73f559ff6f0b7430e` の実生成 batch を採用した。
+manifest の `candidateBatchIndexSha256` は候補一覧を、各行の `candidateProvenanceSha256` は生成元の provenance を識別する。
+公開する provenance は既存の export 契約に従って `artifact.path` だけを `php-<version>.wasm` に変え、
+その SHA-256 を manifest と registry に保存する。WASM 本体の bytes と hash は候補と同一にする。
+upstream と stubs の pin、および license は変更しない。資産採用と実ブラウザの成功、出荷判定は区別する。
+
+review には grouped import の自然入力6ケース、明示要求の補助2ケース、初期化・Worker error・版の往復4ケースを含める。
+単語途中の自然入力2ケースは Monaco の自動要求が発生しない問題を未解決のまま検出する。
+補助2ケースで範囲置換が成功しても、自然入力の成功には数えない。元の失敗や assertion を削除しない。
 
 検証器は `build/phpantom-release-evidence/` に source/head/build の hash、
 開始、個別結果、終了と実際の exit code を排他的に保存する。
@@ -113,3 +118,8 @@ PHPantom専用の検証CLIとhelperもbuild module内の `src/lsp/wasm` に置�
 `PHPANTOM_RELEASE_PHASE=tail` は専用previewの起動から末尾3ケースまでを検証する。
 局所試験の専用portは `PHPANTOM_RELEASE_PREVIEW_PORT` で指定できる。
 既存previewを使う `PLAYWRIGHT_BASE_URL` とは区別し、専用子プロセスだけを終了する。
+
+source capture は、fallible な処理を始める前に START を保存する。
+テキスト差分は WASM を除外した `source.diff` に直接保存し、12 binary は path・byte数・SHA-256 で識別する。
+`capture.json` と `source.json` を分け、capture 失敗時も startup error・result・EXIT と実際の数値 exit を残す。
+差分取得は5秒、テキスト差分の保存量は16 MiBを上限とする。binary patch を同期出力 buffer に蓄積しない。

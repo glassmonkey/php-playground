@@ -1,0 +1,52 @@
+{
+  "artifact": {
+    "bytes": 19189147,
+    "path": "php-7.1.wasm",
+    "sha256": "cfcac41df881da99e4a0f70fdd0b48cd3a74894b61ef3f250cc01bcb362990f4"
+  },
+  "build": {
+    "cargoVersion": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "command": "CARGO_HOME=/cache CARGO_TARGET_DIR=/out/target PHPANTOM_TARGET_PHP_VERSION=7.1 PHPANTOM_GIT_VERSION=49b9a751-release-0581b67c cargo rustc --locked --manifest-path /source/phpantom-source/Cargo.toml --lib --crate-type cdylib --profile wasm-release --target wasm32-wasip1",
+    "elapsedSeconds": 103,
+    "finishedUtc": "2026-11-15T08:17:19Z",
+    "rustcVerbose": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-unknown-linux-gnu\nrelease: 1.99.0\nLLVM version: 23.1.1",
+    "startedUtc": "2026-11-15T08:15:35Z",
+    "target": "wasm32-wasip1"
+  },
+  "buildIdentity": "49b9a751-release-0581b67c",
+  "docker": {
+    "baseImageRef": "rust:1.99.0-bookworm@sha256:114c7a4425406451c2866b6aafe69fe29b1b298832db1277d411ac73c82d04d6",
+    "builderImageId": "sha256:c9ad1adaadf01cb9bb34b1987cf805a3aaf940a7be954a90357bbf8c4ce824b3",
+    "builderImageRef": "phpantom-runtime-builder:0.11.1-rust1.99.0-phase-b",
+    "context": "default",
+    "endpoint": "unix:///var/run/docker.sock",
+    "platform": "linux/arm64",
+    "serverVersion": "29.5.3"
+  },
+  "phase": "B",
+  "phpTarget": "7.1",
+  "schemaVersion": 1,
+  "source": {
+    "appliedFileManifestSha256": "df9756e6a1f1618bc14b6bdd290b348b74442185b16240c383cf9c42771d21fd",
+    "appliedPhaseBPatchSha256": "0581b67c401a5a26f56241d69404cc95a6a658c07e39f6a785dc12181aab8ba6",
+    "archiveSha256": "f5861b581a5503c7bf033df82390d08fbc9a971fa769afa90a310d0c623eb59d",
+    "cargoLockSha256": "0a601fc471628943f15c4e3f97649b99417b1037cf4f824bd835e8a3a12fad1d",
+    "commit": "49b9a7513ed19cbbfb79d5d08a3f3693ffb2b668",
+    "repository": "PHPantom-dev/phpantom_lsp",
+    "reviewedPhaseADiffSha256": "9ba5fdfbe29fcfacc974611159c6aaf6bcdc15797e0e2a2c6cbf6989ad93f3d9",
+    "reviewedPhaseBBundleSha256": "60aad10373b97a65da73196aa28e6893a77480a21d5687ad1b140e6d74bd30a3",
+    "reviewedPhaseBDiffSha256": "e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d"
+  },
+  "stubs": {
+    "archiveSha256": "3ef62542d2f77ad30c7dab7dfa726e57e86dd5e3403780294119cf4f5ca6dcb7",
+    "commit": "2049ca3cfa1feabf52db074108fe776a5713cf02",
+    "fileCount": 1164,
+    "fullEmbeddedStubs": true,
+    "lockSha256": "f0abad5d6cb5ee4dd8edc69cb13bc960e64d65afd2fa48769a812edf03983198",
+    "mapSha256": "7d8a2e1407330aaf308a69633c445de53c29e0a28327111086afe62e61a6e35c",
+    "outDir": "/out/target/wasm32-wasip1/wasm-release/build/phpantom_lsp-f6c21cb9ee594a82/out/stubs/jetbrains/phpstorm-stubs",
+    "repository": "JetBrains/phpstorm-stubs",
+    "resolvedCommitMarker": "2049ca3cfa1feabf52db074108fe776a5713cf02",
+    "treeSha256": "0a613db82eab0bdd7f0de3cb5c04d8495341ff794f3084593cb72e161b91b2c9"
+  }
+}

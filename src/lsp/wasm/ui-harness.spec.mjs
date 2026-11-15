@@ -1,4 +1,6 @@
 // @vitest-environment node
+import { execFileSync } from 'node:child_process';
+import { createHash, randomBytes } from 'node:crypto';
 import { describe, it, expect } from 'vitest';
 import { createContext, runInContext } from 'node:vm';
 import { createServer } from 'node:http';
@@ -183,6 +185,196 @@ describe('UI runner public contracts', () => {
 			});
 		}
 	);
+
+	it('captures a large dirty binary by exact hash without buffering a binary diff', async () => {
+		await mkdir(helperEvidenceRoot, { recursive: true });
+		const directory = await mkdtemp(
+			join(helperEvidenceRoot, 'large-binary-')
+		);
+		const repo = join(directory, 'repo'),
+			output = join(directory, 'journal');
+		await mkdir(join(repo, 'assets/lsp/phpantom'), { recursive: true });
+		await mkdir(output);
+		const binary = join(repo, 'assets/lsp/phpantom/php-8.5.wasm');
+		await writeFile(binary, randomBytes(2 * 1024 * 1024));
+		await writeFile(join(repo, 'source.txt'), 'before\n');
+		const git = (...args) =>
+			execFileSync('git', args, {
+				cwd: repo,
+				timeout: 2000,
+				encoding: 'utf8',
+			}).trim();
+		git('init', '-q');
+		git('add', '.');
+		git(
+			'-c',
+			'user.name=Fixture',
+			'-c',
+			'user.email=fixture@example.test',
+			'commit',
+			'-qm',
+			'fixture'
+		);
+		const head = git('rev-parse', 'HEAD');
+		const bytes = randomBytes(2 * 1024 * 1024);
+		await writeFile(binary, bytes);
+		await writeFile(join(repo, 'source.txt'), 'after\n');
+		const script = `import {captureSource} from ${JSON.stringify(new URL('./ui-process.mjs', import.meta.url).href)}; console.log(JSON.stringify(await captureSource(${JSON.stringify(repo)}, ${JSON.stringify(output)})));`;
+		const got = await runBounded(
+			[process.execPath, '--input-type=module', '-e', script],
+			{ timeoutMs: 3000 }
+		);
+		const identity = JSON.parse(got.stdout.toString());
+		const diff = await readFile(join(output, 'source.diff'), 'utf8');
+		expect({
+			exit: got.exitCode,
+			timedOut: got.deadlineReached,
+			head: identity.head,
+			binaries: identity.binaryFiles,
+			textBefore: diff.includes('-before'),
+			textAfter: diff.includes('+after'),
+			binaryPatch: diff.includes('GIT binary patch'),
+			diffHash: identity.textDiff.sha256,
+		}).toEqual({
+			exit: 0,
+			timedOut: false,
+			head,
+			binaries: [
+				{
+					path: 'assets/lsp/phpantom/php-8.5.wasm',
+					bytes: bytes.length,
+					sha256: createHash('sha256').update(bytes).digest('hex'),
+				},
+			],
+			textBefore: true,
+			textAfter: true,
+			binaryPatch: false,
+			diffHash: createHash('sha256').update(diff).digest('hex'),
+		});
+	}, 10000);
+	it('persists START, startup error, result and numeric EXIT when build capture fails', async () => {
+		await mkdir(helperEvidenceRoot, { recursive: true });
+		const directory = await mkdtemp(
+			join(helperEvidenceRoot, 'capture-failure-')
+		);
+		const output = join(directory, 'journal');
+		const got = await runBounded(
+			[
+				process.execPath,
+				resolve(import.meta.dirname, 'release-ui-test.mjs'),
+			],
+			{
+				cwd: directory,
+				env: {
+					...process.env,
+					PHPANTOM_RELEASE_OUT: output,
+					PHPANTOM_RELEASE_BUILD: join(directory, 'missing-build'),
+				},
+				timeoutMs: 3000,
+			}
+		);
+		const start = JSON.parse(
+			await readFile(join(output, 'START.json'), 'utf8')
+		);
+		const error = JSON.parse(
+			await readFile(join(output, 'startup-error.json'), 'utf8')
+		);
+		const result = JSON.parse(
+			await readFile(join(output, 'result.json'), 'utf8')
+		);
+		const exit = JSON.parse(
+			await readFile(join(output, 'EXIT.json'), 'utf8')
+		);
+		expect({
+			actualExit: got.exitCode,
+			timedOut: got.deadlineReached,
+			started: typeof start.startedAt,
+			errorCode: error.code,
+			resultExit: result.exitCode,
+			journalExit: exit.exitCode,
+			passed: exit.passed,
+		}).toEqual({
+			actualExit: 1,
+			timedOut: false,
+			started: 'string',
+			errorCode: 'ENOENT',
+			resultExit: 1,
+			journalExit: 1,
+			passed: false,
+		});
+	}, 5000);
+
+	it('records a source capture failure before any build or HTTP operation', async () => {
+		await mkdir(helperEvidenceRoot, { recursive: true });
+		const directory = await mkdtemp(
+			join(helperEvidenceRoot, 'source-failure-')
+		);
+		const repo = join(directory, 'repo'),
+			module = join(repo, 'src/lsp/wasm'),
+			output = join(directory, 'journal');
+		await mkdir(module, { recursive: true });
+		for (const name of ['release-ui-test.mjs', 'ui-process.mjs'])
+			await writeFile(
+				join(module, name),
+				await readFile(resolve(import.meta.dirname, name))
+			);
+		const git = (...args) =>
+			execFileSync('git', args, {
+				cwd: repo,
+				timeout: 2000,
+				encoding: 'utf8',
+			}).trim();
+		git('init', '-q');
+		git('add', '.');
+		git(
+			'-c',
+			'user.name=Fixture',
+			'-c',
+			'user.email=fixture@example.test',
+			'commit',
+			'-qm',
+			'fixture'
+		);
+		const got = await runBounded(
+			[process.execPath, join(module, 'release-ui-test.mjs')],
+			{
+				cwd: directory,
+				env: { ...process.env, PHPANTOM_RELEASE_OUT: output },
+				timeoutMs: 3000,
+			}
+		);
+		const start = JSON.parse(
+			await readFile(join(output, 'START.json'), 'utf8')
+		);
+		const error = JSON.parse(
+			await readFile(join(output, 'startup-error.json'), 'utf8')
+		);
+		const result = JSON.parse(
+			await readFile(join(output, 'result.json'), 'utf8')
+		);
+		const exit = JSON.parse(
+			await readFile(join(output, 'EXIT.json'), 'utf8')
+		);
+		expect({
+			actualExit: got.exitCode,
+			deadline: got.deadlineReached,
+			root: start.root,
+			code: error.code,
+			sourceFailure: error.error.includes('assets/lsp/phpantom'),
+			resultExit: result.exitCode,
+			journalExit: exit.exitCode,
+			passed: exit.passed,
+		}).toEqual({
+			actualExit: 1,
+			deadline: false,
+			root: repo,
+			code: 'ENOENT',
+			sourceFailure: true,
+			resultExit: 1,
+			journalExit: 1,
+			passed: false,
+		});
+	}, 10000);
 	it('bounds an HTTP server that accepts but never responds', async () => {
 		const server = createServer(() => {});
 		await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
@@ -236,7 +428,7 @@ describe('UI runner public contracts', () => {
 				await readFile(join(output, 'EXIT.json'), 'utf8')
 			);
 			expect({
-				started: typeof start.head === 'string',
+				started: typeof start.startedAt === 'string',
 				actualExit: actual.exitCode,
 				resultExit: result.exitCode,
 				journalExit: exit.exitCode,

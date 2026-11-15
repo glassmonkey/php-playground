@@ -5,7 +5,12 @@ import { createHash } from 'node:crypto';
 import { mkdir, readFile, readdir, writeFile, chmod } from 'node:fs/promises';
 import { resolve, relative, join } from 'node:path';
 import process from 'node:process';
-import { fetchWithin, journalProcess } from './ui-process.mjs';
+import {
+	fetchWithin,
+	journalProcess,
+	captureSource,
+	hashFile,
+} from './ui-process.mjs';
 
 const root = resolve(import.meta.dirname, '../../..');
 const directory = resolve(
@@ -37,14 +42,16 @@ async function inventory(path) {
 		else
 			rows.push({
 				path: relative(root, file),
-				bytes: (await readFile(file)).byteLength,
-				sha256: digest(await readFile(file)),
+				...(await hashFile(file)),
 			});
 	}
 	return rows.sort((a, b) => a.path.localeCompare(b.path));
 }
 const sources = [
 	'src/lsp/client.ts',
+	'src/editor.tsx',
+	'src/lsp/phpantom/artifact-registry.ts',
+	'src/lsp/wasm/ui-harness.spec.mjs',
 	'src/lsp/wasm/versioned-ui-test.mjs',
 	'src/lsp/wasm/review-ui-test.mjs',
 	'src/lsp/wasm/ui-observation.mjs',
@@ -54,28 +61,6 @@ const sources = [
 	'assets/lsp/phpantom/manifest.json',
 	'.github/workflows/playwright.yml',
 ];
-const head = git('rev-parse', 'HEAD');
-const start = {
-	startedAt: new Date().toISOString(),
-	head,
-	workflowSHA: process.env.GITHUB_SHA ?? null,
-	pullRequestHead: process.env.PHPANTOM_SOURCE_HEAD ?? null,
-	phase,
-	baseURL,
-	build,
-	sources: Object.fromEntries(
-		await Promise.all(
-			sources.map(async (path) => [
-				path,
-				digest(await readFile(resolve(root, path))),
-			])
-		)
-	),
-	diffSha256: digest(git('diff', '--binary')),
-	buildFiles: await inventory(build),
-	automaticRetries: 0,
-	deadlineSeconds: 420,
-};
 const save = async (name, value) => {
 	const path = join(directory, name);
 	await writeFile(path, JSON.stringify(value, null, 2) + '\n', {
@@ -83,7 +68,23 @@ const save = async (name, value) => {
 	});
 	await chmod(path, 0o444);
 };
-await save('START.json', start);
+// Record the invocation before any fallible source/build capture.
+await save('START.json', {
+	startedAt: new Date().toISOString(),
+	pid: process.pid,
+	invocation: process.argv,
+	identityFiles: ['capture.json', 'source.json'],
+	root,
+	phase,
+	baseURL,
+	build,
+	workflowSHA: process.env.GITHUB_SHA ?? null,
+	pullRequestHead: process.env.PHPANTOM_SOURCE_HEAD ?? null,
+	automaticRetries: 0,
+	deadlineSeconds: 420,
+});
+let head;
+let start;
 let server;
 const overall = new AbortController();
 let globalExpired = false;
@@ -170,6 +171,19 @@ async function run(name, args, env, expected) {
 	console.log(JSON.stringify(terminal));
 }
 try {
+	start = await captureSource(root, directory);
+	head = start.head;
+	await save('capture.json', start);
+	start.sources = Object.fromEntries(
+		await Promise.all(
+			sources.map(async (path) => [
+				path,
+				digest(await readFile(resolve(root, path))),
+			])
+		)
+	);
+	start.buildFiles = await inventory(build);
+	await save('source.json', start);
 	if (!process.env.PLAYWRIGHT_BASE_URL) {
 		const url = new URL(baseURL);
 		server = spawn(
@@ -250,7 +264,7 @@ try {
 			'review',
 			['src/lsp/wasm/review-ui-test.mjs'],
 			{ PHPANTOM_REVIEW_CASE: 'all' },
-			14
+			26
 		);
 	if (phase === 'semantics')
 		await run(
@@ -260,6 +274,12 @@ try {
 			5
 		);
 } catch (error) {
+	if (!start?.buildFiles)
+		await save('startup-error.json', {
+			error: String(error),
+			errorName: error.name,
+			code: error.code ?? null,
+		});
 	results.push({
 		passed: false,
 		error: String(error),
@@ -281,21 +301,50 @@ try {
 			{ flag: 'wx' }
 		);
 	}
-	const sourceUnchanged = (
-		await Promise.all(
-			sources.map(
-				async (path) =>
-					digest(await readFile(resolve(root, path))) ===
-					start.sources[path]
+	const sourceUnchanged =
+		!!start?.sources &&
+		(
+			await Promise.all(
+				sources.map(async (path) =>
+					readFile(resolve(root, path))
+						.then((bytes) => digest(bytes) === start.sources[path])
+						.catch(() => false)
+				)
 			)
-		)
-	).every(Boolean);
+		).every(Boolean);
+	const headUnchanged =
+		!!head &&
+		(() => {
+			try {
+				return git('rev-parse', 'HEAD') === head;
+			} catch {
+				return false;
+			}
+		})();
+	const binariesUnchanged =
+		!!start?.binaryFiles &&
+		(
+			await Promise.all(
+				start.binaryFiles.map(async (row) => {
+					try {
+						const current = await hashFile(resolve(root, row.path));
+						return (
+							current.bytes === row.bytes &&
+							current.sha256 === row.sha256
+						);
+					} catch {
+						return false;
+					}
+				})
+			)
+		).every(Boolean);
 	const passed =
+		binariesUnchanged &&
 		results.length > 0 &&
 		results.every((row) => row.passed) &&
 		!globalExpired &&
 		sourceUnchanged &&
-		git('rev-parse', 'HEAD') === head;
+		headUnchanged;
 	const exitCode = passed
 		? 0
 		: globalExpired
@@ -306,8 +355,9 @@ try {
 		exitCode,
 		finishedAt: new Date().toISOString(),
 		head,
-		headUnchanged: git('rev-parse', 'HEAD') === head,
+		headUnchanged,
 		sourceUnchanged,
+		binariesUnchanged,
 		results,
 		passed,
 	});

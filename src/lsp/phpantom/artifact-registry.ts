@@ -39,7 +39,7 @@ const sourceCommit = '49b9a7513ed19cbbfb79d5d08a3f3693ffb2b668';
 const stubsCommit = '2049ca3cfa1feabf52db074108fe776a5713cf02';
 const stubsArchiveSha256 =
 	'3ef62542d2f77ad30c7dab7dfa726e57e86dd5e3403780294119cf4f5ca6dcb7';
-const buildIdentity = '49b9a751-phase-b-e12de794';
+const buildIdentity = '49b9a751-release-0581b67c';
 
 // The reviewed versioned artifact bytes are committed under assets/lsp/phpantom
 // and pinned in manifest.json.
@@ -47,168 +47,168 @@ export const reviewedPhpantomArtifacts = {
 	'5.6': {
 		phpVersion: '5.6',
 		url: '/lsp/phpantom/php-5.6.wasm',
-		sha256: 'ce8478d55b43041195cf4ffe673eaf94454b784be716549a980be77d2af9a84e',
-		bytes: 18_504_747,
+		sha256: '8b3faed55092cd08737c9a6336010ecec06c6697b0b7216ae208e4b18dfc2e3c',
+		bytes: 19_189_147,
 		buildIdentity,
 		sourceCommit,
 		sourcePatchSha256:
-			'4996a41403b2c570ba3e6a5a67c86bbe2833129c95bca62f19c5e39581a4b31d',
+			'0581b67c401a5a26f56241d69404cc95a6a658c07e39f6a785dc12181aab8ba6',
 		provenanceSha256:
-			'e6374b9b447c08f1b08daf1d122b72a8a26437d032adbecd764a204cd31e89d2',
+			'ba69fc31a1562ed500b0c4f1ada481df610b37a690a84a199072471a76220787',
 		stubsCommit,
 		stubsArchiveSha256,
 	},
 	'7.0': {
 		phpVersion: '7.0',
 		url: '/lsp/phpantom/php-7.0.wasm',
-		sha256: 'e107053e267d4ea0496e7c48d6bde7d9a24ef85cb9d11a11139ecbdf19b78a92',
-		bytes: 18_504_747,
+		sha256: 'b097005661a3993c108c74114ec98b562baf169f60daf7fefb089ccc3974fdbe',
+		bytes: 19_189_147,
 		buildIdentity,
 		sourceCommit,
 		sourcePatchSha256:
-			'4996a41403b2c570ba3e6a5a67c86bbe2833129c95bca62f19c5e39581a4b31d',
+			'0581b67c401a5a26f56241d69404cc95a6a658c07e39f6a785dc12181aab8ba6',
 		provenanceSha256:
-			'2fac17832ff5af37194853f35d7a5301892d328947d60cb265e45475cba1dae6',
+			'92a2c06e4ef78d1940233cce6035dae62e3e2991439188987b34471a490f025b',
 		stubsCommit,
 		stubsArchiveSha256,
 	},
 	'7.1': {
 		phpVersion: '7.1',
 		url: '/lsp/phpantom/php-7.1.wasm',
-		sha256: '9f01032687b84c5236335d2257655843e1f6e3e78928f0e561ba4a2decf902f1',
-		bytes: 18_504_747,
+		sha256: 'cfcac41df881da99e4a0f70fdd0b48cd3a74894b61ef3f250cc01bcb362990f4',
+		bytes: 19_189_147,
 		buildIdentity,
 		sourceCommit,
 		sourcePatchSha256:
-			'4996a41403b2c570ba3e6a5a67c86bbe2833129c95bca62f19c5e39581a4b31d',
+			'0581b67c401a5a26f56241d69404cc95a6a658c07e39f6a785dc12181aab8ba6',
 		provenanceSha256:
-			'94269a430cccac9436c946ccf67058936e3e00760533eff8bacf8f40a7016ae9',
+			'c00147db48f230fa2906966bc4ba0d4de1b2fcc4c2f323d92b4dfccce9b95eea',
 		stubsCommit,
 		stubsArchiveSha256,
 	},
 	'7.2': {
 		phpVersion: '7.2',
 		url: '/lsp/phpantom/php-7.2.wasm',
-		sha256: '68f553533464f950f8315eeaeeda7622f576ac66f32a10d9b12cd9efabe5fba6',
-		bytes: 18_504_747,
+		sha256: 'b38823bf72e9af706c3d12350781dd95f159a738eb2a1d3ca2a5c7691b87e3e0',
+		bytes: 19_189_147,
 		buildIdentity,
 		sourceCommit,
 		sourcePatchSha256:
-			'4996a41403b2c570ba3e6a5a67c86bbe2833129c95bca62f19c5e39581a4b31d',
+			'0581b67c401a5a26f56241d69404cc95a6a658c07e39f6a785dc12181aab8ba6',
 		provenanceSha256:
-			'2332b525b3818eaa9e603e3669a58649d838d7fcecc0a81e48a9ec2d26ad60dd',
+			'11cc72fb6dca93dac99e6dfa6011140d97098d14f7e617c4112afdd013d3cbd9',
 		stubsCommit,
 		stubsArchiveSha256,
 	},
 	'7.3': {
 		phpVersion: '7.3',
 		url: '/lsp/phpantom/php-7.3.wasm',
-		sha256: '137936ae50c3f64baa9a158686b90171e2df46d029e016b37c21353e70bbb155',
-		bytes: 18_504_747,
+		sha256: '1e4d1fa69d68530befb13f88c9cc364fcb37b3f5798f3810007793040940dabf',
+		bytes: 19_189_147,
 		buildIdentity,
 		sourceCommit,
 		sourcePatchSha256:
-			'4996a41403b2c570ba3e6a5a67c86bbe2833129c95bca62f19c5e39581a4b31d',
+			'0581b67c401a5a26f56241d69404cc95a6a658c07e39f6a785dc12181aab8ba6',
 		provenanceSha256:
-			'7d790f72f63fc4e11d60ae5bc05b47a8fb96b49b0903fd8b7373de46545a26ef',
+			'f2bd1442ae88f0005323cfd75919aa4b0d8fb9b77007662b57cf7c4d1aeef7ec',
 		stubsCommit,
 		stubsArchiveSha256,
 	},
 	'7.4': {
 		phpVersion: '7.4',
 		url: '/lsp/phpantom/php-7.4.wasm',
-		sha256: '176d7c61743098b0e4ba6ce74751716e7154e1d9c9885b3788096a426e159bf3',
-		bytes: 18_504_747,
+		sha256: 'e62eeb4bab6f8e3ce2f72f0e5bd124ad580a40731c44d283fec26b8565ad7637',
+		bytes: 19_189_147,
 		buildIdentity,
 		sourceCommit,
 		sourcePatchSha256:
-			'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d',
+			'0581b67c401a5a26f56241d69404cc95a6a658c07e39f6a785dc12181aab8ba6',
 		provenanceSha256:
-			'461ce0cc092a2a88d1ee6bf0c293400dda1653d28b23a9006723047d983bab75',
+			'34c183da15a494bb393f0eba146e880e906411489c3f8269a7d810bda334a2aa',
 		stubsCommit,
 		stubsArchiveSha256,
 	},
 	'8.0': {
 		phpVersion: '8.0',
 		url: '/lsp/phpantom/php-8.0.wasm',
-		sha256: '7c874fef41f7082b20f437469945904c3d2d542861cce36dffccef0b8751430a',
-		bytes: 18_504_747,
+		sha256: '261c99df2e953bff2091411e3d59e6398d54a92ff622730320c30e3244c7e5de',
+		bytes: 19_189_147,
 		buildIdentity,
 		sourceCommit,
 		sourcePatchSha256:
-			'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d',
+			'0581b67c401a5a26f56241d69404cc95a6a658c07e39f6a785dc12181aab8ba6',
 		provenanceSha256:
-			'cd9ce752aa3dd767094277623a42ace8d7dae8d8aefd8985b040dfd2a9582dfa',
+			'02acce1a230b939eebb5a06ff597c4ac83b26bf34f541e30de9d3525507b604c',
 		stubsCommit,
 		stubsArchiveSha256,
 	},
 	'8.1': {
 		phpVersion: '8.1',
 		url: '/lsp/phpantom/php-8.1.wasm',
-		sha256: '03a1da060d8db46c114f503d0b24f5a5cbfbcbf49dcf26a44bdce08ef414ff9a',
-		bytes: 18_504_747,
+		sha256: '875ae148aa5e6e18e65a56709f90fbbe8f039d4bd858c1b9d5de1aa28140b59c',
+		bytes: 19_189_147,
 		buildIdentity,
 		sourceCommit,
 		sourcePatchSha256:
-			'4996a41403b2c570ba3e6a5a67c86bbe2833129c95bca62f19c5e39581a4b31d',
+			'0581b67c401a5a26f56241d69404cc95a6a658c07e39f6a785dc12181aab8ba6',
 		provenanceSha256:
-			'c668804ea89ff83ea92d622fe2813c59acc52856c60ce15baca57b92f1a1fa8b',
+			'781c869391bcc64329158f27fbeef3f2dc2e9ad3157d8bca970a04a4838978cf',
 		stubsCommit,
 		stubsArchiveSha256,
 	},
 	'8.2': {
 		phpVersion: '8.2',
 		url: '/lsp/phpantom/php-8.2.wasm',
-		sha256: '054047f6ebff5d305c68a099834326ccfb9ae57549e0c59d4e59aed55a2f7ef4',
-		bytes: 18_504_747,
+		sha256: 'f077f6570d46199d71ff93afc0d66b08c4de4c8111d2fba3f4f50e420b4a0694',
+		bytes: 19_189_147,
 		buildIdentity,
 		sourceCommit,
 		sourcePatchSha256:
-			'4996a41403b2c570ba3e6a5a67c86bbe2833129c95bca62f19c5e39581a4b31d',
+			'0581b67c401a5a26f56241d69404cc95a6a658c07e39f6a785dc12181aab8ba6',
 		provenanceSha256:
-			'09281de10d134146ec08d24e239416069d4dfb72e51dc0b475b4688c22b9b8ff',
+			'9e67d2fa71fdfe64106e3f4f9caa24f7a6af1b6e81bad6bb69c81acc3286424f',
 		stubsCommit,
 		stubsArchiveSha256,
 	},
 	'8.3': {
 		phpVersion: '8.3',
 		url: '/lsp/phpantom/php-8.3.wasm',
-		sha256: '7dc6dc0d0520e93ce343a90a1067cd9e3fc9c0c4ea7da114719ec0c401a36c90',
-		bytes: 18_504_747,
+		sha256: '4872159c2144932ec5b691c2cde945463e8f33552613161c8318585a328ca5d7',
+		bytes: 19_189_147,
 		buildIdentity,
 		sourceCommit,
 		sourcePatchSha256:
-			'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d',
+			'0581b67c401a5a26f56241d69404cc95a6a658c07e39f6a785dc12181aab8ba6',
 		provenanceSha256:
-			'7411671f65f0b2b3c62ebaff2be4f050b2f85efe036399361fd72fc5ab97ebe3',
+			'3a071c221d8429fcfa5a84b3dad238e6538c6afdfcb7a5f945b12105de503cec',
 		stubsCommit,
 		stubsArchiveSha256,
 	},
 	'8.4': {
 		phpVersion: '8.4',
 		url: '/lsp/phpantom/php-8.4.wasm',
-		sha256: '8a677958dc98b3838755eee9c17396ad1a353366601a0f1992373c3ea50bc5f7',
-		bytes: 18_504_747,
+		sha256: 'fa43613ae683fafabfc8a7bf9c9f092105f5d3236732a4ad159b80e245b471a5',
+		bytes: 19_189_147,
 		buildIdentity,
 		sourceCommit,
 		sourcePatchSha256:
-			'4996a41403b2c570ba3e6a5a67c86bbe2833129c95bca62f19c5e39581a4b31d',
+			'0581b67c401a5a26f56241d69404cc95a6a658c07e39f6a785dc12181aab8ba6',
 		provenanceSha256:
-			'68f65d467e49847c03dc3eae2de24fca33f3966126c25e922f87e696561e4109',
+			'4e36cb01ffff852720f0adc5a0c74a2afad70dd0adc63f1174176be0f036d9f9',
 		stubsCommit,
 		stubsArchiveSha256,
 	},
 	'8.5': {
 		phpVersion: '8.5',
 		url: '/lsp/phpantom/php-8.5.wasm',
-		sha256: 'e3ce4b1977686f1f0ac8f401b46d248f63a663a54340d40e557cb6568f28560d',
-		bytes: 18_504_747,
+		sha256: 'd9ca44a41262cc262c4cab16a42976062f4361e1a72ffcb93ab0dc383f5451ac',
+		bytes: 19_189_147,
 		buildIdentity,
 		sourceCommit,
 		sourcePatchSha256:
-			'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d',
+			'0581b67c401a5a26f56241d69404cc95a6a658c07e39f6a785dc12181aab8ba6',
 		provenanceSha256:
-			'34789772dc38fe1594864537f2eae29a3ec92201e12f6c041ac88f9f823cebf0',
+			'8e4ed80875887169526c4756889be4a4ae057d7e2111b20052000e82d5bc5c22',
 		stubsCommit,
 		stubsArchiveSha256,
 	},

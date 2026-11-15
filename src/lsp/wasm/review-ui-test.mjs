@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { chromium, expect } from '@playwright/test';
-import { writeFile, mkdir } from 'node:fs/promises';
+import { writeFile, mkdir, readFile } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
@@ -25,26 +25,71 @@ if (
 		'startup',
 		'cancellation',
 		'semantics',
+		'imports',
+		'lifecycle',
 	].includes(selection)
 )
 	throw new Error('Unknown review case selection');
 async function run(name, action) {
-	const group = name.startsWith('semantic ')
-		? 'semantics'
-		: name.startsWith('cancelled resolve')
-			? 'cancellation'
-			: name.startsWith('namespaced DateTime')
-				? 'DateTime'
-				: name.startsWith('namespaced project')
-					? 'Widget'
-					: 'startup';
+	const group = name.startsWith('grouped import ')
+		? 'imports'
+		: name.startsWith('lifecycle ')
+			? 'lifecycle'
+			: name.startsWith('semantic ')
+				? 'semantics'
+				: name.startsWith('cancelled resolve')
+					? 'cancellation'
+					: name.startsWith('namespaced DateTime')
+						? 'DateTime'
+						: name.startsWith('namespaced project')
+							? 'Widget'
+							: 'startup';
 	if (selection !== 'all' && selection !== group) return;
 	console.log(`START ${name}`);
 	const context = await browser.newContext();
 	const page = await context.newPage();
+	const events = [];
+	const started = Date.now();
+	page.on('console', (message) =>
+		events.push({
+			ms: Date.now() - started,
+			type: 'console',
+			level: message.type(),
+			text: message.text(),
+		})
+	);
+	page.on('pageerror', (error) =>
+		events.push({
+			ms: Date.now() - started,
+			type: 'pageerror',
+			error: String(error),
+		})
+	);
+	page.on('requestfailed', (request) =>
+		events.push({
+			ms: Date.now() - started,
+			type: 'requestfailed',
+			url: request.url(),
+			error: request.failure(),
+		})
+	);
+	page.on('response', (response) =>
+		events.push({
+			ms: Date.now() - started,
+			type: 'response',
+			url: response.url(),
+			status: response.status(),
+		})
+	);
+	await context.tracing.start({
+		screenshots: true,
+		snapshots: true,
+		sources: true,
+	});
 	page.setDefaultTimeout(10_000);
 	await page.addInitScript(() => {
 		window.__reviewWorkers = [];
+		window.__reviewWorkerObjects = [];
 		window.__reviewCompiles = [];
 		const compile = WebAssembly.compile.bind(WebAssembly);
 		WebAssembly.compile = (...args) => {
@@ -65,6 +110,7 @@ async function run(name, action) {
 					terminated: false,
 				};
 				window.__reviewWorkers.push(trace);
+				window.__reviewWorkerObjects.push(worker);
 				const post = worker.postMessage.bind(worker),
 					terminate = worker.terminate.bind(worker);
 				worker.postMessage = (message, ...transfer) => {
@@ -85,7 +131,7 @@ async function run(name, action) {
 				worker.addEventListener('message', (event) =>
 					trace.received.push(event.data)
 				);
-				if (window.__reviewResolveMode) {
+				if (window.__reviewResolveMode || window.__reviewHoldInit) {
 					const add = worker.addEventListener.bind(worker),
 						remove = worker.removeEventListener.bind(worker);
 					const wrappers = new Map();
@@ -97,6 +143,15 @@ async function run(name, action) {
 							const request = trace.sent.find(
 								(m) => m?.id === event.data?.id && m?.method
 							);
+							if (
+								window.__reviewHoldInit &&
+								request?.method === 'initialize'
+							) {
+								trace.heldInitializeResponse = true;
+								(window.__reviewReleaseInitializers ??=
+									[]).push(() => listener(event));
+								return;
+							}
 							let data = event.data;
 							if (request?.method === 'textDocument/completion') {
 								const items = Array.isArray(data.result)
@@ -166,14 +221,23 @@ async function run(name, action) {
 	});
 	try {
 		const evidence = await action(page, context);
-		report.cases.push({ name, status: 'passed', ...evidence });
+		report.cases.push({ name, status: 'passed', ...evidence, events });
 		console.log(`PASS ${name}`);
 	} catch (error) {
+		const prefix = output + '.' + name.replace(/[^a-zA-Z0-9]/g, '-');
+		await page.screenshot({ path: prefix + '.png' }).catch(() => {});
+		await context.tracing.stop({ path: prefix + '.trace.zip' });
 		report.cases.push({
 			name,
 			status:
 				error instanceof FixtureError ? 'invalid-fixture' : 'failed',
 			error: String(error),
+			events,
+			model: await modelSnapshot(page).catch(() => null),
+			visibleRows: await page
+				.locator('.suggest-widget .monaco-list-row:visible')
+				.allTextContents()
+				.catch(() => []),
 			acceptance: await page
 				.evaluate(() => window.__reviewAcceptance)
 				.catch(() => null),
@@ -218,6 +282,7 @@ async function ready(page, version, after = -1) {
 					w.id > after &&
 					!w.terminated &&
 					init &&
+					w.sent.some((m) => m.method === 'textDocument/didOpen') &&
 					w.received.some(
 						(m) => m.id === init.id && m.result?.serverInfo?.version
 					)
@@ -299,13 +364,22 @@ async function modelSnapshot(page) {
 	});
 }
 async function accept(page, label, suffix, options = {}) {
-	await focusEnd(page);
+	if (options.cursorOffset === undefined) await focusEnd(page);
+	else
+		await page.evaluate((offset) => {
+			const m = window.monaco ?? window.require('vs/editor/editor.main');
+			const e = m.editor.getEditors()[0];
+			e.focus();
+			e.setPosition(e.getModel().getPositionAt(offset));
+		}, options.cursorOffset);
 	const before = await modelSnapshot(page);
 	if (!before || before.text !== before.fixture)
 		throw new FixtureError(
 			`before-key model mismatch: ${JSON.stringify(before)}`
 		);
-	const lines = before.fixture.split('\n');
+	const lines = before.fixture
+		.slice(0, options.cursorOffset ?? before.fixture.length)
+		.split('\n');
 	const cursor = {
 		lineNumber: lines.length,
 		column: lines.at(-1).length + 1,
@@ -321,7 +395,9 @@ async function accept(page, label, suffix, options = {}) {
 		throw new FixtureError(
 			`before-key cursor/selection mismatch: ${JSON.stringify(before)}`
 		);
-	const expected = before.fixture + suffix;
+	const offset = options.cursorOffset ?? before.fixture.length;
+	const expected =
+		before.fixture.slice(0, offset) + suffix + before.fixture.slice(offset);
 	await page.keyboard.type(suffix, { delay: 40 });
 	try {
 		await expect
@@ -334,8 +410,32 @@ async function accept(page, label, suffix, options = {}) {
 		);
 	}
 	const after = await modelSnapshot(page);
+	await page.evaluate(
+		(value) => {
+			window.__reviewAcceptance = value;
+		},
+		{
+			before,
+			after,
+			expected,
+			codepoints: [...expected].map((char) => char.codePointAt(0)),
+		}
+	);
 	if (after.version <= before.version)
 		throw new FixtureError('model version did not advance');
+	if (options.explicitRequest)
+		await page.evaluate(() => {
+			const monaco =
+				window.monaco ?? window.require('vs/editor/editor.main');
+			monaco.editor
+				.getEditors()
+				.find((editor) => editor.hasTextFocus())
+				.trigger(
+					'explicit-verification',
+					'editor.action.triggerSuggest',
+					{}
+				);
+		});
 	const position = {
 		line: cursor.lineNumber - 1,
 		character: cursor.column - 1 + suffix.length,
@@ -529,6 +629,205 @@ async function selectVersion(page, version) {
 	);
 }
 try {
+	const editRows = (
+		await readFile(
+			new URL(
+				'./native-probe/tests/fixtures/import-edits.tsv',
+				import.meta.url
+			),
+			'utf8'
+		)
+	)
+		.split('\n')
+		.filter((line) => line && !line.startsWith('#'))
+		.map((line) =>
+			line.split('\t').map((value) => value.replaceAll('\\n', '\n'))
+		);
+	for (const version of ['7.4', '8.5'])
+		for (const [id, explicitRequest] of [
+			['mixed-class', false],
+			['second-function', false],
+			['cursor-middle', false],
+			['cursor-middle', true],
+		]) {
+			await run(
+				`grouped import ${explicitRequest ? 'explicit request ' : ''}${id} PHP${version}`,
+				async (page) => {
+					const row = editRows.find((row) => row[0] === id);
+					if (!row)
+						throw new FixtureError(
+							'independent import row missing'
+						);
+					const [
+						,
+						before,
+						typed,
+						after,
+						newText,
+						want,
+						fqn,
+						,
+						stdout,
+					] = row;
+					const prefix = typed.slice(0, -1),
+						suffix = typed.slice(-1),
+						source = before + prefix + after;
+					await open(page, source, version);
+					await ready(page, version);
+					const acceptance = await accept(page, fqn, suffix, {
+						fqn,
+						explicitRequest,
+						cursorOffset: (before + prefix).length,
+					});
+					const position = (text) => {
+						const lines = text.split('\n');
+						return {
+							line: lines.length - 1,
+							character: lines.at(-1).length,
+						};
+					};
+					const end = position(before + typed);
+					if (id === 'cursor-middle') end.character += 3;
+					const expected = {
+						textEdit: {
+							range: { start: position(before), end },
+							newText,
+						},
+						insertText: newText,
+						insertTextFormat: 1,
+						additionalTextEdits: null,
+					};
+					for (const item of [
+						acceptance.acceptedResolve.request.params,
+						acceptance.acceptedResolve.response.result,
+					])
+						expect({
+							textEdit: item.textEdit,
+							insertText: item.insertText,
+							insertTextFormat: item.insertTextFormat,
+							additionalTextEdits:
+								item.additionalTextEdits ?? null,
+						}).toEqual(expected);
+					await expect.poll(() => text(page)).toBe(want);
+					await expect(
+						page.getByTestId('preview-console')
+					).toHaveText(stdout);
+					return {
+						id,
+						inputMode: explicitRequest
+							? 'explicit-completion'
+							: 'natural-typing',
+						version,
+						acceptance,
+						expectedDocument: want,
+						finalDocument: await text(page),
+						execution: await page
+							.getByTestId('preview-console')
+							.innerText(),
+					};
+				}
+			);
+		}
+	for (const mode of ['off', 'version'])
+		await run(`lifecycle ${mode} during held initialize`, async (page) => {
+			await page.addInitScript(() => {
+				window.__reviewHoldInit = true;
+			});
+			await open(page, '<?php\nstr', '8.5');
+			await page.waitForFunction(() =>
+				window.__reviewWorkers.some((w) => w.heldInitializeResponse)
+			);
+			const old = (await workers(page))[0];
+			await page.evaluate(() => {
+				window.__reviewHoldInit = false;
+			});
+			if (mode === 'off')
+				await page.getByText('Auto complete', { exact: true }).click();
+			else await selectVersion(page, '7.4');
+			await page.waitForFunction(
+				(id) => window.__reviewWorkers[id].terminated,
+				old.id
+			);
+			await page.evaluate(() =>
+				window.__reviewReleaseInitializers.forEach((release) =>
+					release()
+				)
+			);
+			const ended = (await workers(page)).find((w) => w.id === old.id);
+			expect({
+				terminated: ended.terminated,
+				opened: ended.sent.some(
+					(m) => m.method === 'textDocument/didOpen'
+				),
+				initialized: ended.sent.some((m) => m.method === 'initialized'),
+			}).toEqual({ terminated: true, opened: false, initialized: false });
+			if (mode === 'off')
+				await page.getByText('Auto complete', { exact: true }).click();
+			await ready(page, mode === 'off' ? '8.5' : '7.4', old.id);
+			const acceptance = await accept(page, 'strlen', 'l');
+			return {
+				mode,
+				controlledTransport:
+					'hold real initialize response; release after abort',
+				oldWorker: ended,
+				acceptance,
+				workers: await workers(page),
+			};
+		});
+	await run(
+		'lifecycle Worker error disposes and toggle reconnects',
+		async (page) => {
+			await open(page, '<?php\nstr', '8.5');
+			const old = await ready(page, '8.5');
+			await page.evaluate(
+				(id) =>
+					window.__reviewWorkerObjects[id].dispatchEvent(
+						new Event('error')
+					),
+				old.id
+			);
+			await page.waitForFunction(
+				(id) => window.__reviewWorkers[id].terminated,
+				old.id
+			);
+			await page.getByText('Auto complete', { exact: true }).click();
+			await page.getByText('Auto complete', { exact: true }).click();
+			const current = await ready(page, '8.5', old.id);
+			const acceptance = await accept(page, 'strlen', 'l');
+			return {
+				injectedPublicWorkerError: true,
+				oldId: old.id,
+				newId: current.id,
+				acceptance,
+				workers: await workers(page),
+			};
+		}
+	);
+	await run(
+		'lifecycle 7.4 to 8.5 to 7.4 creates fresh workers',
+		async (page) => {
+			await open(page, '<?php\nstr', '7.4');
+			const initial = await ready(page, '7.4');
+			await selectVersion(page, '8.5');
+			const second = await ready(page, '8.5', initial.id);
+			await selectVersion(page, '7.4');
+			const last = await ready(page, '7.4', second.id);
+			const all = await workers(page);
+			expect(
+				all.map((w) => ({ id: w.id, terminated: w.terminated }))
+			).toEqual([
+				{ id: initial.id, terminated: true },
+				{ id: second.id, terminated: true },
+				{ id: last.id, terminated: false },
+			]);
+			const acceptance = await accept(page, 'strlen', 'l');
+			return {
+				ids: [initial.id, second.id, last.id],
+				acceptance,
+				workers: all,
+			};
+		}
+	);
 	const shadow =
 		'<?php\nnamespace App;\n/** RELEASE_USER_DOC */\nfunction str_contains(string $ownOnly): bool { return true; }\n';
 	for (const fixture of [
