@@ -17,10 +17,10 @@ const reviewedDiff = manifest.source?.reviewedPhaseBDiffSha256
 assert.equal(reviewedDiff,
 	'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d');
 assert.equal(manifest.source?.appliedPhaseBPatchSha256,
-    '78a0295031c43b88fb79d3ed466954d372846b3e3d5eaef0f4e2ad80015920ff',
+    '68b4ad9c4eac88ef754617cd102f3a01f7e40e4f74b592373e4c0007de7e5254',
     'current applied PHPantom patch is required before WASM instantiation');
 assert.equal(manifest.source?.appliedFileManifestSha256,
-    'f316511fcf3c593515786008c937eb5c31b21f3200cbe35972cd0c21d6052897',
+    '207ebde2179d12fda0e616437af4b6e338cac143f352ba3c022d07f2d06e8e1e',
     'current applied file manifest is required before WASM instantiation');
 assert.equal(manifest.stubs?.commit, '2049ca3cfa1feabf52db074108fe776a5713cf02');
 if (manifest.stubs?.resolvedCommitMarker) {
@@ -576,6 +576,34 @@ async function releaseOpaqueAttributeDocOracle() {
     }
 }
 
+async function releaseDocumentStringCompletionOracle() {
+    if (!targetAtLeast(8,0)) return;
+    const rows=(await readFile(new URL('./native-probe/tests/fixtures/document-string-completion.tsv',import.meta.url),'utf8'))
+        .split('\n').filter(Boolean).map(row=>row.split('\t').map(value=>value.replaceAll('\\n','\n').replaceAll('\\r','\r')));
+    assert.equal(rows.length,42,'complete document-string completion inventory');
+    assert.equal(new Set(rows.map(row=>row[8])).size,42,'unique document-string cases');
+    assert.equal(rows.filter(row=>row[7]==='0').length,9,'opaque body negative controls');
+    for (const [source,member,owner,kind,marker,line,character,present,name] of rows) {
+        await freshEngine();const uri='file:///release/samefile.php';open(uri,source);
+        const position={line:Number(line),character:Number(character)};
+        for (const warm of [false,true]) {
+            const response=request('textDocument/completion',{textDocument:{uri},position});
+            const items=completionItems(response);
+            const item=items.find(value=>value.kind===Number(kind)&&value.data?.m===member&&(!owner||value.data?.c===owner));
+            let resolved;
+            if (present==='1') {
+                assert.ok(item,`${target} ${name} selected FQN ${owner}::${member}`);
+                resolved=request('completionItem/resolve',item).result;
+                const docs=resolved.documentation?.value??resolved.documentation??'';
+                check(`${target} document-string completion ${name} warm=${warm}`,typeof docs==='string'&&docs.includes(marker),{item,resolved});
+            } else {
+                check(`${target} opaque body completion ${name} warm=${warm}`,items.length===0,{response});
+            }
+            console.log(`DOCUMENT_STRING_COMPLETION_RESPONSE ${JSON.stringify({target,name,warm,source,position,response,item,resolved})}`);
+        }
+    }
+}
+
 async function releaseSharedConstantDeclarations() {
     for (const symbol of ['PHP_SBINDIR','PHP_OUTPUT_HANDLER_PROCESSED']) {
         await freshEngine();
@@ -610,6 +638,7 @@ await releaseImportEditOracle();
 await releaseImportRenameOracle();
 await releaseAttributeDocOracle();
 await releaseOpaqueAttributeDocOracle();
+await releaseDocumentStringCompletionOracle();
 console.log(JSON.stringify({
 	target,
 	artifactSha256: actualSha,

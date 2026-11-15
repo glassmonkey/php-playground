@@ -1,6 +1,6 @@
 {
-  "completePatchSha256": "78a0295031c43b88fb79d3ed466954d372846b3e3d5eaef0f4e2ad80015920ff",
-  "fileCount": 40,
+  "completePatchSha256": "68b4ad9c4eac88ef754617cd102f3a01f7e40e4f74b592373e4c0007de7e5254",
+  "fileCount": 41,
   "files": [
     {
       "path": "build.rs",
@@ -69,6 +69,10 @@
     {
       "path": "src/completion/resolve.rs",
       "sha256": "27a9b490b763411f54e1e8cb44b757d5c0165dad81d0eacb5297ef494d663a39"
+    },
+    {
+      "path": "src/completion/source/comment_position.rs",
+      "sha256": "82e42c281872dcda4fdb090231a930e3943f587cbcd7918397f8a7b56782d7dd"
     },
     {
       "path": "src/completion/use_edit.rs",
@@ -140,7 +144,7 @@
     },
     {
       "path": "src/text_scan.rs",
-      "sha256": "0f0c9b350491f95ea0e60303eb2e250046c52f3be805dfb804fa738d60854fb7"
+      "sha256": "76e6f37540c6446db83588f0af35bf6044911794161875314fa29b734033db2d"
     },
     {
       "path": "tests/integration/completion_basic.rs",

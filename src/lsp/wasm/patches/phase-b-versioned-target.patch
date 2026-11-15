@@ -3597,6 +3597,61 @@ diff --git a/src/symbol_map/docblock.rs b/src/symbol_map/docblock.rs
          }
      }
  }
+diff --git a/src/parser/initializers.rs b/src/parser/initializers.rs
+--- a/src/parser/initializers.rs
++++ b/src/parser/initializers.rs
+@@ -45,7 +45,7 @@
+         } else if let Some(end) = text_scan::skip_php_comment(bytes, i) {
+             i = end;
+         } else if bytes[i..].starts_with(b"<<<") {
+-            i = skip_heredoc(bytes, i);
++            i = text_scan::skip_heredoc(bytes, i);
+             after_access = false;
+         } else if bytes[i..].starts_with(b"::") || bytes[i..].starts_with(b"->") {
+             i += 2;
+@@ -127,42 +127,8 @@
+         match text_scan::skip_php_comment(bytes, i) {
+             Some(after) => i = after,
+             None => return bytes[i..].starts_with(b"::"),
+-        }
+-    }
+-}
+-
+-/// The offset just past the heredoc or nowdoc whose `<<<` is at `start`:
+-/// past its closing label, or the end of `bytes` when it is never closed.
+-fn skip_heredoc(bytes: &[u8], start: usize) -> usize {
+-    let mut i = start + 3;
+-    while matches!(bytes.get(i), Some(b' ' | b'\t')) {
+-        i += 1;
+-    }
+-    if matches!(bytes.get(i), Some(b'\'' | b'"')) {
+-        i += 1;
+-    }
+-    let label_start = i;
+-    while bytes.get(i).is_some_and(|&b| is_name_byte(b)) {
+-        i += 1;
+-    }
+-    let label = &bytes[label_start..i];
+-    if label.is_empty() {
+-        return i;
+-    }
+-    // The body starts on the next line, and ends at the first line that,
+-    // after any indentation, starts with the label and does not continue
+-    // it.
+-    while let Some(newline) = text_scan::find_byte(bytes, i, b'\n') {
+-        i = newline + 1;
+-        while matches!(bytes.get(i), Some(b' ' | b'\t')) {
+-            i += 1;
+         }
+-        let end = i + label.len();
+-        if bytes[i..].starts_with(label) && !bytes.get(end).is_some_and(|&b| is_name_byte(b)) {
+-            return end;
+-        }
+     }
+-    bytes.len()
+ }
+ 
+ /// Whether a name starts at `at`.
 diff --git a/src/text_scan.rs b/src/text_scan.rs
 --- a/src/text_scan.rs
 +++ b/src/text_scan.rs
@@ -3624,25 +3679,44 @@ diff --git a/src/text_scan.rs b/src/text_scan.rs
  /// (see [`skip_php_comment`]), so delimiters inside strings or comments
  /// are not counted.
  pub(crate) fn find_matching_forward(
-@@ -518,6 +516,10 @@
-     while pos < bytes.len() {
-         if let Some(past) = skip_php_comment(bytes, pos) {
+@@ -520,6 +518,10 @@
              pos = past;
-+            continue;
-+        }
-+        if bytes[pos..].starts_with(b"<<<") {
-+            pos = skip_heredoc(bytes, pos);
              continue;
          }
++        if bytes[pos..].starts_with(b"<<<") {
++            pos = skip_heredoc(bytes, pos);
++            continue;
++        }
          match bytes[pos] {
-@@ -539,6 +541,41 @@
+             b'\'' | b'"' => {
+                 pos = skip_string_forward(bytes, pos);
+@@ -537,6 +539,57 @@
+         pos += 1;
+     }
      None
- }
- 
++}
++
++/// PHP label continuation bytes, including non-ASCII identifier bytes.
++pub(crate) fn is_document_label_byte(byte: u8) -> bool {
++    byte.is_ascii_alphanumeric() || byte == b'_' || byte >= 0x80
++}
++
++/// End of a closing document-string label at a line's first non-indent byte.
++/// Punctuation belongs to the surrounding PHP expression; identifier bytes
++/// continue the body (for example DOC_suffix and DOCé are not DOC).
++pub(crate) fn document_label_end(bytes: &[u8], start: usize, label: &[u8]) -> Option<usize> {
++    let end = start.checked_add(label.len())?;
++    (!label.is_empty()
++        && bytes.get(start..)?.starts_with(label)
++        && !bytes
++            .get(end)
++            .is_some_and(|&byte| is_document_label_byte(byte)))
++    .then_some(end)
++}
++
 +/// The offset just past the heredoc or nowdoc whose `<<<` is at `start`:
 +/// past its closing label, or the end of `bytes` when it is never closed.
 +pub(crate) fn skip_heredoc(bytes: &[u8], start: usize) -> usize {
-+    let is_name_byte = |b: u8| b.is_ascii_alphanumeric() || b == b'_' || b >= 0x80;
 +    let mut i = start + 3;
 +    while matches!(bytes.get(i), Some(b' ' | b'\t')) {
 +        i += 1;
@@ -3651,7 +3725,7 @@ diff --git a/src/text_scan.rs b/src/text_scan.rs
 +        i += 1;
 +    }
 +    let label_start = i;
-+    while bytes.get(i).is_some_and(|&b| is_name_byte(b)) {
++    while bytes.get(i).is_some_and(|&b| is_document_label_byte(b)) {
 +        i += 1;
 +    }
 +    let label = &bytes[label_start..i];
@@ -3666,23 +3740,18 @@ diff --git a/src/text_scan.rs b/src/text_scan.rs
 +        while matches!(bytes.get(i), Some(b' ' | b'\t')) {
 +            i += 1;
 +        }
-+        let end = i + label.len();
-+        if bytes[i..].starts_with(label) && !bytes.get(end).is_some_and(|&b| is_name_byte(b)) {
++        if let Some(end) = document_label_end(bytes, i, label) {
 +            return end;
 +        }
 +    }
 +    bytes.len()
-+}
-+
+ }
+ 
  /// The byte offsets of `bytes` that are code: not inside a quote
- /// (`'…'` or `"…"`, with backslash escapes) or a PHP comment (see
- /// [`skip_php_comment`]).
-@@ -1189,5 +1226,70 @@
-             find_matching_forward(text, 0, b'(', b')'),
-             Some(text.len() - 1)
+@@ -1191,3 +1244,68 @@
          );
-+    }
-+}
+     }
+ }
 +
 +#[cfg(test)]
 +mod attribute_document_string_tests {
@@ -3746,60 +3815,70 @@ diff --git a/src/text_scan.rs b/src/text_scan.rs
 +            }
 +            assert!(checked);
 +        }
-     }
- }
-diff --git a/src/parser/initializers.rs b/src/parser/initializers.rs
---- a/src/parser/initializers.rs
-+++ b/src/parser/initializers.rs
-@@ -45,7 +45,7 @@
-         } else if let Some(end) = text_scan::skip_php_comment(bytes, i) {
-             i = end;
-         } else if bytes[i..].starts_with(b"<<<") {
--            i = skip_heredoc(bytes, i);
-+            i = text_scan::skip_heredoc(bytes, i);
-             after_access = false;
-         } else if bytes[i..].starts_with(b"::") || bytes[i..].starts_with(b"->") {
-             i += 2;
-@@ -127,42 +127,8 @@
-         match text_scan::skip_php_comment(bytes, i) {
-             Some(after) => i = after,
-             None => return bytes[i..].starts_with(b"::"),
--        }
--    }
--}
--
--/// The offset just past the heredoc or nowdoc whose `<<<` is at `start`:
--/// past its closing label, or the end of `bytes` when it is never closed.
--fn skip_heredoc(bytes: &[u8], start: usize) -> usize {
--    let mut i = start + 3;
--    while matches!(bytes.get(i), Some(b' ' | b'\t')) {
--        i += 1;
--    }
--    if matches!(bytes.get(i), Some(b'\'' | b'"')) {
--        i += 1;
--    }
--    let label_start = i;
--    while bytes.get(i).is_some_and(|&b| is_name_byte(b)) {
--        i += 1;
--    }
--    let label = &bytes[label_start..i];
--    if label.is_empty() {
--        return i;
--    }
--    // The body starts on the next line, and ends at the first line that,
--    // after any indentation, starts with the label and does not continue
--    // it.
--    while let Some(newline) = text_scan::find_byte(bytes, i, b'\n') {
--        i = newline + 1;
--        while matches!(bytes.get(i), Some(b' ' | b'\t')) {
--            i += 1;
-         }
--        let end = i + label.len();
--        if bytes[i..].starts_with(label) && !bytes.get(end).is_some_and(|&b| is_name_byte(b)) {
--            return end;
--        }
-     }
--    bytes.len()
- }
- 
- /// Whether a name starts at `at`.
++    }
++}
+diff --git a/src/completion/source/comment_position.rs b/src/completion/source/comment_position.rs
+--- a/src/completion/source/comment_position.rs
++++ b/src/completion/source/comment_position.rs
+@@ -188,23 +188,27 @@
+                 {
+                     // Possible heredoc / nowdoc
+                     i += 3;
+-                    while i < len && bytes[i] == b' ' {
++                    while i < len && matches!(bytes[i], b' ' | b'\t') {
+                         i += 1;
+                     }
+-                    let is_nowdoc = i < len && bytes[i] == b'\'';
+-                    if is_nowdoc {
++                    let quote = bytes
++                        .get(i)
++                        .copied()
++                        .filter(|byte| matches!(byte, b'\'' | b'"'));
++                    let is_nowdoc = quote == Some(b'\'');
++                    if quote.is_some() {
+                         i += 1;
+                     }
+                     heredoc_label.clear();
+-                    while i < len && (bytes[i].is_ascii_alphanumeric() || bytes[i] == b'_') {
++                    while i < len && crate::text_scan::is_document_label_byte(bytes[i]) {
+                         heredoc_label.push(bytes[i]);
+                         i += 1;
+                     }
+                     if !heredoc_label.is_empty() {
++                        if quote.is_some_and(|quote| bytes.get(i) == Some(&quote)) {
++                            i += 1;
++                        }
+                         if is_nowdoc {
+-                            if i < len && bytes[i] == b'\'' {
+-                                i += 1;
+-                            }
+                             state = Lexical::Nowdoc;
+                         } else {
+                             state = Lexical::Heredoc;
+@@ -274,20 +278,13 @@
+                     while i < len && (bytes[i] == b' ' || bytes[i] == b'\t') {
+                         i += 1;
+                     }
+-                    if i + heredoc_label.len() <= len
+-                        && &bytes[i..i + heredoc_label.len()] == heredoc_label.as_slice()
++                    if let Some(after_label) =
++                        crate::text_scan::document_label_end(bytes, i, &heredoc_label)
+                     {
+-                        let after_label = i + heredoc_label.len();
+-                        if after_label >= len
+-                            || bytes[after_label] == b';'
+-                            || bytes[after_label] == b'\n'
+-                            || bytes[after_label] == b'\r'
+-                        {
+-                            i = after_label;
+-                            state = Lexical::Code;
+-                            brace_depth = 0;
+-                            continue;
+-                        }
++                        i = after_label;
++                        state = Lexical::Code;
++                        brace_depth = 0;
++                        continue;
+                     }
+                     // Not the closing label — the whitespace scanned past
+                     // above is part of the body, so no rewind is needed.

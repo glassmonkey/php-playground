@@ -151,3 +151,5 @@ PHPDoc は属性の前・後・複数属性の間に置かれた場合も、宣�
 `make install-phpantom-runtime`はbuild成功後、原文と索引のSHA256SUMSを照合してから、指定版のWASM/provenanceと`assets/lsp/phpantom/third-party/`を配置します。builder失敗時は配置先へ進みません。stubsのPHP manual由来文面の帰属説明は、LICENSEだけでなく[固定READMEのLicense節](https://github.com/JetBrains/phpstorm-stubs/blob/2049ca3cfa1feabf52db074108fe776a5713cf02/README.md#license)を参照します。UI側のasset manifestと公開先の更新は、別の採用gateでこの同梱pathと原典URLを対応付けます。
 
 属性終端を探す共通scannerは、initializerの既存heredoc/nowdocスキッパーを共有します。本文中のbracketやコメントに見える文字を区切りとせず、引用label、字下げ、CRLF、終端labelの識別子境界を扱います。固定parserの実attribute spanとの対照と、独立PHP Reflectionに基づく別ファイルconsumerからのclass/function/method resolveを検査します。従来17 fixtureを保持し、追加84 fixtureではcold/warm、同名FQN、UTF-16位置、docなし・隣の宣言・属性argumentの偽docも確認します。
+
+同一ファイルでも、validなheredoc/nowdocの終端label後は通常completionへ戻ります。共通の識別子境界判定を使い、`)`や`,`などのPHP式の区切りを終端後へ残し、`DOC_suffix`や`DOCé`は本文として扱います。quoted label、字下げ、CRLF、複数本文、Unicode labelを含む42文書をPHP syntax/Reflectionで確認し、公開completion/resolveの正例と本文内の負例をrequired native/WASIで検査します。
