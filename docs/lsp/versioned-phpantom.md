@@ -58,7 +58,7 @@ are checked by natural typing.
 
 必須の Playwright workflow は、通常の E2E に加えて
 `node src/lsp/wasm/release-ui-test.mjs` を実行する。production build を専用の
-preview で開き、PHP 8.0・8.3・8.5 の26ケースと review の40ケースを確認する。
+preview で開き、PHP 8.0・8.3・8.5 の26ケースと review の54ケースを確認する。
 元の全12版101ケースは残してあり、この部分集合を全版の保証とは扱わない。
 名前付き引数のケースは明示的な補完要求であり、通常の自然入力の証拠と区別する。
 
@@ -136,10 +136,26 @@ hover の準備では、didChange と一致する model の確認だけで mouse
 既に候補 widget が開いている場合は、選択や resolve を再開し直さない。OFF・版切替・model 変更・unmount・Worker error では購読を解除する。
 
 字句判定は稀な対象入力でのみ公開 tokenize を使い、先行行の状態を含む全文を渡す。
-CDN Monaco 0.55.1 が heredoc 本文を identifier と分類するため、PHP operator token で確認した開始と対応する終端だけを補助する。
+CDN Monaco 0.55.1 は heredoc/backtick 本文を identifier、PHP8 attribute を行コメントと分類する。
+PHPタグと code/opaque の状態を一度走査し、コメント・引用符・backtick・heredoc/nowdoc と PHP8 の `#[` を扱う。
+標準 `<?php` と `<?=` に加え、既存 app の convertCodeToPhpPlayground が扱う空白付き `<?` を認識する。`<?xml` や `<?phpfoo` を標準PHPタグとして扱わず、新たなshort_open_tag設定は行わない。
 [PHP の文字列構文](https://www.php.net/manual/en/language.types.string.php)と
 [PHP 7.3 の変更](https://www.php.net/manual/en/migration73.new-features.php)に従い、quoted label、identifier 境界、改行、indent と版の違いを扱う。
 本文は判定用のコピーだけで UTF16 長と改行を維持して空白に置換する。model、候補の FQN、engine の絞り込みは変更しない。
 不明な字句状態や tokenize の例外では追加要求を抑制する。一般の PHP parser や診断器としては使用しない。
-閉じた heredoc ごとに判定用 tokenize を再計算する。全文の長さと interval 数による処理量は残り、数値の性能保証はここでは設定しない。
+不透明区間と PHP8 `#[` の `#` だけを判定用コピーで空白化し、公開 tokenize は対象コードに対して一回だけ呼ぶ。
+閉じた heredoc ごとの全文再計算は行わない。文書長に依存する走査と tokenize の仕事は残り、数値の性能保証は設定しない。
 review の追加14ケースは、コメント・文字列・HTML・heredoc/nowdoc の要求抑制、終端後の PHP と 7.2/7.3 の境界を実ブラウザと PHP 出力で確認する。
+
+backtick は [PHP の実行演算子](https://www.php.net/manual/en/language.operators.execution.php)として不透明に扱う。
+PHP8.5 は未実行の関数内でも非推奨診断を出すため、試験は[公式の8.5変更](https://www.php.net/manual/en/migration85.deprecated.php)に沿った診断全文とstdoutを分けずに検証し、出力を消さない。
+attribute は PHP8以降だけコードとして扱い、以前の `#` は行末までのコメントとする。`//` と `#` は改行か `?>` で終わるが、block commentや文字列の内部ではPHPタグにより外側状態を変更しない。
+
+候補 item に明示 LSP textEdit がない場合だけ、公開 model word API で残ったsuffixも含む単語全体をfallback rangeにする。
+明示range/insert-replace、insertText、FQN、additional imports、snippet と cancellation/version guard は変更しない。
+
+既存 popup の判定は `.suggest-widget` と可視box/styleを使う、CDN0.55.1に依存するDOM互換処理である。
+getDomNodeが公開でも、selectorやwidget状態自体がtypedなMonaco公開契約とは扱わない。key event前とedit後に確認し、既に開いた候補の選択・resolveを再開始しない。
+完全な候補集合はMonacoが再filterして使えるため、文字入力ごとに新しいRPCが必ず必要とはしない。公開eventと実CDNの選択FQN・確定全文・PHP bindingで重複要求と選択保持を検証する。
+
+54件のreviewには属性付きclassのPHPDoc markerを含む必須2件がある。現be1 batchでのmarker欠落は別のruntime回帰として未達であり、追加の字句・range診断の成功でその契約を成功扱いにしない。修正済みruntimeと資産は別のexact gateで取り込む。

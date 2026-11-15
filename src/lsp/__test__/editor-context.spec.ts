@@ -197,7 +197,6 @@ describe('PHP identifier eligibility with bounded heredoc intervals', () => {
 		expect({ eligible: got, calls: tokenize.mock.calls }).toEqual({
 			eligible: true,
 			calls: [
-				[source, 'php'],
 				[
 					// 😀 is two UTF16 code units; quote/slash/star/question/greater-than add five.
 					'<?php\r\n$s=      \r\n       \r\n   ; new Wiget();',

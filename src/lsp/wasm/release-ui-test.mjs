@@ -54,6 +54,7 @@ const sources = [
 	'src/lsp/editor-context.ts',
 	'src/lsp/__test__/natural-middle-completion.spec.ts',
 	'src/lsp/__test__/editor-context.spec.ts',
+	'src/lsp/__test__/editor-opaque-context.spec.ts',
 	'src/lsp/phpantom/artifact-registry.ts',
 	'src/lsp/wasm/ui-harness.spec.mjs',
 	'src/lsp/wasm/versioned-ui-test.mjs',
@@ -268,7 +269,7 @@ try {
 			'review',
 			['src/lsp/wasm/review-ui-test.mjs'],
 			{ PHPANTOM_REVIEW_CASE: 'all' },
-			40
+			54
 		);
 	if (phase === 'semantics')
 		await run(

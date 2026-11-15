@@ -178,6 +178,11 @@ function testModel() {
 				},
 			};
 		},
+		getWordAtPosition: (position: Monaco.Position) => ({
+			word: 'word',
+			startColumn: Math.max(1, position.column - 4),
+			endColumn: position.column,
+		}),
 		getWordUntilPosition: (position: Monaco.Position) => ({
 			startColumn: Math.max(1, position.column - 4),
 			endColumn: position.column,
@@ -220,6 +225,258 @@ describe('PHPantom Monaco lifecycle', () => {
 		vi.restoreAllMocks();
 		vi.useRealTimers();
 	});
+
+	it.each([
+		{
+			name: 'middle',
+			position: 4,
+			word: { word: 'Widget', startColumn: 1, endColumn: 7 },
+			want: {
+				startLineNumber: 1,
+				startColumn: 1,
+				endLineNumber: 1,
+				endColumn: 7,
+			},
+		},
+		{
+			name: 'word end',
+			position: 7,
+			word: { word: 'Widget', startColumn: 1, endColumn: 7 },
+			want: {
+				startLineNumber: 1,
+				startColumn: 1,
+				endLineNumber: 1,
+				endColumn: 7,
+			},
+		},
+		{
+			name: 'word start',
+			position: 1,
+			word: { word: 'Widget', startColumn: 1, endColumn: 7 },
+			want: {
+				startLineNumber: 1,
+				startColumn: 1,
+				endLineNumber: 1,
+				endColumn: 7,
+			},
+		},
+		{
+			name: 'empty',
+			position: 1,
+			word: null,
+			want: {
+				startLineNumber: 1,
+				startColumn: 1,
+				endLineNumber: 1,
+				endColumn: 1,
+			},
+		},
+		{
+			name: 'empty after prefix',
+			position: 5,
+			word: null,
+			want: {
+				startLineNumber: 1,
+				startColumn: 5,
+				endLineNumber: 1,
+				endColumn: 5,
+			},
+		},
+
+		{
+			name: 'namespace/alias prefix',
+			position: 11,
+			word: { word: 'Widget', startColumn: 8, endColumn: 14 },
+			want: {
+				startLineNumber: 1,
+				startColumn: 8,
+				endLineNumber: 1,
+				endColumn: 14,
+			},
+		},
+		{
+			name: 'variable prefix',
+			position: 5,
+			word: { word: 'Widget', startColumn: 2, endColumn: 8 },
+			want: {
+				startLineNumber: 1,
+				startColumn: 2,
+				endLineNumber: 1,
+				endColumn: 8,
+			},
+		},
+		{
+			name: 'UTF16 adjacency',
+			position: 12,
+			word: { word: 'Widget', startColumn: 9, endColumn: 15 },
+			want: {
+				startLineNumber: 1,
+				startColumn: 9,
+				endLineNumber: 1,
+				endColumn: 15,
+			},
+		},
+		{
+			name: 'explicit range',
+			position: 4,
+			word: { word: 'Widget', startColumn: 1, endColumn: 7 },
+			edit: {
+				range: {
+					start: { line: 0, character: 10 },
+					end: { line: 0, character: 16 },
+				},
+				newText: 'Widget',
+			},
+			want: {
+				startLineNumber: 1,
+				startColumn: 11,
+				endLineNumber: 1,
+				endColumn: 17,
+			},
+		},
+		{
+			name: 'explicit insert/replace',
+			position: 4,
+			word: { word: 'Widget', startColumn: 1, endColumn: 7 },
+			edit: {
+				insert: {
+					start: { line: 0, character: 10 },
+					end: { line: 0, character: 13 },
+				},
+				replace: {
+					start: { line: 0, character: 10 },
+					end: { line: 0, character: 16 },
+				},
+				newText: 'Widget',
+			},
+			want: {
+				startLineNumber: 1,
+				startColumn: 11,
+				endLineNumber: 1,
+				endColumn: 17,
+			},
+		},
+	])(
+		'preserves complete no-edit word range and explicit edits: $name',
+		async ({ position, word, edit, want }) => {
+			// Arrange
+			const document = testModel();
+			vi.spyOn(document.model, 'getWordAtPosition').mockReturnValue(word);
+			vi.spyOn(document.model, 'getWordUntilPosition').mockReturnValue({
+				word: word?.word.slice(0, position - word.startColumn) ?? '',
+				startColumn: word?.startColumn ?? position,
+				endColumn: position,
+			});
+			const monaco = testMonaco(document.model),
+				worker = new TestWorker();
+			const item = {
+				label: 'Widget',
+				kind: 7,
+				detail: 'Vendor\\Widget',
+				insertText: 'Widget',
+				data: { m: 'Vendor\\Widget' },
+				...(edit ? { textEdit: edit } : {}),
+			};
+			worker.completionResult = { items: [item] };
+			worker.resolveResult = {
+				...item,
+				documentation: {
+					kind: 'markdown',
+					value: 'Widget documentation',
+				},
+			};
+			const sut = await LspClient.connect({
+				worker: worker as unknown as Worker,
+				model: document.model,
+				monaco: monaco.monaco,
+				phpVersion: '8.5',
+				onStatus: vi.fn(),
+			});
+			const provider = monaco.getActive()[0]
+				.provider as Monaco.languages.CompletionItemProvider;
+			const token = testCancellationToken().token;
+			// Act
+			const completion = (await provider.provideCompletionItems(
+				document.model,
+				{ lineNumber: 1, column: position } as Monaco.Position,
+				{ triggerKind: 1 },
+				token
+			)) as Monaco.languages.CompletionList;
+			const resolved = await provider.resolveCompletionItem!(
+				completion.suggestions[0],
+				token
+			);
+			sut.dispose();
+			// Assert
+			const suggestion = {
+				label: 'Widget',
+				kind: 6,
+				detail: 'Vendor\\Widget',
+				documentation: undefined,
+				filterText: undefined,
+				sortText: undefined,
+				insertText: 'Widget',
+				insertTextRules: undefined,
+				range: want,
+				additionalTextEdits: undefined,
+				command: undefined,
+			};
+			expect({
+				completion,
+				resolved,
+				resolveRequest: worker.lastResolve?.params,
+			}).toEqual({
+				completion: { suggestions: [suggestion], incomplete: false },
+				resolved: {
+					...suggestion,
+					documentation: 'Widget documentation',
+				},
+				resolveRequest: item,
+			});
+		}
+	);
+
+	it.each(['model change', 'dispose'])(
+		'does not read fallback word after pending %s',
+		async (boundary) => {
+			// Arrange
+			const document = testModel(),
+				monaco = testMonaco(document.model),
+				worker = new TestWorker();
+			const sut = await LspClient.connect({
+				worker: worker as unknown as Worker,
+				model: document.model,
+				monaco: monaco.monaco,
+				phpVersion: '8.5',
+				onStatus: vi.fn(),
+			});
+			const word = vi.spyOn(document.model, 'getWordAtPosition');
+			worker.delayCompletions = true;
+			const provider = monaco.getActive()[0]
+				.provider as Monaco.languages.CompletionItemProvider;
+			// Act
+			const pending = provider.provideCompletionItems(
+				document.model,
+				{ lineNumber: 1, column: 4 } as Monaco.Position,
+				{ triggerKind: 1 },
+				testCancellationToken().token
+			);
+			if (boundary === 'model change') document.change();
+			else sut.dispose();
+			worker.reply({
+				jsonrpc: '2.0',
+				id: worker.lastCompletion!.id,
+				result: { items: [{ label: 'Widget', kind: 7 }] },
+			});
+			const got = await pending;
+			sut.dispose();
+			// Assert
+			expect({ result: got, wordReads: word.mock.calls }).toEqual({
+				result: { suggestions: [] },
+				wordReads: [],
+			});
+		}
+	);
 
 	it.each([
 		{ label: 'DateTime', imported: 'DateTime', initial: true },

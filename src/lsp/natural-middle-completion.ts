@@ -2,6 +2,23 @@ import type * as Monaco from 'monaco-editor';
 import type { Version } from '../php-wasm/php';
 import { isPhpIdentifierContext } from './editor-context';
 
+// Pinned CDN0.55.1 DOM compatibility, not a typed Monaco widget-state API.
+function hasVisibleSuggestions(
+	editor: Monaco.editor.IStandaloneCodeEditor
+): boolean {
+	const widget = editor.getDomNode()?.querySelector('.suggest-widget');
+	const view = widget?.ownerDocument.defaultView;
+	if (!widget || !view) return false;
+	const style = view.getComputedStyle(widget),
+		box = widget.getBoundingClientRect();
+	return (
+		style.display !== 'none' &&
+		style.visibility === 'visible' &&
+		box.width > 0 &&
+		box.height > 0
+	);
+}
+
 /** Add only the word-middle interaction that Monaco's automatic trigger excludes. */
 export function bindNaturalMiddleCompletion({
 	editor,
@@ -64,7 +81,8 @@ export function bindNaturalMiddleCompletion({
 			if (
 				!word ||
 				position.column <= word.startColumn ||
-				position.column >= word.endColumn
+				position.column >= word.endColumn ||
+				hasVisibleSuggestions(editor)
 			)
 				return;
 			pending = {
@@ -139,12 +157,7 @@ export function bindNaturalMiddleCompletion({
 				)
 					return;
 				// Preserve an already-open completion interaction instead of restarting its selection/resolve.
-				if (
-					editor
-						.getDomNode()
-						?.querySelector('.suggest-widget.visible')
-				)
-					return;
+				if (hasVisibleSuggestions(editor)) return;
 				const source = model.getValue();
 				let eligible = false;
 				try {

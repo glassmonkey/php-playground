@@ -28,26 +28,45 @@ if (
 		'imports',
 		'lifecycle',
 		'middle-context',
+		'opaque-context',
+		'lexical-controls',
+		'widget-controls',
+		'prior-contracts',
 	].includes(selection)
 )
 	throw new Error('Unknown review case selection');
+report.selection = selection;
+report.fullRequiredCaseCount = 54;
 async function run(name, action) {
-	const group = name.startsWith('editor middle ')
-		? 'middle-context'
-		: name.startsWith('grouped import ')
-			? 'imports'
-			: name.startsWith('lifecycle ')
-				? 'lifecycle'
-				: name.startsWith('semantic ')
-					? 'semantics'
-					: name.startsWith('cancelled resolve')
-						? 'cancellation'
-						: name.startsWith('namespaced DateTime')
-							? 'DateTime'
-							: name.startsWith('namespaced project')
-								? 'Widget'
-								: 'startup';
-	if (selection !== 'all' && selection !== group) return;
+	const group = name.startsWith('editor widget ')
+		? 'widget-controls'
+		: name.startsWith('editor lexical ')
+			? 'lexical-controls'
+			: name.startsWith('editor opaque ')
+				? 'opaque-context'
+				: name.startsWith('editor middle ')
+					? 'middle-context'
+					: name.startsWith('grouped import ')
+						? 'imports'
+						: name.startsWith('lifecycle ')
+							? 'lifecycle'
+							: name.startsWith('semantic ')
+								? 'semantics'
+								: name.startsWith('cancelled resolve')
+									? 'cancellation'
+									: name.startsWith('namespaced DateTime')
+										? 'DateTime'
+										: name.startsWith('namespaced project')
+											? 'Widget'
+											: 'startup';
+	if (selection === 'prior-contracts') {
+		if (
+			['opaque-context', 'lexical-controls', 'widget-controls'].includes(
+				group
+			)
+		)
+			return;
+	} else if (selection !== 'all' && selection !== group) return;
 	console.log(`START ${name}`);
 	const context = await browser.newContext();
 	const page = await context.newPage();
@@ -888,6 +907,291 @@ try {
 				worker,
 			};
 		});
+
+	// PHP8.5 independently deprecates the operator, including compilation of unused functions.
+	const backtick85Diagnostic =
+		'<br />\n<b>Deprecated</b>:  The backtick (`) operator is deprecated, use shell_exec() instead in <b>php-wasm run script</b> on line <b>1</b><br />\n';
+	const lexicalFixtures = [
+		{
+			name: 'backtick original',
+			version: '8.5',
+			marked: '<?php\n$x=`Wi|get`; echo "ok";',
+		},
+		...['7.4', '8.5'].map((version) => ({
+			name: `backtick unused PHP${version}`,
+			version,
+			marked: '<?php\nfunction unused(){ $x=`Wi|get`; } echo "ok";',
+			stdout: 'ok',
+		})),
+		{
+			name: 'escaped backtick',
+			version: '8.5',
+			marked: '<?php\nfunction unused(){ $x=`before\\`Wi|get`; } echo "ok";',
+			stdout: 'ok',
+		},
+		{
+			name: 'multiline backtick',
+			version: '8.5',
+			marked: '<?php\nfunction unused(){ $x=`before\nWi|get\nafter`; } echo "ok";',
+			stdout: 'ok',
+		},
+		{
+			name: 'code after backtick',
+			version: '8.5',
+			marked: '<?php\nfunction unused(){ $x=`echo ok`; } echo strl|n("x");',
+			key: 'e',
+			stdout: '1',
+			requests: 1,
+			label: 'strlen',
+		},
+		...['5.6', '7.4'].map((version) => ({
+			name: `pre8 attribute comment PHP${version}`,
+			version,
+			marked: '<?php\n#[Wi|get] class Example {}\necho "ok";',
+			stdout: 'ok',
+		})),
+		{
+			name: 'attribute quoted argument',
+			version: '8.5',
+			marked: '<?php\n#[Attribute] class Widget {}\n#[Widget("Wi|get")] class Example {}\necho "ok";',
+			stdout: 'ok',
+		},
+		{
+			name: 'attribute nested array quoted argument',
+			version: '8.5',
+			marked: '<?php\n#[Attribute] class Widget {}\n#[Widget([1,["Wi|get"]])] class Example {}\necho "ok";',
+			stdout: 'ok',
+		},
+		{
+			name: 'attribute comment',
+			version: '8.5',
+			marked: '<?php\n#[Attribute] class Widget {}\n#[Widget(/* Wi|get */)] class Example {}\necho "ok";',
+			stdout: 'ok',
+		},
+	];
+	for (const fixture of lexicalFixtures)
+		await run(`editor lexical ${fixture.name}`, async (page) => {
+			const source = fixture.marked.replace('|', ''),
+				offset = fixture.marked.indexOf('|'),
+				key = fixture.key ?? 'd',
+				want = fixture.marked.replace('|', key);
+			await open(page, source, fixture.version);
+			await ready(page, fixture.version);
+			await page.evaluate((offset) => {
+				const m =
+					window.monaco ?? window.require('vs/editor/editor.main');
+				const e = m.editor.getEditors()[0];
+				e.focus();
+				e.setPosition(e.getModel().getPositionAt(offset));
+			}, offset);
+			const before = await modelSnapshot(page),
+				prefix = source.slice(0, offset).split('\n');
+			expect({ text: before.text, cursor: before.cursor }).toEqual({
+				text: source,
+				cursor: {
+					lineNumber: prefix.length,
+					column: prefix.at(-1).length + 1,
+				},
+			});
+			await page.keyboard.type(key);
+			await expect.poll(() => text(page)).toBe(want);
+			if (fixture.stdout)
+				await expect(page.getByTestId('preview-console')).toHaveText(
+					(fixture.version === '8.5' && fixture.marked.includes('`')
+						? backtick85Diagnostic
+						: '') + fixture.stdout
+				);
+			else await page.waitForTimeout(650); // Same bounded absence observation as the immutable original backtick repro.
+			const worker = (await workers(page)).at(-1),
+				requests = worker.sent.filter(
+					(m) => m.method === 'textDocument/completion'
+				);
+			const visible = await page
+				.locator('.suggest-widget .label-name:visible')
+				.allTextContents();
+			expect(requests).toHaveLength(fixture.requests ?? 0);
+			if (fixture.label)
+				await expect(
+					page
+						.locator('.suggest-widget .label-name:visible')
+						.filter({ hasText: new RegExp(`^${fixture.label}$`) })
+				).toBeVisible();
+			else {
+				expect(visible).toEqual([]);
+				await expect(
+					page.locator('.suggest-widget:visible')
+				).toHaveCount(0);
+			}
+			return {
+				version: fixture.version,
+				before,
+				after: await modelSnapshot(page),
+				worker,
+				visible,
+				PHPstdout: await page
+					.getByTestId('preview-console')
+					.textContent()
+					.catch(() => null),
+				expectedDocument: want,
+			};
+		});
+
+	await run(
+		'editor widget preserves one automatic interaction',
+		async (page) => {
+			const row = editRows.find((row) => row[0] === 'cursor-middle');
+			const [, before, , after, , want, fqn, , stdout] = row;
+			const source = before + 'Wiget' + after;
+			await open(page, source, '8.5');
+			await ready(page, '8.5');
+			await page.evaluate(
+				(offset) => {
+					const m =
+							window.monaco ??
+							window.require('vs/editor/editor.main'),
+						e = m.editor.getEditors()[0];
+					e.focus();
+					e.setPosition(e.getModel().getPositionAt(offset));
+					window.__middleTriggers = [];
+					window.__reviewAcceptance = {
+						triggerCalls: window.__middleTriggers,
+					};
+					const trigger = e.trigger.bind(e);
+					e.trigger = (source, ...args) => {
+						if (source === 'natural-middle-completion')
+							window.__middleTriggers.push({
+								source,
+								args,
+								widgets: [
+									...document.querySelectorAll(
+										'.suggest-widget'
+									),
+								].map((e) => ({
+									class: e.className,
+									display: getComputedStyle(e).display,
+									visibility: getComputedStyle(e).visibility,
+									rect: e.getBoundingClientRect().toJSON(),
+								})),
+							});
+						return trigger(source, ...args);
+					};
+				},
+				(before + 'Wi').length
+			);
+			await page.keyboard.type('d');
+			await expect.poll(() => text(page)).toBe(before + 'Widget' + after);
+			const candidate = page
+				.locator('.suggest-widget .label-name:visible')
+				.filter({
+					hasText: new RegExp(
+						`^${fqn.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`
+					),
+				});
+			await expect(candidate).toBeVisible();
+			await page.evaluate(() => {
+				window.__reviewAcceptance.widgetBefore = [
+					...document.querySelectorAll('.suggest-widget'),
+				].map((e) => ({
+					class: e.className,
+					display: getComputedStyle(e).display,
+					visibility: getComputedStyle(e).visibility,
+					rect: e.getBoundingClientRect().toJSON(),
+				}));
+			});
+			const firstWorker = (await workers(page)).at(-1);
+			const firstRequests = firstWorker.sent.filter(
+				(m) => m.method === 'textDocument/completion'
+			);
+			expect(firstRequests).toHaveLength(1);
+			const firstResponse = firstWorker.received.find(
+				(m) => m.id === firstRequests[0].id
+			);
+			expect(firstResponse.result.isIncomplete).toBe(false);
+			const focusedBefore = await page
+				.locator('.suggest-widget .monaco-list-row.focused .label-name')
+				.textContent();
+			expect(focusedBefore).toBe(fqn);
+			await page.keyboard.type('g');
+			await expect
+				.poll(() => text(page))
+				.toBe(before + 'Widgget' + after);
+			await expect(candidate).toBeVisible();
+			const requests = (await workers(page))
+				.at(-1)
+				.sent.filter((m) => m.method === 'textDocument/completion');
+			const triggerCalls = await page.evaluate(
+				() => window.__middleTriggers
+			);
+			expect({
+				requests: requests.length,
+				appTriggers: triggerCalls.length,
+			}).toEqual({ requests: 1, appTriggers: 1 });
+			expect(
+				await page
+					.locator(
+						'.suggest-widget .monaco-list-row.focused .label-name'
+					)
+					.textContent()
+			).toBe(fqn);
+			await candidate.click();
+			await page.keyboard.press('Escape');
+			await expect.poll(() => text(page)).toBe(want);
+			await expect(page.getByTestId('preview-console')).toHaveText(
+				stdout
+			);
+			const worker = (await workers(page)).at(-1);
+			expect(
+				worker.sent
+					.filter((m) => m.method === 'completionItem/resolve')
+					.at(-1).params.data.m
+			).toBe(fqn);
+			return {
+				requests,
+				firstResponse,
+				focusedBefore,
+				triggerCalls,
+				worker,
+				finalDocument: await text(page),
+				expectedDocument: want,
+				PHPbinding: stdout,
+			};
+		}
+	);
+	for (const version of ['8.0', '8.5'])
+		await run(
+			`editor opaque attribute accept PHP${version}`,
+			async (page) => {
+				const marked =
+					'<?php\n#[Attribute]\n/** Attribute fixture marker. */\nclass Widget {}\n#[Wi|get] class Example {}\necho get_class((new ReflectionClass(Example::class))->getAttributes()[0]->newInstance());';
+				const source = marked.replace('|', ''),
+					offset = marked.indexOf('|'),
+					want = marked.replace('|', 'd');
+				await open(page, source, version);
+				await ready(page, version);
+				const acceptance = await accept(page, 'Widget', 'd', {
+					fqn: 'Widget',
+					cursorOffset: offset,
+					docs: {
+						present: ['Attribute fixture marker.', 'class Widget'],
+						absent: [],
+					},
+				});
+				await expect.poll(() => text(page)).toBe(want);
+				await expect(page.getByTestId('preview-console')).toHaveText(
+					'Widget'
+				);
+				return {
+					version,
+					acceptance,
+					expectedDocument: want,
+					finalDocument: await text(page),
+					PHPbinding: await page
+						.getByTestId('preview-console')
+						.innerText(),
+					workers: await workers(page),
+				};
+			}
+		);
 	for (const mode of ['off', 'version'])
 		await run(`lifecycle ${mode} during held initialize`, async (page) => {
 			await page.addInitScript(() => {

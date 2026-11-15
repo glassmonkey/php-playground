@@ -32,12 +32,16 @@ function scene(marked: string, tokenType = 'identifier.php', tail = 3) {
 			endColumn: initial.column + tail,
 		}),
 	};
+	const domElements = new Map<string, object>();
 	const editor = {
 		getModel: () => model,
 		hasTextFocus: () => true,
 		getPosition: () => position,
 		getSelections: () => [{ isEmpty: () => true }],
-		getDomNode: () => ({ querySelector: (): object | null => null }),
+		getDomNode: () => ({
+			querySelector: (selector: string): object | null =>
+				domElements.get(selector) ?? null,
+		}),
 		onKeyDown: on('keyDown'),
 		onKeyUp: on('keyUp'),
 		onDidCompositionStart: on('compositionStart'),
@@ -235,10 +239,25 @@ describe('natural word-middle completion through public editor events', () => {
 				startColumn: sut.initial.column - 2,
 				endColumn: sut.initial.column,
 			});
-		if (kind === 'open widget')
+		if (kind === 'open widget') {
+			const widget = {
+				getBoundingClientRect: () => ({ width: 430, height: 20 }),
+				ownerDocument: {
+					defaultView: {
+						getComputedStyle: () => ({
+							display: 'block',
+							visibility: 'visible',
+						}),
+					},
+				},
+			};
+			const elements = new Map([['.suggest-widget', widget]]);
 			sut.editor.getDomNode = () => ({
-				querySelector: () => ({}),
+				querySelector: (selector: string) =>
+					elements.get(selector) ?? null,
 			});
+		}
+
 		// Act
 		if (kind !== 'programmatic')
 			sut.keyDown('d', kind === 'paste' ? { ctrlKey: true } : {});
@@ -330,6 +349,76 @@ describe('natural word-middle completion through public editor events', () => {
 		sut.bind();
 		// Act
 		sut.keyDown('d');
+		sut.insert('d');
+		await Promise.resolve();
+		// Assert
+		expect(sut.editor.trigger.mock.calls).toEqual([]);
+	});
+	it('suppresses natural completion inside backtick execution strings', async () => {
+		// Arrange: actual CDN0.55.1 classifies this word as identifier.php.
+		const sut = scene('<?php\n$x=`Wi|get`; echo "ok";', 'identifier.php');
+		sut.bind();
+		// Act
+		sut.keyDown('d');
+		sut.insert('d');
+		await Promise.resolve();
+		// Assert
+		expect(sut.editor.trigger.mock.calls).toEqual([]);
+	});
+	it('naturally requests PHP8 attribute code despite the CDN comment token', async () => {
+		// Arrange: actual CDN0.55.1 classifies #[ through EOL as comment.php.
+		const sut = scene('<?php\n#[Wi|get] class Example {}', 'comment.php');
+		const original = '<?php\n#[Widget] class Example {}';
+		const prepared = '<?php\n [Widget] class Example {}';
+		const observedTokens = new Map([
+			[
+				original,
+				[
+					[{ offset: 0, type: 'metatag.php', language: 'php' }],
+					[{ offset: 0, type: 'comment.php', language: 'php' }],
+				],
+			],
+			[
+				prepared,
+				[
+					[{ offset: 0, type: 'metatag.php', language: 'php' }],
+					[{ offset: 0, type: 'identifier.php', language: 'php' }],
+				],
+			],
+		]);
+		sut.tokenize.mockImplementation((text) => observedTokens.get(text)!);
+
+		sut.bind();
+		// Act
+		sut.keyDown('d');
+		sut.insert('d');
+		await Promise.resolve();
+		// Assert
+		expect(sut.editor.trigger.mock.calls).toEqual([action]);
+	});
+	it('keeps an existing pinned-CDN popup interaction even if it hides during the edit turn', async () => {
+		// Arrange: real CDN0.55.1 widget has no .visible class; its DOM box/style is visible.
+		const sut = scene('<?php\nnew Wi|get;');
+		let visible = true;
+		const widget = {
+			getBoundingClientRect: () => ({ width: 430, height: 20 }),
+			ownerDocument: {
+				defaultView: {
+					getComputedStyle: () => ({
+						display: visible ? 'block' : 'none',
+						visibility: 'visible',
+					}),
+				},
+			},
+		};
+		const elements = new Map([['.suggest-widget', widget]]);
+		sut.editor.getDomNode = () => ({
+			querySelector: (selector: string) => elements.get(selector) ?? null,
+		});
+		sut.bind();
+		// Act
+		sut.keyDown('d');
+		visible = false;
 		sut.insert('d');
 		await Promise.resolve();
 		// Assert

@@ -369,6 +369,9 @@ export class LspClient {
 										item.insertText ??
 										item.label;
 									const word =
+										requestedModel.getWordAtPosition(
+											position
+										) ??
 										requestedModel.getWordUntilPosition(
 											position
 										);
