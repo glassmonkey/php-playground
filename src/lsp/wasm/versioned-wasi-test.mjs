@@ -17,10 +17,10 @@ const reviewedDiff = manifest.source?.reviewedPhaseBDiffSha256
 assert.equal(reviewedDiff,
 	'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d');
 assert.equal(manifest.source?.appliedPhaseBPatchSha256,
-    '68b4ad9c4eac88ef754617cd102f3a01f7e40e4f74b592373e4c0007de7e5254',
+    'bd272e3d6109366d37acd32a653934149edfc4cbdece31ca42d050801455e513',
     'current applied PHPantom patch is required before WASM instantiation');
 assert.equal(manifest.source?.appliedFileManifestSha256,
-    '207ebde2179d12fda0e616437af4b6e338cac143f352ba3c022d07f2d06e8e1e',
+    '3f5935b759d4e8bfda1166aa534796e4240369aa2e9fde142c70a152dd3c3cc7',
     'current applied file manifest is required before WASM instantiation');
 assert.equal(manifest.stubs?.commit, '2049ca3cfa1feabf52db074108fe776a5713cf02');
 if (manifest.stubs?.resolvedCommitMarker) {
@@ -604,6 +604,43 @@ async function releaseDocumentStringCompletionOracle() {
     }
 }
 
+async function releaseVariableAliasOracle() {
+    const rows=(await readFile(new URL('./native-probe/tests/fixtures/variable-alias.tsv',import.meta.url),'utf8'))
+        .split('\n').filter(Boolean).map(row=>row.split('\t').map(value=>value.replaceAll('\\n','\n').replaceAll('\\r','\r')));
+    assert.equal(rows.length,36,'complete variable/alias inventory');
+    assert.equal(new Set(rows.map(row=>row[0])).size,36,'unique variable/alias cases');
+    assert.deepEqual(rows.filter(row=>row[0].startsWith('alias-version-')).map(row=>row[13]),['5.6','7.0','7.1','7.2','7.3','7.4','8.0','8.1','8.2','8.3','8.4','8.5'],'independent exact target decisions');
+    const selected=rows.filter(row=>row[0].startsWith('alias-version-')?row[13]===target:row[7]==='6'||targetAtLeast(8,0));
+    assert.equal(selected.length,targetAtLeast(8,0)?25:13);
+    const offset=(source,p)=>source.split('\n').slice(0,p.line).reduce((n,line)=>n+line.length+1,0)+p.character;
+    for (const [name,initial,source,line,character,label,identity,kind,start,end,text,wantDoc,, ,present] of selected) {
+        await freshEngine();const uri='inmemory://model/1';open(uri,initial);
+        notify('textDocument/didChange',{textDocument:{uri,version:2},contentChanges:[{text:source}]});
+        const position={line:Number(line),character:Number(character)};
+        for (const warm of [false,true]) {
+            const response=request('textDocument/completion',{textDocument:{uri},position});
+            const items=completionItems(response);const item=items.find(value=>value.label===label&&value.kind===Number(kind)&&(kind==='6'||value.data?.m===identity));
+            let resolved,accepted;
+            if (present==='0') {
+                check(`${target} variable/alias negative ${name} warm=${warm}`,item===undefined,{response});
+            } else {
+                assert.ok(item,`${target} ${name} selected ${identity}`);
+                resolved=request('completionItem/resolve',item).result;
+                const primary=item.textEdit;assert.ok(primary?.range,'plain explicit edit');
+                const expectedRange={start:{line:Number(line),character:Number(start)},end:{line:Number(line),character:Number(end)}};
+                assert.deepEqual(primary,{range:expectedRange,newText:text},`${name} full primary payload`);
+                assert.deepEqual(item.additionalTextEdits??[],[],`${name} full additional payload`);
+                assert.equal(item.insertTextFormat,text.includes('$0')?2:undefined,`${name} snippet contract`);
+                assert.equal(item.filterText,text.startsWith('\\')?text:label,`${name} visible alias spelling`);
+                const edits=[primary,...(item.additionalTextEdits??[])].map(edit=>({start:offset(source,edit.range.start),end:offset(source,edit.range.end),text:item.insertTextFormat===2?edit.newText.replaceAll('$0',''):edit.newText})).sort((a,b)=>b.start-a.start);
+                accepted=source;for(const edit of edits)accepted=accepted.slice(0,edit.start)+edit.text+accepted.slice(edit.end);
+                check(`${target} variable/alias document ${name} warm=${warm}`,accepted===wantDoc&&(kind==='6'||resolved.data?.m===identity),{item,resolved,accepted,wantDoc});
+            }
+            console.log(`VARIABLE_ALIAS_RESPONSE ${JSON.stringify({target,name,warm,source,position,response,item,resolved,accepted})}`);
+        }
+    }
+}
+
 async function releaseSharedConstantDeclarations() {
     for (const symbol of ['PHP_SBINDIR','PHP_OUTPUT_HANDLER_PROCESSED']) {
         await freshEngine();
@@ -639,6 +676,7 @@ await releaseImportRenameOracle();
 await releaseAttributeDocOracle();
 await releaseOpaqueAttributeDocOracle();
 await releaseDocumentStringCompletionOracle();
+await releaseVariableAliasOracle();
 console.log(JSON.stringify({
 	target,
 	artifactSha256: actualSha,

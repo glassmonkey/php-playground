@@ -2287,16 +2287,6 @@ diff --git a/src/completion/handler/named_args.rs b/src/completion/handler/named
          // ── Primary path: AST-based detection via symbol map ────────
          // The symbol map's `CallSite` data handles chains, nesting,
          // and strings correctly.  Fall back to text scanning when the
-diff --git a/src/completion/mod.rs b/src/completion/mod.rs
---- a/src/completion/mod.rs
-+++ b/src/completion/mod.rs
-@@ -109,5 +109,6 @@
- // context/
- pub(crate) use context::catch_completion;
- pub(crate) use context::class_completion;
-+pub(crate) use context::import_context;
- pub(crate) use context::keyword_completion;
- pub(crate) use context::type_hint_completion;
 diff --git a/src/completion/resolve.rs b/src/completion/resolve.rs
 --- a/src/completion/resolve.rs
 +++ b/src/completion/resolve.rs
@@ -3882,3 +3872,282 @@ diff --git a/src/completion/source/comment_position.rs b/src/completion/source/c
                      }
                      // Not the closing label — the whitespace scanned past
                      // above is part of the body, so no rewind is needed.
+diff --git a/src/completion/mod.rs b/src/completion/mod.rs
+--- a/src/completion/mod.rs
++++ b/src/completion/mod.rs
+@@ -109,5 +109,43 @@
+ // context/
+ pub(crate) use context::catch_completion;
+ pub(crate) use context::class_completion;
++pub(crate) use context::import_context;
+ pub(crate) use context::keyword_completion;
+ pub(crate) use context::type_hint_completion;
++
++/// PHP identifier continuation characters (PHP permits every non-ASCII byte).
++pub(crate) fn is_php_name_char(ch: char) -> bool {
++    ch.is_ascii_alphanumeric() || ch == '_' || !ch.is_ascii()
++}
++
++/// Replace the exact written prefix and its lexical suffix, at a valid UTF-16
++/// cursor. A stale prefix or a cursor inside a surrogate pair cannot edit text.
++pub(crate) fn name_replacement_range(
++    content: &str,
++    position: tower_lsp_server::gen_lsp_types::Position,
++    prefix: &str,
++    accepts: impl Fn(char) -> bool,
++) -> Option<tower_lsp_server::gen_lsp_types::Range> {
++    let cursor = crate::text_position::position_to_byte_offset(content, position);
++    if crate::text_position::offset_to_position(content, cursor) != position {
++        return None;
++    }
++    let start = cursor.checked_sub(prefix.len())?;
++    if content.get(start..cursor)? != prefix {
++        return None;
++    }
++    let start_position = crate::text_position::offset_to_position(content, start);
++    if start_position.line != position.line {
++        return None;
++    }
++    let suffix_bytes = content
++        .get(cursor..)?
++        .chars()
++        .take_while(|&ch| accepts(ch))
++        .map(char::len_utf8)
++        .sum::<usize>();
++    Some(tower_lsp_server::gen_lsp_types::Range {
++        start: start_position,
++        end: crate::text_position::offset_to_position(content, cursor + suffix_bytes),
++    })
++}
+diff --git a/src/completion/variable/completion.rs b/src/completion/variable/completion.rs
+--- a/src/completion/variable/completion.rs
++++ b/src/completion/variable/completion.rs
+@@ -67,7 +67,7 @@
+ 
+         // Walk backwards through identifier characters
+         let mut i = col;
+-        while i > 0 && (chars[i - 1].is_alphanumeric() || chars[i - 1] == '_') {
++        while i > 0 && (crate::completion::is_php_name_char(chars[i - 1])) {
+             i -= 1;
+         }
+ 
+@@ -128,17 +128,15 @@
+ 
+         let cursor_offset = position_to_byte_offset(content, position) as u32;
+ 
+-        // Compute the replacement range: from the start of the `$` prefix
+-        // to the cursor position.  Using `text_edit` with an explicit range
+-        // prevents the double-dollar problem in editors (Helix, Neovim)
+-        // that don't consider `$` part of a word boundary.
+-        let prefix_utf16_len = prefix.encode_utf16().count() as u32;
+-        let replace_range = Range {
+-            start: Position {
+-                line: position.line,
+-                character: position.character.saturating_sub(prefix_utf16_len),
+-            },
+-            end: position,
++        // The producer owns the full variable token, including a suffix after
++        // the cursor. Keep `$` in the edit and reject stale/invalid coordinates.
++        let Some(replace_range) = crate::completion::name_replacement_range(
++            content,
++            position,
++            prefix,
++            crate::completion::is_php_name_char,
++        ) else {
++            return (Vec::new(), false);
+         };
+ 
+         // ── 1. SymbolMap-based scope-aware variable collection ────────
+diff --git a/src/completion/context/class_completion/mod.rs b/src/completion/context/class_completion/mod.rs
+--- a/src/completion/context/class_completion/mod.rs
++++ b/src/completion/context/class_completion/mod.rs
+@@ -126,9 +126,7 @@
+ 
+         // Walk backwards through identifier characters (including `\`)
+         let mut i = col;
+-        while i > 0
+-            && (chars[i - 1].is_alphanumeric() || chars[i - 1] == '_' || chars[i - 1] == '\\')
+-        {
++        while i > 0 && (crate::completion::is_php_name_char(chars[i - 1]) || chars[i - 1] == '\\') {
+             i -= 1;
+         }
+ 
+@@ -197,14 +195,17 @@
+         } = params;
+         let is_new = context.is_new();
+         let is_attribute = context.is_attribute();
++        if is_attribute && self.php_version().major < 8 {
++            return (Vec::new(), false);
++        }
+         let is_use_import = matches!(context, ClassNameContext::UseImport);
+         // In FQN mode (except UseImport), try to shorten references
+         // using the file's existing `use` imports.  E.g. if the user
+         // has `use Cassandra\Exception;`, typing `Exception\Al` should
+         // insert `Exception\AlreadyExistsException` rather than the
+         // full FQN.
+-        let should_shorten_via_imports = !is_use_import;
+         let has_leading_backslash = prefix.starts_with('\\');
++        let should_shorten_via_imports = !is_use_import && !has_leading_backslash;
+         let normalized = strip_fqn_prefix(prefix);
+         let prefix_lower = normalized.to_lowercase();
+         // In UseImport context, always treat the prefix as FQN so that
+@@ -236,19 +237,19 @@
+         // `\` as a word boundary and only replace the text after the
+         // last `\`.  Provide an explicit replacement range covering the
+         // entire typed prefix so the editor replaces it in full.
+-        let fqn_replace_range = if is_fqn_prefix {
+-            Some(Range {
+-                start: Position {
+-                    line: position.line,
+-                    character: position
+-                        .character
+-                        .saturating_sub(prefix.chars().count() as u32),
+-                },
+-                end: position,
+-            })
+-        } else {
+-            None
++        // Group-import search prefixes include a namespace not written at the
++        // cursor; its structured import context owns the actual item range.
++        let fqn_replace_range = if is_use_import {
++            crate::completion::import_context::detect_import_context(content, position)
++                .map(|import| import.range)
++        } else {
++            crate::completion::name_replacement_range(content, position, prefix, |ch| {
++                crate::completion::is_php_name_char(ch) || ch == '\\'
++            })
+         };
++        if fqn_replace_range.is_none() {
++            return (Vec::new(), false);
++        }
+         let mut seen_fqns: HashSet<String> = HashSet::new();
+         let mut items: Vec<CompletionItem> = Vec::new();
+ 
+@@ -294,6 +295,7 @@
+             file_namespace: effective_namespace,
+             affinity_table,
+             quality_prefix,
++            written_prefix_lower: prefix_lower.clone(),
+             prefix_has_namespace,
+             uri,
+         };
+@@ -377,7 +379,12 @@
+             .collect();
+         for fqn in &fqn_keys {
+             let sn = short_name(fqn);
+-            if !matches_class_prefix(sn, fqn, &prefix_lower, is_fqn_prefix, expanded_prefix_lower) {
++            let import_matches = should_shorten_via_imports
++                && items::shorten_fqn_via_use_map(fqn, file_use_map, &prefix_lower)
++                    .is_some_and(|name| name.to_lowercase().contains(&prefix_lower));
++            if !matches_class_prefix(sn, fqn, &prefix_lower, is_fqn_prefix, expanded_prefix_lower)
++                && !import_matches
++            {
+                 continue;
+             }
+             if !seen_fqns.insert(fqn.clone()) {
+@@ -411,7 +418,12 @@
+         let stub_keys: Vec<String> = self.stub_index.read().keys().map(str::to_owned).collect();
+         for fqn in &stub_keys {
+             let sn = short_name(fqn);
+-            if !matches_class_prefix(sn, fqn, &prefix_lower, is_fqn_prefix, expanded_prefix_lower) {
++            let import_matches = should_shorten_via_imports
++                && items::shorten_fqn_via_use_map(fqn, file_use_map, &prefix_lower)
++                    .is_some_and(|name| name.to_lowercase().contains(&prefix_lower));
++            if !matches_class_prefix(sn, fqn, &prefix_lower, is_fqn_prefix, expanded_prefix_lower)
++                && !import_matches
++            {
+                 continue;
+             }
+             if !seen_fqns.insert(fqn.to_string()) {
+diff --git a/src/completion/context/class_completion/items.rs b/src/completion/context/class_completion/items.rs
+--- a/src/completion/context/class_completion/items.rs
++++ b/src/completion/context/class_completion/items.rs
+@@ -25,24 +25,30 @@
+ pub(super) fn shorten_fqn_via_use_map(
+     fqn: &str,
+     use_map: &HashMap<String, String>,
++    written_prefix_lower: &str,
+ ) -> Option<String> {
+-    let mut best: Option<String> = None;
+-    for (alias, import_fqn) in use_map {
+-        let shortened = if fqn == import_fqn {
+-            // Exact match: the full FQN is directly imported.
+-            Some(alias.clone())
+-        } else {
+-            // Prefix match: a parent namespace is imported.
+-            fqn.strip_prefix(&format!("{}\\", import_fqn))
+-                .map(|suffix| format!("{}\\{}", alias, suffix))
+-        };
+-        if let Some(ref s) = shortened
+-            && best.as_ref().is_none_or(|b| s.len() < b.len())
+-        {
+-            best = shortened;
+-        }
+-    }
+-    best
++    use_map
++        .iter()
++        .filter_map(|(alias, import_fqn)| {
++            if fqn.eq_ignore_ascii_case(import_fqn) {
++                Some(alias.clone())
++            } else if fqn
++                .get(..import_fqn.len())
++                .is_some_and(|prefix| prefix.eq_ignore_ascii_case(import_fqn))
++                && fqn.as_bytes().get(import_fqn.len()) == Some(&b'\\')
++            {
++                Some(format!("{}\\{}", alias, &fqn[import_fqn.len() + 1..]))
++            } else {
++                None
++            }
++        })
++        .min_by_key(|name| {
++            (
++                !name.to_lowercase().contains(written_prefix_lower),
++                name.len(),
++                name.clone(),
++            )
++        })
+ }
+ 
+ /// Compute the insert-text base, filter-text, and optional use-import
+@@ -134,6 +140,7 @@
+     /// The short-name portion of the typed prefix, used for match quality
+     /// classification (e.g. `"Order"` from `"Illuminate\\Database\\Order"`).
+     pub(in crate::completion) quality_prefix: String,
++    pub(in crate::completion) written_prefix_lower: String,
+     /// Whether the typed prefix contains a `\` (after stripping a leading
+     /// `\`).  When false in FQN mode (e.g. `use Order` rather than
+     /// `use Illuminate\Order`), `build_item` uses the short name as
+@@ -171,7 +178,8 @@
+         );
+         let mut was_shortened = false;
+         if self.shorten_via_imports
+-            && let Some(shortened) = shorten_fqn_via_use_map(fqn, self.file_use_map)
++            && let Some(shortened) =
++                shorten_fqn_via_use_map(fqn, self.file_use_map, &self.written_prefix_lower)
+         {
+             base_name = shortened;
+             use_import = None;
+@@ -306,7 +314,21 @@
+         //
+         // so users can distinguish same-named classes without the
+         // label being a long FQN that the editor truncates.
+-        let (label, filter_text, label_details) = if self.prefix_has_namespace {
++        let imported_name = self
++            .shorten_via_imports
++            .then(|| shorten_fqn_via_use_map(fqn, self.file_use_map, &self.written_prefix_lower))
++            .flatten()
++            .filter(|name| name.to_lowercase().contains(&self.written_prefix_lower));
++        let (label, filter_text, label_details) = if let Some(name) = imported_name {
++            (
++                name.clone(),
++                name,
++                Some(CompletionItemLabelDetails {
++                    detail: None,
++                    description: Some(fqn.to_string()),
++                }),
++            )
++        } else if self.prefix_has_namespace {
+             (fqn.to_string(), texts.filter, None)
+         } else {
+             let ns = fqn.rsplit_once('\\').map(|(ns, _)| ns.to_string());
