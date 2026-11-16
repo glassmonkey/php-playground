@@ -1,5 +1,5 @@
 {
-  "completePatchSha256": "c0326a26b6ae764776004367df665f4d977a9f6f134bfbcd9392a8eaeb2701a0",
+  "completePatchSha256": "d4827ea50e55151f0b7deacacaa618e67fc8509a7a2216d56bb399c910840fb8",
   "fileCount": 48,
   "files": [
     {
@@ -32,7 +32,7 @@
     },
     {
       "path": "src/completion/context/constant_completion.rs",
-      "sha256": "c5d4a387e8f3f8d6823f5c59e0c2bba5f5c1d250ef3ddb124fc593ccb62817d0"
+      "sha256": "0bc5e7ee99b4f86f4a896cfbbcbdc4072f16ed42fc305064f1421210c12e397e"
     },
     {
       "path": "src/completion/context/function_completion.rs",
@@ -64,7 +64,7 @@
     },
     {
       "path": "src/completion/handler/class_constant.rs",
-      "sha256": "7856ca51f6940da804d6fb30e71b6e8ca944ec23d0f8404cf3afdbb581b462ed"
+      "sha256": "d625850d799cec868a06205cd39c785097709dd4fd582999b165d6e97ffe69f4"
     },
     {
       "path": "src/completion/handler/member_access.rs",

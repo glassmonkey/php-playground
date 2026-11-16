@@ -24,3 +24,30 @@ function validate(source,item,expected) {
 export function validateVariableAliasPair(source,initial,resolved,expected) {
     return {initial:validate(source,initial,expected),resolved:validate(source,resolved,expected)};
 }
+
+// Release edit contracts compare both public payloads to independent source
+// expectations. Identity alone cannot establish executable binding.
+export function validateSelectedCompletionPair(source, initial, resolved, expected) {
+    function accepted(item) {
+        for (const key of ['label', 'kind', 'filterText', 'insertText', 'insertTextFormat', 'data']) {
+            assert.deepEqual(item[key], expected[key], `selected completion ${key}`);
+        }
+        for (const key of ['insertTextMode', 'textEditText', 'command']) {
+            assert.equal(item[key], undefined, `unexpected ${key}`);
+        }
+        assert.deepEqual(item.textEdit, expected.textEdit, 'complete primary edit');
+        assert.deepEqual(item.additionalTextEdits ?? [], expected.additionalTextEdits ?? [], 'all additional edits');
+        const edits = [item.textEdit, ...(item.additionalTextEdits ?? [])]
+            .map(edit => ({ start: offset(source, edit.range.start), end: offset(source, edit.range.end), text: edit.newText }))
+            .sort((a, b) => b.start - a.start);
+        let document = source, previous = source.length;
+        for (const edit of edits) {
+            assert.ok(edit.start <= edit.end && edit.end <= previous, 'nonoverlapping full edits');
+            document = document.slice(0, edit.start) + edit.text + document.slice(edit.end);
+            previous = edit.start;
+        }
+        assert.equal(document, expected.document, 'independent accepted document');
+        return document;
+    }
+    return { initial: accepted(initial), resolved: accepted(resolved) };
+}

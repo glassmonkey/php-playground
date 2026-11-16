@@ -1,4 +1,4 @@
-import {validateVariableAliasPair} from './completion-contract.mjs';
+import {validateVariableAliasPair, validateSelectedCompletionPair} from './completion-contract.mjs';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
@@ -18,10 +18,10 @@ const reviewedDiff = manifest.source?.reviewedPhaseBDiffSha256
 assert.equal(reviewedDiff,
 	'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d');
 assert.equal(manifest.source?.appliedPhaseBPatchSha256,
-    'c0326a26b6ae764776004367df665f4d977a9f6f134bfbcd9392a8eaeb2701a0',
+    'd4827ea50e55151f0b7deacacaa618e67fc8509a7a2216d56bb399c910840fb8',
     'current applied PHPantom patch is required before WASM instantiation');
 assert.equal(manifest.source?.appliedFileManifestSha256,
-    'f991d183af4f57899e507fab93bf67cd622cc9212d17c98e5803aac9b1c588d0',
+    '9e26a92855e15a76a4ff6f624ff448d1cf1708e7d3634a1d410951604eca38c3',
     'current applied file manifest is required before WASM instantiation');
 assert.equal(manifest.stubs?.commit, '2049ca3cfa1feabf52db074108fe776a5713cf02');
 if (manifest.stubs?.resolvedCommitMarker) {
@@ -605,6 +605,142 @@ async function releaseDocumentStringCompletionOracle() {
     }
 }
 
+
+async function releaseConstantBindingOracle() {
+    const decode = value => value.replace(/\\(.)/gs, (_, ch) => {
+        assert.ok(['\\','n','r','t'].includes(ch), 'known independent fixture escape');
+        return ({'\\':'\\',n:'\n',r:'\r',t:'\t'})[ch];
+    });
+    const rows = (await readFile(new URL('./native-probe/tests/fixtures/constant-scope.tsv', import.meta.url), 'utf8'))
+        .trimEnd().split('\n').map(row => row.split('\t').map(decode));
+    assert.equal(rows.length, 16); assert.equal(new Set(rows.map(row => row[0])).size, 16);
+    for (const row of rows) {
+        assert.equal(row.length, 16);
+        const [name,source,,identity,text,filter,format,document,,minimum,,line,start,end,cursors] = row;
+        const [major,minor] = minimum.split('.').map(Number);
+        if (!targetAtLeast(major,minor)) continue;
+        for (const cursor of cursors.split(',').map(Number)) {
+            await freshEngine(); const uri='file:///release/constant-contract.php'; open(uri,'<?php const STALE=99;');
+            notify('textDocument/didChange',{textDocument:{uri,version:2},contentChanges:[{text:source}]});
+            const position={line:Number(line),character:Number(start)+cursor};
+            for (const warm of [false,true]) {
+                const response=request('textDocument/completion',{textDocument:{uri},position});
+                const item=completionItems(response).find(value=>value.kind===21&&value.data?.m===identity);
+                assert.ok(item,`${target} ${name} selected constant ${identity}`);
+                const resolved=request('completionItem/resolve',item).result;
+                const expected={label:identity,kind:21,filterText:filter,insertText:text,insertTextFormat:format==='none'?undefined:1,
+                    data:{c:'',m:identity,k:'global_constant',u:uri},textEdit:{range:{start:{line:Number(line),character:Number(start)},end:{line:Number(line),character:Number(end)}},newText:text},document};
+                const documents=validateSelectedCompletionPair(source,item,resolved,expected);
+                check(`${target} constant full-edit ${name} cursor=${cursor} warm=${warm}`,documents.initial===document&&documents.resolved===document,{item,resolved,documents});
+                console.log(`CONSTANT_EDIT_RESPONSE ${JSON.stringify({target,name,cursor,warm,source,position,item,resolved,documents})}`);
+            }
+        }
+    }
+    for (const identity of ['E_ERROR','PHP_SBINDIR','PHP_OUTPUT_HANDLER_PROCESSED']) {
+        const source=`<?php namespace App {const ${identity}=99; echo \\${identity};}`;
+        const start=source.lastIndexOf(`\\${identity}`),end=start+identity.length+1;
+        for (const cursor of [0,3,identity.length+1]) {
+            await freshEngine(); const uri='file:///release/builtin-constant-contract.php';open(uri,source);
+            for (const warm of [false,true]) {
+                const response=request('textDocument/completion',{textDocument:{uri},position:{line:0,character:start+cursor}});
+                const items=completionItems(response);const item=items.find(value=>value.kind===21&&value.data?.m===identity);
+                if(identity!=='E_ERROR'&&!targetAtLeast(8,4)) {check(`${target} unavailable constant ${identity} cursor=${cursor} warm=${warm}`,item===undefined,{response});continue;}
+                assert.ok(item,`${target} existing builtin ${identity}`);const resolved=request('completionItem/resolve',item).result;
+                const expected={label:identity,kind:21,filterText:identity,insertText:`\\${identity}`,data:{c:'',m:identity,k:'global_constant',u:uri},textEdit:{range:{start:{line:0,character:start},end:{line:0,character:end}},newText:`\\${identity}`},document:source};
+                const documents=validateSelectedCompletionPair(source,item,resolved,expected);
+                check(`${target} builtin constant full-edit ${identity} cursor=${cursor} warm=${warm}`,documents.initial===source&&documents.resolved===source,{item,resolved,documents});
+                console.log(`BUILTIN_CONSTANT_EDIT_RESPONSE ${JSON.stringify({target,identity,cursor,warm,source,item,resolved,documents})}`);
+            }
+        }
+    }
+}
+
+
+async function releaseConstantCapOracle() {
+    let declaration='<?php namespace Vendor {';
+    for(let n=0;n<120;n++)declaration+=`const A${String(n).padStart(3,'0')}=0;`;
+    declaration+='const ZzzTOKEN=7; const ZzzToken=99;}';
+    const cases=[
+        ['absolute','namespace Caller {echo \\Vendor\\ZzzTOKEN;}','\\Vendor\\ZzzTOKEN','\\Vendor\\ZzzTOKEN','Vendor\\ZzzTOKEN','Vendor\\ZzzTOKEN',undefined],
+        ['namespace-alias','namespace Caller {use Vendor as V; echo V\\ZzzTOKEN;}','V\\ZzzTOKEN','V\\ZzzTOKEN','Vendor\\ZzzTOKEN','V\\ZzzTOKEN',undefined],
+        ['const-alias','namespace Caller {use const Vendor\\ZzzTOKEN as PICK; echo PICK;}','PICK','PICK','Vendor\\ZzzTOKEN','PICK',undefined],
+        ['ordinary-import','namespace Caller {use const Vendor\\ZzzTOKEN;}','Vendor\\ZzzTOKEN','Vendor\\ZzzTOKEN','Vendor\\ZzzTOKEN','Vendor\\ZzzTOKEN',1],
+        ['case-distinct','namespace Caller {echo \\Vendor\\ZzzToken;}','\\Vendor\\ZzzToken','\\Vendor\\ZzzToken','Vendor\\ZzzToken','Vendor\\ZzzToken',undefined],
+    ];
+    if(targetAtLeast(7,0))cases.push(['mixed-group','namespace Caller {use Vendor\\{function work, const ZzzTOKEN};}','ZzzTOKEN','ZzzTOKEN','Vendor\\ZzzTOKEN','ZzzTOKEN',1]);
+    for(const [name,tail,token,text,identity,filter,format] of cases){
+        const source=declaration+tail,start=source.lastIndexOf(token),end=start+token.length;
+        for(const cursor of [0,3,token.length]){
+            await freshEngine();const uri='file:///release/constant-cap.php';open(uri,'<?php namespace Wrong; const STALE=99;');
+            notify('textDocument/didChange',{textDocument:{uri,version:2},contentChanges:[{text:source}]});
+            for(const warm of [false,true]){
+                const response=request('textDocument/completion',{textDocument:{uri},position:{line:0,character:start+cursor}}),items=completionItems(response);
+                const constantCount=items.filter(item=>item.kind===21).length;
+                assert.ok(constantCount<=100,'constant producer cap, not whole completion response');
+                if(cursor===0){assert.equal(constantCount,100);assert.equal(response.result.isIncomplete,true);}
+                assert.ok(!items.some(item=>item.data?.m==='Wrong\\STALE'),'didChange discards stale identity');
+                const selected=items.filter(item=>item.kind===21&&item.data?.m===identity);assert.equal(selected.length,1,'eligible exact constant retained once');
+                const item=selected[0],resolved=request('completionItem/resolve',item).result;
+                const expected={label:identity,kind:21,filterText:filter,insertText:text,insertTextFormat:format,data:{c:'',m:identity,k:'global_constant',u:uri},textEdit:{range:{start:{line:0,character:start},end:{line:0,character:end}},newText:text},document:source};
+                const documents=validateSelectedCompletionPair(source,item,resolved,expected);
+                check(`${target} constant cap ${name} cursor=${cursor} warm=${warm}`,documents.initial===source&&documents.resolved===source,{item,resolved,documents,constantCount});
+                console.log(`CONSTANT_CAP_EDIT_RESPONSE ${JSON.stringify({target,name,cursor,warm,source,item,resolved,documents,constantCount,nonconstantCount:items.length-constantCount})}`);
+            }
+        }
+    }
+}
+
+async function releaseFullWordCallAndQNameOracle() {
+    const functions=[
+        {name:'fullword-unicode',definition:'<?php namespace Probe; function tar𐐀get(): string {return "user";}',source:'<?php\nnamespace Probe;\n/* 🌟 */ tar𐐀get /* keep */ ();',token:'tar𐐀get',identity:'Probe\\tar𐐀get',text:'tar𐐀get',label:'tar𐐀get()',filter:'tar𐐀get'},
+        {name:'absolute-global-call',definition:'<?php namespace App; function abs($local): int {return 99;}',source:'<?php\nnamespace App;\n\\abs(-7);',token:'\\abs',identity:'abs',text:'\\abs',label:'abs',filter:'abs'},
+        {name:'aliased-call',definition:'<?php namespace Vendor; function chosen(): string {return "vendor";}',source:'<?php\nnamespace Consumer;\nuse function Vendor\\chosen as picked;\n\\Vendor\\chosen();',token:'\\Vendor\\chosen',identity:'Vendor\\chosen',text:'picked',label:'chosen()',filter:'chosen'},
+    ];
+    // Scalar return syntax is not supported before PHP7; retain a syntax-valid
+    // independent declaration there without changing call or binding expectations.
+    for(const fixture of functions){
+        const definition=targetAtLeast(7,0)?fixture.definition:fixture.definition.replace(/: (string|int)/g,'');
+        const at=fixture.source.lastIndexOf(fixture.token),before=fixture.source.slice(0,at).split('\n'),line=before.length-1,start=before.at(-1).length,end=start+fixture.token.length;
+        const document=fixture.source.slice(0,at)+fixture.text+fixture.source.slice(at+fixture.token.length);
+        for(const cursor of [0,3,fixture.token.length]){
+            await freshEngine();open('file:///release/fullword-definition.php',definition);const uri='file:///release/fullword-consumer.php';open(uri,fixture.source);
+            for(const warm of [false,true]){
+                const response=request('textDocument/completion',{textDocument:{uri},position:{line,character:start+cursor}});
+                const item=completionItems(response).find(value=>value.kind===3&&value.data?.m===fixture.identity);assert.ok(item,`${target} ${fixture.name} selected FQN`);
+                const resolved=request('completionItem/resolve',item).result;
+                const expected={label:fixture.label,kind:3,filterText:fixture.filter,insertText:fixture.text,data:{c:'',m:fixture.identity,k:'function',u:uri},textEdit:{range:{start:{line,character:start},end:{line,character:end}},newText:fixture.text},document};
+                const documents=validateSelectedCompletionPair(fixture.source,item,resolved,expected);
+                check(`${target} ${fixture.name} initial/resolved cursor=${cursor} warm=${warm}`,documents.initial===document&&documents.resolved===document,{item,resolved,documents});
+                console.log(`CALL_EDIT_RESPONSE ${JSON.stringify({target,name:fixture.name,cursor,warm,source:fixture.source,item,resolved,documents})}`);
+            }
+        }
+    }
+    let definition='<?php namespace Vendor;\n';for(let n=0;n<120;n++)definition+=`class A${String(n).padStart(3,'0')} {}\n`;definition+='class ZzzTarget {}';
+    const cases=[
+        ['ordinary-import','<?php\nnamespace Caller;\nuse Vendor\\ZzzTarget;','Vendor\\ZzzTarget','Vendor\\ZzzTarget','Vendor\\ZzzTarget',1],
+        ['absolute-new','<?php\nnamespace Caller;\nnew \\Vendor\\ZzzTarget();','\\Vendor\\ZzzTarget','\\Vendor\\ZzzTarget','Vendor\\ZzzTarget',undefined],
+        ['namespace-alias','<?php\nnamespace Caller;\nuse Vendor as Alias;\nnew Alias\\ZzzTarget();','Alias\\ZzzTarget','Alias\\ZzzTarget','Alias\\ZzzTarget',undefined],
+    ];
+    if(targetAtLeast(7,0))cases.push(['group-import','<?php\nnamespace Caller;\nuse Vendor\\{ZzzTarget};','ZzzTarget','ZzzTarget','Vendor\\ZzzTarget',1]);
+    for(const [name,source,token,text,label,format] of cases){
+        const at=source.lastIndexOf(token),before=source.slice(0,at).split('\n'),line=before.length-1,start=before.at(-1).length,end=start+token.length;
+        for(const cursor of [...new Set([0,token.lastIndexOf('\\')+1,token.length])]){
+            await freshEngine();open('file:///release/qname-definition.php',definition);const uri='file:///release/qname-consumer.php';open(uri,source);
+            for(const warm of [false,true]){
+                const response=request('textDocument/completion',{textDocument:{uri},position:{line,character:start+cursor}});const items=completionItems(response);
+                const classCount=items.filter(value=>value.kind===7).length;assert.ok(classCount<=100,'class producer cap');
+                if(name==='ordinary-import'&&cursor===0){assert.equal(classCount,100);assert.equal(response.result.isIncomplete,true);}
+                const selected=items.filter(value=>value.kind===7&&value.data?.m==='Vendor\\ZzzTarget');assert.equal(selected.length,1,'bounded exact QName retained once');
+                const item=selected[0],resolved=request('completionItem/resolve',item).result;
+                const expected={label,kind:7,filterText:text,insertText:text,insertTextFormat:format,data:{c:'',m:'Vendor\\ZzzTarget',k:'class',u:uri},textEdit:{range:{start:{line,character:start},end:{line,character:end}},newText:text},document:source};
+                const documents=validateSelectedCompletionPair(source,item,resolved,expected);
+                check(`${target} QName cap ${name} cursor=${cursor} warm=${warm}`,documents.initial===source&&documents.resolved===source,{item,resolved,documents,classCount});
+                console.log(`QNAME_EDIT_RESPONSE ${JSON.stringify({target,name,cursor,warm,source,item,resolved,documents,classCount})}`);
+            }
+        }
+    }
+}
+
 async function releaseVariableAliasOracle() {
     const rows=(await readFile(new URL('./native-probe/tests/fixtures/variable-alias.tsv',import.meta.url),'utf8'))
         .split('\n').filter(Boolean).map(row=>row.split('\t').map(value=>value.replaceAll('\\n','\n').replaceAll('\\r','\r')));
@@ -720,6 +856,9 @@ await releaseAttributeDocOracle();
 await releaseOpaqueAttributeDocOracle();
 await releaseDocumentStringCompletionOracle();
 await releaseVariableAliasOracle();
+await releaseConstantBindingOracle();
+await releaseConstantCapOracle();
+await releaseFullWordCallAndQNameOracle();
 await releaseBoundaryInterpolationOracle();
 console.log(JSON.stringify({
 	target,

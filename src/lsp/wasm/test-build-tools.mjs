@@ -1,3 +1,4 @@
+import { validateSelectedCompletionPair } from './completion-contract.mjs';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { mkdtempSync, writeFileSync, readFileSync, mkdirSync, rmSync } from 'node:fs';
@@ -145,3 +146,26 @@ for (const [field, expectedMessage, current, historical] of [
         });
     }
 }
+
+
+test('selected completion oracle rejects initial/resolved edit-only mutations', () => {
+    const source = '<?php namespace App; echo \\TOKEN;';
+    const expected = {
+        label: 'TOKEN', kind: 21, filterText: 'TOKEN', insertText: '\\TOKEN',
+        data: {c: '', m: 'TOKEN', k: 'global_constant', u: 'file:///oracle.php'},
+        textEdit: {range: {start: {line: 0, character: 26}, end: {line: 0, character: 32}}, newText: '\\TOKEN'},
+        additionalTextEdits: [], document: source,
+    };
+    const item = structuredClone(expected); delete item.document;
+    assert.deepEqual(validateSelectedCompletionPair(source, item, item, expected), {initial: source, resolved: source});
+    for (const stage of ['initial', 'resolved']) {
+        for (const mutation of ['newText', 'range', 'additional']) {
+            const changed = structuredClone(item);
+            if (mutation === 'newText') changed.textEdit.newText = 'TOKEN';
+            if (mutation === 'range') changed.textEdit.range.end.character -= 1;
+            if (mutation === 'additional') changed.additionalTextEdits = [{range: {start: {line: 0, character: 0}, end: {line: 0, character: 0}}, newText: '/* unexpected */'}];
+            assert.deepEqual(changed.data, item.data);
+            assert.throws(() => validateSelectedCompletionPair(source, stage === 'initial' ? changed : item, stage === 'resolved' ? changed : item, expected), {name: 'AssertionError'});
+        }
+    }
+});

@@ -1,0 +1,3 @@
+global-control	GLOBAL_TOKEN	<?php const GLOBAL_TOKEN=7; echo \\GLOBAL_TOKEN;
+namespace-collision	GLOBAL_TOKEN	<?php namespace { const GLOBAL_TOKEN=7; } namespace App { const GLOBAL_TOKEN=99; echo \\GLOBAL_TOKEN; }
+qualified-collision	Vendor\\TOKEN	<?php namespace Vendor { const TOKEN=7; } namespace App\\Vendor { const TOKEN=99; } namespace App { echo \\Vendor\\TOKEN; }
