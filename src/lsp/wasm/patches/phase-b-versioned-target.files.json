@@ -1,6 +1,6 @@
 {
-  "completePatchSha256": "d4827ea50e55151f0b7deacacaa618e67fc8509a7a2216d56bb399c910840fb8",
-  "fileCount": 48,
+  "completePatchSha256": "271b60cc7bc2c50beea441b30bf587fd624f06640939d205cc2a91d201932d61",
+  "fileCount": 58,
   "files": [
     {
       "path": "build.rs",
@@ -17,6 +17,18 @@
     {
       "path": "src/backend/settings.rs",
       "sha256": "e62fe48083bfc15807d8cdb39652e4012c8d5fdd4bfc51ada3615d83d7727217"
+    },
+    {
+      "path": "src/completion/array_shape.rs",
+      "sha256": "091405b8f160fff47001ba935a71eeaa549d4d3a3130bbbdb673c8fe6caa2504"
+    },
+    {
+      "path": "src/completion/array_shape_tests.rs",
+      "sha256": "5529f8fd90f7be0cda4ccc4db4ccb0c32cf9f8e01068c517e6db07f9b2d4f3ba"
+    },
+    {
+      "path": "src/completion/context/class_completion/attributes.rs",
+      "sha256": "a0638f978c72b03f1c9cf6f49e0cb338a6d56646c7a57654330751cf9edc9487"
     },
     {
       "path": "src/completion/context/class_completion/context_detect.rs",
@@ -79,8 +91,32 @@
       "sha256": "b4df932d5a269691c659b505733fb8d46dc2fd94fcdc4a4876cbe989dc17586e"
     },
     {
+      "path": "src/completion/handler/patching.rs",
+      "sha256": "fc31146b16d5dd4b66ed02632e37c7eaf9551bee59e6b4dcf498366a0193cb80"
+    },
+    {
+      "path": "src/completion/handler/phpdoc.rs",
+      "sha256": "75834161987408b0e1a4387cb4fb711a26da10674705887233258558ba1f8419"
+    },
+    {
       "path": "src/completion/mod.rs",
       "sha256": "f37019a93f0a7f188a631454cb59afb3a6cacfefd7b41fffc229823147eb1864"
+    },
+    {
+      "path": "src/completion/phpdoc/context.rs",
+      "sha256": "a14d5e646fd2487463c28012b604e2d3ed2e94c7288019d3115cee6e9289b302"
+    },
+    {
+      "path": "src/completion/phpdoc/generation/build.rs",
+      "sha256": "04275c1893754d7cc4c5f75275d492c0b4be7b968e69369f01a2d85da6d2c665"
+    },
+    {
+      "path": "src/completion/phpdoc/generation/parse_decl.rs",
+      "sha256": "3889d8f699bed2256fac622bb53bc3559afb3e2a1050cebc8f1e8fa4e882246d"
+    },
+    {
+      "path": "src/completion/phpdoc/generation/trigger.rs",
+      "sha256": "ad09489a4ff93b51879af875830d34a6120d2c4b0729dde3e33085bf63e60d73"
     },
     {
       "path": "src/completion/resolve.rs",
@@ -89,6 +125,10 @@
     {
       "path": "src/completion/source/comment_position.rs",
       "sha256": "4d90246cee7820f19b2a4f28ae22f8c7551621a090daaf18cad852fcbf1f4015"
+    },
+    {
+      "path": "src/completion/source/throws_analysis/uncaught.rs",
+      "sha256": "a8c0f7d8501951af75549d20e243e832c351151c0f35e5bd1d1e19ec9449b922"
     },
     {
       "path": "src/completion/target.rs",
@@ -168,7 +208,7 @@
     },
     {
       "path": "src/text_position.rs",
-      "sha256": "144fc2981dce3f53990c4a6178830d6baa9472df6053a974a4bbad441f8f30f5"
+      "sha256": "d3f841ec1edb40feb4371b9b0074436772c52a86aa30c76fe8c479e9a2b16598"
     },
     {
       "path": "src/text_scan.rs",

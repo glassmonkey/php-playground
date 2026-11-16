@@ -4690,16 +4690,22 @@ diff --git a/src/text_position.rs b/src/text_position.rs
 +        let result = (start, &content[start..end]);
 +        start = next;
 +        Some(result)
-@@ -227,4 +252 @@
+@@ -188 +213 @@
+-/// CRLF line break, `"\n"` otherwise.
++/// CRLF line break, `"\r"` for a CR-only document, `"\n"` otherwise.
+@@ -195,0 +221,2 @@
++    } else if content.contains('\r') && !content.contains('\n') {
++        "\r"
+@@ -227,4 +254 @@
 -    let mut offset = offset.min(content.len());
 -    while !content.is_char_boundary(offset) {
 -        offset += 1;
 -    }
 +    let offset = canonical_byte_offset(content, offset);
-@@ -254 +276 @@
+@@ -254 +278 @@
 -/// both LF and CRLF (the `\n` is the final byte of a CRLF pair either way).
 +/// CR, LF and CRLF; CRLF contributes one boundary after the complete pair.
-@@ -261,10 +283,3 @@
+@@ -261,10 +285,3 @@
 -    let mut seen = 0usize;
 -    for (i, b) in content.bytes().enumerate() {
 -        if b == b'\n' {
@@ -4713,10 +4719,10 @@ diff --git a/src/text_position.rs b/src/text_position.rs
 +    line_breaks(content)
 +        .nth(line_idx - 1)
 +        .map_or(content.len(), |(_, next)| next)
-@@ -274 +289 @@
+@@ -274 +291 @@
 -/// (just past the preceding `\n`, or 0 on the first line).
 +/// (just past the preceding complete CR/LF/CRLF, or 0 on the first line).
-@@ -276,3 +291,5 @@
+@@ -276,3 +293,5 @@
 -    content[..offset.min(content.len())]
 -        .rfind('\n')
 -        .map_or(0, |nl| nl + 1)
@@ -4725,13 +4731,13 @@ diff --git a/src/text_position.rs b/src/text_position.rs
 +        .iter()
 +        .rposition(|&b| matches!(b, b'\r' | b'\n'))
 +        .map_or(0, |last| last + 1)
-@@ -281,2 +298,3 @@
+@@ -281,2 +300,3 @@
 -/// Return the byte offset just past the `\n` that ends the line holding
 -/// byte `offset`, or `content.len()` on the last line.
 +/// Return the terminator-inclusive byte offset that ends the line holding
 +/// byte `offset`, including the complete CR/LF/CRLF terminator, or
 +/// `content.len()` on the last line.
-@@ -284,4 +302,4 @@
+@@ -284,4 +304,4 @@
 -    let offset = offset.min(content.len());
 -    content[offset..]
 -        .find('\n')
@@ -4740,13 +4746,13 @@ diff --git a/src/text_position.rs b/src/text_position.rs
 +    line_breaks(&content[offset..])
 +        .next()
 +        .map_or(content.len(), |(_, next)| offset + next)
-@@ -294,2 +312,3 @@
+@@ -294,2 +314,3 @@
 -/// If the position is past the end of the file, the content length is
 -/// returned.
 +/// Columns past a line clamp before its terminator; lines past EOF clamp
 +/// to EOF. A UTF-16 surrogate split rounds forward to the next scalar boundary.
 +/// Strict callers can reject that position by checking its canonical roundtrip.
-@@ -297,5 +316,5 @@
+@@ -297,5 +318,5 @@
 -    let mut line = 0u32;
 -    let mut col = 0u32;
 -    for (i, ch) in content.char_indices() {
@@ -4757,7 +4763,7 @@ diff --git a/src/text_position.rs b/src/text_position.rs
 +    for (relative, ch) in content[start..].char_indices() {
 +        if column >= position.character || matches!(ch, '\r' | '\n') {
 +            return start + relative;
-@@ -303,10 +322 @@
+@@ -303,10 +324 @@
 -        if ch == '\n' {
 -            if line == position.line {
 -                // Position is past the end of this line — clamp to newline.
@@ -4769,9 +4775,9 @@ diff --git a/src/text_position.rs b/src/text_position.rs
 -            col += ch.len_utf16() as u32;
 -        }
 +        column += ch.len_utf16() as u32;
-@@ -314 +323,0 @@
+@@ -314 +325,0 @@
 -    // Position at end of content.
-@@ -334,8 +343,6 @@
+@@ -334,8 +345,6 @@
 -    let target_line = position.line as usize;
 -    let target_col = position.character as usize;
 -    let mut line = 0usize;
@@ -4786,7 +4792,7 @@ diff --git a/src/text_position.rs b/src/text_position.rs
 +    while let Some(&ch) = chars.get(index) {
 +        if line == position.line && col >= position.character {
 +            return Some(index);
-@@ -343,5 +350,3 @@
+@@ -343,5 +352,3 @@
 -        if ch == '\n' {
 -            // If we're at the target line and the target column is at or
 -            // past the end of the line, clamp to end-of-line.
@@ -4795,17 +4801,17 @@ diff --git a/src/text_position.rs b/src/text_position.rs
 +        if matches!(ch, '\r' | '\n') {
 +            if line == position.line {
 +                return Some(index);
-@@ -348,0 +354,5 @@
+@@ -348,0 +356,5 @@
 +            index += if ch == '\r' && chars.get(index + 1) == Some(&'\n') {
 +                2
 +            } else {
 +                1
 +            };
-@@ -352 +362,2 @@
+@@ -352 +364,2 @@
 -            col += ch.len_utf16();
 +            col += ch.len_utf16() as u32;
 +            index += 1;
-@@ -355,11 +366 @@
+@@ -355,11 +368 @@
 -
 -    // Cursor at very end of content
 -    if line == target_line && col == target_col {
@@ -4818,12 +4824,15 @@ diff --git a/src/text_position.rs b/src/text_position.rs
 -
 -    None
 +    (line == position.line).then_some(chars.len())
-@@ -376,0 +378,2 @@
+@@ -376,0 +380,2 @@
 +/// An interior UTF-16 surrogate position rounds forward to the next scalar,
 +/// matching `utf16_col_to_char_index`; strict callers must check roundtrips.
-@@ -380 +383 @@
+@@ -380 +385 @@
 -        if col == utf16_col {
 +        if col >= utf16_col {
+@@ -604,0 +610,2 @@
++        assert_eq!(line_ending("<?php\recho 1;\r"), "\r");
++        assert_eq!(line_ending("<?php\recho 1;\n"), "\n");
 diff --git a/src/completion/target.rs b/src/completion/target.rs
 --- a/src/completion/target.rs
 +++ b/src/completion/target.rs
@@ -4832,3 +4841,776 @@ diff --git a/src/completion/target.rs b/src/completion/target.rs
 +    let lines: Vec<&str> = crate::text_position::lines_with_offsets(content)
 +        .map(|(_, line)| line)
 +        .collect();
+diff --git a/src/completion/array_shape.rs b/src/completion/array_shape.rs
+--- a/src/completion/array_shape.rs
++++ b/src/completion/array_shape.rs
+@@ -136 +136,7 @@
+-    let lines: Vec<&str> = content.lines().collect();
++    let cursor = crate::text_position::position_to_byte_offset(content, position);
++    if crate::text_position::offset_to_position(content, cursor) != position {
++        return None;
++    }
++    let lines: Vec<&str> = crate::text_position::lines_with_offsets(content)
++        .map(|(_, line)| line)
++        .collect();
+@@ -253,0 +260,13 @@
++}
++
++// The displayed key is a logical PHP string value. Insertion is source
++// spelling for the actual delimiter, including interpolation protection.
++fn key_spelling(key: &str, quote: char) -> String {
++    let mut spelling = String::with_capacity(key.len());
++    for ch in key.chars() {
++        if ch == '\\' || ch == quote || (quote == '"' && ch == '$') {
++            spelling.push('\\');
++        }
++        spelling.push(ch);
++    }
++    spelling
+@@ -383 +402 @@
+-        let (range, _) = self.compute_edit_range(ctx, content, position);
++        let (range, closing) = self.compute_edit_range(ctx, content, position);
+@@ -409,0 +429 @@
++            let spelling = key_spelling(key_name, quote);
+@@ -411 +431 @@
+-                format!("{}{}]", key_name, quote)
++                format!("{spelling}{closing}")
+@@ -413 +433 @@
+-                format!("{}{}{}]", quote, key_name, quote)
++                format!("{quote}{spelling}{closing}")
+@@ -440 +460 @@
+-        let (range, _) = self.compute_edit_range(ctx, content, position);
++        let (range, closing) = self.compute_edit_range(ctx, content, position);
+@@ -452,0 +473 @@
++            let spelling = key_spelling(key, quote);
+@@ -454 +475 @@
+-                format!("{}{}]", key, quote)
++                format!("{spelling}{closing}")
+@@ -456 +477 @@
+-                format!("{}{}{}]", quote, key, quote)
++                format!("{quote}{spelling}{closing}")
+@@ -482,2 +503,2 @@
+-    /// Returns `(range, trailing_count)` where `trailing_count` is the
+-    /// number of characters consumed after the cursor.
++    /// Returns the original-document range and the closing syntax to insert.
++    /// Existing separated trivia/brackets remain outside the replacement.
+@@ -489,16 +510,48 @@
+-    ) -> (Range, usize) {
+-        let lines: Vec<&str> = content.lines().collect();
+-        let line_idx = position.line as usize;
+-        let trailing_count = if line_idx < lines.len() {
+-            let line = lines[line_idx];
+-            let chars: Vec<char> = line.chars().collect();
+-            let cursor_col = utf16_col_to_char_index(line, position.character);
+-            count_trailing_close_chars(&chars, cursor_col, ctx.quote_char)
+-        } else {
+-            0
+-        };
+-
+-        let range = Range {
+-            start: Position {
+-                line: position.line,
+-                character: ctx.key_start_col,
++    ) -> (Range, String) {
++        let line = crate::text_position::lines_with_offsets(content)
++            .nth(position.line as usize)
++            .map(|(_, line)| line)
++            .unwrap_or("");
++        let chars: Vec<char> = line.chars().collect();
++        let cursor_col = utf16_col_to_char_index(line, position.character);
++        let right = chars[cursor_col..]
++            .iter()
++            .take_while(|&&ch| crate::completion::is_php_name_char(ch))
++            .count();
++        let end_col = cursor_col + right;
++        let trailing = count_trailing_close_chars(&chars, end_col, ctx.quote_char);
++        let mut end = chars[..end_col + trailing]
++            .iter()
++            .map(|ch| ch.len_utf8())
++            .sum::<usize>();
++        let quote = ctx.quote_char.unwrap_or('\'');
++        let mut closing = format!("{quote}]");
++        if ctx.quote_char.is_some() {
++            let key_start = crate::text_position::utf16_col_to_byte_offset(line, ctx.key_start_col);
++            if let Some(open) = key_start.checked_sub(1) {
++                // Reuse the lexical string boundary, including escaped quotes.
++                let closed = crate::text_scan::skip_string_forward(line.as_bytes(), open);
++                if closed <= line.len()
++                    && line.as_bytes().get(closed.wrapping_sub(1)) == Some(&(quote as u8))
++                {
++                    end = closed;
++                    if line.as_bytes().get(closed) == Some(&b']') {
++                        end += 1;
++                    } else {
++                        let bracket = crate::text_scan::skip_php_trivia(line.as_bytes(), closed);
++                        if line.as_bytes().get(bracket) == Some(&b']') {
++                            // Leave intervening trivia and the existing bracket
++                            // in the original document instead of dropping them.
++                            closing = quote.to_string();
++                        }
++                    }
++                }
++            }
++        }
++        (
++            Range {
++                start: Position::new(position.line, ctx.key_start_col),
++                end: Position::new(
++                    position.line,
++                    crate::text_position::byte_offset_to_utf16_col(line, end),
++                ),
+@@ -506,7 +559,2 @@
+-            end: Position {
+-                line: position.line,
+-                character: position.character + trailing_count as u32,
+-            },
+-        };
+-
+-        (range, trailing_count)
++            closing,
++        )
+@@ -611,43 +659,3 @@
+-    let line_idx = position.line as usize;
+-    let mut result = String::with_capacity(content.len() + 4);
+-
+-    for (i, line) in content.lines().enumerate() {
+-        if i == line_idx {
+-            let trimmed = line.trim_end();
+-            // Detect the unclosed pattern and close it.
+-            // Order matters: check longer/more-specific patterns first so
+-            // that e.g. `['']` is not partially matched by `['`.
+-            if trimmed.ends_with("['']") || trimmed.ends_with("[\"\"]") {
+-                // Fully auto-closed quotes + bracket — just add semicolon.
+-                result.push_str(trimmed);
+-                result.push(';');
+-            } else if trimmed.ends_with("[']") || trimmed.ends_with("[\"]") {
+-                // Quote + auto-closed bracket without closing quote:
+-                //   `$data[']` → `$data[''];`
+-                //   `$data["]` → `$data[""];`
+-                let q = if trimmed.ends_with("[']") { '\'' } else { '"' };
+-                // Insert the closing quote before the `]`.
+-                let before_bracket = &trimmed[..trimmed.len() - 1];
+-                result.push_str(before_bracket);
+-                result.push(q);
+-                result.push_str("];");
+-            } else if trimmed.ends_with("['") || trimmed.ends_with("[\"") {
+-                result.push_str(trimmed);
+-                // Close the quote + bracket + semicolon
+-                let q = if trimmed.ends_with("['") { '\'' } else { '"' };
+-                result.push(q);
+-                result.push_str("];");
+-            } else if trimmed.ends_with("[]") {
+-                result.push_str(trimmed);
+-                result.push(';');
+-            } else if trimmed.ends_with('[') {
+-                result.push_str(trimmed);
+-                result.push_str("];");
+-            } else {
+-                // Nothing to patch
+-                result.push_str(line);
+-            }
+-        } else {
+-            result.push_str(line);
+-        }
+-        result.push('\n');
++    let cursor = crate::text_position::position_to_byte_offset(content, position);
++    if crate::text_position::offset_to_position(content, cursor) != position {
++        return content.to_owned();
+@@ -655,4 +663,39 @@
+-
+-    // Remove trailing newline if the original didn't end with one.
+-    if !content.ends_with('\n') && result.ends_with('\n') {
+-        result.pop();
++    let Some((start, line)) =
++        crate::text_position::lines_with_offsets(content).nth(position.line as usize)
++    else {
++        return content.to_owned();
++    };
++    let mut result = String::new();
++    let trimmed = line.trim_end();
++    // Detect the unclosed pattern and close it.
++    // Order matters: check longer/more-specific patterns first so
++    // that e.g. `['']` is not partially matched by `['`.
++    if trimmed.ends_with("['']") || trimmed.ends_with("[\"\"]") {
++        // Fully auto-closed quotes + bracket — just add semicolon.
++        result.push_str(trimmed);
++        result.push(';');
++    } else if trimmed.ends_with("[']") || trimmed.ends_with("[\"]") {
++        // Quote + auto-closed bracket without closing quote:
++        //   `$data[']` → `$data[''];`
++        //   `$data["]` → `$data[""];`
++        let q = if trimmed.ends_with("[']") { '\'' } else { '"' };
++        // Insert the closing quote before the `]`.
++        let before_bracket = &trimmed[..trimmed.len() - 1];
++        result.push_str(before_bracket);
++        result.push(q);
++        result.push_str("];");
++    } else if trimmed.ends_with("['") || trimmed.ends_with("[\"") {
++        result.push_str(trimmed);
++        // Close the quote + bracket + semicolon
++        let q = if trimmed.ends_with("['") { '\'' } else { '"' };
++        result.push(q);
++        result.push_str("];");
++    } else if trimmed.ends_with("[]") {
++        result.push_str(trimmed);
++        result.push(';');
++    } else if trimmed.ends_with('[') {
++        result.push_str(trimmed);
++        result.push_str("];");
++    } else {
++        // Nothing to patch
++        result.push_str(line);
+@@ -661 +704,8 @@
+-    result
++    // Preserve trailing whitespace and every original byte outside this line.
++    if result == line {
++        return content.to_owned();
++    }
++    result.push_str(&line[line.trim_end().len()..]);
++    let mut patched = content.to_owned();
++    patched.replace_range(start..start + line.len(), &result);
++    patched
+diff --git a/src/completion/array_shape_tests.rs b/src/completion/array_shape_tests.rs
+--- a/src/completion/array_shape_tests.rs
++++ b/src/completion/array_shape_tests.rs
+@@ -157,0 +158,45 @@
++
++mod original_byte_array_recovery {
++    use super::super::patch_array_access_at_cursor;
++    use tower_lsp_server::gen_lsp_types::Position;
++
++    #[test]
++    fn array_recovery_changes_only_the_original_cursor_line_and_keeps_literal_bytes() {
++        for eol in ["\n", "\r\n", "\r"] {
++            let prefix = format!("<?php{eol}$literal=\"A\r\nB\rC\n🌟\";{eol}/* 猫🌟 */ ");
++            for (input, expected, character) in [
++                ("$data[", "$data[];", 16),
++                ("$data['", "$data[''];", 17),
++                ("$data[\"", "$data[\"\"];", 17),
++                ("$data['']", "$data[''];", 17),
++                ("$data[]", "$data[];", 16),
++            ] {
++                for trailing in ["", eol] {
++                    let source = format!("{prefix}{input}  \t{eol}}}{trailing}");
++                    let wanted = format!("{prefix}{expected}  \t{eol}}}{trailing}");
++                    assert_eq!(
++                        patch_array_access_at_cursor(&source, Position::new(5, character)),
++                        wanted
++                    );
++                }
++            }
++        }
++    }
++    #[test]
++    fn no_array_pattern_or_noncanonical_coordinate_cannot_rewrite_a_buffer() {
++        let source = "<?php\r\n$literal=\"A\r\nB\rC\n🌟\";\r/* 猫🌟 */ $data[\r";
++        for position in [
++            Position::new(5, 5),
++            Position::new(5, 999),
++            Position::new(99, 0),
++            Position::new(6, 0),
++        ] {
++            assert_eq!(patch_array_access_at_cursor(source, position), source);
++        }
++        let ordinary = "<?php\r$data['name'];\r";
++        assert_eq!(
++            patch_array_access_at_cursor(ordinary, Position::new(1, 7)),
++            ordinary
++        );
++    }
++}
+diff --git a/src/completion/handler/patching.rs b/src/completion/handler/patching.rs
+--- a/src/completion/handler/patching.rs
++++ b/src/completion/handler/patching.rs
+@@ -1,5 +1,3 @@
+-//! Source-text patching helpers used to recover a parseable AST when the
+-//! user is mid-keystroke (an unclosed call, a bare `->`/`?->` with
+-//! nothing after it).  Shared by [`super::member_access`] and
+-//! [`super::named_args`].
+-
++//! Temporary parser recovery inserts only at an original canonical cursor.
++//! All original bytes, including literal bodies and line terminators, survive.
++use crate::Backend;
+@@ -8,3 +5,0 @@
+-use crate::Backend;
+-use crate::text_position::utf16_col_to_byte_offset;
+-
+@@ -12,7 +6,0 @@
+-    /// Patch incomplete member-access expressions for parser recovery.
+-    ///
+-    /// When the cursor is right after `->` or `?->` and the line has no
+-    /// semicolon, the PHP parser may fail to recognise the enclosing
+-    /// statement (e.g. an arrow function body).  This inserts a dummy
+-    /// identifier and semicolon (`_x;`) at the cursor so the parser can
+-    /// recover the surrounding structure.
+@@ -20,21 +8,3 @@
+-        let line_idx = position.line as usize;
+-        let mut result = String::with_capacity(content.len() + 4);
+-
+-        for (i, line) in content.lines().enumerate() {
+-            if i == line_idx {
+-                let byte_col = utf16_col_to_byte_offset(line, position.character);
+-                // Only patch when the cursor is right after `->` or
+-                // `?->` with nothing meaningful following it.
+-                let before = &line[..byte_col];
+-                let after = line[byte_col..].trim();
+-                if (before.ends_with("->") || before.ends_with("?->")) && after.is_empty() {
+-                    result.push_str(before);
+-                    result.push_str("_x;");
+-                    result.push_str(&line[byte_col..]);
+-                } else {
+-                    result.push_str(line);
+-                }
+-            } else {
+-                result.push_str(line);
+-            }
+-            result.push('\n');
++        let cursor = crate::text_position::position_to_byte_offset(content, position);
++        if crate::text_position::offset_to_position(content, cursor) != position {
++            return content.to_owned();
+@@ -42,3 +12,6 @@
+-
+-        if !content.ends_with('\n') && result.ends_with('\n') {
+-            result.pop();
++        let before = &content[..cursor];
++        let end = crate::text_position::find_line_end(content, cursor);
++        if !(before.ends_with("->") || before.ends_with("?->"))
++            || !content[cursor..end].trim().is_empty()
++        {
++            return content.to_owned();
+@@ -46,2 +19,3 @@
+-
+-        result
++        let mut patched = content.to_owned();
++        patched.insert_str(cursor, "_x;");
++        patched
+@@ -50,7 +23,0 @@
+-    /// Insert `);` at the given cursor position in `content`.
+-    ///
+-    /// This produces a patched version of the source that the parser can
+-    /// handle when the user is in the middle of typing a function call
+-    /// (e.g. `$this->greet(|` where the closing `)` hasn't been typed
+-    /// yet).  Closing the call expression lets the parser recover the
+-    /// surrounding class/function structure.
+@@ -58,2 +25,9 @@
+-        let line_idx = position.line as usize;
+-        let mut result = String::with_capacity(content.len() + 2);
++        let cursor = crate::text_position::position_to_byte_offset(content, position);
++        if crate::text_position::offset_to_position(content, cursor) != position {
++            return content.to_owned();
++        }
++        let mut patched = content.to_owned();
++        patched.insert_str(cursor, ");");
++        patched
++    }
++}
+@@ -61,8 +35,20 @@
+-        for (i, line) in content.lines().enumerate() {
+-            if i == line_idx {
+-                let byte_col = utf16_col_to_byte_offset(line, position.character);
+-                result.push_str(&line[..byte_col]);
+-                result.push_str(");");
+-                result.push_str(&line[byte_col..]);
+-            } else {
+-                result.push_str(line);
++#[cfg(test)]
++mod original_byte_recovery_tests {
++    use crate::Backend;
++    use tower_lsp_server::gen_lsp_types::Position;
++
++    fn original_position(before: &str) -> Position {
++        let bytes = before.as_bytes();
++        let mut line = 0;
++        let mut start = 0;
++        let mut at = 0;
++        while at < bytes.len() {
++            if bytes[at] == b'\r' {
++                if bytes.get(at + 1) == Some(&b'\n') {
++                    at += 1;
++                }
++                line += 1;
++                start = at + 1;
++            } else if bytes[at] == b'\n' {
++                line += 1;
++                start = at + 1;
+@@ -70 +56 @@
+-            result.push('\n');
++            at += 1;
+@@ -72,5 +58,15 @@
+-
+-        // Remove the trailing newline we may have added if the original
+-        // content did not end with one.
+-        if !content.ends_with('\n') && result.ends_with('\n') {
+-            result.pop();
++        Position::new(line, before[start..].encode_utf16().count() as u32)
++    }
++    #[test]
++    fn virtual_member_recovery_preserves_original_prefix_suffix_and_literals() {
++        for eol in ["\n", "\r\n", "\r"] {
++            for trailing in ["", eol] {
++                let before = format!("<?php{eol}$literal=\"A\r\nB\rC\n🌟\";{eol}/* 猫🌟 */ $box->");
++                let after = format!("{eol}}}{trailing}");
++                let source = format!("{before}{after}");
++                let expected = format!("{before}_x;{after}");
++                assert_eq!(
++                    Backend::patch_incomplete_member_access(&source, original_position(&before)),
++                    expected
++                );
++            }
+@@ -78,2 +73,0 @@
+-
+-        result
+@@ -80,0 +75,17 @@
++    #[test]
++    fn virtual_call_recovery_preserves_original_prefix_suffix_and_literals() {
++        for eol in ["\n", "\r\n", "\r"] {
++            for trailing in ["", eol] {
++                let before = format!(
++                    "<?php{eol}$literal=<<<'RAW'{eol}A\r\nB\rC\n🌟{eol}RAW;{eol}/* 猫🌟 */ $box->call("
++                );
++                let after = format!("{eol}}}{trailing}");
++                let source = format!("{before}{after}");
++                let expected = format!("{before});{after}");
++                assert_eq!(
++                    Backend::patch_content_at_cursor(&source, original_position(&before)),
++                    expected
++                );
++            }
++        }
++    }
+diff --git a/src/completion/handler/phpdoc.rs b/src/completion/handler/phpdoc.rs
+--- a/src/completion/handler/phpdoc.rs
++++ b/src/completion/handler/phpdoc.rs
+@@ -11 +11 @@
+-    CompletionResponse, Position, Range, TextEdit,
++    CompletionResponse, Position, TextEdit,
+@@ -301,7 +301,6 @@
+-                let prefix_char_len = partial.chars().count() as u32;
+-                let replace_range = Range {
+-                    start: Position {
+-                        line: position.line,
+-                        character: position.character.saturating_sub(prefix_char_len),
+-                    },
+-                    end: position,
++                let Some(replace_range) =
++                    crate::completion::name_replacement_range(content, position, &partial, |ch| {
++                        crate::completion::is_php_name_char(ch) || ch == '$'
++                    })
++                else {
++                    return None;
+diff --git a/src/completion/phpdoc/context.rs b/src/completion/phpdoc/context.rs
+--- a/src/completion/phpdoc/context.rs
++++ b/src/completion/phpdoc/context.rs
+@@ -151 +151,3 @@
+-    let lines: Vec<&str> = content.lines().collect();
++    let lines: Vec<&str> = crate::text_position::lines_with_offsets(content)
++        .map(|(_, line)| line)
++        .collect();
+@@ -333,8 +335,7 @@
+-    let bytes = text.as_bytes();
+-    let mut i = bytes.len();
+-    while i > 0
+-        && (bytes[i - 1].is_ascii_alphanumeric() || bytes[i - 1] == b'_' || bytes[i - 1] == b'\\')
+-    {
+-        i -= 1;
+-    }
+-    text[i..].to_string()
++    let suffix_bytes = text
++        .chars()
++        .rev()
++        .take_while(|&ch| crate::completion::is_php_name_char(ch) || ch == '\\')
++        .map(char::len_utf8)
++        .sum::<usize>();
++    text[text.len() - suffix_bytes..].to_owned()
+@@ -350 +351,3 @@
+-    let lines: Vec<&str> = content.lines().collect();
++    let lines: Vec<&str> = crate::text_position::lines_with_offsets(content)
++        .map(|(_, line)| line)
++        .collect();
+@@ -445 +448 @@
+-    for line in text.lines() {
++    for (_, line) in crate::text_position::lines_with_offsets(text) {
+@@ -573 +576 @@
+-    for line in text.lines() {
++    for (_, line) in crate::text_position::lines_with_offsets(text) {
+diff --git a/src/completion/phpdoc/generation/build.rs b/src/completion/phpdoc/generation/build.rs
+--- a/src/completion/phpdoc/generation/build.rs
++++ b/src/completion/phpdoc/generation/build.rs
+@@ -564,8 +564,4 @@
+-    // Walk backwards from the trigger to find the start of `/**`.
+-    let before = &content[..trigger_offset];
+-    let line_start = before.rfind('\n').map(|i| i + 1).unwrap_or(0);
+-    let trigger_line = &content[line_start..];
+-
+-    // Find the `/**` on this line.
+-    let doc_start_in_line = trigger_line.find("/**")?;
+-    let abs_doc_start = line_start + doc_start_in_line;
++    // Reuse the lexical opener, not a line search that could pick a
++    // different comment or a comment-looking string earlier on the line.
++    let abs_doc_start =
++        crate::completion::source::comment_position::docblock_start_at(content, trigger_offset)?;
+@@ -579,5 +575,2 @@
+-        // Unclosed — blank out to end of the line containing `/**`.
+-        content[abs_doc_start..]
+-            .find('\n')
+-            .map(|i| abs_doc_start + i)
+-            .unwrap_or(content.len())
++        // Preserve the exact terminator while making the trigger parseable.
++        crate::text_position::find_line_end(content, abs_doc_start)
+@@ -587,5 +580,13 @@
+-    // Replace the docblock region with spaces (preserving byte offsets).
+-    patched.replace_range(
+-        abs_doc_start..abs_doc_end,
+-        &" ".repeat(abs_doc_end - abs_doc_start),
+-    );
++    // Keep every original line boundary and byte offset in this virtual
++    // view; no literal or source text outside the comment is rewritten.
++    let blank: String = content[abs_doc_start..abs_doc_end]
++        .bytes()
++        .map(|byte| {
++            if matches!(byte, b'\r' | b'\n') {
++                byte as char
++            } else {
++                ' '
++            }
++        })
++        .collect();
++    patched.replace_range(abs_doc_start..abs_doc_end, &blank);
+diff --git a/src/completion/phpdoc/generation/trigger.rs b/src/completion/phpdoc/generation/trigger.rs
+--- a/src/completion/phpdoc/generation/trigger.rs
++++ b/src/completion/phpdoc/generation/trigger.rs
+@@ -20 +20,3 @@
+-    let lines: Vec<&str> = content.lines().collect();
++    let lines: Vec<&str> = crate::text_position::lines_with_offsets(content)
++        .map(|(_, line)| line)
++        .collect();
+@@ -131 +133,3 @@
+-    let lines: Vec<&str> = content.lines().collect();
++    let lines: Vec<&str> = crate::text_position::lines_with_offsets(content)
++        .map(|(_, line)| line)
++        .collect();
+@@ -237 +241,2 @@
+-    let after_block: String = lines[after_start..].to_vec().join("\n");
++    let after_byte = crate::text_position::line_start_byte_offset(content, after_start);
++    let after_block = content[after_byte..].to_owned();
+@@ -268,9 +273,3 @@
+-    let after = &content[byte_offset.min(content.len())..];
+-
+-    // Skip to the next line (the trigger line has `/**` and possibly
+-    // nothing else useful).
+-    if let Some(nl) = after.find('\n') {
+-        after[nl + 1..].to_string()
+-    } else {
+-        String::new()
+-    }
++    // The shared end includes exactly the original terminator (CR/LF/CRLF).
++    let next = crate::text_position::find_line_end(content, byte_offset);
++    content[next..].to_owned()
+diff --git a/src/completion/phpdoc/generation/parse_decl.rs b/src/completion/phpdoc/generation/parse_decl.rs
+--- a/src/completion/phpdoc/generation/parse_decl.rs
++++ b/src/completion/phpdoc/generation/parse_decl.rs
+@@ -22,3 +22,6 @@
+-    let mut attr_depth = 0i32;
+-    text.lines().filter_map(move |line| {
+-        let mut rest = line.trim();
++    let mut skip_to = 0;
++    crate::text_position::lines_with_offsets(text).filter_map(move |(start, line)| {
++        if start + line.len() < skip_to {
++            return None;
++        }
++        let mut rest = line[skip_to.saturating_sub(start)..].trim_start();
+@@ -28,16 +31,9 @@
+-        // Track bracket nesting so that array literals inside attributes
+-        // (e.g. `#[Route(methods: ['GET'])]`) don't end them early.
+-        while attr_depth > 0 || rest.starts_with("#[") {
+-            let mut attribute_end = None;
+-            for (i, ch) in rest.char_indices() {
+-                match ch {
+-                    '[' => attr_depth += 1,
+-                    ']' => {
+-                        attr_depth -= 1;
+-                        if attr_depth == 0 {
+-                            attribute_end = Some(i + 1);
+-                            break;
+-                        }
+-                    }
+-                    _ => {}
+-                }
++        while rest.starts_with("#[") {
++            let open = start + line.len() - rest.len() + 1;
++            // Attribute arguments can contain brackets in strings, comments
++            // and document strings. Share the existing opaque lexical scan.
++            skip_to =
++                crate::text_scan::find_matching_forward_bytes(text.as_bytes(), open, b'[', b']')?
++                    + 1;
++            if skip_to > start + line.len() {
++                return None;
+@@ -45 +41 @@
+-            rest = rest[attribute_end?..].trim_start();
++            rest = line[skip_to - start..].trim_start();
+diff --git a/src/completion/context/class_completion/attributes.rs b/src/completion/context/class_completion/attributes.rs
+--- a/src/completion/context/class_completion/attributes.rs
++++ b/src/completion/context/class_completion/attributes.rs
+@@ -100,0 +101,71 @@
++/// Associate the actual attribute list with its CST declaration. Namespace
++/// braces and braces inside opaque literals are not class-body ownership.
++fn parsed_attribute_target(content: &str, position: Position) -> (Option<u8>, bool) {
++    use crate::types::attribute_target;
++    use mago_allocator::LocalArena;
++    use mago_database::file::FileId;
++    use mago_span::HasSpan;
++    use mago_syntax::{cst::Node, settings::ParserSettings};
++    let cursor = crate::text_position::position_to_byte_offset(content, position);
++    crate::util::catch_panic_unwind_safe(
++        "attribute declaration context",
++        "<completion>",
++        None,
++        || {
++            let arena = LocalArena::new();
++            let program = mago_syntax::parser::parse_file_content_with_settings(
++                &arena,
++                FileId::new(b"attribute-context.php"),
++                content.as_bytes(),
++                ParserSettings {
++                    recover_incomplete: true,
++                    ..Default::default()
++                },
++            );
++            let mut nodes = vec![(Node::Program(program), 0)];
++            let mut class_body = false;
++            while let Some((node, inherited)) = nodes.pop() {
++                let span = node.span();
++                if cursor < span.start.offset as usize || cursor > span.end.offset as usize {
++                    continue;
++                }
++                let body = match node {
++                    Node::Class(n) => Some((n.left_brace, n.right_brace)),
++                    Node::AnonymousClass(n) => Some((n.left_brace, n.right_brace)),
++                    Node::Interface(n) => Some((n.left_brace, n.right_brace)),
++                    Node::Trait(n) => Some((n.left_brace, n.right_brace)),
++                    Node::Enum(n) => Some((n.left_brace, n.right_brace)),
++                    _ => None,
++                };
++                if let Some((left, right)) = body {
++                    class_body |=
++                        cursor >= left.end.offset as usize && cursor <= right.start.offset as usize;
++                }
++                let target = match node {
++                    Node::Class(_)
++                    | Node::AnonymousClass(_)
++                    | Node::Interface(_)
++                    | Node::Trait(_)
++                    | Node::Enum(_) => attribute_target::TARGET_CLASS,
++                    Node::Function(_) | Node::Closure(_) | Node::ArrowFunction(_) => {
++                        attribute_target::TARGET_FUNCTION
++                    }
++                    Node::Method(_) => attribute_target::TARGET_METHOD,
++                    Node::Property(_) | Node::PlainProperty(_) | Node::HookedProperty(_) => {
++                        attribute_target::TARGET_PROPERTY
++                    }
++                    Node::ClassLikeConstant(_) => attribute_target::TARGET_CLASS_CONSTANT,
++                    Node::FunctionLikeParameter(_) => attribute_target::TARGET_PARAMETER,
++                    Node::AttributeList(_) if inherited != 0 => {
++                        return (Some(inherited), class_body);
++                    }
++                    _ => inherited,
++                };
++                node.visit_children(|child| nodes.push((child, target)));
++            }
++            (None, class_body)
++        },
++    )
++    .unwrap_or((None, false))
++}
++
+@@ -110 +181,7 @@
+-    let lines: Vec<&str> = content.lines().collect();
++    let (associated, class_body) = parsed_attribute_target(content, position);
++    if let Some(target) = associated {
++        return target;
++    }
++    let lines: Vec<&str> = crate::text_position::lines_with_offsets(content)
++        .map(|(_, line)| line)
++        .collect();
+@@ -111,0 +189 @@
++    let depth = i32::from(class_body);
+@@ -113,19 +190,0 @@
+-    // First check brace depth at the cursor line to know whether we are
+-    // at the top level or inside a class body.
+-    let depth = {
+-        let mut d = 0i32;
+-        for (idx, line) in lines.iter().enumerate() {
+-            if idx >= cursor_line {
+-                break;
+-            }
+-            for ch in line.chars() {
+-                match ch {
+-                    '{' => d += 1,
+-                    '}' => d -= 1,
+-                    _ => {}
+-                }
+-            }
+-        }
+-        d
+-    };
+-
+diff --git a/src/completion/source/throws_analysis/uncaught.rs b/src/completion/source/throws_analysis/uncaught.rs
+--- a/src/completion/source/throws_analysis/uncaught.rs
++++ b/src/completion/source/throws_analysis/uncaught.rs
+@@ -149,2 +149,5 @@
+-    let mut lines = comment.split_inclusive('\n');
+-    let mut end = offset + lines.next().map_or(0, str::len);
++    let mut lines = crate::text_position::lines_with_offsets(comment);
++    let mut end = offset
++        + lines.next().map_or(0, |(start, _)| {
++            crate::text_position::find_line_end(comment, start)
++        });
+@@ -152 +155 @@
+-    for line in lines {
++    for (start, line) in lines {
+@@ -158 +161 @@
+-        end += line.len();
++        end = offset + crate::text_position::find_line_end(comment, start);
+@@ -165 +168,7 @@
+-        .map(|byte| if byte == b'\n' { '\n' } else { ' ' })
++        .map(|byte| {
++            if matches!(byte, b'\r' | b'\n') {
++                byte as char
++            } else {
++                ' '
++            }
++        })
+@@ -547,0 +557,33 @@
++    }
++}
++
++#[cfg(test)]
++mod original_byte_open_docblock {
++    use super::with_open_docblock_blanked;
++
++    #[test]
++    fn virtual_blank_keeps_original_eols_offsets_and_the_following_literal() {
++        for eol in ["\n", "\r\n", "\r"] {
++            let before = format!("<?php{eol}");
++            let trigger = "/**🌟";
++            let following = format!("{eol}function f(){{return \"A\r\nB\rC\n🌟\";}}{eol}");
++            let source = format!("{before}{trigger}{following}");
++            let expected = format!("{before}{}{following}", " ".repeat(trigger.len()));
++            let blank = with_open_docblock_blanked(&source, before.len() + trigger.len());
++            assert_eq!(blank, expected);
++            assert_eq!(blank.len(), source.len());
++            assert_eq!(
++                blank
++                    .as_bytes()
++                    .iter()
++                    .filter(|&&b| matches!(b, b'\r' | b'\n'))
++                    .copied()
++                    .collect::<Vec<_>>(),
++                source
++                    .as_bytes()
++                    .iter()
++                    .filter(|&&b| matches!(b, b'\r' | b'\n'))
++                    .copied()
++                    .collect::<Vec<_>>()
++            );
++        }

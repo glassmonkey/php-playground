@@ -1,0 +1,75 @@
+A	doc-type-LF	<?php\n/** @return Ty */\nfunction f() {}\n	1	14	TypeTarget	7	TypeTarget	\e	\e
+A	doc-type-CRLF	<?php\r\n/** @return Ty */\r\nfunction f() {}\r\n	1	14	TypeTarget	7	TypeTarget	\e	\e
+A	doc-type-CR	<?php\r/** @return Ty */\rfunction f() {}\r	1	14	TypeTarget	7	TypeTarget	\e	\e
+A	doc-type-mixed	<?php\r/** @return Ty */\r\nfunction f() {}\n	1	14	TypeTarget	7	TypeTarget	\e	\e
+A	doc-type-trailing-empty	<?php\r/** @return Ty */\nfunction f() {}\r\n\r	1	14	TypeTarget	7	TypeTarget	\e	\e
+A	doc-variable-LF	<?php\n/** @param int $al */\nfunction f(int $alpha) {}\n	1	18	$alpha	6	\e	\e	\e
+A	doc-variable-CRLF	<?php\r\n/** @param int $al */\r\nfunction f(int $alpha) {}\r\n	1	18	$alpha	6	\e	\e	\e
+A	doc-variable-CR	<?php\r/** @param int $al */\rfunction f(int $alpha) {}\r	1	18	$alpha	6	\e	\e	\e
+A	doc-variable-mixed	<?php\r/** @param int $al */\r\nfunction f(int $alpha) {}\n	1	18	$alpha	6	\e	\e	\e
+A	doc-variable-trailing-empty	<?php\r/** @param int $al */\nfunction f(int $alpha) {}\r\n\r	1	18	$alpha	6	\e	\e	\e
+A	generate-trigger-LF	<?php\n/**\nfunction f(array $items): array { return $items; }\n	1	3	/** PHPDoc Block */	15	\e	\e	\e
+A	generate-trigger-CRLF	<?php\r\n/**\r\nfunction f(array $items): array { return $items; }\r\n	1	3	/** PHPDoc Block */	15	\e	\e	\e
+A	generate-trigger-CR	<?php\r/**\rfunction f(array $items): array { return $items; }\r	1	3	/** PHPDoc Block */	15	\e	\e	\e
+A	generate-trigger-mixed	<?php\r/**\r\nfunction f(array $items): array { return $items; }\n	1	3	/** PHPDoc Block */	15	\e	\e	\e
+A	generate-trigger-trailing-empty	<?php\r/**\nfunction f(array $items): array { return $items; }\r\n\r	1	3	/** PHPDoc Block */	15	\e	\e	\e
+B	shape-closed-LF	<?php\n$data=['name'=>7];\n/* 🌟 */ echo $data['na'];\n	2	23	name	5	\e	\e	\e
+B	shape-closed-CRLF	<?php\r\n$data=['name'=>7];\r\n/* 🌟 */ echo $data['na'];\r\n	2	23	name	5	\e	\e	\e
+B	shape-closed-CR	<?php\r$data=['name'=>7];\r/* 🌟 */ echo $data['na'];\r	2	23	name	5	\e	\e	\e
+B	shape-closed-mixed	<?php\r$data=['name'=>7];\r\n/* 🌟 */ echo $data['na'];\n	2	23	name	5	\e	\e	\e
+B	shape-closed-trailing-empty	<?php\r$data=['name'=>7];\n/* 🌟 */ echo $data['na'];\r\n\r	2	23	name	5	\e	\e	\e
+B	shape-nested-LF	<?php\n$data=['meta'=>['name'=>7]];\necho $data['meta']['na'];\n	2	22	name	5	\e	\e	\e
+B	shape-nested-CRLF	<?php\r\n$data=['meta'=>['name'=>7]];\r\necho $data['meta']['na'];\r\n	2	22	name	5	\e	\e	\e
+B	shape-nested-CR	<?php\r$data=['meta'=>['name'=>7]];\recho $data['meta']['na'];\r	2	22	name	5	\e	\e	\e
+B	shape-nested-mixed	<?php\r$data=['meta'=>['name'=>7]];\r\necho $data['meta']['na'];\n	2	22	name	5	\e	\e	\e
+B	shape-nested-trailing-empty	<?php\r$data=['meta'=>['name'=>7]];\necho $data['meta']['na'];\r\n\r	2	22	name	5	\e	\e	\e
+B	shape-open-LF	<?php\nclass Consumer { function f() {\n$data=['name'=>7];\n$data['\n} }\n	3	7	name	5	\e	\e	\e
+B	shape-open-CRLF	<?php\r\nclass Consumer { function f() {\r\n$data=['name'=>7];\r\n$data['\r\n} }\r\n	3	7	name	5	\e	\e	\e
+B	shape-open-CR	<?php\rclass Consumer { function f() {\r$data=['name'=>7];\r$data['\r} }\r	3	7	name	5	\e	\e	\e
+B	shape-open-mixed	<?php\rclass Consumer { function f() {\r\n$data=['name'=>7];\n$data['\r} }\r\n	3	7	name	5	\e	\e	\e
+B	shape-open-trailing-empty	<?php\rclass Consumer { function f() {\n$data=['name'=>7];\r\n$data['\r} }\n\r	3	7	name	5	\e	\e	\e
+B	server-closed-LF	<?php\necho $_SERVER['REQUEST_M'];\n	1	24	REQUEST_METHOD	5	\e	\e	\e
+B	server-closed-CRLF	<?php\r\necho $_SERVER['REQUEST_M'];\r\n	1	24	REQUEST_METHOD	5	\e	\e	\e
+B	server-closed-CR	<?php\recho $_SERVER['REQUEST_M'];\r	1	24	REQUEST_METHOD	5	\e	\e	\e
+B	server-closed-mixed	<?php\recho $_SERVER['REQUEST_M'];\r\n	1	24	REQUEST_METHOD	5	\e	\e	\e
+B	server-closed-trailing-empty	<?php\recho $_SERVER['REQUEST_M'];\n\r	1	24	REQUEST_METHOD	5	\e	\e	\e
+C	attribute-class-LF	<?php\n#[Fixture]\nclass Subject {}\n	1	9	FixtureClass	7	FixtureClass	\e	FixtureMethod,FixtureFunction,FixtureProperty,FixtureConstant,FixtureParameter
+C	attribute-class-CRLF	<?php\r\n#[Fixture]\r\nclass Subject {}\r\n	1	9	FixtureClass	7	FixtureClass	\e	FixtureMethod,FixtureFunction,FixtureProperty,FixtureConstant,FixtureParameter
+C	attribute-class-CR	<?php\r#[Fixture]\rclass Subject {}\r	1	9	FixtureClass	7	FixtureClass	\e	FixtureMethod,FixtureFunction,FixtureProperty,FixtureConstant,FixtureParameter
+C	attribute-class-mixed	<?php\r#[Fixture]\r\nclass Subject {}\n	1	9	FixtureClass	7	FixtureClass	\e	FixtureMethod,FixtureFunction,FixtureProperty,FixtureConstant,FixtureParameter
+C	attribute-class-trailing-empty	<?php\r#[Fixture]\nclass Subject {}\r\n\r	1	9	FixtureClass	7	FixtureClass	\e	FixtureMethod,FixtureFunction,FixtureProperty,FixtureConstant,FixtureParameter
+C	attribute-function-LF	<?php\n#[Fixture]\nfunction target() {}\n	1	9	FixtureFunction	7	FixtureFunction	\e	FixtureMethod,FixtureClass,FixtureProperty,FixtureConstant,FixtureParameter
+C	attribute-function-CRLF	<?php\r\n#[Fixture]\r\nfunction target() {}\r\n	1	9	FixtureFunction	7	FixtureFunction	\e	FixtureMethod,FixtureClass,FixtureProperty,FixtureConstant,FixtureParameter
+C	attribute-function-CR	<?php\r#[Fixture]\rfunction target() {}\r	1	9	FixtureFunction	7	FixtureFunction	\e	FixtureMethod,FixtureClass,FixtureProperty,FixtureConstant,FixtureParameter
+C	attribute-function-mixed	<?php\r#[Fixture]\r\nfunction target() {}\n	1	9	FixtureFunction	7	FixtureFunction	\e	FixtureMethod,FixtureClass,FixtureProperty,FixtureConstant,FixtureParameter
+C	attribute-function-trailing-empty	<?php\r#[Fixture]\nfunction target() {}\r\n\r	1	9	FixtureFunction	7	FixtureFunction	\e	FixtureMethod,FixtureClass,FixtureProperty,FixtureConstant,FixtureParameter
+C	attribute-method-LF	<?php\nclass Subject {\n#[Fixture]\nfunction target() {}\n}\n	2	9	FixtureMethod	7	FixtureMethod	\e	FixtureClass,FixtureFunction,FixtureProperty,FixtureConstant,FixtureParameter
+C	attribute-method-CRLF	<?php\r\nclass Subject {\r\n#[Fixture]\r\nfunction target() {}\r\n}\r\n	2	9	FixtureMethod	7	FixtureMethod	\e	FixtureClass,FixtureFunction,FixtureProperty,FixtureConstant,FixtureParameter
+C	attribute-method-CR	<?php\rclass Subject {\r#[Fixture]\rfunction target() {}\r}\r	2	9	FixtureMethod	7	FixtureMethod	\e	FixtureClass,FixtureFunction,FixtureProperty,FixtureConstant,FixtureParameter
+C	attribute-method-mixed	<?php\rclass Subject {\r\n#[Fixture]\nfunction target() {}\r}\r\n	2	9	FixtureMethod	7	FixtureMethod	\e	FixtureClass,FixtureFunction,FixtureProperty,FixtureConstant,FixtureParameter
+C	attribute-method-trailing-empty	<?php\rclass Subject {\n#[Fixture]\r\nfunction target() {}\r}\n\r	2	9	FixtureMethod	7	FixtureMethod	\e	FixtureClass,FixtureFunction,FixtureProperty,FixtureConstant,FixtureParameter
+C	attribute-property-LF	<?php\nclass Subject {\n#[Fixture]\npublic int $value=7;\n}\n	2	9	FixtureProperty	7	FixtureProperty	\e	FixtureClass,FixtureFunction,FixtureMethod,FixtureConstant,FixtureParameter
+C	attribute-property-CRLF	<?php\r\nclass Subject {\r\n#[Fixture]\r\npublic int $value=7;\r\n}\r\n	2	9	FixtureProperty	7	FixtureProperty	\e	FixtureClass,FixtureFunction,FixtureMethod,FixtureConstant,FixtureParameter
+C	attribute-property-CR	<?php\rclass Subject {\r#[Fixture]\rpublic int $value=7;\r}\r	2	9	FixtureProperty	7	FixtureProperty	\e	FixtureClass,FixtureFunction,FixtureMethod,FixtureConstant,FixtureParameter
+C	attribute-property-mixed	<?php\rclass Subject {\r\n#[Fixture]\npublic int $value=7;\r}\r\n	2	9	FixtureProperty	7	FixtureProperty	\e	FixtureClass,FixtureFunction,FixtureMethod,FixtureConstant,FixtureParameter
+C	attribute-property-trailing-empty	<?php\rclass Subject {\n#[Fixture]\r\npublic int $value=7;\r}\n\r	2	9	FixtureProperty	7	FixtureProperty	\e	FixtureClass,FixtureFunction,FixtureMethod,FixtureConstant,FixtureParameter
+C	attribute-constant-LF	<?php\nclass Subject {\n#[Fixture]\nconst VALUE=7;\n}\n	2	9	FixtureConstant	7	FixtureConstant	\e	FixtureClass,FixtureFunction,FixtureMethod,FixtureProperty,FixtureParameter
+C	attribute-constant-CRLF	<?php\r\nclass Subject {\r\n#[Fixture]\r\nconst VALUE=7;\r\n}\r\n	2	9	FixtureConstant	7	FixtureConstant	\e	FixtureClass,FixtureFunction,FixtureMethod,FixtureProperty,FixtureParameter
+C	attribute-constant-CR	<?php\rclass Subject {\r#[Fixture]\rconst VALUE=7;\r}\r	2	9	FixtureConstant	7	FixtureConstant	\e	FixtureClass,FixtureFunction,FixtureMethod,FixtureProperty,FixtureParameter
+C	attribute-constant-mixed	<?php\rclass Subject {\r\n#[Fixture]\nconst VALUE=7;\r}\r\n	2	9	FixtureConstant	7	FixtureConstant	\e	FixtureClass,FixtureFunction,FixtureMethod,FixtureProperty,FixtureParameter
+C	attribute-constant-trailing-empty	<?php\rclass Subject {\n#[Fixture]\r\nconst VALUE=7;\r}\n\r	2	9	FixtureConstant	7	FixtureConstant	\e	FixtureClass,FixtureFunction,FixtureMethod,FixtureProperty,FixtureParameter
+C	attribute-namespace-function-LF	<?php\nnamespace App {\n#[\\Fixture]\nfunction target() {}\n}\n	2	10	FixtureFunction	7	FixtureFunction	\e	FixtureMethod,FixtureClass,FixtureProperty,FixtureConstant,FixtureParameter
+C	attribute-namespace-function-CRLF	<?php\r\nnamespace App {\r\n#[\\Fixture]\r\nfunction target() {}\r\n}\r\n	2	10	FixtureFunction	7	FixtureFunction	\e	FixtureMethod,FixtureClass,FixtureProperty,FixtureConstant,FixtureParameter
+C	attribute-namespace-function-CR	<?php\rnamespace App {\r#[\\Fixture]\rfunction target() {}\r}\r	2	10	FixtureFunction	7	FixtureFunction	\e	FixtureMethod,FixtureClass,FixtureProperty,FixtureConstant,FixtureParameter
+C	attribute-namespace-function-mixed	<?php\rnamespace App {\r\n#[\\Fixture]\nfunction target() {}\r}\r\n	2	10	FixtureFunction	7	FixtureFunction	\e	FixtureMethod,FixtureClass,FixtureProperty,FixtureConstant,FixtureParameter
+C	attribute-namespace-function-trailing-empty	<?php\rnamespace App {\n#[\\Fixture]\r\nfunction target() {}\r}\n\r	2	10	FixtureFunction	7	FixtureFunction	\e	FixtureMethod,FixtureClass,FixtureProperty,FixtureConstant,FixtureParameter
+D	member-incomplete-LF	<?php\nclass Consumer {function f() {\n$box=new \\Box();\n$box->\n}}\n	3	6	property	10	property	Box	\e
+D	member-incomplete-CRLF	<?php\r\nclass Consumer {function f() {\r\n$box=new \\Box();\r\n$box->\r\n}}\r\n	3	6	property	10	property	Box	\e
+D	member-incomplete-CR	<?php\rclass Consumer {function f() {\r$box=new \\Box();\r$box->\r}}\r	3	6	property	10	property	Box	\e
+D	member-incomplete-mixed	<?php\rclass Consumer {function f() {\r\n$box=new \\Box();\n$box->\r}}\r\n	3	6	property	10	property	Box	\e
+D	member-incomplete-trailing-empty	<?php\rclass Consumer {function f() {\n$box=new \\Box();\r\n$box->\r}}\n\r	3	6	property	10	property	Box	\e
+D	call-incomplete-LF	<?php\nclass Consumer {function call(int $count){} function f() {\n$this->call(\n}}\n	2	12	count: int	6	\e	\e	\e
+D	call-incomplete-CRLF	<?php\r\nclass Consumer {function call(int $count){} function f() {\r\n$this->call(\r\n}}\r\n	2	12	count: int	6	\e	\e	\e
+D	call-incomplete-CR	<?php\rclass Consumer {function call(int $count){} function f() {\r$this->call(\r}}\r	2	12	count: int	6	\e	\e	\e
+D	call-incomplete-mixed	<?php\rclass Consumer {function call(int $count){} function f() {\r\n$this->call(\n}}\r	2	12	count: int	6	\e	\e	\e
+D	call-incomplete-trailing-empty	<?php\rclass Consumer {function call(int $count){} function f() {\n$this->call(\r\n}}\r\r	2	12	count: int	6	\e	\e	\e

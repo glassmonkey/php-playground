@@ -1,4 +1,4 @@
-import {validateVariableAliasPair, validateSelectedCompletionPair} from './completion-contract.mjs';
+import {validateVariableAliasPair, validateSelectedCompletionPair, decodePositionFixtureRows} from './completion-contract.mjs';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
@@ -18,10 +18,10 @@ const reviewedDiff = manifest.source?.reviewedPhaseBDiffSha256
 assert.equal(reviewedDiff,
 	'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d');
 assert.equal(manifest.source?.appliedPhaseBPatchSha256,
-    'd4827ea50e55151f0b7deacacaa618e67fc8509a7a2216d56bb399c910840fb8',
+    '271b60cc7bc2c50beea441b30bf587fd624f06640939d205cc2a91d201932d61',
     'current applied PHPantom patch is required before WASM instantiation');
 assert.equal(manifest.source?.appliedFileManifestSha256,
-    '9e26a92855e15a76a4ff6f624ff448d1cf1708e7d3634a1d410951604eca38c3',
+    '82074e820363571b11ff5fa5e4542609d039d87938bf511d3a1c941104df03f4',
     'current applied file manifest is required before WASM instantiation');
 assert.equal(manifest.stubs?.commit, '2049ca3cfa1feabf52db074108fe776a5713cf02');
 if (manifest.stubs?.resolvedCommitMarker) {
@@ -693,7 +693,7 @@ async function releaseConstantCapOracle() {
 async function releaseFullWordCallAndQNameOracle() {
     const functions=[
         {name:'fullword-unicode',definition:'<?php namespace Probe; function tar𐐀get(): string {return "user";}',source:'<?php\nnamespace Probe;\n/* 🌟 */ tar𐐀get /* keep */ ();',token:'tar𐐀get',identity:'Probe\\tar𐐀get',text:'tar𐐀get',label:'tar𐐀get()',filter:'tar𐐀get'},
-        {name:'absolute-global-call',definition:'<?php namespace App; function abs($local): int {return 99;}',source:'<?php\nnamespace App;\n\\abs(-7);',token:'\\abs',identity:'abs',text:'\\abs',label:'abs',filter:'abs'},
+        {name:'absolute-global-call',definition:'<?php namespace App; function abs($local): int {return 99;}',source:'<?php\nnamespace App;\n\\abs(-7);',token:'\\abs',identity:'abs',text:'\\abs',label:'abs',warmLabel:'abs($num)',filter:'abs'},
         {name:'aliased-call',definition:'<?php namespace Vendor; function chosen(): string {return "vendor";}',source:'<?php\nnamespace Consumer;\nuse function Vendor\\chosen as picked;\n\\Vendor\\chosen();',token:'\\Vendor\\chosen',identity:'Vendor\\chosen',text:'picked',label:'chosen()',filter:'chosen'},
     ];
     // Scalar return syntax is not supported before PHP7; retain a syntax-valid
@@ -708,7 +708,7 @@ async function releaseFullWordCallAndQNameOracle() {
                 const response=request('textDocument/completion',{textDocument:{uri},position:{line,character:start+cursor}});
                 const item=completionItems(response).find(value=>value.kind===3&&value.data?.m===fixture.identity);assert.ok(item,`${target} ${fixture.name} selected FQN`);
                 const resolved=request('completionItem/resolve',item).result;
-                const expected={label:fixture.label,kind:3,filterText:fixture.filter,insertText:fixture.text,data:{c:'',m:fixture.identity,k:'function',u:uri},textEdit:{range:{start:{line,character:start},end:{line,character:end}},newText:fixture.text},document};
+                const expected={label:warm?(fixture.warmLabel??fixture.label):fixture.label,kind:3,filterText:fixture.filter,insertText:fixture.text,data:{c:'',m:fixture.identity,k:'function',u:uri},textEdit:{range:{start:{line,character:start},end:{line,character:end}},newText:fixture.text},document};
                 const documents=validateSelectedCompletionPair(fixture.source,item,resolved,expected);
                 check(`${target} ${fixture.name} initial/resolved cursor=${cursor} warm=${warm}`,documents.initial===document&&documents.resolved===document,{item,resolved,documents});
                 console.log(`CALL_EDIT_RESPONSE ${JSON.stringify({target,name:fixture.name,cursor,warm,source:fixture.source,item,resolved,documents})}`);
@@ -739,6 +739,102 @@ async function releaseFullWordCallAndQNameOracle() {
             }
         }
     }
+}
+
+
+// New PHP8-language fixtures are deliberately separate from the existing
+// all-target API/version oracles. This is assertion source, not artifact proof.
+async function releasePositionConsumerOracle() {
+    if (!targetAtLeast(8,0)) return;
+    const rows=decodePositionFixtureRows(await readFile(new URL('./native-probe/tests/fixtures/position-consumers-contract-v2.tsv',import.meta.url),'utf8'),111,23);
+    assert.equal(rows.length,111);assert.equal(new Set(rows.map(row=>row[1])).size,111);
+    const scaffold=await readFile(new URL('./native-probe/tests/fixtures/position-consumer-contract-scaffold.php',import.meta.url),'utf8');
+    for(const f of rows){
+        assert.equal(f.length,23);
+        const [family,name,source,line,column,label,kind,member,owner,forbidden,mode,startLine,start,endLine,end,text,insert,filter,format,document,detail,dataKind,marker]=f;
+        await freshEngine();open('file:///release/position-scaffold.php',scaffold);const uri='file:///release/position-consumer.php';open(uri,source);
+        const position={line:Number(line),character:Number(column)},range={start:{line:Number(startLine),character:Number(start)},end:{line:Number(endLine),character:Number(end)}};
+        for(const warm of [false,true]){
+            const response=request('textDocument/completion',{textDocument:{uri},position}),items=completionItems(response);
+            const selected=items.filter(item=>item.label===label&&item.kind===Number(kind));assert.equal(selected.length,1,`${target} ${name} positive candidate`);
+            for(const wrong of forbidden.split(',').filter(Boolean))assert.ok(!items.some(item=>item.label===wrong),`${name} wrong attribute target ${wrong}`);
+            const item=selected[0],resolved=request('completionItem/resolve',item).result;
+            const expected={label,kind:Number(kind),filterText:filter,insertText:insert==='<none>'?undefined:insert,insertTextFormat:format==='2'?2:undefined,
+                data:dataKind==='none'?undefined:{c:owner,m:member,k:dataKind,u:uri},
+                textEdit:mode==='implicit'?undefined:{range,newText:text},document};
+            if(mode==='implicit')expected.fallbackRange=range;
+            if(detail!=='<ignore>')expected.detail=detail;
+            if(kind==='15')expected.preselect=true;
+            const documents=validateSelectedCompletionPair(source,item,resolved,expected);
+            if(marker){const docs=resolved.documentation?.value??resolved.documentation??'';assert.ok(typeof docs==='string'&&docs.includes(marker),`${name} exact selected declaration docs`);}
+            check(`${target} Position consumer ${family}/${name} warm=${warm}`,documents.initial===document&&documents.resolved===document,{item,resolved,documents});
+            console.log(`POSITION_CONSUMER_RESPONSE ${JSON.stringify({target,family,name,warm,source,position,item,resolved,documents})}`);
+        }
+    }
+    for(const eol of ['\n','\r\n','\r']){
+        const source=`<?php${eol}/** @pa */${eol}function f(int $alpha): int {return $alpha;}${eol}`;
+        await freshEngine();const uri='file:///release/original-phpdoc-position.php';open(uri,source);
+        for(const warm of [false,true]){
+            const response=request('textDocument/completion',{textDocument:{uri},position:{line:1,character:7}});
+            const item=completionItems(response).find(item=>item.label==='@param int $alpha');assert.ok(item,'original PHPDoc positive');const resolved=request('completionItem/resolve',item).result;
+            const document=source.replace('@pa */','@param int $alpha */');
+            const expected={label:'@param int $alpha',kind:14,detail:'Document a function parameter',filterText:'@param',insertText:'param int $alpha',
+                fallbackRange:{start:{line:1,character:5},end:{line:1,character:7}},document};
+            const documents=validateSelectedCompletionPair(source,item,resolved,expected);
+            check(`${target} original PHPDoc canonical ${JSON.stringify(eol)} warm=${warm}`,documents.initial===document&&documents.resolved===document,{item,resolved,documents});
+        }
+    }
+    const generations=decodePositionFixtureRows(await readFile(new URL('./native-probe/tests/fixtures/generation-attributes.tsv',import.meta.url),'utf8'),44,7);
+    assert.equal(generations.length,44);assert.equal(new Set(generations.map(row=>row[0])).size,44);
+    for(const [name,source,line,column,text,document,fqn] of generations){
+        assert.ok(fqn.length>0, `${name} independent declaration FQN`);
+        await freshEngine();open('file:///release/generation-attribute-class.php','<?php #[\\Attribute(\\Attribute::TARGET_ALL|\\Attribute::IS_REPEATABLE)] class GenAttr {function __construct(...$args){}}');const uri='file:///release/generation-opaque.php';open(uri,source);
+        const position={line:Number(line),character:Number(column)};
+        for(const warm of [false,true]){
+            const response=request('textDocument/completion',{textDocument:{uri},position});const item=completionItems(response).find(item=>item.label==='/** PHPDoc Block */');assert.ok(item,`${target} ${name} generation positive`);const resolved=request('completionItem/resolve',item).result;
+            const expected={label:'/** PHPDoc Block */',kind:15,detail:'Generate PHPDoc block',preselect:true,filterText:'/**',insertTextFormat:2,
+                textEdit:{range:{start:{line:Number(line),character:0},end:position},newText:text},document};
+            const documents=validateSelectedCompletionPair(source,item,resolved,expected);
+            check(`${target} opaque generation ${name} warm=${warm}`,documents.initial===document&&documents.resolved===document,{item,resolved,documents});
+            console.log(`GENERATION_OPAQUE_RESPONSE ${JSON.stringify({target,name,fqn,warm,source,position,item,resolved,documents})}`);
+        }
+    }
+    const lexical=decodePositionFixtureRows(await readFile(new URL('./native-probe/tests/fixtures/position-lexical-contexts.tsv',import.meta.url),'utf8'),36,7);
+    assert.equal(lexical.length,36);assert.equal(new Set(lexical.map(row=>row[0])).size,36);
+    for(const [name,source,line,column,mode,start,end] of lexical){
+        await freshEngine();open('file:///release/lexical-scaffold.php',scaffold);const uri='file:///release/lexical-consumer.php';open(uri,source);
+        const position={line:Number(line),character:Number(column)};
+        for(const warm of [false,true]){
+            const response=request('textDocument/completion',{textDocument:{uri},position}),items=completionItems(response);
+            if(mode==='empty'){check(`${target} noncode ${name} warm=${warm}`,items.length===0,{response});continue;}
+            const selected=items.filter(item=>item.label==='property'&&item.kind===10);assert.equal(selected.length,1,`${name} interpolation positive`);
+            const item=selected[0],resolved=request('completionItem/resolve',item).result;
+            const expected={label:'property',kind:10,detail:'string',filterText:'property',insertText:'property',data:{c:'Box',m:'property',k:'property',u:uri},
+                fallbackRange:{start:{line:Number(line),character:Number(start)},end:{line:Number(line),character:Number(end)}},document:source};
+            const documents=validateSelectedCompletionPair(source,item,resolved,expected);
+            check(`${target} interpolation ${name} warm=${warm}`,documents.initial===source&&documents.resolved===source,{item,resolved,documents});
+            console.log(`POSITION_LEXICAL_RESPONSE ${JSON.stringify({target,name,warm,source,position,item,resolved,documents})}`);
+        }
+    }
+    for(const family of ['doc-variable','shape-closed','attribute-property','member-after-cursor']){
+        await freshEngine();open('file:///release/changed-scaffold.php',scaffold);const uri='file:///release/changed-consumer.php';
+        for(const [version,eol] of [[1,'LF'],[2,'CR'],[3,'CRLF']]){
+            const selected=rows.filter(row=>row[1]===`${family}-${eol}`);assert.equal(selected.length,1);const f=selected[0];
+            if(version===1)open(uri,f[2]);else notify('textDocument/didChange',{textDocument:{uri,version},contentChanges:[{text:f[2]}]});
+            const range={start:{line:Number(f[11]),character:Number(f[12])},end:{line:Number(f[13]),character:Number(f[14])}};
+            for(const warm of [false,true]){
+                const response=request('textDocument/completion',{textDocument:{uri},position:{line:Number(f[3]),character:Number(f[4])}});
+                const item=completionItems(response).find(item=>item.label===f[5]&&item.kind===Number(f[6]));assert.ok(item,`${f[1]} didChange positive`);const resolved=request('completionItem/resolve',item).result;
+                const expected={label:f[5],kind:Number(f[6]),filterText:f[17],insertText:f[16]==='<none>'?undefined:f[16],insertTextFormat:f[18]==='2'?2:undefined,
+                    data:f[21]==='none'?undefined:{c:f[8],m:f[7],k:f[21],u:uri},textEdit:f[10]==='implicit'?undefined:{range,newText:f[15]},document:f[19]};
+                if(f[10]==='implicit')expected.fallbackRange=range;
+                if(f[20]!=='<ignore>')expected.detail=f[20];
+                const documents=validateSelectedCompletionPair(f[2],item,resolved,expected);
+                check(`${target} changed Position consumer ${family} ${eol} warm=${warm}`,documents.initial===f[19]&&documents.resolved===f[19],{item,resolved,documents});
+            }
+        }
+    }
+
 }
 
 async function releaseVariableAliasOracle() {
@@ -859,6 +955,7 @@ await releaseVariableAliasOracle();
 await releaseConstantBindingOracle();
 await releaseConstantCapOracle();
 await releaseFullWordCallAndQNameOracle();
+await releasePositionConsumerOracle();
 await releaseBoundaryInterpolationOracle();
 console.log(JSON.stringify({
 	target,

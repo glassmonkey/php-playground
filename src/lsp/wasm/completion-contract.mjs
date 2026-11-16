@@ -1,13 +1,24 @@
 import assert from 'node:assert/strict';
 
 function offset(source, position) {
-    const lines=source.split('\n');
-    assert.ok(position.line<lines.length);
-    const line=lines[position.line];
-    assert.ok(position.character<=line.length);
-    const previous=line.charCodeAt(position.character-1),next=line.charCodeAt(position.character);
-    assert.ok(!(previous>=0xd800&&previous<=0xdbff&&next>=0xdc00&&next<=0xdfff),'UTF-16 edit boundary');
-    return lines.slice(0,position.line).reduce((total,value)=>total+value.length+1,0)+position.character;
+    assert.ok(Number.isInteger(position.line) && position.line >= 0, 'canonical line');
+    assert.ok(Number.isInteger(position.character) && position.character >= 0, 'canonical UTF-16 column');
+    const starts = [0], ends = [];
+    for (let at = 0; at < source.length; at++) {
+        if (source[at] === '\r' || source[at] === '\n') {
+            ends.push(at);
+            if (source[at] === '\r' && source[at + 1] === '\n') at++;
+            starts.push(at + 1);
+        }
+    }
+    ends.push(source.length);
+    assert.ok(position.line < starts.length, 'line exists in original document');
+    const start = starts[position.line], end = ends[position.line];
+    assert.ok(position.character <= end - start, 'column excludes original terminator');
+    const at = start + position.character;
+    const previous = source.charCodeAt(at - 1), next = source.charCodeAt(at);
+    assert.ok(!(previous >= 0xd800 && previous <= 0xdbff && next >= 0xdc00 && next <= 0xdfff), 'UTF-16 edit boundary');
+    return at;
 }
 function validate(source,item,expected) {
     assert.equal(item.label,expected.label);assert.equal(item.kind,expected.kind);assert.equal(item.filterText,expected.filter);
@@ -25,6 +36,43 @@ export function validateVariableAliasPair(source,initial,resolved,expected) {
     return {initial:validate(source,initial,expected),resolved:validate(source,resolved,expected)};
 }
 
+// Bounded default acceptance model for the authored release fixtures:
+// unlinked numeric tabstops, nested numeric defaults and documented meta escaping.
+// Editor variables, choices and transforms require a separate model.
+function defaultSnippet(text) {
+    let at = 0;
+    const used = new Set();
+    function part(nested) {
+        let output = '';
+        while (at < text.length) {
+            const ch = text[at++];
+            if (ch === '\\' && ['$', '}', '\\'].includes(text[at])) {
+                output += text[at++];
+            } else if (ch === '}' && nested) {
+                return output;
+            } else if (ch !== '$') {
+                output += ch;
+            } else {
+                const braced = text[at] === '{';
+                if (braced) at++;
+                const begin = at;
+                while (/[0-9]/.test(text[at] ?? '')) at++;
+                assert.ok(at > begin, 'unsupported snippet variable or transform');
+                const id = text.slice(begin, at);
+                assert.ok(id === '0' || !used.has(id), 'linked snippet fields require a separate model');
+                used.add(id);
+                if (braced) {
+                    if (text[at] === ':') { at++; output += part(true); }
+                    else { assert.equal(text[at++], '}', 'unsupported snippet choice or transform'); }
+                }
+            }
+        }
+        assert.ok(!nested, 'unterminated default placeholder');
+        return output;
+    }
+    return part(false);
+}
+
 // Release edit contracts compare both public payloads to independent source
 // expectations. Identity alone cannot establish executable binding.
 export function validateSelectedCompletionPair(source, initial, resolved, expected) {
@@ -32,14 +80,25 @@ export function validateSelectedCompletionPair(source, initial, resolved, expect
         for (const key of ['label', 'kind', 'filterText', 'insertText', 'insertTextFormat', 'data']) {
             assert.deepEqual(item[key], expected[key], `selected completion ${key}`);
         }
+        for (const key of ['detail', 'preselect']) {
+            if (Object.hasOwn(expected, key)) assert.deepEqual(item[key], expected[key], `selected completion ${key}`);
+        }
         for (const key of ['insertTextMode', 'textEditText', 'command']) {
             assert.equal(item[key], undefined, `unexpected ${key}`);
         }
         assert.deepEqual(item.textEdit, expected.textEdit, 'complete primary edit');
         assert.deepEqual(item.additionalTextEdits ?? [], expected.additionalTextEdits ?? [], 'all additional edits');
-        const edits = [item.textEdit, ...(item.additionalTextEdits ?? [])]
-            .map(edit => ({ start: offset(source, edit.range.start), end: offset(source, edit.range.end), text: edit.newText }))
-            .sort((a, b) => b.start - a.start);
+        const primary = item.textEdit ?? (expected.fallbackRange && {range: expected.fallbackRange, newText: item.insertText});
+        assert.ok(primary && typeof primary.newText === 'string', 'authored default word range or explicit primary required');
+        const edits = [primary, ...(item.additionalTextEdits ?? [])]
+            .map(edit => ({start: offset(source, edit.range.start), end: offset(source, edit.range.end),
+                text: edit === primary && item.insertTextFormat === 2 ? defaultSnippet(edit.newText) : edit.newText}));
+        for (let a = 0; a < edits.length; a++) {
+            for (let b = a + 1; b < edits.length; b++) {
+                assert.ok(edits[a].start !== edits[b].start && !(edits[a].start < edits[b].end && edits[b].start < edits[a].end), 'nonoverlapping edits including insertion positions');
+            }
+        }
+        edits.sort((a, b) => b.start - a.start);
         let document = source, previous = source.length;
         for (const edit of edits) {
             assert.ok(edit.start <= edit.end && edit.end <= previous, 'nonoverlapping full edits');
@@ -50,4 +109,29 @@ export function validateSelectedCompletionPair(source, initial, resolved, expect
         return document;
     }
     return { initial: accepted(initial), resolved: accepted(resolved) };
+}
+
+// Strict serialization reader for the authored Position fixtures. Empty cells
+// use an entire-cell escape; no source bytes, empty rows or fields are trimmed.
+export function decodePositionFixtureRows(text, rowCount, fieldCount) {
+    assert.ok(text.endsWith('\n'), 'fixture terminal LF');
+    const rawRows = text.slice(0, -1).split('\n');
+    assert.equal(rawRows.length, rowCount, 'complete ordered fixture rows');
+    return rawRows.map(row => {
+        assert.notEqual(row, '', 'empty fixture row');
+        const fields = row.split('\t');
+        assert.equal(fields.length, fieldCount, 'complete fixture fields');
+        return fields.map(value => {
+            if (value === '\\e') return '';
+            let result = '';
+            for (let i = 0; i < value.length; i++) {
+                const ch = value[i];
+                if (ch !== '\\') { result += ch; continue; }
+                const next = value[++i];
+                assert.ok(next !== undefined && ['\\', 'n', 'r', 't'].includes(next), 'unknown or truncated fixture escape');
+                result += ({'\\': '\\', n: '\n', r: '\r', t: '\t'})[next];
+            }
+            return result;
+        });
+    });
 }

@@ -1,4 +1,4 @@
-import { validateSelectedCompletionPair } from './completion-contract.mjs';
+import { validateSelectedCompletionPair, decodePositionFixtureRows } from './completion-contract.mjs';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { mkdtempSync, writeFileSync, readFileSync, mkdirSync, rmSync } from 'node:fs';
@@ -167,5 +167,131 @@ test('selected completion oracle rejects initial/resolved edit-only mutations', 
             assert.deepEqual(changed.data, item.data);
             assert.throws(() => validateSelectedCompletionPair(source, stage === 'initial' ? changed : item, stage === 'resolved' ? changed : item, expected), {name: 'AssertionError'});
         }
+    }
+});
+
+test('builtin function label oracle requires the exact cold or resolve-loaded warm label', () => {
+    const source = '<?php \\abs(-7);';
+    for (const warm of [false, true]) {
+        const expected = {label: warm ? 'abs($num)' : 'abs', kind: 3, filterText: 'abs', insertText: '\\abs',
+            data: {c: '', m: 'abs', k: 'function', u: 'file:///label.php'},
+            textEdit: {range: {start: {line: 0, character: 6}, end: {line: 0, character: 10}}, newText: '\\abs'}, document: source};
+        const item = structuredClone(expected); delete item.document;
+        assert.deepEqual(validateSelectedCompletionPair(source, item, item, expected), {initial: source, resolved: source});
+        for (const stage of ['initial', 'resolved']) {
+            const wrong = structuredClone(item); wrong.label = warm ? 'abs' : 'abs($num)';
+            assert.deepEqual(wrong.data, item.data);
+            assert.deepEqual(wrong.textEdit, item.textEdit);
+            assert.throws(() => validateSelectedCompletionPair(source, stage === 'initial' ? wrong : item, stage === 'resolved' ? wrong : item, expected), {name: 'AssertionError'});
+        }
+    }
+});
+
+for (const [name, source, document] of [
+    ['LF', 'A🌟\n猫\nZ\n', 'A🌟\nC\nQ\n'],
+    ['CRLF', 'A🌟\r\n猫\r\nZ\r\n', 'A🌟\r\nC\r\nQ\r\n'],
+    ['CR', 'A🌟\r猫\rZ\r', 'A🌟\rC\rQ\r'],
+    ['mixed', 'A🌟\r\n猫\rZ\n', 'A🌟\r\nC\rQ\n'],
+]) {
+    test(`completion edit oracle preserves original ${name} UTF-16 coordinates and all edits`, () => {
+        const expected = {label: 'Z', kind: 21, filterText: 'Z', insertText: 'Q', data: {c: '', m: 'Z', k: 'global_constant', u: 'file:///coordinates.php'},
+            textEdit: {range: {start: {line: 2, character: 0}, end: {line: 2, character: 1}}, newText: 'Q'},
+            additionalTextEdits: [{range: {start: {line: 1, character: 0}, end: {line: 1, character: 1}}, newText: 'C'}], document};
+        const item = structuredClone(expected); delete item.document;
+        assert.deepEqual(validateSelectedCompletionPair(source, item, item, expected), {initial: document, resolved: document});
+    });
+}
+
+test('completion edit oracle accepts canonical trailing EOF then rejects invalid and overlapping edits', () => {
+    const source = 'A🌟\r\n猫\rZ\n';
+    const expected = {label: 'Z', kind: 21, filterText: 'Z', insertText: 'END', data: {c: '', m: 'Z', k: 'global_constant', u: 'file:///coordinates.php'},
+        textEdit: {range: {start: {line: 3, character: 0}, end: {line: 3, character: 0}}, newText: 'END'}, document: source + 'END'};
+    const item = structuredClone(expected); delete item.document;
+    assert.deepEqual(validateSelectedCompletionPair(source, item, item, expected), {initial: source + 'END', resolved: source + 'END'});
+    for (const position of [{line: -1, character: 0}, {line: 99, character: 0}, {line: 0.5, character: 0}, {line: 0, character: -1}, {line: 0, character: 4}, {line: 0, character: 2}, {line: 3, character: 1}]) {
+        const badExpected = structuredClone(expected); badExpected.textEdit.range = {start: position, end: position};
+        const badItem = structuredClone(badExpected); delete badItem.document;
+        assert.deepEqual(badItem.data, item.data);
+        assert.throws(() => validateSelectedCompletionPair(source, badItem, badItem, badExpected), {name: 'AssertionError'});
+    }
+    const overlapping = structuredClone(expected);
+    overlapping.textEdit = {range: {start: {line: 2, character: 0}, end: {line: 2, character: 1}}, newText: 'Q'};
+    overlapping.additionalTextEdits = [{range: {start: {line: 2, character: 0}, end: {line: 2, character: 1}}, newText: 'C'}];
+    const badItem = structuredClone(overlapping); delete badItem.document;
+    assert.throws(() => validateSelectedCompletionPair(source, badItem, badItem, overlapping), {name: 'AssertionError'});
+});
+
+test('completion oracle applies an independently supplied default word range on original CR source', () => {
+    const source = '<?php\r/*🌟*/ $box->';
+    const expected = {label: 'property', kind: 10, filterText: 'property', insertText: 'property',
+        data: {c: 'Box', m: 'property', k: 'property', u: 'file:///default.php'},
+        fallbackRange: {start: {line: 1, character: 13}, end: {line: 1, character: 13}}, document: source + 'property'};
+    const item = {label: 'property', kind: 10, filterText: 'property', insertText: 'property', data: expected.data};
+    assert.deepEqual(validateSelectedCompletionPair(source, item, item, expected), {initial: expected.document, resolved: expected.document});
+    const explicit = structuredClone(item); explicit.textEdit = {range: expected.fallbackRange, newText: 'property'};
+    assert.throws(() => validateSelectedCompletionPair(source, item, explicit, expected), {name: 'AssertionError'});
+});
+
+test('completion oracle expands authored default snippet fields and escaped PHP dollars', () => {
+    const source = '<?php\r/**\rfunction f(array $items) {}';
+    const snippet = '/**\r * @param array<${1:mixed}> \\$items\r */';
+    const document = '<?php\r/**\r * @param array<mixed> $items\r */\rfunction f(array $items) {}';
+    const expected = {label: '/** PHPDoc Block */', kind: 15, filterText: '/**', insertTextFormat: 2,
+        textEdit: {range: {start: {line: 1, character: 0}, end: {line: 1, character: 3}}, newText: snippet}, document};
+    const item = structuredClone(expected); delete item.document;
+    assert.deepEqual(validateSelectedCompletionPair(source, item, item, expected), {initial: document, resolved: document});
+    const wrong = structuredClone(item); wrong.textEdit.newText = snippet.replace('mixed', 'string');
+    assert.throws(() => validateSelectedCompletionPair(source, item, wrong, expected), {name: 'AssertionError'});
+});
+
+test('completion edit oracle rejects overlapping insertions at the same original position', () => {
+    const source = 'A🌟\r\n猫\rZ\n';
+    const at = {line: 3, character: 0};
+    // These edits are invalid independent of either proposed serial order.
+    for (const document of [source + 'ENDX', source + 'XEND']) {
+        const expected = {label: 'END', kind: 21, filterText: 'END', insertText: 'END',
+            textEdit: {range: {start: at, end: at}, newText: 'END'},
+            additionalTextEdits: [{range: {start: at, end: at}, newText: 'X'}], document};
+        const item = structuredClone(expected); delete item.document;
+        assert.throws(() => validateSelectedCompletionPair(source, item, item, expected), {name: 'AssertionError'});
+    }
+});
+
+test('bounded default snippet model covers nested, escaped and unsupported forms independently', () => {
+    function pair(text, document) {
+        const expected = {label: 'snippet', kind: 15, filterText: 'snippet', insertTextFormat: 2,
+            textEdit: {range: {start: {line: 0, character: 0}, end: {line: 0, character: 0}}, newText: text}, document};
+        const item = structuredClone(expected); delete item.document;
+        return validateSelectedCompletionPair('', item, item, expected);
+    }
+    const document = '猫🌟 $items } \\';
+    assert.deepEqual(pair('$0$1${2}${3:猫${4:🌟}} \\$items \\} \\\\', document), {initial: document, resolved: document});
+    for (const unsupported of ['${NAME:default}', '$TM_FILENAME', '${1|a,b|}', '${1:unterminated', '${1/regex/replacement/}', '${1:a}$1', '${1:a${1:b}}']) {
+        assert.throws(() => pair(unsupported, ''), {name: 'AssertionError'});
+    }
+});
+
+test('snippet format applies only to primary and additional edits remain literal plaintext', () => {
+    const source = '<?php\r/**\rfunction f() {}';
+    const expected = {label: 'snippet', kind: 15, filterText: '/**', insertTextFormat: 2,
+        textEdit: {range: {start: {line: 1, character: 0}, end: {line: 1, character: 3}}, newText: '/** ${1:doc} */$0'},
+        additionalTextEdits: [{range: {start: {line: 0, character: 5}, end: {line: 0, character: 5}}, newText: ' /* $0 ${1:literal} */'}],
+        document: '<?php /* $0 ${1:literal} */\r/** doc */\rfunction f() {}'};
+    const item = structuredClone(expected); delete item.document;
+    assert.deepEqual(validateSelectedCompletionPair(source, item, item, expected), {initial: expected.document, resolved: expected.document});
+});
+
+test('Position fixture decoder retains all ordered cells against immutable original matrices', () => {
+    const expected = JSON.parse(readFileSync(new URL('./native-probe/tests/fixtures/position-fixture-semantics.json', import.meta.url), 'utf8'));
+    assert.deepEqual(Object.keys(expected).sort(), ['generation-attributes.tsv', 'position-consumers-contract-v2.tsv', 'position-consumers-contract.tsv', 'position-consumers.tsv']);
+    for (const [name, rows] of Object.entries(expected)) {
+        const text = readFileSync(new URL(`./native-probe/tests/fixtures/${name}`, import.meta.url), 'utf8');
+        assert.deepEqual(decodePositionFixtureRows(text, rows.length, rows[0].length), rows);
+    }
+    assert.deepEqual(decodePositionFixtureRows('A\\r\\n\\t\\\\\t\\e\n', 1, 2), [['A\r\n\t\\', '']]);
+});
+test('Position fixture decoder rejects unknown/truncated escapes, missing cells and blank rows', () => {
+    for (const [text, rows, fields] of [['\\q\n', 1, 1], ['\\\n', 1, 1], ['x\n', 1, 2], ['n\ts\t0\t0\tsnippet\tdoc\n', 1, 7], ['n\ts\t0\t0\tsnippet\tdoc\t\\q\n', 1, 7], ['x\t\\e\n\n', 2, 2], ['x', 1, 1], ['x\n', 2, 1]]) {
+        assert.throws(() => decodePositionFixtureRows(text, rows, fields));
     }
 });
