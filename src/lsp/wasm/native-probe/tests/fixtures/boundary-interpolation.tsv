@@ -2,8 +2,8 @@
 <?php\n#[Attribute(Attribute::TARGET_ALL|Attribute::IS_REPEATABLE)] class A { public function __construct(...$x){} }\n#[A(<<<'TXT'\n] Tar\nTXT)] /** REAL_NOWDOC */ class Target {}\nTar;	Target		7	REAL_NOWDOC	3	5	0	LF-body
 <?php\n#[Attribute(Attribute::TARGET_ALL|Attribute::IS_REPEATABLE)] class A { public function __construct(...$x){} }\n#[A(<<<'TXT'\r\n] Tar\r\nTXT)] /** REAL_NOWDOC */ class Target {}\nTar;	Target		7	REAL_NOWDOC	5	3	1	CRLF-after
 <?php\n#[Attribute(Attribute::TARGET_ALL|Attribute::IS_REPEATABLE)] class A { public function __construct(...$x){} }\n#[A(<<<'TXT'\r\n] Tar\r\nTXT)] /** REAL_NOWDOC */ class Target {}\nTar;	Target		7	REAL_NOWDOC	3	5	0	CRLF-body
-<?php\n#[Attribute(Attribute::TARGET_ALL|Attribute::IS_REPEATABLE)] class A { public function __construct(...$x){} }\n#[A(<<<'TXT'\r] Tar\rTXT)] /** REAL_NOWDOC */ class Target {}\nTar;	Target		7	REAL_NOWDOC	3	3	1	CRonly-after
-<?php\n#[Attribute(Attribute::TARGET_ALL|Attribute::IS_REPEATABLE)] class A { public function __construct(...$x){} }\n#[A(<<<'TXT'\r] Tar\rTXT)] /** REAL_NOWDOC */ class Target {}\nTar;	Target		7	REAL_NOWDOC	2	18	0	CRonly-body
+<?php\n#[Attribute(Attribute::TARGET_ALL|Attribute::IS_REPEATABLE)] class A { public function __construct(...$x){} }\n#[A(<<<'TXT'\r] Tar\rTXT)] /** REAL_NOWDOC */ class Target {}\nTar;	Target		7	REAL_NOWDOC	5	3	1	CRonly-after
+<?php\n#[Attribute(Attribute::TARGET_ALL|Attribute::IS_REPEATABLE)] class A { public function __construct(...$x){} }\n#[A(<<<'TXT'\r] Tar\rTXT)] /** REAL_NOWDOC */ class Target {}\nTar;	Target		7	REAL_NOWDOC	3	5	0	CRonly-body
 <?php\n#[Attribute(Attribute::TARGET_ALL|Attribute::IS_REPEATABLE)] class A { public function __construct(...$x){} }\n#[A(<<<\t'TXT'\n] Tar\nTXT)] /** REAL_NOWDOC */ class Target {}\nTar;	Target		7	REAL_NOWDOC	5	3	1	tab-header-after
 <?php\n#[Attribute(Attribute::TARGET_ALL|Attribute::IS_REPEATABLE)] class A { public function __construct(...$x){} }\n#[A(<<<\t'TXT'\n] Tar\nTXT)] /** REAL_NOWDOC */ class Target {}\nTar;	Target		7	REAL_NOWDOC	3	5	0	tab-header-body
 <?php\n#[Attribute(Attribute::TARGET_ALL|Attribute::IS_REPEATABLE)] class A { public function __construct(...$x){} }\n#[A(<<<'猫'\n] Tar\n猫)] /** REAL_NOWDOC */ class Target {}\nTar;	Target		7	REAL_NOWDOC	5	3	1	unicode-label-after
@@ -33,3 +33,4 @@
 <?php\nclass Target { /** PROPERTY_DOC */ public $property="value"; }\n$obj=new Target; $s=<<<"TXT"\n\\$obj->property\nTXT;	property	Target	10	PROPERTY_DOC	3	11	1	even-backslash-heredoc
 <?php\nclass Target { /** PROPERTY_DOC */ public $property="value"; }\n$obj=new Target; $s="obj->property";	property	Target	10	PROPERTY_DOC	2	29	0	literal-double
 <?php\nclass Target { /** PROPERTY_DOC */ public $property="value"; }\n$obj=new Target; $s=<<<"TXT"\nobj->property\nTXT;	property	Target	10	PROPERTY_DOC	3	8	0	literal-heredoc
+<?php\n#[Attribute(Attribute::TARGET_ALL|Attribute::IS_REPEATABLE)] class A { public function __construct(...$x){} }\n#[A(<<<'TXT'\r] Tar\rTXT)] /** REAL_NOWDOC */ class Target {}\nTar;	Target		7	REAL_NOWDOC	3	3	0	CRonly-former-after-is-literal

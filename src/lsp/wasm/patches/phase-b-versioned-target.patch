@@ -3603,19 +3603,15 @@ diff --git a/src/completion/mod.rs b/src/completion/mod.rs
 diff --git a/src/completion/variable/completion.rs b/src/completion/variable/completion.rs
 --- a/src/completion/variable/completion.rs
 +++ b/src/completion/variable/completion.rs
-@@ -67,7 +67,7 @@
- 
-         // Walk backwards through identifier characters
-         let mut i = col;
+@@ -50 +50,3 @@
+-        let lines: Vec<&str> = content.lines().collect();
++        let lines: Vec<&str> = crate::text_position::lines_with_offsets(content)
++            .map(|(_, line)| line)
++            .collect();
+@@ -70 +72 @@
 -        while i > 0 && (chars[i - 1].is_alphanumeric() || chars[i - 1] == '_') {
 +        while i > 0 && (crate::completion::is_php_name_char(chars[i - 1])) {
-             i -= 1;
-         }
- 
-@@ -128,17 +128,15 @@
- 
-         let cursor_offset = position_to_byte_offset(content, position) as u32;
- 
+@@ -131,11 +133,9 @@
 -        // Compute the replacement range: from the start of the `$` prefix
 -        // to the cursor position.  Using `text_edit` with an explicit range
 -        // prevents the double-dollar problem in editors (Helix, Neovim)
@@ -3636,22 +3632,28 @@ diff --git a/src/completion/variable/completion.rs b/src/completion/variable/com
 +            crate::completion::is_php_name_char,
 +        ) else {
 +            return (Vec::new(), false);
-         };
- 
-         // ── 1. SymbolMap-based scope-aware variable collection ────────
 diff --git a/src/completion/context/class_completion/mod.rs b/src/completion/context/class_completion/mod.rs
 --- a/src/completion/context/class_completion/mod.rs
 +++ b/src/completion/context/class_completion/mod.rs
-@@ -129,3 +129 @@
+@@ -118,6 +118,2 @@
+-        let lines: Vec<&str> = content.lines().collect();
+-        if position.line as usize >= lines.len() {
+-            return None;
+-        }
+-
+-        let line = lines[position.line as usize];
++        let (_, line) =
++            crate::text_position::lines_with_offsets(content).nth(position.line as usize)?;
+@@ -129,3 +125 @@
 -        while i > 0
 -            && (chars[i - 1].is_alphanumeric() || chars[i - 1] == '_' || chars[i - 1] == '\\')
 -        {
 +        while i > 0 && (crate::completion::is_php_name_char(chars[i - 1]) || chars[i - 1] == '\\') {
-@@ -199,0 +198,3 @@
+@@ -199,0 +194,3 @@
 +        if is_attribute && self.php_version().major < 8 {
 +            return (Vec::new(), false);
 +        }
-@@ -200,0 +202,41 @@
+@@ -200,0 +198,41 @@
 +        // When the user is typing a namespace-qualified reference (e.g.
 +        // `http\En`, `\App\Models\U`, or `\Demo`), the editor may treat
 +        // `\` as a word boundary and only replace the text after the
@@ -3693,15 +3695,15 @@ diff --git a/src/completion/context/class_completion/mod.rs b/src/completion/con
 +                    .resolve_name_at(written_name, name_start as u32),
 +            )
 +        };
-@@ -206,2 +248,2 @@
+@@ -206,2 +244,2 @@
 -        let should_shorten_via_imports = !is_use_import;
 -        let has_leading_backslash = prefix.starts_with('\\');
 +        let has_leading_backslash = written_name.starts_with('\\');
 +        let should_shorten_via_imports = !is_use_import && !has_leading_backslash;
-@@ -213 +255 @@
+@@ -213 +251 @@
 -        let is_fqn_prefix = has_leading_backslash || normalized.contains('\\') || is_use_import;
 +        let is_fqn_prefix = has_leading_backslash || written_name.contains('\\') || is_use_import;
-@@ -234,18 +275,0 @@
+@@ -234,18 +271,0 @@
 -        // When the user is typing a namespace-qualified reference (e.g.
 -        // `http\En`, `\App\Models\U`, or `\Demo`), the editor may treat
 -        // `\` as a word boundary and only replace the text after the
@@ -3720,12 +3722,12 @@ diff --git a/src/completion/context/class_completion/mod.rs b/src/completion/con
 -        } else {
 -            None
 -        };
-@@ -275 +299 @@
+@@ -275 +295 @@
 -            normalized.contains('\\') || has_leading_backslash || is_use_import;
 +            written_name.contains('\\') || has_leading_backslash || is_use_import;
-@@ -296,0 +321 @@
+@@ -296,0 +317 @@
 +            written_prefix_lower: prefix_lower.clone(),
-@@ -380 +405,6 @@
+@@ -380 +401,6 @@
 -            if !matches_class_prefix(sn, fqn, &prefix_lower, is_fqn_prefix, expanded_prefix_lower) {
 +            let import_matches = should_shorten_via_imports
 +                && items::shorten_fqn_via_use_map(fqn, file_use_map, &prefix_lower)
@@ -3733,7 +3735,7 @@ diff --git a/src/completion/context/class_completion/mod.rs b/src/completion/con
 +            if !matches_class_prefix(sn, fqn, &prefix_lower, is_fqn_prefix, expanded_prefix_lower)
 +                && !import_matches
 +            {
-@@ -414 +444,6 @@
+@@ -414 +440,6 @@
 -            if !matches_class_prefix(sn, fqn, &prefix_lower, is_fqn_prefix, expanded_prefix_lower) {
 +            let import_matches = should_shorten_via_imports
 +                && items::shorten_fqn_via_use_map(fqn, file_use_map, &prefix_lower)
@@ -3741,7 +3743,7 @@ diff --git a/src/completion/context/class_completion/mod.rs b/src/completion/con
 +            if !matches_class_prefix(sn, fqn, &prefix_lower, is_fqn_prefix, expanded_prefix_lower)
 +                && !import_matches
 +            {
-@@ -548,0 +584,16 @@
+@@ -548,0 +580,16 @@
 +            // Retain the current name only after the existing eligibility filters.
 +            // Keep the ordinary ranking and cap, replacing at most one tail item.
 +            if let Some(exact) = &exact_fqn
@@ -4388,3 +4390,249 @@ diff --git a/src/completion/handler/mod.rs b/src/completion/handler/mod.rs
 +                item.insert_text = Some(name.clone());
 +                if let Some(CompletionItemTextEdit::TextEdit(ref mut edit)) = item.text_edit {
 +                    edit.new_text = name;
+diff --git a/src/text_position.rs b/src/text_position.rs
+--- a/src/text_position.rs
++++ b/src/text_position.rs
+@@ -24,0 +25,34 @@
++/// Original byte ranges occupied by complete CR, LF, or CRLF terminators.
++/// The LF inside CRLF never creates another line.
++fn line_breaks(content: &str) -> impl Iterator<Item = (usize, usize)> + '_ {
++    let bytes = content.as_bytes();
++    let mut next = 0;
++    std::iter::from_fn(move || {
++        let start = (next..bytes.len()).find(|&i| matches!(bytes[i], b'\r' | b'\n'))?;
++        let end = start
++            + if bytes[start] == b'\r' && bytes.get(start + 1) == Some(&b'\n') {
++                2
++            } else {
++                1
++            };
++        next = end;
++        Some((start, end))
++    })
++}
++
++/// Canonicalise a byte offset without changing the source. UTF-8 interior
++/// offsets round forward; the interior of CRLF denotes the preceding line end.
++fn canonical_byte_offset(content: &str, offset: usize) -> usize {
++    let mut offset = offset.min(content.len());
++    while !content.is_char_boundary(offset) {
++        offset += 1;
++    }
++    if offset > 0
++        && content.as_bytes()[offset - 1] == b'\r'
++        && content.as_bytes().get(offset) == Some(&b'\n')
++    {
++        offset -= 1;
++    }
++    offset
++}
++
+@@ -27 +61,2 @@
+-/// This is the inverse of [`position_to_byte_offset`].  Characters are
++/// This inverts [`position_to_byte_offset`] at canonical scalar/line boundaries.
++/// A CRLF interior offset denotes the preceding line end. Characters are
+@@ -33,15 +68,6 @@
+-    let mut line = 0u32;
+-    let mut col = 0u32;
+-    for (i, ch) in content.char_indices() {
+-        if i >= offset {
+-            return Position {
+-                line,
+-                character: col,
+-            };
+-        }
+-        if ch == '\n' {
+-            line += 1;
+-            col = 0;
+-        } else {
+-            col += ch.len_utf16() as u32;
+-        }
++    let offset = canonical_byte_offset(content, offset);
++    let mut line = 0;
++    let mut start = 0;
++    for (_, next) in line_breaks(&content[..offset]) {
++        start = next;
++        line += 1;
+@@ -49 +74,0 @@
+-    // offset == content.len() (end of file)
+@@ -52 +77 @@
+-        character: col,
++        character: content[start..offset].encode_utf16().count() as u32,
+@@ -159,8 +184,4 @@
+-    let mut line_starts = Vec::with_capacity(content.len() / 24 + 1);
+-    line_starts.push(0usize);
+-    for (i, b) in content.bytes().enumerate() {
+-        if b == b'\n' {
+-            line_starts.push(i + 1);
+-        }
+-    }
+-    line_starts
++    let mut starts = Vec::with_capacity(content.len() / 24 + 1);
++    starts.push(0);
++    starts.extend(line_breaks(content).map(|(_, next)| next));
++    starts
+@@ -170 +191,2 @@
+-/// stripped of its terminator the way [`str::lines`] strips it.
++/// stripped of its CR, LF, or CRLF terminator. A trailing terminator does
++/// not yield an extra empty record; `line_starts` still records the EOF line.
+@@ -177,7 +199,10 @@
+-    content.split_inclusive('\n').scan(0usize, |next, raw| {
+-        let start = *next;
+-        *next += raw.len();
+-        let line = raw
+-            .strip_suffix('\n')
+-            .map_or(raw, |line| line.strip_suffix('\r').unwrap_or(line));
+-        Some((start, line))
++    let mut breaks = line_breaks(content);
++    let mut start = 0;
++    std::iter::from_fn(move || {
++        if start >= content.len() {
++            return None;
++        }
++        let (end, next) = breaks.next().unwrap_or((content.len(), content.len()));
++        let result = (start, &content[start..end]);
++        start = next;
++        Some(result)
+@@ -227,4 +252 @@
+-    let mut offset = offset.min(content.len());
+-    while !content.is_char_boundary(offset) {
+-        offset += 1;
+-    }
++    let offset = canonical_byte_offset(content, offset);
+@@ -254 +276 @@
+-/// both LF and CRLF (the `\n` is the final byte of a CRLF pair either way).
++/// CR, LF and CRLF; CRLF contributes one boundary after the complete pair.
+@@ -261,10 +283,3 @@
+-    let mut seen = 0usize;
+-    for (i, b) in content.bytes().enumerate() {
+-        if b == b'\n' {
+-            seen += 1;
+-            if seen == line_idx {
+-                return i + 1;
+-            }
+-        }
+-    }
+-    content.len()
++    line_breaks(content)
++        .nth(line_idx - 1)
++        .map_or(content.len(), |(_, next)| next)
+@@ -274 +289 @@
+-/// (just past the preceding `\n`, or 0 on the first line).
++/// (just past the preceding complete CR/LF/CRLF, or 0 on the first line).
+@@ -276,3 +291,5 @@
+-    content[..offset.min(content.len())]
+-        .rfind('\n')
+-        .map_or(0, |nl| nl + 1)
++    let offset = canonical_byte_offset(content, offset);
++    content.as_bytes()[..offset]
++        .iter()
++        .rposition(|&b| matches!(b, b'\r' | b'\n'))
++        .map_or(0, |last| last + 1)
+@@ -281,2 +298,3 @@
+-/// Return the byte offset just past the `\n` that ends the line holding
+-/// byte `offset`, or `content.len()` on the last line.
++/// Return the terminator-inclusive byte offset that ends the line holding
++/// byte `offset`, including the complete CR/LF/CRLF terminator, or
++/// `content.len()` on the last line.
+@@ -284,4 +302,4 @@
+-    let offset = offset.min(content.len());
+-    content[offset..]
+-        .find('\n')
+-        .map_or(content.len(), |nl| offset + nl + 1)
++    let offset = canonical_byte_offset(content, offset);
++    line_breaks(&content[offset..])
++        .next()
++        .map_or(content.len(), |(_, next)| offset + next)
+@@ -294,2 +312,3 @@
+-/// If the position is past the end of the file, the content length is
+-/// returned.
++/// Columns past a line clamp before its terminator; lines past EOF clamp
++/// to EOF. A UTF-16 surrogate split rounds forward to the next scalar boundary.
++/// Strict callers can reject that position by checking its canonical roundtrip.
+@@ -297,5 +316,5 @@
+-    let mut line = 0u32;
+-    let mut col = 0u32;
+-    for (i, ch) in content.char_indices() {
+-        if line == position.line && col == position.character {
+-            return i;
++    let start = line_start_byte_offset(content, position.line as usize);
++    let mut column = 0;
++    for (relative, ch) in content[start..].char_indices() {
++        if column >= position.character || matches!(ch, '\r' | '\n') {
++            return start + relative;
+@@ -303,10 +322 @@
+-        if ch == '\n' {
+-            if line == position.line {
+-                // Position is past the end of this line — clamp to newline.
+-                return i;
+-            }
+-            line += 1;
+-            col = 0;
+-        } else {
+-            col += ch.len_utf16() as u32;
+-        }
++        column += ch.len_utf16() as u32;
+@@ -314 +323,0 @@
+-    // Position at end of content.
+@@ -334,8 +343,6 @@
+-    let target_line = position.line as usize;
+-    let target_col = position.character as usize;
+-    let mut line = 0usize;
+-    let mut col = 0usize;
+-
+-    for (i, &ch) in chars.iter().enumerate() {
+-        if line == target_line && col == target_col {
+-            return Some(i);
++    let mut line = 0;
++    let mut col = 0;
++    let mut index = 0;
++    while let Some(&ch) = chars.get(index) {
++        if line == position.line && col >= position.character {
++            return Some(index);
+@@ -343,5 +350,3 @@
+-        if ch == '\n' {
+-            // If we're at the target line and the target column is at or
+-            // past the end of the line, clamp to end-of-line.
+-            if line == target_line {
+-                return Some(i);
++        if matches!(ch, '\r' | '\n') {
++            if line == position.line {
++                return Some(index);
+@@ -348,0 +354,5 @@
++            index += if ch == '\r' && chars.get(index + 1) == Some(&'\n') {
++                2
++            } else {
++                1
++            };
+@@ -352 +362,2 @@
+-            col += ch.len_utf16();
++            col += ch.len_utf16() as u32;
++            index += 1;
+@@ -355,11 +366 @@
+-
+-    // Cursor at very end of content
+-    if line == target_line && col == target_col {
+-        return Some(chars.len());
+-    }
+-    // Target column past end of last line (no trailing newline)
+-    if line == target_line {
+-        return Some(chars.len());
+-    }
+-
+-    None
++    (line == position.line).then_some(chars.len())
+@@ -376,0 +378,2 @@
++/// An interior UTF-16 surrogate position rounds forward to the next scalar,
++/// matching `utf16_col_to_char_index`; strict callers must check roundtrips.
+@@ -380 +383 @@
+-        if col == utf16_col {
++        if col >= utf16_col {
+diff --git a/src/completion/target.rs b/src/completion/target.rs
+--- a/src/completion/target.rs
++++ b/src/completion/target.rs
+@@ -25 +25,3 @@
+-    let lines: Vec<&str> = content.lines().collect();
++    let lines: Vec<&str> = crate::text_position::lines_with_offsets(content)
++        .map(|(_, line)| line)
++        .collect();

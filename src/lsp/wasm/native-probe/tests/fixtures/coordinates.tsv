@@ -1,0 +1,36 @@
+class-Ascii-LF	<?php\nnamespace Probe;\n/* 🌟 */ class TargetAscii {const VALUE="é🌟";}\n	<?php\nnamespace Probe;\nnew TargetAscii();	2	6	2	9	class TargetAscii	TargetAscii
+class-Ascii-CRLF	<?php\r\nnamespace Probe;\r\n/* 🌟 */ class TargetAscii {const VALUE="é🌟";}\r\n	<?php\nnamespace Probe;\nnew TargetAscii();	2	6	2	9	class TargetAscii	TargetAscii
+class-Ascii-CR	<?php\rnamespace Probe;\r/* 🌟 */ class TargetAscii {const VALUE="é🌟";}\r	<?php\nnamespace Probe;\nnew TargetAscii();	2	6	2	9	class TargetAscii	TargetAscii
+class-Ascii-mixed	<?php\rnamespace Probe;\r\n/* 🌟 */ class TargetAscii {const VALUE="é🌟";}\n	<?php\nnamespace Probe;\nnew TargetAscii();	2	6	2	9	class TargetAscii	TargetAscii
+class-猫-LF	<?php\nnamespace Probe;\n/* 🌟 */ class Target猫 {const VALUE="é🌟";}\n	<?php\nnamespace Probe;\nnew Target猫();	2	6	2	9	class Target猫	Target猫
+class-猫-CRLF	<?php\r\nnamespace Probe;\r\n/* 🌟 */ class Target猫 {const VALUE="é🌟";}\r\n	<?php\nnamespace Probe;\nnew Target猫();	2	6	2	9	class Target猫	Target猫
+class-猫-CR	<?php\rnamespace Probe;\r/* 🌟 */ class Target猫 {const VALUE="é🌟";}\r	<?php\nnamespace Probe;\nnew Target猫();	2	6	2	9	class Target猫	Target猫
+class-猫-mixed	<?php\rnamespace Probe;\r\n/* 🌟 */ class Target猫 {const VALUE="é🌟";}\n	<?php\nnamespace Probe;\nnew Target猫();	2	6	2	9	class Target猫	Target猫
+class-𐐀-LF	<?php\nnamespace Probe;\n/* 🌟 */ class Target𐐀 {const VALUE="é🌟";}\n	<?php\nnamespace Probe;\nnew Target𐐀();	2	6	2	9	class Target𐐀	Target𐐀
+class-𐐀-CRLF	<?php\r\nnamespace Probe;\r\n/* 🌟 */ class Target𐐀 {const VALUE="é🌟";}\r\n	<?php\nnamespace Probe;\nnew Target𐐀();	2	6	2	9	class Target𐐀	Target𐐀
+class-𐐀-CR	<?php\rnamespace Probe;\r/* 🌟 */ class Target𐐀 {const VALUE="é🌟";}\r	<?php\nnamespace Probe;\nnew Target𐐀();	2	6	2	9	class Target𐐀	Target𐐀
+class-𐐀-mixed	<?php\rnamespace Probe;\r\n/* 🌟 */ class Target𐐀 {const VALUE="é🌟";}\n	<?php\nnamespace Probe;\nnew Target𐐀();	2	6	2	9	class Target𐐀	Target𐐀
+function-Ascii-LF	<?php\nnamespace Probe;\n/* 🌟 */ function TargetAscii(): int {return 7;}\n	<?php\nnamespace Probe;\nTargetAscii();	2	2	2	18	TargetAscii	TargetAscii
+function-Ascii-CRLF	<?php\r\nnamespace Probe;\r\n/* 🌟 */ function TargetAscii(): int {return 7;}\r\n	<?php\nnamespace Probe;\nTargetAscii();	2	2	2	18	TargetAscii	TargetAscii
+function-Ascii-CR	<?php\rnamespace Probe;\r/* 🌟 */ function TargetAscii(): int {return 7;}\r	<?php\nnamespace Probe;\nTargetAscii();	2	2	2	18	TargetAscii	TargetAscii
+function-Ascii-mixed	<?php\rnamespace Probe;\r\n/* 🌟 */ function TargetAscii(): int {return 7;}\n	<?php\nnamespace Probe;\nTargetAscii();	2	2	2	18	TargetAscii	TargetAscii
+function-猫-LF	<?php\nnamespace Probe;\n/* 🌟 */ function Target猫(): int {return 7;}\n	<?php\nnamespace Probe;\nTarget猫();	2	2	2	18	Target猫	Target猫
+function-猫-CRLF	<?php\r\nnamespace Probe;\r\n/* 🌟 */ function Target猫(): int {return 7;}\r\n	<?php\nnamespace Probe;\nTarget猫();	2	2	2	18	Target猫	Target猫
+function-猫-CR	<?php\rnamespace Probe;\r/* 🌟 */ function Target猫(): int {return 7;}\r	<?php\nnamespace Probe;\nTarget猫();	2	2	2	18	Target猫	Target猫
+function-猫-mixed	<?php\rnamespace Probe;\r\n/* 🌟 */ function Target猫(): int {return 7;}\n	<?php\nnamespace Probe;\nTarget猫();	2	2	2	18	Target猫	Target猫
+function-𐐀-LF	<?php\nnamespace Probe;\n/* 🌟 */ function Target𐐀(): int {return 7;}\n	<?php\nnamespace Probe;\nTarget𐐀();	2	2	2	18	Target𐐀	Target𐐀
+function-𐐀-CRLF	<?php\r\nnamespace Probe;\r\n/* 🌟 */ function Target𐐀(): int {return 7;}\r\n	<?php\nnamespace Probe;\nTarget𐐀();	2	2	2	18	Target𐐀	Target𐐀
+function-𐐀-CR	<?php\rnamespace Probe;\r/* 🌟 */ function Target𐐀(): int {return 7;}\r	<?php\nnamespace Probe;\nTarget𐐀();	2	2	2	18	Target𐐀	Target𐐀
+function-𐐀-mixed	<?php\rnamespace Probe;\r\n/* 🌟 */ function Target𐐀(): int {return 7;}\n	<?php\nnamespace Probe;\nTarget𐐀();	2	2	2	18	Target𐐀	Target𐐀
+method-Ascii-LF	<?php\nnamespace Probe;\n/* 🌟 */ class Owner { public function TargetAscii(): int {return 7;} }\n	<?php\nnamespace Probe;\n$x = new Owner;\n$x->TargetAscii();	3	6	2	39	TargetAscii	TargetAscii
+method-Ascii-CRLF	<?php\r\nnamespace Probe;\r\n/* 🌟 */ class Owner { public function TargetAscii(): int {return 7;} }\r\n	<?php\nnamespace Probe;\n$x = new Owner;\n$x->TargetAscii();	3	6	2	39	TargetAscii	TargetAscii
+method-Ascii-CR	<?php\rnamespace Probe;\r/* 🌟 */ class Owner { public function TargetAscii(): int {return 7;} }\r	<?php\nnamespace Probe;\n$x = new Owner;\n$x->TargetAscii();	3	6	2	39	TargetAscii	TargetAscii
+method-Ascii-mixed	<?php\rnamespace Probe;\r\n/* 🌟 */ class Owner { public function TargetAscii(): int {return 7;} }\n	<?php\nnamespace Probe;\n$x = new Owner;\n$x->TargetAscii();	3	6	2	39	TargetAscii	TargetAscii
+method-猫-LF	<?php\nnamespace Probe;\n/* 🌟 */ class Owner { public function Target猫(): int {return 7;} }\n	<?php\nnamespace Probe;\n$x = new Owner;\n$x->Target猫();	3	6	2	39	Target猫	Target猫
+method-猫-CRLF	<?php\r\nnamespace Probe;\r\n/* 🌟 */ class Owner { public function Target猫(): int {return 7;} }\r\n	<?php\nnamespace Probe;\n$x = new Owner;\n$x->Target猫();	3	6	2	39	Target猫	Target猫
+method-猫-CR	<?php\rnamespace Probe;\r/* 🌟 */ class Owner { public function Target猫(): int {return 7;} }\r	<?php\nnamespace Probe;\n$x = new Owner;\n$x->Target猫();	3	6	2	39	Target猫	Target猫
+method-猫-mixed	<?php\rnamespace Probe;\r\n/* 🌟 */ class Owner { public function Target猫(): int {return 7;} }\n	<?php\nnamespace Probe;\n$x = new Owner;\n$x->Target猫();	3	6	2	39	Target猫	Target猫
+method-𐐀-LF	<?php\nnamespace Probe;\n/* 🌟 */ class Owner { public function Target𐐀(): int {return 7;} }\n	<?php\nnamespace Probe;\n$x = new Owner;\n$x->Target𐐀();	3	6	2	39	Target𐐀	Target𐐀
+method-𐐀-CRLF	<?php\r\nnamespace Probe;\r\n/* 🌟 */ class Owner { public function Target𐐀(): int {return 7;} }\r\n	<?php\nnamespace Probe;\n$x = new Owner;\n$x->Target𐐀();	3	6	2	39	Target𐐀	Target𐐀
+method-𐐀-CR	<?php\rnamespace Probe;\r/* 🌟 */ class Owner { public function Target𐐀(): int {return 7;} }\r	<?php\nnamespace Probe;\n$x = new Owner;\n$x->Target𐐀();	3	6	2	39	Target𐐀	Target𐐀
+method-𐐀-mixed	<?php\rnamespace Probe;\r\n/* 🌟 */ class Owner { public function Target𐐀(): int {return 7;} }\n	<?php\nnamespace Probe;\n$x = new Owner;\n$x->Target𐐀();	3	6	2	39	Target𐐀	Target𐐀

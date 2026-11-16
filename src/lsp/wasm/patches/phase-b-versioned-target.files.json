@@ -1,6 +1,6 @@
 {
-  "completePatchSha256": "02e0dc4c200daf99acf883ad7991045b12194c5f25886fd553d7b0381acb6867",
-  "fileCount": 46,
+  "completePatchSha256": "c0326a26b6ae764776004367df665f4d977a9f6f134bfbcd9392a8eaeb2701a0",
+  "fileCount": 48,
   "files": [
     {
       "path": "build.rs",
@@ -28,7 +28,7 @@
     },
     {
       "path": "src/completion/context/class_completion/mod.rs",
-      "sha256": "3f2c1f7d47d211b49950721432870dbd2f6f9dbb8d07f53d4276ed62722f083d"
+      "sha256": "f107247d98e13191c038c0ab4281af49bdae466080a1af01aa4356aee3a7a1e9"
     },
     {
       "path": "src/completion/context/constant_completion.rs",
@@ -91,12 +91,16 @@
       "sha256": "4d90246cee7820f19b2a4f28ae22f8c7551621a090daaf18cad852fcbf1f4015"
     },
     {
+      "path": "src/completion/target.rs",
+      "sha256": "605d855a093e5f0addc2fbb5373ad4d3ec036682a89304d6281018c70f70c6f7"
+    },
+    {
       "path": "src/completion/use_edit.rs",
       "sha256": "17d22af66529f1d057af1e4b973a43c2578519a859827cfed77bf56c511054dc"
     },
     {
       "path": "src/completion/variable/completion.rs",
-      "sha256": "24ab2030def3791bfcfdde76e3a9663b444451330707d3433e4af2c2f4eb685b"
+      "sha256": "c763111c7cc59b4500c9b7351fdad5365ea316c7a01310d696f53c20ba5a919d"
     },
     {
       "path": "src/docblock/tags.rs",
@@ -161,6 +165,10 @@
     {
       "path": "src/symbol_map/docblock.rs",
       "sha256": "4c2a37d827e78dcc7bd3bcd6c63d5b941240a5ba1ae394c16ee56c84797da1f5"
+    },
+    {
+      "path": "src/text_position.rs",
+      "sha256": "144fc2981dce3f53990c4a6178830d6baa9472df6053a974a4bbad441f8f30f5"
     },
     {
       "path": "src/text_scan.rs",

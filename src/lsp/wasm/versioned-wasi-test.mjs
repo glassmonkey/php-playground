@@ -18,10 +18,10 @@ const reviewedDiff = manifest.source?.reviewedPhaseBDiffSha256
 assert.equal(reviewedDiff,
 	'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d');
 assert.equal(manifest.source?.appliedPhaseBPatchSha256,
-    '02e0dc4c200daf99acf883ad7991045b12194c5f25886fd553d7b0381acb6867',
+    'c0326a26b6ae764776004367df665f4d977a9f6f134bfbcd9392a8eaeb2701a0',
     'current applied PHPantom patch is required before WASM instantiation');
 assert.equal(manifest.source?.appliedFileManifestSha256,
-    'a7e2b65ec57c9e1cbb930eb0c9001a4bf872bae5ad8cd3827585557eb2a481e9',
+    'f991d183af4f57899e507fab93bf67cd622cc9212d17c98e5803aac9b1c588d0',
     'current applied file manifest is required before WASM instantiation');
 assert.equal(manifest.stubs?.commit, '2049ca3cfa1feabf52db074108fe776a5713cf02');
 if (manifest.stubs?.resolvedCommitMarker) {
@@ -652,8 +652,8 @@ async function releaseVariableAliasOracle() {
 async function releaseBoundaryInterpolationOracle() {
     if(!targetAtLeast(8,0))return;
     const rows=(await readFile(new URL('./native-probe/tests/fixtures/boundary-interpolation.tsv',import.meta.url),'utf8')).split('\n').filter(Boolean).map(row=>row.split('\t').map(value=>value.replaceAll('\\n','\n').replaceAll('\\r','\r').replaceAll('\\t','\t')));
-    assert.equal(rows.length,35,'complete independent boundary/interpolation table');
-    assert.equal(new Set(rows.map(row=>row[8])).size,35,'unique boundary/interpolation cases');
+    assert.equal(rows.length,36,'complete independent boundary/interpolation table');
+    assert.equal(new Set(rows.map(row=>row[8])).size,36,'unique boundary/interpolation cases');
     for(const [source,member,owner,kind,marker,line,character,present,name] of rows){
         await freshEngine();const uri='file:///independent.php';open(uri,source);const position={line:Number(line),character:Number(character)};
         for(const warm of [false,true]){

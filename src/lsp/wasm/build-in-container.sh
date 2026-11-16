@@ -11,8 +11,8 @@ expected_stubs_sha256='3ef62542d2f77ad30c7dab7dfa726e57e86dd5e3403780294119cf4f5
 phase_a_patch_sha256='9ba5fdfbe29fcfacc974611159c6aaf6bcdc15797e0e2a2c6cbf6989ad93f3d9'
 reviewed_phase_b_diff_sha256='e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d'
 phase_b_bundle_sha256='60aad10373b97a65da73196aa28e6893a77480a21d5687ad1b140e6d74bd30a3'
-phase_b_patch_sha256='02e0dc4c200daf99acf883ad7991045b12194c5f25886fd553d7b0381acb6867'
-phase_b_file_manifest_sha256='a7e2b65ec57c9e1cbb930eb0c9001a4bf872bae5ad8cd3827585557eb2a481e9'
+phase_b_patch_sha256='c0326a26b6ae764776004367df665f4d977a9f6f134bfbcd9392a8eaeb2701a0'
+phase_b_file_manifest_sha256='f991d183af4f57899e507fab93bf67cd622cc9212d17c98e5803aac9b1c588d0'
 patch_file='/opt/phpantom/patches/phase-b-versioned-target.patch'
 file_manifest='/opt/phpantom/patches/phase-b-versioned-target.files.json'
 target='wasm32-wasip1'
@@ -166,7 +166,7 @@ PYRESULT
 	quality_log='/output/native-release-quality.log'
 	PHPANTOM_TARGET_PHP_VERSION=7.4 cargo test --locked \
 		--manifest-path "$native_probe/Cargo.toml" \
-		--test native_release_quality --test native_language_completion --test native_stub_metadata --test native_import_completion --test native_import_edits --test native_attribute_docs --test native_attribute_opaque_docs --test native_document_string_completion --test native_variable_alias --test native_boundary_interpolation --test native_completion_edits -- --show-output >"$quality_log" 2>&1
+		--test native_release_quality --test native_language_completion --test native_stub_metadata --test native_import_completion --test native_import_edits --test native_attribute_docs --test native_attribute_opaque_docs --test native_document_string_completion --test native_variable_alias --test native_boundary_interpolation --test native_completion_edits --test native_coordinates -- --show-output >"$quality_log" 2>&1
 	rustc --edition=2024 --test "$source_root/build_support/stub_availability.rs" \
 		-o "$attempt_root/stub-availability-tests"
 	"$attempt_root/stub-availability-tests" > /output/stub-availability-tests.log 2>&1
@@ -234,7 +234,7 @@ summary = {
         "result": "16/16 passed",
         "log": "stub-availability-tests.log",
     },
-    "release_quality": {"command": "cargo test --locked --test native_release_quality --test native_language_completion --test native_stub_metadata --test native_import_completion --test native_import_edits --test native_attribute_docs --test native_attribute_opaque_docs --test native_document_string_completion --test native_variable_alias --test native_boundary_interpolation --test native_completion_edits -- --show-output", "log": "native-release-quality.log", "required": True},
+    "release_quality": {"command": "cargo test --locked --test native_release_quality --test native_language_completion --test native_stub_metadata --test native_import_completion --test native_import_edits --test native_attribute_docs --test native_attribute_opaque_docs --test native_document_string_completion --test native_variable_alias --test native_boundary_interpolation --test native_completion_edits --test native_coordinates -- --show-output", "log": "native-release-quality.log", "required": True},
     "native_test_profile": {"debug": 0, "jobs": 1},
     "rustc_verbose": os.environ["PHPANTOM_RUSTC_VERBOSE"],
     "cargo_version": os.environ["PHPANTOM_CARGO_VERSION"],

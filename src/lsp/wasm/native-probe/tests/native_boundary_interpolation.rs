@@ -19,7 +19,7 @@ async fn line_boundaries_and_interpolation_preserve_public_context_type_and_docs
         .lines()
         .filter(|r| !r.starts_with('#'))
         .collect::<Vec<_>>();
-    assert_eq!(rows.len(), 35);
+    assert_eq!(rows.len(), 36);
     let mut failures = Vec::new();
     let mut checked = 0;
     for row in rows {
@@ -148,7 +148,7 @@ async fn line_boundaries_and_interpolation_preserve_public_context_type_and_docs
             }
         }
     }
-    assert_eq!(checked, 140);
+    assert_eq!(checked, 144);
     assert!(
         failures.is_empty(),
         "{} failures: {failures:#?}",
@@ -193,7 +193,7 @@ fn string_context_matches_the_independent_boundary_and_interpolation_cursors() {
         }
         count += 1;
     }
-    assert_eq!(count, 35);
+    assert_eq!(count, 36);
     assert!(failures.is_empty(), "{failures:#?}");
 }
 
