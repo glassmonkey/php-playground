@@ -1,5 +1,5 @@
 {
-  "completePatchSha256": "271b60cc7bc2c50beea441b30bf587fd624f06640939d205cc2a91d201932d61",
+  "completePatchSha256": "16192fa5f7acefa9173bf867c5ce91485e4fe4b1db90ae02b44bf34e388890d7",
   "fileCount": 58,
   "files": [
     {
@@ -44,7 +44,7 @@
     },
     {
       "path": "src/completion/context/constant_completion.rs",
-      "sha256": "0bc5e7ee99b4f86f4a896cfbbcbdc4072f16ed42fc305064f1421210c12e397e"
+      "sha256": "9bf4b3d1f88d2f4daf480f3a20d5f48a24347f9886b5e0e108d8b8724ca15517"
     },
     {
       "path": "src/completion/context/function_completion.rs",

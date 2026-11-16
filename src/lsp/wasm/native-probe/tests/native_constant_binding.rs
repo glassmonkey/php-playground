@@ -761,3 +761,648 @@ async fn constant_retention_cannot_invent_empty_unknown_or_invalid_current_ident
     }
     assert_eq!(checked, 20);
 }
+
+fn residual_contract(source: &str, payload: &CompletionItem, f: &[String], uri: &Uri) -> bool {
+    let spelling = &f[9];
+    let expected = CompletionItemTextEdit::TextEdit(TextEdit {
+        range: Range::new(
+            Position::new(f[5].parse().unwrap(), f[6].parse().unwrap()),
+            Position::new(f[7].parse().unwrap(), f[8].parse().unwrap()),
+        ),
+        new_text: spelling.clone(),
+    });
+    payload.label == f[4]
+        && payload.kind == Some(CompletionItemKind::Constant)
+        && payload.filter_text.as_deref()
+            == Some(f.get(13).map_or_else(
+                || {
+                    if spelling.starts_with('\\') {
+                        f[4].as_str()
+                    } else {
+                        spelling.as_str()
+                    }
+                },
+                String::as_str,
+            ))
+        && payload.insert_text.as_deref() == Some(spelling.as_str())
+        && payload.insert_text_format
+            == if f.get(14).is_some_and(|v| v == "1") {
+                Some(InsertTextFormat::PlainText)
+            } else {
+                None
+            }
+        && payload.text_edit == Some(expected)
+        && payload
+            .additional_text_edits
+            .as_ref()
+            .is_none_or(Vec::is_empty)
+        && payload.insert_text_mode.is_none()
+        && payload.text_edit_text.is_none()
+        && payload.command.is_none()
+        && payload
+            .data
+            .as_ref()
+            .and_then(|v| v.as_object())
+            .is_some_and(|d| {
+                d.len() == 4
+                    && d.get("m").and_then(|v| v.as_str()) == Some(f[4].as_str())
+                    && d.get("c").and_then(|v| v.as_str()) == Some("")
+                    && d.get("k").and_then(|v| v.as_str()) == Some("global_constant")
+                    && d.get("u").and_then(|v| v.as_str()) == Some(uri.as_str())
+            })
+        && apply(source, payload) == f[10]
+}
+#[tokio::test]
+async fn original_multiple_alias_and_global_fallback_public_regressions() {
+    let rows = include_str!("fixtures/constant-residual-original.tsv")
+        .strip_suffix('\n')
+        .unwrap()
+        .split('\n')
+        .collect::<Vec<_>>();
+    assert_eq!(rows.len(), 17);
+    let mut failures = Vec::new();
+    let mut requests = 0;
+    let mut payloads = 0;
+    let mut missing_alias = 0;
+    let mut missing_fallback = 0;
+    for row in rows {
+        let f = row.split('\t').map(decode).collect::<Vec<_>>();
+        assert_eq!(f.len(), 13);
+        let source = &f[1];
+        for minor in [0, 3] {
+            let sut = Backend::new_headless();
+            sut.set_php_version(PhpVersion::new(8, minor));
+            let uri = Uri::parse("file:///constant-residual-original.php").unwrap();
+            sut.did_open(DidOpenTextDocumentParams {
+                text_document: TextDocumentItem {
+                    uri: uri.clone(),
+                    language_id: "php".into(),
+                    version: 1,
+                    text: source.clone(),
+                },
+            })
+            .await;
+            for warm in [false, true] {
+                requests += 1;
+                let response = sut
+                    .completion(CompletionParams {
+                        text_document_position_params: TextDocumentPositionParams {
+                            text_document: TextDocumentIdentifier { uri: uri.clone() },
+                            position: Position::new(f[2].parse().unwrap(), f[3].parse().unwrap()),
+                        },
+                        work_done_progress_params: Default::default(),
+                        partial_result_params: Default::default(),
+                        context: None,
+                    })
+                    .await
+                    .unwrap();
+                eprintln!(
+                    "RESIDUAL_RAW name={} minor={minor} warm={warm} source={source:?} response={response:?}",
+                    f[0]
+                );
+                let (items, incomplete) = match response {
+                    Some(CompletionResponse::CompletionItemList(v)) => (v, false),
+                    Some(CompletionResponse::CompletionList(v)) => (v.items, v.is_incomplete),
+                    None => (Vec::new(), false),
+                };
+                let constants = items
+                    .iter()
+                    .filter(|i| i.kind == Some(CompletionItemKind::Constant))
+                    .count();
+                assert!(constants <= 100, "producer cap");
+                if f[12] == "100" && (constants != 100 || !incomplete) {
+                    failures.push(format!("{} cap={constants} incomplete={incomplete}", f[0]));
+                }
+                let selected = items
+                    .iter()
+                    .filter(|i| {
+                        i.kind == Some(CompletionItemKind::Constant)
+                            && i.data
+                                .as_ref()
+                                .and_then(|v| v.get("m"))
+                                .and_then(|v| v.as_str())
+                                == Some(f[4].as_str())
+                    })
+                    .collect::<Vec<_>>();
+                if selected.len() != 1 {
+                    if f[0].starts_with("const-") || f[0].starts_with("namespace-") {
+                        missing_alias += 1
+                    } else {
+                        missing_fallback += 1
+                    };
+                    failures.push(format!(
+                        "{} PHP8.{minor} warm={warm} selected={}",
+                        f[0],
+                        selected.len()
+                    ));
+                    continue;
+                }
+                let item = selected[0];
+                let resolved = sut.completion_resolve(item.clone()).await.unwrap();
+                for (stage, payload) in [("initial", item), ("resolved", &resolved)] {
+                    let accepted = apply(source, payload);
+                    eprintln!(
+                        "RESIDUAL_EDIT name={} minor={minor} warm={warm} stage={stage} source={source:?} accepted={accepted:?} payload={payload:?}",
+                        f[0]
+                    );
+                    if !residual_contract(source, payload, &f, &uri) {
+                        failures.push(format!(
+                            "{} PHP8.{minor} warm={warm} stage={stage} contract",
+                            f[0]
+                        ));
+                    }
+                    payloads += 1;
+                }
+            }
+        }
+    }
+    eprintln!(
+        "RESIDUAL_ORIGINAL requests={requests} payloads={payloads} missing_alias={missing_alias} missing_fallback={missing_fallback} failures={}",
+        failures.len()
+    );
+    assert_eq!(requests, 68);
+    assert_eq!(payloads, 136, "{failures:#?}");
+    assert!(failures.is_empty(), "{failures:#?}");
+}
+
+#[tokio::test]
+async fn expanded_constant_aliases_and_fallback_keep_full_edit_contracts() {
+    let rows = include_str!("fixtures/constant-residual-expanded.tsv")
+        .strip_suffix('\n')
+        .unwrap()
+        .split('\n')
+        .collect::<Vec<_>>();
+    assert_eq!(rows.len(), 85);
+    let mut failures = Vec::new();
+    let mut requests = 0;
+    let mut checked = 0;
+    let mut rejected = 0;
+    for row in rows {
+        let f = row.split('\t').map(decode).collect::<Vec<_>>();
+        assert_eq!(f.len(), 16);
+        assert!(matches!(f[15].as_str(), "5.6" | "7.0"));
+        let source = &f[1];
+        for minor in [0, 3] {
+            let sut = Backend::new_headless();
+            sut.set_php_version(PhpVersion::new(8, minor));
+            let uri = Uri::parse("file:///constant-residual-expanded.php").unwrap();
+            sut.did_open(DidOpenTextDocumentParams {
+                text_document: TextDocumentItem {
+                    uri: uri.clone(),
+                    language_id: "php".into(),
+                    version: 1,
+                    text: source.clone(),
+                },
+            })
+            .await;
+            for warm in [false, true] {
+                requests += 1;
+                let response = sut
+                    .completion(CompletionParams {
+                        text_document_position_params: TextDocumentPositionParams {
+                            text_document: TextDocumentIdentifier { uri: uri.clone() },
+                            position: Position::new(f[2].parse().unwrap(), f[3].parse().unwrap()),
+                        },
+                        work_done_progress_params: Default::default(),
+                        partial_result_params: Default::default(),
+                        context: None,
+                    })
+                    .await
+                    .unwrap();
+                let (items, incomplete) = match response {
+                    Some(CompletionResponse::CompletionItemList(v)) => (v, false),
+                    Some(CompletionResponse::CompletionList(v)) => (v.items, v.is_incomplete),
+                    None => (Vec::new(), false),
+                };
+                let constants = items
+                    .iter()
+                    .filter(|i| i.kind == Some(CompletionItemKind::Constant))
+                    .count();
+                assert!(constants <= 100, "producer cap");
+                if f[12] == "100" && (constants != 100 || !incomplete) {
+                    failures.push(format!("{} cap={constants} incomplete={incomplete}", f[0]));
+                }
+                let selected = items
+                    .iter()
+                    .filter(|i| {
+                        i.kind == Some(CompletionItemKind::Constant)
+                            && i.data
+                                .as_ref()
+                                .and_then(|v| v.get("m"))
+                                .and_then(|v| v.as_str())
+                                == Some(f[4].as_str())
+                    })
+                    .collect::<Vec<_>>();
+                if selected.len() != 1 {
+                    eprintln!(
+                        "RESIDUAL_EXPANDED_MISSING name={} minor={minor} warm={warm} source={source:?} items={items:?}",
+                        f[0]
+                    );
+                    failures.push(format!(
+                        "{} PHP8.{minor} warm={warm} selected={}",
+                        f[0],
+                        selected.len()
+                    ));
+                    continue;
+                }
+                let item = selected[0];
+                let resolved = sut.completion_resolve(item.clone()).await.unwrap();
+                for (stage, payload) in [("initial", item), ("resolved", &resolved)] {
+                    let accepted = apply(source, payload);
+                    eprintln!(
+                        "RESIDUAL_EXPANDED_EDIT name={} minor={minor} warm={warm} stage={stage} constants={constants} incomplete={incomplete} source={source:?} accepted={accepted:?} payload={payload:?}",
+                        f[0]
+                    );
+                    if !residual_contract(source, payload, &f, &uri) {
+                        failures.push(format!(
+                            "{} PHP8.{minor} warm={warm} stage={stage} contract expected={:?}",
+                            f[0], f[10]
+                        ));
+                    }
+                    checked += 1;
+                    if f[0] == "const-short-first-step0" && minor == 0 && !warm {
+                        for mutation in 0..3 {
+                            let mut wrong = payload.clone();
+                            match mutation {
+                                0 => {
+                                    let Some(CompletionItemTextEdit::TextEdit(edit)) =
+                                        &mut wrong.text_edit
+                                    else {
+                                        panic!("primary")
+                                    };
+                                    edit.range.end.character -= 1;
+                                }
+                                1 => {
+                                    let Some(CompletionItemTextEdit::TextEdit(edit)) =
+                                        &mut wrong.text_edit
+                                    else {
+                                        panic!("primary")
+                                    };
+                                    edit.new_text.push_str("_WRONG");
+                                }
+                                _ => {
+                                    wrong.additional_text_edits = Some(vec![TextEdit {
+                                        range: Range::new(Position::new(0, 0), Position::new(0, 0)),
+                                        new_text: "/*WRONG*/".into(),
+                                    }])
+                                }
+                            };
+                            assert_eq!(wrong.data, payload.data);
+                            assert!(!residual_contract(source, &wrong, &f, &uri));
+                            rejected += 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    eprintln!(
+        "RESIDUAL_EXPANDED requests={requests} payloads={checked} rejected={rejected} failures={}",
+        failures.len()
+    );
+    assert_eq!(requests, 340);
+    assert_eq!(checked, 680, "{failures:#?}");
+    assert_eq!(rejected, 6);
+    assert!(failures.is_empty(), "{failures:#?}");
+}
+
+async fn residual_items(
+    sut: &Backend,
+    uri: &Uri,
+    position: Position,
+) -> (Vec<CompletionItem>, bool) {
+    match sut
+        .completion(CompletionParams {
+            text_document_position_params: TextDocumentPositionParams {
+                text_document: TextDocumentIdentifier { uri: uri.clone() },
+                position,
+            },
+            work_done_progress_params: Default::default(),
+            partial_result_params: Default::default(),
+            context: None,
+        })
+        .await
+        .unwrap()
+    {
+        Some(CompletionResponse::CompletionItemList(v)) => (v, false),
+        Some(CompletionResponse::CompletionList(v)) => (v.items, v.is_incomplete),
+        None => (Vec::new(), false),
+    }
+}
+fn residual_selected<'a>(items: &'a [CompletionItem], fqn: &str) -> Vec<&'a CompletionItem> {
+    items
+        .iter()
+        .filter(|i| {
+            i.kind == Some(CompletionItemKind::Constant)
+                && i.data
+                    .as_ref()
+                    .and_then(|v| v.get("m"))
+                    .and_then(|v| v.as_str())
+                    == Some(fqn)
+        })
+        .collect()
+}
+#[tokio::test]
+async fn constant_alias_availability_matches_all_targets_after_public_sibling_warm() {
+    let rows = include_str!("fixtures/constant-residual-future.tsv")
+        .strip_suffix('\n')
+        .unwrap()
+        .split('\n')
+        .collect::<Vec<_>>();
+    assert_eq!(rows.len(), 2);
+    // Independent Core_d.php availability metadata: PHP_SBINDIR since PHP8.4.
+    let versions = [
+        (5, 6, false),
+        (7, 0, false),
+        (7, 1, false),
+        (7, 2, false),
+        (7, 3, false),
+        (7, 4, false),
+        (8, 0, false),
+        (8, 1, false),
+        (8, 2, false),
+        (8, 3, false),
+        (8, 4, true),
+        (8, 5, true),
+    ];
+    assert_eq!(versions.len(), 12);
+    let mut requests = 0;
+    let mut payloads = 0;
+    let mut negatives = 0;
+    let mut sibling_requests = 0;
+    let mut sibling_payloads = 0;
+    let mut failures = Vec::new();
+    for row in rows {
+        let f = row.split('\t').map(decode).collect::<Vec<_>>();
+        assert_eq!(f.len(), 15);
+        for (major, minor, stub_available) in versions {
+            let sut = Backend::new_headless();
+            sut.set_php_version(PhpVersion::new(major, minor));
+            let uri = Uri::parse("file:///constant-residual-future.php").unwrap();
+            sut.did_open(DidOpenTextDocumentParams {
+                text_document: TextDocumentItem {
+                    uri: uri.clone(),
+                    language_id: "php".into(),
+                    version: 1,
+                    text: f[1].clone(),
+                },
+            })
+            .await;
+            for warm in [false, true] {
+                if warm {
+                    let sibling_uri = Uri::parse("file:///constant-residual-sibling.php").unwrap();
+                    let source = "<?php echo \\PHP_VERSION;";
+                    sut.did_open(DidOpenTextDocumentParams {
+                        text_document: TextDocumentItem {
+                            uri: sibling_uri.clone(),
+                            language_id: "php".into(),
+                            version: 1,
+                            text: source.into(),
+                        },
+                    })
+                    .await;
+                    let (items, _) = residual_items(&sut, &sibling_uri, Position::new(0, 23)).await;
+                    sibling_requests += 1;
+                    let selected = residual_selected(&items, "PHP_VERSION");
+                    assert_eq!(selected.len(), 1);
+                    let initial = selected[0];
+                    let resolved = sut.completion_resolve(initial.clone()).await.unwrap();
+                    let sf = [
+                        "sibling",
+                        source,
+                        "0",
+                        "23",
+                        "PHP_VERSION",
+                        "0",
+                        "11",
+                        "0",
+                        "23",
+                        "\\PHP_VERSION",
+                        source,
+                        "not-executed",
+                        "bounded",
+                        "PHP_VERSION",
+                        "none",
+                    ]
+                    .map(str::to_owned)
+                    .to_vec();
+                    for p in [initial, &resolved] {
+                        assert!(residual_contract(source, p, &sf, &sibling_uri));
+                        sibling_payloads += 1;
+                    }
+                    eprintln!(
+                        "RESIDUAL_SIBLING case={} version={major}.{minor} initial={initial:?} resolved={resolved:?}",
+                        f[0]
+                    );
+                }
+                let (items, _) = residual_items(
+                    &sut,
+                    &uri,
+                    Position::new(f[2].parse().unwrap(), f[3].parse().unwrap()),
+                )
+                .await;
+                requests += 1;
+                let selected = residual_selected(&items, &f[4]);
+                let available = f[0] == "user" || stub_available;
+                eprintln!(
+                    "RESIDUAL_FUTURE_RAW name={} version={major}.{minor} warm={warm} available={available} selected={selected:?}",
+                    f[0]
+                );
+                if !available {
+                    assert!(
+                        selected.is_empty(),
+                        "future stub leaked {major}.{minor} warm={warm}"
+                    );
+                    negatives += 1;
+                    continue;
+                }
+                if selected.len() != 1 {
+                    failures.push(format!("{} {major}.{minor} warm={warm} missing", f[0]));
+                    continue;
+                }
+                let initial = selected[0];
+                let resolved = sut.completion_resolve(initial.clone()).await.unwrap();
+                for (stage, payload) in [("initial", initial), ("resolved", &resolved)] {
+                    let accepted = apply(&f[1], payload);
+                    eprintln!(
+                        "RESIDUAL_FUTURE_EDIT name={} version={major}.{minor} warm={warm} stage={stage} source={:?} accepted={accepted:?} payload={payload:?}",
+                        f[0], f[1]
+                    );
+                    if !residual_contract(&f[1], payload, &f, &uri) {
+                        failures.push(format!(
+                            "{} {major}.{minor} warm={warm} {stage} contract",
+                            f[0]
+                        ));
+                    }
+                    payloads += 1;
+                }
+            }
+        }
+    }
+    eprintln!(
+        "RESIDUAL_FUTURE requests={requests} payloads={payloads} negative_requests={negatives} sibling_requests={sibling_requests} sibling_payloads={sibling_payloads} failures={}",
+        failures.len()
+    );
+    assert_eq!(
+        (
+            requests,
+            payloads,
+            negatives,
+            sibling_requests,
+            sibling_payloads
+        ),
+        (48, 56, 20, 24, 48)
+    );
+    assert!(failures.is_empty(), "{failures:#?}");
+}
+#[tokio::test]
+async fn constant_retention_respects_case_import_priority_and_invalid_positions() {
+    let rows = include_str!("fixtures/constant-residual-negative.tsv")
+        .strip_suffix('\n')
+        .unwrap()
+        .split('\n')
+        .collect::<Vec<_>>();
+    assert_eq!(rows.len(), 8);
+    let mut requests = 0;
+    for row in rows {
+        let f = row.split('\t').map(decode).collect::<Vec<_>>();
+        assert_eq!(f.len(), 8);
+        for minor in [0, 3] {
+            let sut = Backend::new_headless();
+            sut.set_php_version(PhpVersion::new(8, minor));
+            let uri = Uri::parse("file:///constant-residual-negative.php").unwrap();
+            sut.did_open(DidOpenTextDocumentParams {
+                text_document: TextDocumentItem {
+                    uri: uri.clone(),
+                    language_id: "php".into(),
+                    version: 1,
+                    text: f[1].clone(),
+                },
+            })
+            .await;
+            for repeat in [false, true] {
+                let (items, incomplete) = residual_items(
+                    &sut,
+                    &uri,
+                    Position::new(f[2].parse().unwrap(), f[3].parse().unwrap()),
+                )
+                .await;
+                requests += 1;
+                let constants = items
+                    .iter()
+                    .filter(|i| i.kind == Some(CompletionItemKind::Constant))
+                    .collect::<Vec<_>>();
+                let selected = residual_selected(&items, &f[4]);
+                eprintln!(
+                    "RESIDUAL_NEGATIVE name={} minor={minor} repeat={repeat} constants={} incomplete={incomplete} selected={selected:?} source={:?} position=({}, {})",
+                    f[0],
+                    constants.len(),
+                    f[1],
+                    f[2],
+                    f[3]
+                );
+                assert_eq!(constants.len(), f[5].parse::<usize>().unwrap());
+                if f[6] == "true" {
+                    assert!(incomplete);
+                }
+                assert!(selected.is_empty(), "{} retained nonbinding identity", f[0]);
+            }
+        }
+    }
+    assert_eq!(requests, 32);
+}
+#[tokio::test]
+async fn constant_alias_and_fallback_rebind_after_full_document_changes() {
+    let rows = include_str!("fixtures/constant-residual-changes.tsv")
+        .strip_suffix('\n')
+        .unwrap()
+        .split('\n')
+        .map(|r| r.split('\t').map(decode).collect::<Vec<_>>())
+        .collect::<Vec<_>>();
+    assert_eq!(rows.len(), 6);
+    let mut requests = 0;
+    let mut payloads = 0;
+    let mut failures = Vec::new();
+    let (groups, remainder) = rows.as_chunks::<3>();
+    assert!(remainder.is_empty(), "complete document-change triplets");
+    for group in groups {
+        for minor in [0, 3] {
+            let sut = Backend::new_headless();
+            sut.set_php_version(PhpVersion::new(8, minor));
+            let uri = Uri::parse("file:///constant-residual-change.php").unwrap();
+            for (version, f) in group.iter().enumerate() {
+                assert_eq!(f.len(), 15);
+                if version == 0 {
+                    sut.did_open(DidOpenTextDocumentParams {
+                        text_document: TextDocumentItem {
+                            uri: uri.clone(),
+                            language_id: "php".into(),
+                            version: 1,
+                            text: f[1].clone(),
+                        },
+                    })
+                    .await;
+                } else {
+                    sut.did_change(DidChangeTextDocumentParams {
+                        text_document: VersionedTextDocumentIdentifier {
+                            text_document_identifier: TextDocumentIdentifier { uri: uri.clone() },
+                            version: version as i32 + 1,
+                        },
+                        content_changes: vec![
+                            TextDocumentContentChangeEvent::TextDocumentContentChangeWholeDocument(
+                                TextDocumentContentChangeWholeDocument { text: f[1].clone() },
+                            ),
+                        ],
+                    })
+                    .await;
+                }
+                for warm in [false, true] {
+                    let (items, incomplete) = residual_items(
+                        &sut,
+                        &uri,
+                        Position::new(f[2].parse().unwrap(), f[3].parse().unwrap()),
+                    )
+                    .await;
+                    requests += 1;
+                    let constants = items
+                        .iter()
+                        .filter(|i| i.kind == Some(CompletionItemKind::Constant))
+                        .count();
+                    assert!(constants <= 100);
+                    if f[12] == "100" {
+                        assert_eq!(constants, 100);
+                        assert!(incomplete);
+                    }
+                    let selected = residual_selected(&items, &f[4]);
+                    if selected.len() != 1 {
+                        eprintln!(
+                            "RESIDUAL_CHANGE_MISSING name={} minor={minor} warm={warm} items={items:?}",
+                            f[0]
+                        );
+                        failures.push(format!("{} missing", f[0]));
+                        continue;
+                    }
+                    let initial = selected[0];
+                    let resolved = sut.completion_resolve(initial.clone()).await.unwrap();
+                    for (stage, payload) in [("initial", initial), ("resolved", &resolved)] {
+                        let accepted = apply(&f[1], payload);
+                        eprintln!(
+                            "RESIDUAL_CHANGE_EDIT name={} minor={minor} warm={warm} stage={stage} source={:?} accepted={accepted:?} payload={payload:?}",
+                            f[0], f[1]
+                        );
+                        if !residual_contract(&f[1], payload, f, &uri) {
+                            failures.push(format!("{} {minor} warm={warm} {stage}", f[0]));
+                        }
+                        payloads += 1;
+                    }
+                }
+            }
+        }
+    }
+    eprintln!(
+        "RESIDUAL_CHANGE requests={requests} payloads={payloads} failures={}",
+        failures.len()
+    );
+    assert_eq!((requests, payloads), (24, 48));
+    assert!(failures.is_empty(), "{failures:#?}");
+}

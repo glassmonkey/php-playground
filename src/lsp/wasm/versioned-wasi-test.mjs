@@ -18,10 +18,10 @@ const reviewedDiff = manifest.source?.reviewedPhaseBDiffSha256
 assert.equal(reviewedDiff,
 	'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d');
 assert.equal(manifest.source?.appliedPhaseBPatchSha256,
-    '271b60cc7bc2c50beea441b30bf587fd624f06640939d205cc2a91d201932d61',
+    '16192fa5f7acefa9173bf867c5ce91485e4fe4b1db90ae02b44bf34e388890d7',
     'current applied PHPantom patch is required before WASM instantiation');
 assert.equal(manifest.source?.appliedFileManifestSha256,
-    '82074e820363571b11ff5fa5e4542609d039d87938bf511d3a1c941104df03f4',
+    'f49e5cf5564f5e1afe9cbf02cdc404ee27301c5e4fb4c11c53a91f7962fa8949',
     'current applied file manifest is required before WASM instantiation');
 assert.equal(manifest.stubs?.commit, '2049ca3cfa1feabf52db074108fe776a5713cf02');
 if (manifest.stubs?.resolvedCommitMarker) {
@@ -744,6 +744,73 @@ async function releaseFullWordCallAndQNameOracle() {
 
 // New PHP8-language fixtures are deliberately separate from the existing
 // all-target API/version oracles. This is assertion source, not artifact proof.
+async function releaseConstantResidualOracle() {
+    const readRows=async(name,rows,fields)=>decodePositionFixtureRows(await readFile(new URL(`./native-probe/tests/fixtures/${name}`,import.meta.url),'utf8'),rows,fields);
+    const original=await readRows('constant-residual-original.tsv',17,13);
+    const expanded=await readRows('constant-residual-expanded.tsv',85,16);
+    const future=await readRows('constant-residual-future.tsv',2,15);
+    const negative=await readRows('constant-residual-negative.tsv',8,8);
+    const changes=await readRows('constant-residual-changes.tsv',6,15);
+    const ask=(uri,position)=>{const response=request('textDocument/completion',{textDocument:{uri},position});assert.equal(response.error,undefined,'completion RPC is supported');return response;};
+    const resolve=item=>{const response=request('completionItem/resolve',item);assert.equal(response.error,undefined,'resolve RPC is supported');assert.ok(response.result);return response.result;};
+    const expectedFor=(f,uri)=>({label:f[4],kind:21,filterText:f[13]??(f[9].startsWith('\\')?f[4]:f[9]),insertText:f[9],insertTextFormat:f[14]==='1'?1:undefined,
+        data:{c:'',m:f[4],k:'global_constant',u:uri},textEdit:{range:{start:{line:Number(f[5]),character:Number(f[6])},end:{line:Number(f[7]),character:Number(f[8])}},newText:f[9]},document:f[10]});
+    const inspect=(f,uri,warm,phase)=>{
+        const response=ask(uri,{line:Number(f[2]),character:Number(f[3])}),items=completionItems(response);
+        const constants=items.filter(item=>item.kind===21);assert.ok(constants.length<=100,'constant producer cap stays100');
+        if(f[12]==='100'){assert.equal(constants.length,100);assert.equal(response.result.isIncomplete,true);}
+        const selected=constants.filter(item=>item.data?.m===f[4]);
+        if(selected.length!==1)console.log(`CONSTANT_RESIDUAL_MISSING ${JSON.stringify({target,phase,name:f[0],warm,source:f[1],response})}`);
+        assert.equal(selected.length,1,`${target} ${phase}/${f[0]} positive`);
+        const item=selected[0],resolved=resolve(item);
+        console.log(`CONSTANT_RESIDUAL_SELECTED ${JSON.stringify({target,phase,name:f[0],warm,source:f[1],item,resolved})}`);
+        const documents=validateSelectedCompletionPair(f[1],item,resolved,expectedFor(f,uri));
+        check(`${target} ${phase} ${f[0]} warm=${warm}`,documents.initial===f[10]&&documents.resolved===f[10],{item,resolved,documents});
+        console.log(`CONSTANT_RESIDUAL_RESPONSE ${JSON.stringify({target,phase,name:f[0],warm,source:f[1],item,resolved,documents})}`);
+    };
+    for(const [phase,rows] of [['original',original],['expanded',expanded]])for(const f of rows){
+        if(phase==='expanded'){
+            const minimum=f[15].split('.').map(Number);assert.ok(['5.6','7.0'].includes(f[15]));
+            if(!targetAtLeast(...minimum)){console.log(`CONSTANT_RESIDUAL_NOT_APPLICABLE ${JSON.stringify({target,name:f[0],minimum:f[15],reason:'authored group-use source requires PHP7.0; not a passed binding case'})}`);continue;}
+        }
+        await freshEngine();const uri='file:///release/constant-residual.php';open(uri,f[1]);
+        for(const warm of [false,true])inspect(f,uri,warm,phase);
+    }
+    for(const f of future){
+        await freshEngine();const uri='file:///release/constant-residual-future.php';open(uri,f[1]);
+        for(const warm of [false,true]){
+            if(warm){
+                const siblingUri='file:///release/constant-residual-sibling.php',source='<?php echo \\PHP_VERSION;';open(siblingUri,source);
+                const items=completionItems(ask(siblingUri,{line:0,character:23})),selected=items.filter(item=>item.kind===21&&item.data?.m==='PHP_VERSION');assert.equal(selected.length,1);
+                const item=selected[0],resolved=resolve(item);
+                validateSelectedCompletionPair(source,item,resolved,{label:'PHP_VERSION',kind:21,filterText:'PHP_VERSION',insertText:'\\PHP_VERSION',data:{c:'',m:'PHP_VERSION',k:'global_constant',u:siblingUri},textEdit:{range:{start:{line:0,character:11},end:{line:0,character:23}},newText:'\\PHP_VERSION'},document:source});
+                console.log(`CONSTANT_RESIDUAL_SIBLING ${JSON.stringify({target,name:f[0],item,resolved})}`);
+            }
+            if(f[0]==='user'||targetAtLeast(8,4))inspect(f,uri,warm,'availability');
+            else {
+                const response=ask(uri,{line:Number(f[2]),character:Number(f[3])});const selected=completionItems(response).filter(item=>item.kind===21&&item.data?.m===f[4]);
+                check(`${target} future constant alias absent warm=${warm}`,selected.length===0,{response});
+                console.log(`CONSTANT_RESIDUAL_FUTURE_ABSENT ${JSON.stringify({target,name:f[0],warm,response})}`);
+            }
+        }
+    }
+    for(const f of negative){
+        await freshEngine();const uri='file:///release/constant-residual-negative.php';open(uri,f[1]);
+        for(const repeat of [false,true]){
+            const response=ask(uri,{line:Number(f[2]),character:Number(f[3])}),constants=completionItems(response).filter(item=>item.kind===21);
+            assert.equal(constants.length,Number(f[5]));if(f[6]==='true')assert.equal(response.result.isIncomplete,true);
+            check(`${target} no ineligible retention ${f[0]} repeat=${repeat}`,!constants.some(item=>item.data?.m===f[4]),{response});
+        }
+    }
+    for(let base=0;base<6;base+=3){
+        await freshEngine();const uri='file:///release/constant-residual-change.php';
+        for(let step=0;step<3;step++){
+            const f=changes[base+step];if(step===0)open(uri,f[1]);else notify('textDocument/didChange',{textDocument:{uri,version:step+1},contentChanges:[{text:f[1]}]});
+            for(const warm of [false,true])inspect(f,uri,warm,'didChange');
+        }
+    }
+}
+
 async function releasePositionConsumerOracle() {
     if (!targetAtLeast(8,0)) return;
     const rows=decodePositionFixtureRows(await readFile(new URL('./native-probe/tests/fixtures/position-consumers-contract-v2.tsv',import.meta.url),'utf8'),111,23);
@@ -955,6 +1022,7 @@ await releaseVariableAliasOracle();
 await releaseConstantBindingOracle();
 await releaseConstantCapOracle();
 await releaseFullWordCallAndQNameOracle();
+await releaseConstantResidualOracle();
 await releasePositionConsumerOracle();
 await releaseBoundaryInterpolationOracle();
 console.log(JSON.stringify({

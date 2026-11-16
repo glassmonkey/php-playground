@@ -4314,7 +4314,9 @@ diff --git a/src/text_scan.rs b/src/text_scan.rs
 diff --git a/src/completion/context/constant_completion.rs b/src/completion/context/constant_completion.rs
 --- a/src/completion/context/constant_completion.rs
 +++ b/src/completion/context/constant_completion.rs
-@@ -16,0 +17,96 @@
+@@ -5,0 +6 @@
++use std::borrow::Cow;
+@@ -16,0 +18,97 @@
 +// Constant names are case-sensitive; their namespace parts are not.
 +fn same_constant(a: &str, b: &str) -> bool {
 +    let a = a.trim_start_matches('\\');
@@ -4351,6 +4353,7 @@ diff --git a/src/completion/context/constant_completion.rs b/src/completion/cont
 +fn constant_spelling(
 +    name: &str,
 +    written: &str,
++    prefix_lower: &str,
 +    scope: Option<&crate::types::FileContext>,
 +) -> String {
 +    let Some(scope) = scope else {
@@ -4363,21 +4366,15 @@ diff --git a/src/completion/context/constant_completion.rs b/src/completion/cont
 +    if !written.is_empty() && same_constant(&reference_identity(written, scope), name) {
 +        return written.to_owned();
 +    }
-+    if let Some((alias, _)) = scope
++    // Class imports affect only the namespace prefix of a qualified constant,
++    // never a bare constant alias. Require a nonempty remainder after '\\'.
++    let alias = scope
 +        .symbol_imports
 +        .constants
 +        .iter()
 +        .filter(|(_, target)| same_constant(target, name))
-+        .min_by(|(a, _), (b, _)| a.len().cmp(&b.len()).then_with(|| a.cmp(b)))
-+    {
-+        return alias.clone();
-+    }
-+    // Class imports affect only the namespace prefix of a qualified constant,
-+    // never a bare constant alias. Require a nonempty remainder after '\\'.
-+    let alias = scope
-+        .use_map
-+        .iter()
-+        .filter_map(|(alias, target)| {
++        .map(|(alias, _)| Cow::Borrowed(alias.as_str()))
++        .chain(scope.use_map.iter().filter_map(|(alias, target)| {
 +            let target = target.trim_start_matches('\\');
 +            let prefix = name.get(..target.len())?;
 +            if !prefix.eq_ignore_ascii_case(target)
@@ -4385,11 +4382,17 @@ diff --git a/src/completion/context/constant_completion.rs b/src/completion/cont
 +            {
 +                return None;
 +            }
-+            Some(format!("{alias}\\{}", &name[target.len() + 1..]))
-+        })
++            Some(Cow::Owned(format!(
++                "{alias}\\{}",
++                &name[target.len() + 1..]
++            )))
++        }))
++        // Choose among spellings compatible with the actual input, rather
++        // than hiding a long alias merely because a shorter alias exists.
++        .filter(|alias| contains_folded(alias, prefix_lower))
 +        .min_by(|a, b| a.len().cmp(&b.len()).then_with(|| a.cmp(b)));
 +    if let Some(alias) = alias {
-+        return alias;
++        return alias.into_owned();
 +    }
 +    let relative = match scope.namespace.as_deref() {
 +        Some(ns)
@@ -4411,12 +4414,12 @@ diff --git a/src/completion/context/constant_completion.rs b/src/completion/cont
 +    format!("\\{name}")
 +}
 +
-@@ -25,0 +122 @@
+@@ -25,0 +124 @@
 +    spelling: String,
-@@ -44 +141 @@
+@@ -44 +143 @@
 -            new_text: name.clone(),
 +            new_text: spelling.clone(),
-@@ -51,2 +148,6 @@
+@@ -51,2 +150,6 @@
 -        insert_text: Some(name.clone()),
 -        filter_text: Some(name),
 +        insert_text: Some(spelling.clone()),
@@ -4425,9 +4428,9 @@ diff --git a/src/completion/context/constant_completion.rs b/src/completion/cont
 +        } else {
 +            spelling
 +        }),
-@@ -85,0 +187 @@
+@@ -85,0 +189 @@
 +        content: Option<&str>,
-@@ -91,15 +193,9 @@
+@@ -91,15 +195,9 @@
 -        // When the user is typing a namespace-qualified constant
 -        // reference (e.g. `PHPStan\PHP`), the editor may treat `\` as
 -        // a word boundary and only replace the text after the last `\`.
@@ -4452,7 +4455,7 @@ diff --git a/src/completion/context/constant_completion.rs b/src/completion/cont
 +        let import = content
 +            .and_then(|text| {
 +                crate::completion::import_context::detect_import_context(text, position)
-@@ -106,0 +203,14 @@
+@@ -106,0 +205,14 @@
 +            .filter(|import| import.kind == crate::completion::import_context::ImportKind::Const);
 +        // Import contexts supply their own structural range. Standalone
 +        // references replace the full qualified name, including its suffix.
@@ -4467,7 +4470,7 @@ diff --git a/src/completion/context/constant_completion.rs b/src/completion/cont
 +                return (Vec::new(), false);
 +            };
 +            Some(range)
-@@ -110,0 +221,25 @@
+@@ -110,0 +223,26 @@
 +        let scope = content.filter(|_| import.is_none()).map(|text| {
 +            self.file_context_at(
 +                uri,
@@ -4491,33 +4494,34 @@ diff --git a/src/completion/context/constant_completion.rs b/src/completion/cont
 +                None => item.to_owned(),
 +            }
 +        });
-+        let spelling_for = |name: &str| constant_spelling(name, written, scope.as_ref());
++        let spelling_for =
++            |name: &str| constant_spelling(name, written, &prefix_lower, scope.as_ref());
 +
-@@ -115 +250,4 @@
+@@ -115 +253,4 @@
 -                if !contains_folded(name, &prefix_lower) {
 +                let spelling = spelling_for(name);
 +                if !contains_folded(name, &prefix_lower)
 +                    && !contains_folded(spelling.trim_start_matches('\\'), &prefix_lower)
 +                {
-@@ -122,0 +261 @@
+@@ -122,0 +264 @@
 +                    spelling,
-@@ -148 +287,4 @@
+@@ -148 +290,4 @@
 -                if !contains_folded(name, &prefix_lower) {
 +                let spelling = spelling_for(name);
 +                if !contains_folded(name, &prefix_lower)
 +                    && !contains_folded(spelling.trim_start_matches('\\'), &prefix_lower)
 +                {
-@@ -166,0 +309 @@
+@@ -166,0 +312 @@
 +                    spelling,
-@@ -181 +324,4 @@
+@@ -181 +327,4 @@
 -            if !contains_folded(name, &prefix_lower) {
 +            let spelling = spelling_for(name);
 +            if !contains_folded(name, &prefix_lower)
 +                && !contains_folded(spelling.trim_start_matches('\\'), &prefix_lower)
 +            {
-@@ -188,0 +335 @@
+@@ -188,0 +338 @@
 +                spelling,
-@@ -205 +352,21 @@
+@@ -205 +355,39 @@
 -            items.truncate(Self::MAX_CONSTANT_COMPLETIONS);
 +            // Keep the already-written, eligible constant at word start too.
 +            // Retention uses the filtered producer results, not a new lookup:
@@ -4528,11 +4532,29 @@ diff --git a/src/completion/context/constant_completion.rs b/src/completion/cont
 +                    .filter(|_| !written.is_empty())
 +                    .map(|scope| reference_identity(written, scope))
 +            });
-+            let exact = current_identity.and_then(|identity| {
-+                items
-+                    .iter()
-+                    .position(|item| same_constant(&item.label, &identity))
-+            });
++            let exact = current_identity
++                .and_then(|identity| {
++                    items
++                        .iter()
++                        .position(|item| same_constant(&item.label, &identity))
++                })
++                .or_else(|| {
++                    // PHP falls back to a global constant only for a bare
++                    // reference without a const import. Prefer an eligible
++                    // namespace binding above, then inspect the same filtered
++                    // vector; never load or enumerate any additional symbols.
++                    let scope = scope.as_ref()?;
++                    if import.is_some()
++                        || written.is_empty()
++                        || written.contains('\\')
++                        || scope.symbol_imports.constants.contains_key(written)
++                    {
++                        return None;
++                    }
++                    items
++                        .iter()
++                        .position(|item| same_constant(&item.label, written))
++                });
 +            if let Some(index) = exact.filter(|&index| index >= Self::MAX_CONSTANT_COMPLETIONS) {
 +                let item = items.remove(index);
 +                items.truncate(Self::MAX_CONSTANT_COMPLETIONS - 1);
@@ -4540,6 +4562,65 @@ diff --git a/src/completion/context/constant_completion.rs b/src/completion/cont
 +            } else {
 +                items.truncate(Self::MAX_CONSTANT_COMPLETIONS);
 +            }
+@@ -210,0 +399,58 @@
++
++#[cfg(test)]
++mod spelling_tests {
++    use super::*;
++    use crate::types::FileContext;
++
++    #[test]
++    fn prefix_compatible_aliases_precede_shorter_incompatible_spellings() {
++        let mut scope = FileContext {
++            namespace: Some("App".into()),
++            ..FileContext::default()
++        };
++        scope
++            .symbol_imports
++            .constants
++            .insert("S".into(), "Vendor\\TOKEN".into());
++        scope
++            .symbol_imports
++            .constants
++            .insert("LONG_ALIAS".into(), "Vendor\\TOKEN".into());
++        scope.use_map.insert("P".into(), "Vendor".into());
++        scope
++            .use_map
++            .insert("LONG_NAMESPACE".into(), "Vendor".into());
++        assert_eq!(
++            constant_spelling("Vendor\\TOKEN", "LONG_AL", "long_al", Some(&scope)),
++            "LONG_ALIAS"
++        );
++        assert_eq!(
++            constant_spelling(
++                "Vendor\\TOKEN",
++                "LONG_NAMESPACE\\TOK",
++                "long_namespace\\tok",
++                Some(&scope)
++            ),
++            "LONG_NAMESPACE\\TOKEN"
++        );
++        assert_eq!(
++            constant_spelling("Vendor\\TOKEN", "S", "s", Some(&scope)),
++            "S"
++        );
++    }
++
++    #[test]
++    fn leaf_case_and_import_range_ownership_remain_distinct() {
++        assert!(same_constant("Vendor\\TOKEN", "vendor\\TOKEN"));
++        assert!(!same_constant("Vendor\\TOKEN", "Vendor\\Token"));
++        let scope = FileContext::default();
++        assert_eq!(
++            constant_spelling("Vendor\\TOKEN", "\\Vendor\\TOKEN", "", Some(&scope)),
++            "\\Vendor\\TOKEN"
++        );
++        assert_eq!(
++            constant_spelling("Vendor\\TOKEN", "TOKEN", "vendor\\to", None),
++            "Vendor\\TOKEN"
++        );
++    }
++}
 diff --git a/src/completion/handler/mod.rs b/src/completion/handler/mod.rs
 --- a/src/completion/handler/mod.rs
 +++ b/src/completion/handler/mod.rs

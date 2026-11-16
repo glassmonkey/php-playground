@@ -295,3 +295,16 @@ test('Position fixture decoder rejects unknown/truncated escapes, missing cells 
         assert.throws(() => decodePositionFixtureRows(text, rows, fields));
     }
 });
+
+test('constant residual source fixtures keep complete distinct schemas including applicability', () => {
+    for (const [name,count,fields] of [['original',17,13],['expanded',85,16],['future',2,15],['negative',8,8],['changes',6,15]]) {
+        const text=readFileSync(new URL(`./native-probe/tests/fixtures/constant-residual-${name}.tsv`,import.meta.url),'utf8');
+        const rows=decodePositionFixtureRows(text,count,fields);
+        assert.equal(new Set(rows.map(row=>row[0])).size,count);
+        assert.ok(rows.every(row=>row.every(field=>field.length>0)));
+        if(name==='expanded') {
+            assert.equal(rows.filter(row=>row[15]==='5.6').length,72);
+            assert.equal(rows.filter(row=>row[15]==='7.0').length,13);
+        }
+    }
+});
