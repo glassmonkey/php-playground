@@ -1,5 +1,5 @@
 {
-  "completePatchSha256": "16192fa5f7acefa9173bf867c5ce91485e4fe4b1db90ae02b44bf34e388890d7",
+  "completePatchSha256": "34ff46c09b458faa9ea8f054dde005534b5ede50a1b8d230761684c6855cd2cd",
   "fileCount": 58,
   "files": [
     {
@@ -20,11 +20,11 @@
     },
     {
       "path": "src/completion/array_shape.rs",
-      "sha256": "091405b8f160fff47001ba935a71eeaa549d4d3a3130bbbdb673c8fe6caa2504"
+      "sha256": "8adbd123e97c6664af504e7c76771f10ee2976cc57061d275739d0b7161d021a"
     },
     {
       "path": "src/completion/array_shape_tests.rs",
-      "sha256": "5529f8fd90f7be0cda4ccc4db4ccb0c32cf9f8e01068c517e6db07f9b2d4f3ba"
+      "sha256": "6c5c441d04af78eac23e203522c706c96f69c5dde8e69680ac0ed249ff912f60"
     },
     {
       "path": "src/completion/context/class_completion/attributes.rs",

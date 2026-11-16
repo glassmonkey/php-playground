@@ -308,3 +308,24 @@ test('constant residual source fixtures keep complete distinct schemas including
         }
     }
 });
+
+
+test('array closer fixtures retain full initial/resolved edit contracts and reject identity-preserving mutants', () => {
+    for(const [file,count] of [['array-closer-original.tsv',15],['array-closer-expanded.tsv',158]]){
+        const rows=decodePositionFixtureRows(readFileSync(path.join(moduleDir,'native-probe/tests/fixtures',file),'utf8'),count,15);
+        assert.equal(new Set(rows.map(f=>f[0])).size,count);
+        for(const f of rows){
+            const expected={label:f[4],kind:5,filterText:f[4],detail:f[5],textEdit:{range:{start:{line:Number(f[7]),character:Number(f[8])},end:{line:Number(f[9]),character:Number(f[10])}},newText:f[11]},document:f[12]};
+            const item={label:f[4],kind:5,filterText:f[4],detail:f[5],textEdit:structuredClone(expected.textEdit)};
+            assert.deepEqual(validateSelectedCompletionPair(f[1],item,structuredClone(item),expected),{initial:f[12],resolved:f[12]});
+            for(const stage of ['initial','resolved'])for(const field of ['range','text','additional']){
+                const pair={initial:structuredClone(item),resolved:structuredClone(item)};
+                if(field==='range')pair[stage].textEdit.range.end.character+=1;
+                if(field==='text')pair[stage].textEdit.newText+='WRONG';
+                if(field==='additional')pair[stage].additionalTextEdits=[{range:{start:{line:0,character:0},end:{line:0,character:0}},newText:'/*WRONG*/'}];
+                assert.equal(pair[stage].label,item.label);assert.equal(pair[stage].data,item.data);
+                assert.throws(()=>validateSelectedCompletionPair(f[1],pair.initial,pair.resolved,expected),assert.AssertionError);
+            }
+        }
+    }
+});

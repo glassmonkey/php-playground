@@ -1,0 +1,15 @@
+array-adjacent-LF	<?php\n$data=['name'=>7];\n/* 🌟 */ echo $data['na'];	2	23	name	name: 7	0000	2	21	2	25	name']	<?php\n$data=['name'=>7];\n/* 🌟 */ echo $data['name'];	valid	7
+array-space-LF	<?php\n$data=['name'=>7];\n/* 🌟 */ echo $data['na' ];	2	23	name	name: 7	0000	2	21	2	24	name'	<?php\n$data=['name'=>7];\n/* 🌟 */ echo $data['name' ];	valid	7
+array-comment-LF	<?php\n$data=['name'=>7];\n/* 🌟 */ echo $data['na' /* keep */ ];	2	23	name	name: 7	0000	2	21	2	24	name'	<?php\n$data=['name'=>7];\n/* 🌟 */ echo $data['name' /* keep */ ];	valid	7
+array-nextline-LF	<?php\n$data=['name'=>7];\n/* 🌟 */ echo $data['na'\n];	2	23	name	name: 7	0000	2	21	2	24	name'	<?php\n$data=['name'=>7];\n/* 🌟 */ echo $data['name'\n];	valid	7
+array-linecomment-LF	<?php\n$data=['name'=>7];\n/* 🌟 */ echo $data['na' // keep\n];	2	23	name	name: 7	0000	2	21	2	24	name'	<?php\n$data=['name'=>7];\n/* 🌟 */ echo $data['name' // keep\n];	valid	7
+array-adjacent-CRLF	<?php\r\n$data=['name'=>7];\r\n/* 🌟 */ echo $data['na'];	2	23	name	name: 7	0000	2	21	2	25	name']	<?php\r\n$data=['name'=>7];\r\n/* 🌟 */ echo $data['name'];	valid	7
+array-space-CRLF	<?php\r\n$data=['name'=>7];\r\n/* 🌟 */ echo $data['na' ];	2	23	name	name: 7	0000	2	21	2	24	name'	<?php\r\n$data=['name'=>7];\r\n/* 🌟 */ echo $data['name' ];	valid	7
+array-comment-CRLF	<?php\r\n$data=['name'=>7];\r\n/* 🌟 */ echo $data['na' /* keep */ ];	2	23	name	name: 7	0000	2	21	2	24	name'	<?php\r\n$data=['name'=>7];\r\n/* 🌟 */ echo $data['name' /* keep */ ];	valid	7
+array-nextline-CRLF	<?php\r\n$data=['name'=>7];\r\n/* 🌟 */ echo $data['na'\r\n];	2	23	name	name: 7	0000	2	21	2	24	name'	<?php\r\n$data=['name'=>7];\r\n/* 🌟 */ echo $data['name'\r\n];	valid	7
+array-linecomment-CRLF	<?php\r\n$data=['name'=>7];\r\n/* 🌟 */ echo $data['na' // keep\r\n];	2	23	name	name: 7	0000	2	21	2	24	name'	<?php\r\n$data=['name'=>7];\r\n/* 🌟 */ echo $data['name' // keep\r\n];	valid	7
+array-adjacent-CR	<?php\r$data=['name'=>7];\r/* 🌟 */ echo $data['na'];	2	23	name	name: 7	0000	2	21	2	25	name']	<?php\r$data=['name'=>7];\r/* 🌟 */ echo $data['name'];	valid	7
+array-space-CR	<?php\r$data=['name'=>7];\r/* 🌟 */ echo $data['na' ];	2	23	name	name: 7	0000	2	21	2	24	name'	<?php\r$data=['name'=>7];\r/* 🌟 */ echo $data['name' ];	valid	7
+array-comment-CR	<?php\r$data=['name'=>7];\r/* 🌟 */ echo $data['na' /* keep */ ];	2	23	name	name: 7	0000	2	21	2	24	name'	<?php\r$data=['name'=>7];\r/* 🌟 */ echo $data['name' /* keep */ ];	valid	7
+array-nextline-CR	<?php\r$data=['name'=>7];\r/* 🌟 */ echo $data['na'\r];	2	23	name	name: 7	0000	2	21	2	24	name'	<?php\r$data=['name'=>7];\r/* 🌟 */ echo $data['name'\r];	valid	7
+array-linecomment-CR	<?php\r$data=['name'=>7];\r/* 🌟 */ echo $data['na' // keep\r];	2	23	name	name: 7	0000	2	21	2	24	name'	<?php\r$data=['name'=>7];\r/* 🌟 */ echo $data['name' // keep\r];	valid	7

@@ -18,10 +18,10 @@ const reviewedDiff = manifest.source?.reviewedPhaseBDiffSha256
 assert.equal(reviewedDiff,
 	'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d');
 assert.equal(manifest.source?.appliedPhaseBPatchSha256,
-    '16192fa5f7acefa9173bf867c5ce91485e4fe4b1db90ae02b44bf34e388890d7',
+    '34ff46c09b458faa9ea8f054dde005534b5ede50a1b8d230761684c6855cd2cd',
     'current applied PHPantom patch is required before WASM instantiation');
 assert.equal(manifest.source?.appliedFileManifestSha256,
-    'f49e5cf5564f5e1afe9cbf02cdc404ee27301c5e4fb4c11c53a91f7962fa8949',
+    'f52073b804942687e91bb56f45241b3c36709829b8617d7a41f606281b42e888',
     'current applied file manifest is required before WASM instantiation');
 assert.equal(manifest.stubs?.commit, '2049ca3cfa1feabf52db074108fe776a5713cf02');
 if (manifest.stubs?.resolvedCommitMarker) {
@@ -811,6 +811,41 @@ async function releaseConstantResidualOracle() {
     }
 }
 
+async function releaseArrayCloserOracle() {
+    const corpora=[['array-closer-original.tsv',15],['array-closer-expanded.tsv',158]];
+    const changedNames=new Set(['LF-newline-step0','CRLF-multilineblock-step2','CR-missing-quote-nextline-step1','mixed-unicode-step3']);
+    for(const [file,count] of corpora){
+        const rows=decodePositionFixtureRows(await readFile(new URL(`./native-probe/tests/fixtures/${file}`,import.meta.url),'utf8'),count,15);
+        assert.equal(new Set(rows.map(f=>f[0])).size,count);
+        for(const f of rows){
+            const [name,source,line,column,label,detail,sort,startLine,start,endLine,end,text,document]=f;
+            await freshEngine();const uri='file:///release/array-closer.php';open(uri,source);
+            const expected={label,kind:5,detail,sortText:sort,filterText:label,
+                textEdit:{range:{start:{line:Number(startLine),character:Number(start)},end:{line:Number(endLine),character:Number(end)}},newText:text},document};
+            const verify=(stage)=>{
+                const items=completionItems(request('textDocument/completion',{textDocument:{uri},position:{line:Number(line),character:Number(column)}}));
+                const selected=items.filter(item=>item.label===label&&item.kind===5);assert.equal(selected.length,1,`${name} exact array key`);
+                const initial=selected[0],resolved=request('completionItem/resolve',initial).result;
+                assert.equal(initial.sortText,sort);assert.equal(resolved.sortText,sort);
+                const documents=validateSelectedCompletionPair(source,initial,resolved,expected);
+                check(`${target} array closer ${file}/${name} ${stage}`,documents.initial===document&&documents.resolved===document,{initial,resolved,documents});
+                console.log(`ARRAY_CLOSER_RESPONSE ${JSON.stringify({target,name,stage,source,initial,resolved,documents})}`);
+            };
+            verify('cold');verify('warm');
+            if(changedNames.has(name)){
+                notify('textDocument/didChange',{textDocument:{uri,version:2},contentChanges:[{text:'<?php'}]});
+                notify('textDocument/didChange',{textDocument:{uri,version:3},contentChanges:[{text:source}]});
+                verify('didChange');
+            }
+        }
+    }
+    await freshEngine();const uri='file:///release/array-invalid.php';open(uri,"<?php\r/* 🌟 */ $data=['name'=>7];\r");
+    for(const position of [{line:1,character:4},{line:1,character:999},{line:9,character:0}]){
+        const items=completionItems(request('textDocument/completion',{textDocument:{uri},position}));
+        assert.ok(!items.some(item=>item.label==='name'&&item.kind===5),'invalid coordinate never selects array key');
+    }
+}
+
 async function releasePositionConsumerOracle() {
     if (!targetAtLeast(8,0)) return;
     const rows=decodePositionFixtureRows(await readFile(new URL('./native-probe/tests/fixtures/position-consumers-contract-v2.tsv',import.meta.url),'utf8'),111,23);
@@ -1024,6 +1059,7 @@ await releaseConstantCapOracle();
 await releaseFullWordCallAndQNameOracle();
 await releaseConstantResidualOracle();
 await releasePositionConsumerOracle();
+await releaseArrayCloserOracle();
 await releaseBoundaryInterpolationOracle();
 console.log(JSON.stringify({
 	target,

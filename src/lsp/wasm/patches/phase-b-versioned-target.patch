@@ -4951,31 +4951,38 @@ diff --git a/src/completion/array_shape.rs b/src/completion/array_shape.rs
 @@ -383 +402 @@
 -        let (range, _) = self.compute_edit_range(ctx, content, position);
 +        let (range, closing) = self.compute_edit_range(ctx, content, position);
-@@ -409,0 +429 @@
-+            let spelling = key_spelling(key_name, quote);
-@@ -411 +431 @@
+@@ -406,6 +425,5 @@
+-            // The new_text always produces the complete `key']` or `'key']`
+-            // fragment. The text_edit range is set to cover any existing
+-            // partial key text *and* any trailing auto-closed chars, so
+-            // accepting the completion replaces everything cleanly.
+-            let new_text = if ctx.quote_char.is_some() {
 -                format!("{}{}]", key_name, quote)
++            // Replace the key and only the closing syntax owned by this edit;
++            // separated trivia and an existing bracket stay in the document.
++            let spelling = key_spelling(key_name, quote);
++            let new_text = if ctx.quote_char.is_some() {
 +                format!("{spelling}{closing}")
-@@ -413 +433 @@
+@@ -413 +431 @@
 -                format!("{}{}{}]", quote, key_name, quote)
 +                format!("{quote}{spelling}{closing}")
-@@ -440 +460 @@
+@@ -440 +458 @@
 -        let (range, _) = self.compute_edit_range(ctx, content, position);
 +        let (range, closing) = self.compute_edit_range(ctx, content, position);
-@@ -452,0 +473 @@
+@@ -452,0 +471 @@
 +            let spelling = key_spelling(key, quote);
-@@ -454 +475 @@
+@@ -454 +473 @@
 -                format!("{}{}]", key, quote)
 +                format!("{spelling}{closing}")
-@@ -456 +477 @@
+@@ -456 +475 @@
 -                format!("{}{}{}]", quote, key, quote)
 +                format!("{quote}{spelling}{closing}")
-@@ -482,2 +503,2 @@
+@@ -482,2 +501,2 @@
 -    /// Returns `(range, trailing_count)` where `trailing_count` is the
 -    /// number of characters consumed after the cursor.
 +    /// Returns the original-document range and the closing syntax to insert.
 +    /// Existing separated trivia/brackets remain outside the replacement.
-@@ -489,16 +510,48 @@
+@@ -489,8 +508,49 @@
 -    ) -> (Range, usize) {
 -        let lines: Vec<&str> = content.lines().collect();
 -        let line_idx = position.line as usize;
@@ -4984,19 +4991,10 @@ diff --git a/src/completion/array_shape.rs b/src/completion/array_shape.rs
 -            let chars: Vec<char> = line.chars().collect();
 -            let cursor_col = utf16_col_to_char_index(line, position.character);
 -            count_trailing_close_chars(&chars, cursor_col, ctx.quote_char)
--        } else {
--            0
--        };
--
--        let range = Range {
--            start: Position {
--                line: position.line,
--                character: ctx.key_start_col,
 +    ) -> (Range, String) {
-+        let line = crate::text_position::lines_with_offsets(content)
++        let (line_start, line) = crate::text_position::lines_with_offsets(content)
 +            .nth(position.line as usize)
-+            .map(|(_, line)| line)
-+            .unwrap_or("");
++            .unwrap_or((0, ""));
 +        let chars: Vec<char> = line.chars().collect();
 +        let cursor_col = utf16_col_to_char_index(line, position.character);
 +        let right = chars[cursor_col..]
@@ -5005,52 +5003,67 @@ diff --git a/src/completion/array_shape.rs b/src/completion/array_shape.rs
 +            .count();
 +        let end_col = cursor_col + right;
 +        let trailing = count_trailing_close_chars(&chars, end_col, ctx.quote_char);
-+        let mut end = chars[..end_col + trailing]
-+            .iter()
-+            .map(|ch| ch.len_utf8())
-+            .sum::<usize>();
++        let mut end = line_start
++            + chars[..end_col + trailing]
++                .iter()
++                .map(|ch| ch.len_utf8())
++                .sum::<usize>();
 +        let quote = ctx.quote_char.unwrap_or('\'');
-+        let mut closing = format!("{quote}]");
++        let bytes = content.as_bytes();
++        let mut owns_bracket = trailing > 0 && chars[end_col + trailing - 1] == ']';
 +        if ctx.quote_char.is_some() {
-+            let key_start = crate::text_position::utf16_col_to_byte_offset(line, ctx.key_start_col);
++            let key_start = line_start
++                + crate::text_position::utf16_col_to_byte_offset(line, ctx.key_start_col);
 +            if let Some(open) = key_start.checked_sub(1) {
-+                // Reuse the lexical string boundary, including escaped quotes.
-+                let closed = crate::text_scan::skip_string_forward(line.as_bytes(), open);
-+                if closed <= line.len()
-+                    && line.as_bytes().get(closed.wrapping_sub(1)) == Some(&(quote as u8))
++                // The key context is line-local. An unfinished quoted draft
++                // must not consume a quote in a later statement. Keep original
++                // absolute offsets while bounding this string scan to its line.
++                let closed =
++                    crate::text_scan::skip_string_forward(&bytes[..line_start + line.len()], open);
++                if content
++                    .get(open..closed)
++                    .is_some_and(crate::text_scan::is_whole_string_literal)
 +                {
 +                    end = closed;
-+                    if line.as_bytes().get(closed) == Some(&b']') {
++                    if bytes.get(closed) == Some(&b']') {
 +                        end += 1;
++                        owns_bracket = true;
 +                    } else {
-+                        let bracket = crate::text_scan::skip_php_trivia(line.as_bytes(), closed);
-+                        if line.as_bytes().get(bracket) == Some(&b']') {
-+                            // Leave intervening trivia and the existing bracket
-+                            // in the original document instead of dropping them.
-+                            closing = quote.to_string();
-+                        }
++                        owns_bracket = false;
 +                    }
 +                }
 +            }
 +        }
-+        (
-+            Range {
-+                start: Position::new(position.line, ctx.key_start_col),
-+                end: Position::new(
-+                    position.line,
-+                    crate::text_position::byte_offset_to_utf16_col(line, end),
-+                ),
-@@ -506,7 +559,2 @@
++        // This also covers a draft with an absent quote and a separated
++        // auto-closed bracket. Stop at the first non-trivia byte: a bracket in
++        // another expression or a string is not this access's closer.
++        let next = crate::text_scan::skip_php_trivia(bytes, end);
++        let closing = if !owns_bracket && bytes.get(next) == Some(&b']') {
++            quote.to_string()
+@@ -498 +558 @@
+-            0
++            format!("{quote}]")
+@@ -500,9 +560,4 @@
+-
+-        let range = Range {
+-            start: Position {
+-                line: position.line,
+-                character: ctx.key_start_col,
+-            },
 -            end: Position {
 -                line: position.line,
 -                character: position.character + trailing_count as u32,
--            },
++        (
++            Range {
++                start: Position::new(position.line, ctx.key_start_col),
++                end: crate::text_position::offset_to_position(content, end),
+@@ -510,3 +565,2 @@
 -        };
 -
 -        (range, trailing_count)
 +            closing,
 +        )
-@@ -611,43 +659,3 @@
+@@ -611,43 +665,3 @@
 -    let line_idx = position.line as usize;
 -    let mut result = String::with_capacity(content.len() + 4);
 -
@@ -5097,7 +5110,7 @@ diff --git a/src/completion/array_shape.rs b/src/completion/array_shape.rs
 +    let cursor = crate::text_position::position_to_byte_offset(content, position);
 +    if crate::text_position::offset_to_position(content, cursor) != position {
 +        return content.to_owned();
-@@ -655,4 +663,39 @@
+@@ -655,4 +669,39 @@
 -
 -    // Remove trailing newline if the original didn't end with one.
 -    if !content.ends_with('\n') && result.ends_with('\n') {
@@ -5141,7 +5154,7 @@ diff --git a/src/completion/array_shape.rs b/src/completion/array_shape.rs
 +    } else {
 +        // Nothing to patch
 +        result.push_str(line);
-@@ -661 +704,8 @@
+@@ -661 +710,8 @@
 -    result
 +    // Preserve trailing whitespace and every original byte outside this line.
 +    if result == line {
@@ -5154,7 +5167,7 @@ diff --git a/src/completion/array_shape.rs b/src/completion/array_shape.rs
 diff --git a/src/completion/array_shape_tests.rs b/src/completion/array_shape_tests.rs
 --- a/src/completion/array_shape_tests.rs
 +++ b/src/completion/array_shape_tests.rs
-@@ -157,0 +158,45 @@
+@@ -157,0 +158,71 @@
 +
 +mod original_byte_array_recovery {
 +    use super::super::patch_array_access_at_cursor;
@@ -5197,6 +5210,32 @@ diff --git a/src/completion/array_shape_tests.rs b/src/completion/array_shape_te
 +        assert_eq!(
 +            patch_array_access_at_cursor(ordinary, Position::new(1, 7)),
 +            ordinary
++        );
++    }
++}
++
++#[test]
++fn edit_range_reuses_only_the_first_trivia_separated_closer() {
++    let sut = Backend::new_headless();
++    for (tail, end, closing) in [
++        ("'\r\n/* ] */\r]", 10, "'"),
++        ("' // ]\r]", 10, "'"),
++        ("']", 11, "']"),
++        ("'; $later = \"]\";", 10, "']"),
++        ("' /* ] */; $later = [99];", 10, "']"),
++        ("", 9, "']"),
++    ] {
++        let source = format!("<?php\r$data['na{tail}");
++        let position = Position::new(1, 8);
++        let ctx = detect_array_key_context(&source, position).unwrap();
++        let got = sut.compute_edit_range(&ctx, &source, position);
++        assert_eq!(
++            got,
++            (
++                Range::new(Position::new(1, 7), Position::new(1, end)),
++                closing.into()
++            ),
++            "{tail:?}"
 +        );
 +    }
 +}
