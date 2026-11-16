@@ -1,6 +1,6 @@
 {
-  "completePatchSha256": "34ff46c09b458faa9ea8f054dde005534b5ede50a1b8d230761684c6855cd2cd",
-  "fileCount": 58,
+  "completePatchSha256": "782b2dc9fa488754ea4b6fa9a4f924346d0b67a95065e74cd93956ad716e59e3",
+  "fileCount": 59,
   "files": [
     {
       "path": "build.rs",
@@ -20,11 +20,11 @@
     },
     {
       "path": "src/completion/array_shape.rs",
-      "sha256": "8adbd123e97c6664af504e7c76771f10ee2976cc57061d275739d0b7161d021a"
+      "sha256": "1ae79d48cebcd355abe06aee0f9c75a3f962b01fded0e43881ff827e3b362387"
     },
     {
       "path": "src/completion/array_shape_tests.rs",
-      "sha256": "6c5c441d04af78eac23e203522c706c96f69c5dde8e69680ac0ed249ff912f60"
+      "sha256": "f4888075ae9be0c105e520b18e09928ddcbb42f85ae850cafc1af7cae0365e71"
     },
     {
       "path": "src/completion/context/class_completion/attributes.rs",
@@ -84,7 +84,7 @@
     },
     {
       "path": "src/completion/handler/mod.rs",
-      "sha256": "1d9aed184d5243cc3af779bf73f9f11e9f694a973ca0450b4db0f2bad021d1b6"
+      "sha256": "d5271bcc489595d41961e464d06d0f875d1b7449c0c6bee53e4cf79b08136f03"
     },
     {
       "path": "src/completion/handler/named_args.rs",
@@ -97,6 +97,10 @@
     {
       "path": "src/completion/handler/phpdoc.rs",
       "sha256": "75834161987408b0e1a4387cb4fb711a26da10674705887233258558ba1f8419"
+    },
+    {
+      "path": "src/completion/handler/string_arguments.rs",
+      "sha256": "cedaf2f58c3779ca213cd698187d0b29aa229ecfb36b9279a4bfa600e43d1b39"
     },
     {
       "path": "src/completion/mod.rs",

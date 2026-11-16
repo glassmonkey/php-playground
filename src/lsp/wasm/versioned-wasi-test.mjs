@@ -18,10 +18,10 @@ const reviewedDiff = manifest.source?.reviewedPhaseBDiffSha256
 assert.equal(reviewedDiff,
 	'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d');
 assert.equal(manifest.source?.appliedPhaseBPatchSha256,
-    '34ff46c09b458faa9ea8f054dde005534b5ede50a1b8d230761684c6855cd2cd',
+    '782b2dc9fa488754ea4b6fa9a4f924346d0b67a95065e74cd93956ad716e59e3',
     'current applied PHPantom patch is required before WASM instantiation');
 assert.equal(manifest.source?.appliedFileManifestSha256,
-    'f52073b804942687e91bb56f45241b3c36709829b8617d7a41f606281b42e888',
+    '0c936f253568d504751603ebec82b7eb0cdb271f741ccfb950327f3880751c18',
     'current applied file manifest is required before WASM instantiation');
 assert.equal(manifest.stubs?.commit, '2049ca3cfa1feabf52db074108fe776a5713cf02');
 if (manifest.stubs?.resolvedCommitMarker) {
@@ -846,6 +846,42 @@ async function releaseArrayCloserOracle() {
     }
 }
 
+async function releaseMultilineKeyOracle() {
+    const changedNames=new Set(['LF-single-adjacent-step0','CRLF-double-later-cursor-step2','CR-single-unicode-step1','mixed-double-block-step1','LF-single-later-cursor-step1','mixed-double-later-cursor-step2']);
+    for(const [file,count] of [['multiline-key-original.tsv',6],['multiline-key-expanded.tsv',201],['multiline-key-boundary.tsv',2]]){
+        const rows=decodePositionFixtureRows(await readFile(new URL(`./native-probe/tests/fixtures/${file}`,import.meta.url),'utf8'),count,15);
+        assert.equal(new Set(rows.map(f=>f[0])).size,count);
+        for(const f of rows){
+            const [name,source,line,column,label,detail,sort,startLine,start,endLine,end,text,document,mode,stdout]=f;
+            assert.ok(mode==='valid'||mode==='draft');assert.equal(stdout,mode==='valid'?'7':'<draft>');
+            await freshEngine();const uri='file:///release/multiline-key.php';open(uri,source);
+            const expected={label,kind:5,detail,filterText:label,textEdit:{range:{start:{line:Number(startLine),character:Number(start)},end:{line:Number(endLine),character:Number(end)}},newText:text},document};
+            const verify=stage=>{
+                const items=completionItems(request('textDocument/completion',{textDocument:{uri},position:{line:Number(line),character:Number(column)}}));
+                const selected=items.filter(item=>item.label===label&&item.kind===5);assert.equal(selected.length,1,`${target} ${name} exact logical key`);
+                const initial=selected[0],resolved=request('completionItem/resolve',initial).result;
+                assert.equal(initial.sortText,sort);assert.equal(resolved.sortText,sort);
+                const documents=validateSelectedCompletionPair(source,initial,resolved,expected);
+                check(`${target} multiline key ${name} ${stage} ${mode}`,documents.initial===document&&documents.resolved===document,{initial,resolved,documents});
+                console.log(`MULTILINE_KEY_RESPONSE ${JSON.stringify({target,name,stage,mode,source,initial,resolved,documents})}`);
+            };
+            verify('cold');verify('warm');
+            if(changedNames.has(name)){
+                notify('textDocument/didChange',{textDocument:{uri,version:2},contentChanges:[{text:'<?php'}]});
+                notify('textDocument/didChange',{textDocument:{uri,version:3},contentChanges:[{text:source}]});verify('didChange');
+            }
+        }
+        if(file==='multiline-key-expanded.tsv'){
+            const f=rows.find(f=>f[0]==='LF-single-unicode-step1');assert.ok(f);
+            await freshEngine();const uri='file:///release/multiline-invalid.php';open(uri,f[1]);
+            for(const position of [{line:Number(f[7]),character:Number(f[8])+2},{line:99,character:0},{line:0,character:999}]){
+                const items=completionItems(request('textDocument/completion',{textDocument:{uri},position}));
+                assert.ok(!items.some(item=>item.label===f[4]&&item.kind===5),'invalid original coordinate cannot select logical key');
+            }
+        }
+    }
+}
+
 async function releasePositionConsumerOracle() {
     if (!targetAtLeast(8,0)) return;
     const rows=decodePositionFixtureRows(await readFile(new URL('./native-probe/tests/fixtures/position-consumers-contract-v2.tsv',import.meta.url),'utf8'),111,23);
@@ -1060,6 +1096,7 @@ await releaseFullWordCallAndQNameOracle();
 await releaseConstantResidualOracle();
 await releasePositionConsumerOracle();
 await releaseArrayCloserOracle();
+await releaseMultilineKeyOracle();
 await releaseBoundaryInterpolationOracle();
 console.log(JSON.stringify({
 	target,

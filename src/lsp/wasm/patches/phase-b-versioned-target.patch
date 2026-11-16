@@ -4638,12 +4638,50 @@ diff --git a/src/completion/handler/mod.rs b/src/completion/handler/mod.rs
 +        .sum::<usize>();
 +    let next = crate::text_scan::skip_php_trivia(content.as_bytes(), byte_off + identifier_bytes);
 +    content.as_bytes().get(next) == Some(&b'(')
-@@ -133,2 +134,2 @@
+@@ -100 +101 @@
+-fn match_completion_line_endings(response: &mut CompletionResponse, eol: &str) {
++fn match_completion_line_endings(response: &mut CompletionResponse, eol: &str, content: &str) {
+@@ -109,0 +111,26 @@
++    // Only a logical array-key literal's explicit primary keeps its own
++    // bytes. A file's structural EOL style is not the value of that key.
++    // The first such candidate identifies the shared range; at most one
++    // existing lexical scan is needed, never one scan per candidate.
++    let literal_start = items
++        .iter()
++        .find_map(|item| {
++            if item.kind != Some(CompletionItemKind::Field)
++                || item.insert_text_format == Some(InsertTextFormat::Snippet)
++            {
++                return None;
++            }
++            let Some(CompletionItemTextEdit::TextEdit(edit)) = &item.text_edit else {
++                return None;
++            };
++            edit.new_text
++                .contains(['\r', '\n'])
++                .then_some(edit.range.start)
++        })
++        .and_then(|start| {
++            let offset = crate::text_position::position_to_byte_offset(content, start);
++            let code = crate::completion::source::code_context::code_context_at(content, offset)?;
++            let key =
++                crate::completion::array_shape::quoted_array_key_context(content, start, &code)?;
++            (start == Position::new(key.key_start_line, key.key_start_col)).then_some(start)
++        });
+@@ -116 +143,6 @@
+-                match_line_ending(&mut edit.new_text, eol)
++                if item.kind != Some(CompletionItemKind::Field)
++                    || item.insert_text_format == Some(InsertTextFormat::Snippet)
++                    || literal_start != Some(edit.range.start)
++                {
++                    match_line_ending(&mut edit.new_text, eol);
++                }
+@@ -133,2 +165,2 @@
 -/// format and replaces the insert text with just the name from
 -/// `filter_text`.
 +/// format while keeping the producer's callable spelling, including aliases
 +/// and namespace qualification.
-@@ -149,10 +150,13 @@
+@@ -149,10 +181,13 @@
 -                // Replace the snippet with just the name
 -                // (the filter_text already holds it).
 -                if let Some(ref name) = item.filter_text {
@@ -4667,6 +4705,80 @@ diff --git a/src/completion/handler/mod.rs b/src/completion/handler/mod.rs
 +                item.insert_text = Some(name.clone());
 +                if let Some(CompletionItemTextEdit::TextEdit(ref mut edit)) = item.text_edit {
 +                    edit.new_text = name;
+@@ -204 +239,5 @@
+-            match_completion_line_endings(response, crate::text_position::line_ending(&content));
++            match_completion_line_endings(
++                response,
++                crate::text_position::line_ending(&content),
++                &content,
++            );
+@@ -485,0 +525 @@
++        code_ctx: Option<&crate::completion::source::code_context::CodeContext<'_>>,
+@@ -487 +527,7 @@
+-        let ak_ctx = crate::completion::array_shape::detect_array_key_context(content, position)?;
++        let ak_ctx = code_ctx
++            .and_then(|code| {
++                crate::completion::array_shape::quoted_array_key_context(content, position, code)
++            })
++            .or_else(|| {
++                crate::completion::array_shape::detect_array_key_context(content, position)
++            })?;
+@@ -605,0 +652,55 @@
++        }
++    }
++}
++
++#[cfg(test)]
++mod array_literal_eol_tests {
++    use super::*;
++    #[test]
++    fn literal_primary_preserves_value_but_structural_additional_keeps_file_eol() {
++        let content = "<?php\r\n$data['na\nold'];";
++        let item = CompletionItem {
++            label: "na\nkey".into(),
++            kind: Some(CompletionItemKind::Field),
++            text_edit: Some(CompletionItemTextEdit::TextEdit(TextEdit {
++                range: Range::new(Position::new(1, 7), Position::new(2, 5)),
++                new_text: "na\nkey']".into(),
++            })),
++            additional_text_edits: Some(vec![TextEdit {
++                range: Range::new(Position::new(0, 0), Position::new(0, 0)),
++                new_text: "// generated\n".into(),
++            }]),
++            ..Default::default()
++        };
++        let mut expected = item.clone();
++        expected.additional_text_edits.as_mut().unwrap()[0].new_text = "// generated\r\n".into();
++        let mut got = CompletionResponse::CompletionItemList(vec![item]);
++        match_completion_line_endings(&mut got, "\r\n", content);
++        assert_eq!(got, CompletionResponse::CompletionItemList(vec![expected]));
++    }
++    #[test]
++    fn field_kind_without_array_literal_range_does_not_bypass_structural_eol() {
++        for (content, start) in [
++            ("<?php\r\ncall('key');", Position::new(1, 6)),
++            ("<?php\r\n/** @pa */", Position::new(1, 4)),
++            ("<?php\r\n$data['key'];", Position::new(1, 0)),
++        ] {
++            for kind in [CompletionItemKind::Field, CompletionItemKind::Snippet] {
++                let item = CompletionItem {
++                    label: "generated".into(),
++                    kind: Some(kind),
++                    text_edit: Some(CompletionItemTextEdit::TextEdit(TextEdit {
++                        range: Range::new(start, start),
++                        new_text: "/**\n * generated\n */".into(),
++                    })),
++                    ..Default::default()
++                };
++                let mut expected = item.clone();
++                let Some(CompletionItemTextEdit::TextEdit(edit)) = &mut expected.text_edit else {
++                    unreachable!()
++                };
++                edit.new_text = "/**\r\n * generated\r\n */".into();
++                let mut got = CompletionResponse::CompletionItemList(vec![item]);
++                match_completion_line_endings(&mut got, "\r\n", content);
++                assert_eq!(got, CompletionResponse::CompletionItemList(vec![expected]));
++            }
 diff --git a/src/text_position.rs b/src/text_position.rs
 --- a/src/text_position.rs
 +++ b/src/text_position.rs
@@ -4925,7 +5037,12 @@ diff --git a/src/completion/target.rs b/src/completion/target.rs
 diff --git a/src/completion/array_shape.rs b/src/completion/array_shape.rs
 --- a/src/completion/array_shape.rs
 +++ b/src/completion/array_shape.rs
-@@ -136 +136,7 @@
+@@ -110 +110 @@
+-    /// The column (0-based) where the key text begins on the cursor line.
++    /// Original line and UTF16 column where the key text begins.
+@@ -112,0 +113 @@
++    pub key_start_line: u32,
+@@ -136 +137,7 @@
 -    let lines: Vec<&str> = content.lines().collect();
 +    let cursor = crate::text_position::position_to_byte_offset(content, position);
 +    if crate::text_position::offset_to_position(content, cursor) != position {
@@ -4934,9 +5051,44 @@ diff --git a/src/completion/array_shape.rs b/src/completion/array_shape.rs
 +    let lines: Vec<&str> = crate::text_position::lines_with_offsets(content)
 +        .map(|(_, line)| line)
 +        .collect();
-@@ -253,0 +260,13 @@
+@@ -251,0 +259 @@
++        key_start_line: position.line,
+@@ -253,0 +262,34 @@
 +}
 +
++/// Reuse the handler's lexical context: the quote must be the first
++/// expression inside its own array bracket, not a string in a later call.
++/// This preserves the opening position when the cursor crosses a line or
++/// a PHP string escape, without inventing a normalized parser buffer.
++pub(crate) fn quoted_array_key_context(
++    content: &str,
++    position: Position,
++    code: &crate::completion::source::code_context::CodeContext<'_>,
++) -> Option<ArrayKeyContext> {
++    let cursor = crate::text_position::position_to_byte_offset(content, position);
++    if crate::text_position::offset_to_position(content, cursor) != position {
++        return None;
++    }
++    let (open, quote) = code.open_string?;
++    let bracket = code.open_brackets.last()?;
++    if bracket.byte != b'['
++        || crate::text_scan::skip_php_trivia(content.as_bytes(), bracket.offset + 1) != open
++        || cursor < open + 1
++    {
++        return None;
++    }
++    let mut ctx = detect_array_key_context(
++        content,
++        crate::text_position::offset_to_position(content, bracket.offset + 1),
++    )?;
++    let start = crate::text_position::offset_to_position(content, open + 1);
++    let prefix = format!("{quote}{}{quote}", content.get(open + 1..cursor)?);
++    ctx.partial_key = crate::text_scan::decode_php_string_literal(&prefix)?.into_owned();
++    ctx.quote_char = Some(quote);
++    ctx.key_start_line = start.line;
++    ctx.key_start_col = start.character;
++    Some(ctx)
+@@ -255,0 +298,13 @@
 +// The displayed key is a logical PHP string value. Insertion is source
 +// spelling for the actual delimiter, including interpolation protection.
 +fn key_spelling(key: &str, quote: char) -> String {
@@ -4948,41 +5100,42 @@ diff --git a/src/completion/array_shape.rs b/src/completion/array_shape.rs
 +        spelling.push(ch);
 +    }
 +    spelling
-@@ -383 +402 @@
++}
++
+@@ -383 +438 @@
 -        let (range, _) = self.compute_edit_range(ctx, content, position);
 +        let (range, closing) = self.compute_edit_range(ctx, content, position);
-@@ -406,6 +425,5 @@
+@@ -406,4 +461,3 @@
 -            // The new_text always produces the complete `key']` or `'key']`
 -            // fragment. The text_edit range is set to cover any existing
 -            // partial key text *and* any trailing auto-closed chars, so
 -            // accepting the completion replaces everything cleanly.
--            let new_text = if ctx.quote_char.is_some() {
--                format!("{}{}]", key_name, quote)
 +            // Replace the key and only the closing syntax owned by this edit;
 +            // separated trivia and an existing bracket stay in the document.
 +            let spelling = key_spelling(key_name, quote);
-+            let new_text = if ctx.quote_char.is_some() {
+@@ -411 +465 @@
+-                format!("{}{}]", key_name, quote)
 +                format!("{spelling}{closing}")
-@@ -413 +431 @@
+@@ -413 +467 @@
 -                format!("{}{}{}]", quote, key_name, quote)
 +                format!("{quote}{spelling}{closing}")
-@@ -440 +458 @@
+@@ -440 +494 @@
 -        let (range, _) = self.compute_edit_range(ctx, content, position);
 +        let (range, closing) = self.compute_edit_range(ctx, content, position);
-@@ -452,0 +471 @@
+@@ -452,0 +507 @@
 +            let spelling = key_spelling(key, quote);
-@@ -454 +473 @@
+@@ -454 +509 @@
 -                format!("{}{}]", key, quote)
 +                format!("{spelling}{closing}")
-@@ -456 +475 @@
+@@ -456 +511 @@
 -                format!("{}{}{}]", quote, key, quote)
 +                format!("{quote}{spelling}{closing}")
-@@ -482,2 +501,2 @@
+@@ -482,2 +537,2 @@
 -    /// Returns `(range, trailing_count)` where `trailing_count` is the
 -    /// number of characters consumed after the cursor.
 +    /// Returns the original-document range and the closing syntax to insert.
 +    /// Existing separated trivia/brackets remain outside the replacement.
-@@ -489,8 +508,49 @@
+@@ -489,21 +544,59 @@
 -    ) -> (Range, usize) {
 -        let lines: Vec<&str> = content.lines().collect();
 -        let line_idx = position.line as usize;
@@ -4991,6 +5144,19 @@ diff --git a/src/completion/array_shape.rs b/src/completion/array_shape.rs
 -            let chars: Vec<char> = line.chars().collect();
 -            let cursor_col = utf16_col_to_char_index(line, position.character);
 -            count_trailing_close_chars(&chars, cursor_col, ctx.quote_char)
+-        } else {
+-            0
+-        };
+-
+-        let range = Range {
+-            start: Position {
+-                line: position.line,
+-                character: ctx.key_start_col,
+-            },
+-            end: Position {
+-                line: position.line,
+-                character: position.character + trailing_count as u32,
+-            },
 +    ) -> (Range, String) {
 +        let (line_start, line) = crate::text_position::lines_with_offsets(content)
 +            .nth(position.line as usize)
@@ -5012,17 +5178,25 @@ diff --git a/src/completion/array_shape.rs b/src/completion/array_shape.rs
 +        let bytes = content.as_bytes();
 +        let mut owns_bracket = trailing > 0 && chars[end_col + trailing - 1] == ']';
 +        if ctx.quote_char.is_some() {
-+            let key_start = line_start
-+                + crate::text_position::utf16_col_to_byte_offset(line, ctx.key_start_col);
++            let (key_line_start, key_line) = crate::text_position::lines_with_offsets(content)
++                .nth(ctx.key_start_line as usize)
++                .unwrap_or((0, ""));
++            let key_start = key_line_start
++                + crate::text_position::utf16_col_to_byte_offset(key_line, ctx.key_start_col);
 +            if let Some(open) = key_start.checked_sub(1) {
-+                // The key context is line-local. An unfinished quoted draft
-+                // must not consume a quote in a later statement. Keep original
-+                // absolute offsets while bounding this string scan to its line.
-+                let closed =
-+                    crate::text_scan::skip_string_forward(&bytes[..line_start + line.len()], open);
++                let closed = crate::text_scan::skip_string_forward(bytes, open);
++                // Across a line, a closing quote alone is not enough: an
++                // unfinished draft can meet a quote in a later statement.
++                // Only the literal followed by this access's own bracket
++                // extends the edit across lines. Trivia is left in place.
++                let owns_multiline = bytes.get(crate::text_scan::skip_php_trivia(
++                    bytes,
++                    closed.min(bytes.len()),
++                )) == Some(&b']');
 +                if content
 +                    .get(open..closed)
 +                    .is_some_and(crate::text_scan::is_whole_string_literal)
++                    && (closed <= key_line_start + key_line.len() || owns_multiline)
 +                {
 +                    end = closed;
 +                    if bytes.get(closed) == Some(&b']') {
@@ -5040,30 +5214,19 @@ diff --git a/src/completion/array_shape.rs b/src/completion/array_shape.rs
 +        let next = crate::text_scan::skip_php_trivia(bytes, end);
 +        let closing = if !owns_bracket && bytes.get(next) == Some(&b']') {
 +            quote.to_string()
-@@ -498 +558 @@
--            0
++        } else {
 +            format!("{quote}]")
-@@ -500,9 +560,4 @@
--
--        let range = Range {
--            start: Position {
--                line: position.line,
--                character: ctx.key_start_col,
--            },
--            end: Position {
--                line: position.line,
--                character: position.character + trailing_count as u32,
-+        (
-+            Range {
-+                start: Position::new(position.line, ctx.key_start_col),
-+                end: crate::text_position::offset_to_position(content, end),
-@@ -510,3 +565,2 @@
--        };
+@@ -511,2 +604,7 @@
 -
 -        (range, trailing_count)
++        (
++            Range {
++                start: Position::new(ctx.key_start_line, ctx.key_start_col),
++                end: crate::text_position::offset_to_position(content, end),
++            },
 +            closing,
 +        )
-@@ -611,43 +665,3 @@
+@@ -611,43 +709,43 @@
 -    let line_idx = position.line as usize;
 -    let mut result = String::with_capacity(content.len() + 4);
 -
@@ -5110,11 +5273,7 @@ diff --git a/src/completion/array_shape.rs b/src/completion/array_shape.rs
 +    let cursor = crate::text_position::position_to_byte_offset(content, position);
 +    if crate::text_position::offset_to_position(content, cursor) != position {
 +        return content.to_owned();
-@@ -655,4 +669,39 @@
--
--    // Remove trailing newline if the original didn't end with one.
--    if !content.ends_with('\n') && result.ends_with('\n') {
--        result.pop();
++    }
 +    let Some((start, line)) =
 +        crate::text_position::lines_with_offsets(content).nth(position.line as usize)
 +    else {
@@ -5154,12 +5313,16 @@ diff --git a/src/completion/array_shape.rs b/src/completion/array_shape.rs
 +    } else {
 +        // Nothing to patch
 +        result.push_str(line);
-@@ -661 +710,8 @@
--    result
+@@ -656,3 +754,3 @@
+-    // Remove trailing newline if the original didn't end with one.
+-    if !content.ends_with('\n') && result.ends_with('\n') {
+-        result.pop();
 +    // Preserve trailing whitespace and every original byte outside this line.
 +    if result == line {
 +        return content.to_owned();
-+    }
+@@ -660,2 +758,4 @@
+-
+-    result
 +    result.push_str(&line[line.trim_end().len()..]);
 +    let mut patched = content.to_owned();
 +    patched.replace_range(start..start + line.len(), &result);
@@ -5167,7 +5330,7 @@ diff --git a/src/completion/array_shape.rs b/src/completion/array_shape.rs
 diff --git a/src/completion/array_shape_tests.rs b/src/completion/array_shape_tests.rs
 --- a/src/completion/array_shape_tests.rs
 +++ b/src/completion/array_shape_tests.rs
-@@ -157,0 +158,71 @@
+@@ -157,0 +158,134 @@
 +
 +mod original_byte_array_recovery {
 +    use super::super::patch_array_access_at_cursor;
@@ -5238,6 +5401,69 @@ diff --git a/src/completion/array_shape_tests.rs b/src/completion/array_shape_te
 +            "{tail:?}"
 +        );
 +    }
++}
++
++#[test]
++fn quoted_multiline_key_context_keeps_opening_line_and_decoded_prefix() {
++    for eol in ["\n", "\r\n", "\r"] {
++        let source = format!("<?php{eol}$data['na{eol}名𐐀key'];");
++        let position = Position::new(2, 3);
++        let at = crate::text_position::position_to_byte_offset(&source, position);
++        let code = crate::completion::source::code_context::code_context_at(&source, at).unwrap();
++        let ctx = quoted_array_key_context(&source, position, &code).unwrap();
++        assert_eq!(
++            (
++                ctx.var_name.as_str(),
++                ctx.key_start_line,
++                ctx.key_start_col,
++                ctx.partial_key.as_str()
++            ),
++            ("$data", 1, 7, format!("na{eol}名𐐀").as_str())
++        );
++        let sut = Backend::new_headless();
++        assert_eq!(
++            sut.compute_edit_range(&ctx, &source, position),
++            (
++                Range::new(Position::new(1, 7), Position::new(2, 8)),
++                "']".into()
++            )
++        );
++    }
++}
++#[test]
++fn complete_multiline_key_bracket_ownership_is_distinct_from_draft_later_quote() {
++    let sut = Backend::new_headless();
++    for (tail, end, closing) in [
++        ("\nold']", Position::new(2, 5), "']"),
++        ("\nold' /* fake ] */\r]", Position::new(2, 4), "'"),
++        ("\n$after='keep';", Position::new(1, 9), "']"),
++    ] {
++        let source = format!("<?php\n$data['na{tail}");
++        let position = Position::new(1, 9);
++        let ctx = detect_array_key_context(&source, position).unwrap();
++        assert_eq!(
++            sut.compute_edit_range(&ctx, &source, position),
++            (Range::new(Position::new(1, 7), end), closing.into()),
++            "{tail:?}"
++        );
++    }
++}
++
++#[test]
++fn later_cursor_draft_quote_is_not_owned_by_the_opening_key_line() {
++    let source = "<?php\n$data['na\n$after; $later='keep';";
++    let position = Position::new(2, 3);
++    let at = crate::text_position::position_to_byte_offset(source, position);
++    let code = crate::completion::source::code_context::code_context_at(source, at).unwrap();
++    let ctx = quoted_array_key_context(source, position, &code).unwrap();
++    let sut = Backend::new_headless();
++    assert_eq!(
++        sut.compute_edit_range(&ctx, source, position),
++        (
++            Range::new(Position::new(1, 7), Position::new(2, 6)),
++            "']".into()
++        )
++    );
 +}
 diff --git a/src/completion/handler/patching.rs b/src/completion/handler/patching.rs
 --- a/src/completion/handler/patching.rs
@@ -5734,3 +5960,10 @@ diff --git a/src/completion/source/throws_analysis/uncaught.rs b/src/completion/
 +                    .collect::<Vec<_>>()
 +            );
 +        }
+diff --git a/src/completion/handler/string_arguments.rs b/src/completion/handler/string_arguments.rs
+--- a/src/completion/handler/string_arguments.rs
++++ b/src/completion/handler/string_arguments.rs
+@@ -51 +51,2 @@
+-            && let Some(response) = self.try_array_shape_completion(content, position, ctx)
++            && let Some(response) =
++                self.try_array_shape_completion(content, position, ctx, code_ctx.as_ref())

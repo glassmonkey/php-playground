@@ -329,3 +329,25 @@ test('array closer fixtures retain full initial/resolved edit contracts and reje
         }
     }
 });
+
+
+test('multiline key fixtures bind original offsets and both complete payloads including literal EOL bytes',()=>{
+    for(const [file,count] of [['multiline-key-original.tsv',6],['multiline-key-expanded.tsv',201],['multiline-key-boundary.tsv',2]]){
+        const rows=decodePositionFixtureRows(readFileSync(path.join(moduleDir,'native-probe/tests/fixtures',file),'utf8'),count,15);
+        assert.equal(new Set(rows.map(f=>f[0])).size,count);
+        for(const f of rows){
+            assert.ok(f[13]==='valid'||f[13]==='draft');assert.equal(f[14],f[13]==='valid'?'7':'<draft>');
+            const expected={label:f[4],kind:5,detail:f[5],filterText:f[4],textEdit:{range:{start:{line:Number(f[7]),character:Number(f[8])},end:{line:Number(f[9]),character:Number(f[10])}},newText:f[11]},document:f[12]};
+            const item={label:f[4],kind:5,detail:f[5],filterText:f[4],textEdit:structuredClone(expected.textEdit)};
+            assert.deepEqual(validateSelectedCompletionPair(f[1],item,structuredClone(item),expected),{initial:f[12],resolved:f[12]});
+            for(const stage of ['initial','resolved'])for(const field of ['range','text','additional']){
+                const pair={initial:structuredClone(item),resolved:structuredClone(item)};
+                if(field==='range')pair[stage].textEdit.range.end.character+=1;
+                if(field==='text')pair[stage].textEdit.newText+='WRONG';
+                if(field==='additional')pair[stage].additionalTextEdits=[{range:{start:{line:0,character:0},end:{line:0,character:0}},newText:'WRONG'}];
+                assert.equal(pair[stage].label,item.label);assert.equal(pair[stage].data,item.data);
+                assert.throws(()=>validateSelectedCompletionPair(f[1],pair.initial,pair.resolved,expected),assert.AssertionError);
+            }
+        }
+    }
+});
