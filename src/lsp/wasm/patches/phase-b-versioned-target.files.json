@@ -1,6 +1,6 @@
 {
-  "completePatchSha256": "782b2dc9fa488754ea4b6fa9a4f924346d0b67a95065e74cd93956ad716e59e3",
-  "fileCount": 59,
+  "completePatchSha256": "3fc2cca91c31ee854e12334da45bc11f9fc79cd7d9c5bea1decbac9d25e5ade8",
+  "fileCount": 61,
   "files": [
     {
       "path": "build.rs",
@@ -84,7 +84,7 @@
     },
     {
       "path": "src/completion/handler/mod.rs",
-      "sha256": "d5271bcc489595d41961e464d06d0f875d1b7449c0c6bee53e4cf79b08136f03"
+      "sha256": "d1a48f1d17b78bc32c98b76a74ad38baffa097095239cf6a5a68af1267add383"
     },
     {
       "path": "src/completion/handler/named_args.rs",
@@ -100,7 +100,7 @@
     },
     {
       "path": "src/completion/handler/string_arguments.rs",
-      "sha256": "cedaf2f58c3779ca213cd698187d0b29aa229ecfb36b9279a4bfa600e43d1b39"
+      "sha256": "8f272e98dfe9285e9297dfc6e76377af62d5bce4da2a85fd50831d02025afecc"
     },
     {
       "path": "src/completion/mod.rs",
@@ -125,6 +125,14 @@
     {
       "path": "src/completion/resolve.rs",
       "sha256": "27a9b490b763411f54e1e8cb44b757d5c0165dad81d0eacb5297ef494d663a39"
+    },
+    {
+      "path": "src/completion/source/code_context.rs",
+      "sha256": "34a3a8516d29120e52b073e79cae7aaf5afdf71b633d5e07a70db489da39b1c4"
+    },
+    {
+      "path": "src/completion/source/code_context_tests.rs",
+      "sha256": "13c431973f17fc46ba94bc788b4949f658970258c966aa2a6a5f85a06391f049"
     },
     {
       "path": "src/completion/source/comment_position.rs",

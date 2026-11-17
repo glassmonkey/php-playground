@@ -351,3 +351,12 @@ test('multiline key fixtures bind original offsets and both complete payloads in
         }
     }
 });
+
+
+test('array producer entry forms share strict full edit oracles without assuming an input quote',()=>{
+    for(const [file,count] of [['unquoted-key-original.tsv',1],['unquoted-key-reviewed.tsv',3],['unquoted-key-brace.tsv',2],['unquoted-key-expanded.tsv',249],['unquoted-key-comment.tsv',12]]){
+        const rows=decodePositionFixtureRows(readFileSync(path.join(moduleDir,'native-probe/tests/fixtures',file),'utf8'),count,15);assert.equal(new Set(rows.map(f=>f[0])).size,count);
+        for(const f of rows){assert.equal(f[13],'valid');assert.equal(f[14],'7');const expected={label:f[4],kind:5,detail:f[5],filterText:f[4],textEdit:{range:{start:{line:Number(f[7]),character:Number(f[8])},end:{line:Number(f[9]),character:Number(f[10])}},newText:f[11]},document:f[12]};const item={label:f[4],kind:5,detail:f[5],filterText:f[4],textEdit:structuredClone(expected.textEdit)};assert.deepEqual(validateSelectedCompletionPair(f[1],item,structuredClone(item),expected),{initial:f[12],resolved:f[12]});for(const stage of['initial','resolved'])for(const field of['range','text','additional']){const pair={initial:structuredClone(item),resolved:structuredClone(item)};if(field==='range')pair[stage].textEdit.range.end.character+=1;if(field==='text')pair[stage].textEdit.newText+='WRONG';if(field==='additional')pair[stage].additionalTextEdits=[{range:{start:{line:0,character:0},end:{line:0,character:0}},newText:'WRONG'}];assert.equal(pair[stage].label,item.label);assert.equal(pair[stage].data,item.data);assert.throws(()=>validateSelectedCompletionPair(f[1],pair.initial,pair.resolved,expected),assert.AssertionError);}}
+    }
+    const negatives=decodePositionFixtureRows(readFileSync(path.join(moduleDir,'native-probe/tests/fixtures/unquoted-key-negative.tsv'),'utf8'),4,5);assert.equal(new Set(negatives.map(f=>f[0])).size,4);
+});

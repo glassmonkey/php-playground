@@ -18,10 +18,10 @@ const reviewedDiff = manifest.source?.reviewedPhaseBDiffSha256
 assert.equal(reviewedDiff,
 	'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d');
 assert.equal(manifest.source?.appliedPhaseBPatchSha256,
-    '782b2dc9fa488754ea4b6fa9a4f924346d0b67a95065e74cd93956ad716e59e3',
+    '3fc2cca91c31ee854e12334da45bc11f9fc79cd7d9c5bea1decbac9d25e5ade8',
     'current applied PHPantom patch is required before WASM instantiation');
 assert.equal(manifest.source?.appliedFileManifestSha256,
-    '0c936f253568d504751603ebec82b7eb0cdb271f741ccfb950327f3880751c18',
+    'c6090c53545cfafaceb3e62cb9f368a67b3c2ca962c7f92ccb814bce4bb0f312',
     'current applied file manifest is required before WASM instantiation');
 assert.equal(manifest.stubs?.commit, '2049ca3cfa1feabf52db074108fe776a5713cf02');
 if (manifest.stubs?.resolvedCommitMarker) {
@@ -882,6 +882,23 @@ async function releaseMultilineKeyOracle() {
     }
 }
 
+async function releaseUnquotedKeyOracle(){
+    const changed=new Set(['CRLF-valueLF-empty-step0','CR-valueCRLF-bare-step1','mixed-chained-step1','rawKeep-chained-step2','server-double']);
+    for(const [file,count] of [['unquoted-key-original.tsv',1],['unquoted-key-reviewed.tsv',3],['unquoted-key-brace.tsv',2],['unquoted-key-expanded.tsv',249],['unquoted-key-comment.tsv',12]]){
+        const rows=decodePositionFixtureRows(await readFile(new URL(`./native-probe/tests/fixtures/${file}`,import.meta.url),'utf8'),count,15);assert.equal(new Set(rows.map(f=>f[0])).size,count);
+        for(const f of rows){
+            const [name,source,line,column,label,detail,sort,startLine,start,endLine,end,text,document,mode,stdout]=f;assert.equal(mode,'valid');assert.equal(stdout,'7');
+            await freshEngine();const uri='file:///release/unquoted-key.php';open(uri,source);
+            const expected={label,kind:5,detail,filterText:label,textEdit:{range:{start:{line:Number(startLine),character:Number(start)},end:{line:Number(endLine),character:Number(end)}},newText:text},document};
+            const verify=stage=>{const all=completionItems(request('textDocument/completion',{textDocument:{uri},position:{line:Number(line),character:Number(column)}}));const selected=all.filter(i=>i.label===label&&i.kind===5);assert.equal(selected.length,1,`${target} ${name} logical key`);const initial=selected[0],resolved=request('completionItem/resolve',initial).result;assert.equal(initial.sortText,sort);assert.equal(resolved.sortText,sort);const documents=validateSelectedCompletionPair(source,initial,resolved,expected);check(`${target} array producer ${name} ${stage}`,documents.initial===document&&documents.resolved===document,{initial,resolved,documents});console.log(`UNQUOTED_KEY_RESPONSE ${JSON.stringify({target,name,stage,source,initial,resolved,documents})}`);};
+            verify('cold');verify('warm');if(changed.has(name)){notify('textDocument/didChange',{textDocument:{uri,version:2},contentChanges:[{text:'<?php'}]});notify('textDocument/didChange',{textDocument:{uri,version:3},contentChanges:[{text:source}]});verify('didChange');}
+        }
+    }
+    const negatives=decodePositionFixtureRows(await readFile(new URL('./native-probe/tests/fixtures/unquoted-key-negative.tsv',import.meta.url),'utf8'),4,5);
+    for(const [name,source,line,column] of negatives){await freshEngine();const uri='file:///release/not-array-code.php';open(uri,source);for(const warm of[false,true]){const items=completionItems(request('textDocument/completion',{textDocument:{uri},position:{line:Number(line),character:Number(column)}}));assert.deepEqual(items,[],`${name} noncode ${warm}`);}}
+    const rows=decodePositionFixtureRows(await readFile(new URL('./native-probe/tests/fixtures/unquoted-key-expanded.tsv',import.meta.url),'utf8'),249,15);const f=rows.find(f=>f[0]==='LF-unicode-step1');assert.ok(f);await freshEngine();const uri='file:///release/array-invalid-position.php';open(uri,f[1]);for(const position of[{line:Number(f[7]),character:Number(f[8])-2},{line:99,character:0},{line:0,character:999}]){const items=completionItems(request('textDocument/completion',{textDocument:{uri},position}));assert.ok(!items.some(i=>i.label===f[4]&&i.kind===5),'invalid original position not an array key');}
+}
+
 async function releasePositionConsumerOracle() {
     if (!targetAtLeast(8,0)) return;
     const rows=decodePositionFixtureRows(await readFile(new URL('./native-probe/tests/fixtures/position-consumers-contract-v2.tsv',import.meta.url),'utf8'),111,23);
@@ -1097,6 +1114,7 @@ await releaseConstantResidualOracle();
 await releasePositionConsumerOracle();
 await releaseArrayCloserOracle();
 await releaseMultilineKeyOracle();
+await releaseUnquotedKeyOracle();
 await releaseBoundaryInterpolationOracle();
 console.log(JSON.stringify({
 	target,

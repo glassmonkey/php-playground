@@ -1,0 +1,4 @@
+single-literal	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99];\r\n$literal = '$data[na]'; echo $literal;	2	20	na\nkey
+escaped-double-literal	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99];\r\n$literal = "\\$data[na]"; echo $literal;	2	21	na\nkey
+nowdoc-literal	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99];\r\n$literal = <<<'TXT'\r\n$data[na]\r\nTXT;\r\necho $literal;	3	8	na\nkey
+comment-lookalike	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99];\r\n/* $data[na */	2	11	na\nkey

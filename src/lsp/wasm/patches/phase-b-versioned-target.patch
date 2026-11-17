@@ -4624,6 +4624,9 @@ diff --git a/src/completion/context/constant_completion.rs b/src/completion/cont
 diff --git a/src/completion/handler/mod.rs b/src/completion/handler/mod.rs
 --- a/src/completion/handler/mod.rs
 +++ b/src/completion/handler/mod.rs
+@@ -37 +37 @@
+-use std::ops::ControlFlow;
++use std::{cell::Cell, ops::ControlFlow};
 @@ -91,6 +91,7 @@
 -    let rest = &content[byte_off..];
 -    // Skip past any partial identifier the user has typed
@@ -4638,50 +4641,41 @@ diff --git a/src/completion/handler/mod.rs b/src/completion/handler/mod.rs
 +        .sum::<usize>();
 +    let next = crate::text_scan::skip_php_trivia(content.as_bytes(), byte_off + identifier_bytes);
 +    content.as_bytes().get(next) == Some(&b'(')
-@@ -100 +101 @@
+@@ -99,2 +100,14 @@
+-/// Give the text every item inserts the file's line terminator `eol`.
 -fn match_completion_line_endings(response: &mut CompletionResponse, eol: &str) {
-+fn match_completion_line_endings(response: &mut CompletionResponse, eol: &str, content: &str) {
-@@ -109,0 +111,26 @@
-+    // Only a logical array-key literal's explicit primary keeps its own
-+    // bytes. A file's structural EOL style is not the value of that key.
-+    // The first such candidate identifies the shared range; at most one
-+    // existing lexical scan is needed, never one scan per candidate.
-+    let literal_start = items
-+        .iter()
-+        .find_map(|item| {
-+            if item.kind != Some(CompletionItemKind::Field)
-+                || item.insert_text_format == Some(InsertTextFormat::Snippet)
-+            {
-+                return None;
-+            }
-+            let Some(CompletionItemTextEdit::TextEdit(edit)) = &item.text_edit else {
-+                return None;
-+            };
-+            edit.new_text
-+                .contains(['\r', '\n'])
-+                .then_some(edit.range.start)
-+        })
-+        .and_then(|start| {
-+            let offset = crate::text_position::position_to_byte_offset(content, start);
-+            let code = crate::completion::source::code_context::code_context_at(content, offset)?;
-+            let key =
-+                crate::completion::array_shape::quoted_array_key_context(content, start, &code)?;
-+            (start == Position::new(key.key_start_line, key.key_start_col)).then_some(start)
-+        });
-@@ -116 +143,6 @@
++/// Source semantics of primary edits, owned by the selected strategy.
++/// This stays inside a synchronous request; it is never LSP data or cache state.
++#[derive(Clone, Copy, PartialEq, Eq)]
++enum PrimaryEditSemantics {
++    Structural,
++    ArrayKeyLiteral,
++}
++
++/// Give structural edits the file EOL without changing array-key values.
++fn match_completion_line_endings(
++    response: &mut CompletionResponse,
++    eol: &str,
++    primary: PrimaryEditSemantics,
++) {
+@@ -109,0 +123,3 @@
++    // Array strategies return a dedicated vector of explicit literal edits.
++    // Preserve their semantic bytes, including when they add the first quote.
++    // Other producers and all additional edits keep structural formatting.
+@@ -116 +132,6 @@
 -                match_line_ending(&mut edit.new_text, eol)
 +                if item.kind != Some(CompletionItemKind::Field)
 +                    || item.insert_text_format == Some(InsertTextFormat::Snippet)
-+                    || literal_start != Some(edit.range.start)
++                    || primary != PrimaryEditSemantics::ArrayKeyLiteral
 +                {
 +                    match_line_ending(&mut edit.new_text, eol);
 +                }
-@@ -133,2 +165,2 @@
+@@ -133,2 +154,2 @@
 -/// format and replaces the insert text with just the name from
 -/// `filter_text`.
 +/// format while keeping the producer's callable spelling, including aliases
 +/// and namespace qualification.
-@@ -149,10 +181,13 @@
+@@ -149,10 +170,13 @@
 -                // Replace the snippet with just the name
 -                // (the filter_text already holds it).
 -                if let Some(ref name) = item.filter_text {
@@ -4705,25 +4699,44 @@ diff --git a/src/completion/handler/mod.rs b/src/completion/handler/mod.rs
 +                item.insert_text = Some(name.clone());
 +                if let Some(CompletionItemTextEdit::TextEdit(ref mut edit)) = item.text_edit {
 +                    edit.new_text = name;
-@@ -204 +239,5 @@
+@@ -200 +224,2 @@
+-        let mut response = self.completion_response(&uri, params);
++        let primary = Cell::new(PrimaryEditSemantics::Structural);
++        let mut response = self.completion_response(&uri, params, &primary);
+@@ -204 +229,5 @@
 -            match_completion_line_endings(response, crate::text_position::line_ending(&content));
 +            match_completion_line_endings(
 +                response,
 +                crate::text_position::line_ending(&content),
-+                &content,
++                primary.get(),
 +            );
-@@ -485,0 +525 @@
+@@ -214,0 +244 @@
++        primary: &Cell<PrimaryEditSemantics>,
+@@ -252 +282 @@
+-            match self.completion_stages(&site, params.context.as_ref()) {
++            match self.completion_stages(&site, params.context.as_ref(), primary) {
+@@ -310,0 +341 @@
++        primary: &Cell<PrimaryEditSemantics>,
+@@ -327 +358 @@
+-        if let Some(response) = self.string_argument_completion(site, string_ctx) {
++        if let Some(response) = self.string_argument_completion(site, string_ctx, primary) {
+@@ -485,0 +517,2 @@
 +        code_ctx: Option<&crate::completion::source::code_context::CodeContext<'_>>,
-@@ -487 +527,7 @@
++        allow_unquoted_code: bool,
+@@ -487 +520,11 @@
 -        let ak_ctx = crate::completion::array_shape::detect_array_key_context(content, position)?;
 +        let ak_ctx = code_ctx
 +            .and_then(|code| {
 +                crate::completion::array_shape::quoted_array_key_context(content, position, code)
 +            })
 +            .or_else(|| {
-+                crate::completion::array_shape::detect_array_key_context(content, position)
++                if allow_unquoted_code {
++                    crate::completion::array_shape::detect_array_key_context(content, position)
++                } else {
++                    None
++                }
 +            })?;
-@@ -605,0 +652,55 @@
+@@ -605,0 +649,58 @@
 +        }
 +    }
 +}
@@ -4733,7 +4746,6 @@ diff --git a/src/completion/handler/mod.rs b/src/completion/handler/mod.rs
 +    use super::*;
 +    #[test]
 +    fn literal_primary_preserves_value_but_structural_additional_keeps_file_eol() {
-+        let content = "<?php\r\n$data['na\nold'];";
 +        let item = CompletionItem {
 +            label: "na\nkey".into(),
 +            kind: Some(CompletionItemKind::Field),
@@ -4750,12 +4762,12 @@ diff --git a/src/completion/handler/mod.rs b/src/completion/handler/mod.rs
 +        let mut expected = item.clone();
 +        expected.additional_text_edits.as_mut().unwrap()[0].new_text = "// generated\r\n".into();
 +        let mut got = CompletionResponse::CompletionItemList(vec![item]);
-+        match_completion_line_endings(&mut got, "\r\n", content);
++        match_completion_line_endings(&mut got, "\r\n", PrimaryEditSemantics::ArrayKeyLiteral);
 +        assert_eq!(got, CompletionResponse::CompletionItemList(vec![expected]));
 +    }
 +    #[test]
 +    fn field_kind_without_array_literal_range_does_not_bypass_structural_eol() {
-+        for (content, start) in [
++        for (context_label, start) in [
 +            ("<?php\r\ncall('key');", Position::new(1, 6)),
 +            ("<?php\r\n/** @pa */", Position::new(1, 4)),
 +            ("<?php\r\n$data['key'];", Position::new(1, 0)),
@@ -4776,9 +4788,67 @@ diff --git a/src/completion/handler/mod.rs b/src/completion/handler/mod.rs
 +                };
 +                edit.new_text = "/**\r\n * generated\r\n */".into();
 +                let mut got = CompletionResponse::CompletionItemList(vec![item]);
-+                match_completion_line_endings(&mut got, "\r\n", content);
-+                assert_eq!(got, CompletionResponse::CompletionItemList(vec![expected]));
++                match_completion_line_endings(&mut got, "\r\n", PrimaryEditSemantics::Structural);
++                assert_eq!(
++                    got,
++                    CompletionResponse::CompletionItemList(vec![expected]),
++                    "{context_label}"
++                );
 +            }
+@@ -608,0 +710,53 @@
++
++#[cfg(test)]
++mod unquoted_array_eol_tests {
++    use super::*;
++    #[test]
++    fn only_variable_array_primary_owns_new_quoted_literal_bytes() {
++        for (source, start, end, protect) in [
++            ("$data[];", 6, 7, true),
++            ("$data[na];", 6, 9, true),
++            ("call([]);", 6, 6, false),
++            ("Type[];", 5, 5, false),
++            ("$data = [];", 9, 9, false),
++        ] {
++            let item = CompletionItem {
++                label: "na\nkey".into(),
++                kind: Some(CompletionItemKind::Field),
++                text_edit: Some(CompletionItemTextEdit::TextEdit(TextEdit {
++                    range: Range::new(Position::new(1, start), Position::new(1, end)),
++                    new_text: "'na\nkey']".into(),
++                })),
++                additional_text_edits: Some(vec![TextEdit {
++                    range: Range::new(Position::new(0, 0), Position::new(0, 0)),
++                    new_text: "// generated\n".into(),
++                }]),
++                ..Default::default()
++            };
++            let mut expected = item.clone();
++            if !protect {
++                let Some(CompletionItemTextEdit::TextEdit(edit)) = &mut expected.text_edit else {
++                    unreachable!()
++                };
++                edit.new_text = "'na\r\nkey']".into();
++            }
++            expected.additional_text_edits.as_mut().unwrap()[0].new_text =
++                "// generated\r\n".into();
++            let mut got = CompletionResponse::CompletionItemList(vec![item]);
++            match_completion_line_endings(
++                &mut got,
++                "\r\n",
++                if protect {
++                    PrimaryEditSemantics::ArrayKeyLiteral
++                } else {
++                    PrimaryEditSemantics::Structural
++                },
++            );
++            assert_eq!(
++                got,
++                CompletionResponse::CompletionItemList(vec![expected]),
++                "{source}"
++            );
++        }
++    }
++}
 diff --git a/src/text_position.rs b/src/text_position.rs
 --- a/src/text_position.rs
 +++ b/src/text_position.rs
@@ -5963,7 +6033,65 @@ diff --git a/src/completion/source/throws_analysis/uncaught.rs b/src/completion/
 diff --git a/src/completion/handler/string_arguments.rs b/src/completion/handler/string_arguments.rs
 --- a/src/completion/handler/string_arguments.rs
 +++ b/src/completion/handler/string_arguments.rs
-@@ -51 +51,2 @@
+@@ -22,0 +23 @@
++        primary: &std::cell::Cell<super::PrimaryEditSemantics>,
+@@ -51 +52,8 @@
 -            && let Some(response) = self.try_array_shape_completion(content, position, ctx)
-+            && let Some(response) =
-+                self.try_array_shape_completion(content, position, ctx, code_ctx.as_ref())
++            && let Some(response) = self.try_array_shape_completion(
++                content,
++                position,
++                ctx,
++                code_ctx.as_ref(),
++                matches!(string_ctx, StringContext::BraceInterpolation)
++                    || (matches!(string_ctx, StringContext::NotInString) && code_ctx.is_some()),
++            )
+@@ -52,0 +61 @@
++            primary.set(super::PrimaryEditSemantics::ArrayKeyLiteral);
+diff --git a/src/completion/source/code_context.rs b/src/completion/source/code_context.rs
+--- a/src/completion/source/code_context.rs
++++ b/src/completion/source/code_context.rs
+@@ -218 +218 @@
+-                let newline = memchr(b'\n', &bytes[i..end]);
++                let newline = memchr2(b'\r', b'\n', &bytes[i..end]);
+diff --git a/src/completion/source/code_context_tests.rs b/src/completion/source/code_context_tests.rs
+--- a/src/completion/source/code_context_tests.rs
++++ b/src/completion/source/code_context_tests.rs
+@@ -252,0 +253,16 @@
++}
++
++#[test]
++fn php_line_comment_terminators_resume_original_bracket_and_string_offsets() {
++    for eol in ["\n", "\r\n", "\r"] {
++        for comment in ["// fake [ (", "# fake [ ("] {
++            let src = format!("<?php{eol}$data=['name'=>7];{eol}{comment}{eol}echo $data['na'];");
++            let cursor = src.rfind("na'").unwrap() + 2;
++            let ctx = code_context_at(&src, cursor).unwrap();
++            let bracket = src.rfind('[').unwrap();
++            assert_eq!(ctx.open_brackets.len(), 1, "{src:?}");
++            assert_eq!(ctx.open_brackets[0].offset, bracket);
++            assert_eq!(ctx.open_string, Some((bracket + 1, '\'')));
++            assert_eq!(ctx.last_code_byte(), Some(b'['));
++        }
++    }
+@@ -253,0 +270,21 @@
++#[test]
++fn comment_eof_close_tag_and_quoted_comment_text_keep_their_lexical_roles() {
++    for prefix in ["//", "#"] {
++        let src = format!("<?php\r{prefix} no terminator $data['na");
++        assert!(code_context_at(&src, src.len()).is_none(), "{src:?}");
++    }
++    let quoted = "<?php\r$data['// literal # [';";
++    let cursor = quoted.find(" #").unwrap();
++    let ctx = code_context_at(quoted, cursor).unwrap();
++    assert_eq!(ctx.open_brackets.len(), 1);
++    assert_eq!(ctx.open_brackets[0].offset, quoted.find('[').unwrap());
++    assert_eq!(ctx.open_string, Some((quoted.find('[').unwrap() + 1, '\'')));
++    for eol in ["\n", "\r\n", "\r"] {
++        let html = format!("<?php // close here ?>{eol}$data['na");
++        assert!(code_context_at(&html, html.len()).is_none());
++        let reopened = format!("<?php // close here ?>{eol}text<?php echo $data['na'];");
++        let cursor = reopened.rfind("na'").unwrap() + 2;
++        let ctx = code_context_at(&reopened, cursor).unwrap();
++        assert_eq!(ctx.open_brackets[0].offset, reopened.rfind('[').unwrap());
++    }
++}
