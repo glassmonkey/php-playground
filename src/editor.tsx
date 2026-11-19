@@ -117,6 +117,7 @@ function PhpEditor(params: {
 			}}
 			loading={<LoadSpinner />}
 			options={{
+				formatOnType: params.autoComplete,
 				minimap: {
 					enabled: false,
 				},

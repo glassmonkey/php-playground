@@ -159,3 +159,13 @@ getDomNodeが公開でも、selectorやwidget状態自体がtypedなMonaco公開
 完全な候補集合はMonacoが再filterして使えるため、文字入力ごとに新しいRPCが必ず必要とはしない。公開eventと実CDNの選択FQN・確定全文・PHP bindingで重複要求と選択保持を検証する。
 
 54件のreviewには属性付きclassのPHPDoc markerを含む必須2件がある。現be1 batchでのmarker欠落は別のruntime回帰として未達であり、追加の字句・range診断の成功でその契約を成功扱いにしない。修正済みruntimeと資産は別のexact gateで取り込む。
+
+## EnterによるPHPDoc生成の接続
+
+自動補完が有効なときはMonacoの`formatOnType`を有効にする。LSPの初期化応答が`documentOnTypeFormattingProvider`で改行を明示した場合だけ、対応するモデルのon-type providerを登録する。対応を広告しないruntimeには要求を送らない。独自のEnter処理や、クライアントによるPHPDocの合成は行わない。
+
+要求には最新のモデル本文を通知した後のUTF16位置、URI、改行文字、Monacoから渡される`tabSize`と`insertSpaces`を含める。返されたTextEditはすべて通常のテキスト編集として変換する。取消・編集・モデル破棄・OFF・版変更・Worker失敗後の古い編集は適用しない。
+
+CDN Monaco 0.55.1では、自然に`/**`を入力してEnterを押しただけでは閉じる`*/`は挿入されない。実際の改行後の本文と位置をnative側の契約検証に使う。fake Workerを使う公開providerテストは接続と編集変換の検証であり、WASIでのPHPDoc生成の証明ではない。runtimeのdispatch・capabilityと新しい資産のexact gateを受領するまで、実生成と文字列・コメント・heredoc・nowdoc・HTML内の非生成は未検証として扱う。既存の明示的なcompletionによる生成とも区別する。
+
+unit testの探索では`build/`以下の証拠用コピーを除外する。コピーの実行で増えたファイル数や件数をcoverageと数えず、trackedのテスト一覧と実行結果を照合する。

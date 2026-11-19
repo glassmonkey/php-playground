@@ -17,6 +17,15 @@ type LspDocumentation = string | LspMarkupContent;
 type LspTextEdit =
 	| { range: LspRange; newText: string }
 	| { insert: LspRange; replace: LspRange; newText: string };
+type LspOnTypeFormattingProvider = {
+	firstTriggerCharacter: string;
+	moreTriggerCharacter?: string[];
+};
+type LspInitializeResult = {
+	capabilities?: {
+		documentOnTypeFormattingProvider?: LspOnTypeFormattingProvider;
+	};
+};
 type LspCommand = {
 	command: string;
 	title: string;
@@ -183,28 +192,38 @@ export class LspClient {
 		const client = new LspClient(options);
 		const cancel = () => client.dispose();
 		options.signal?.addEventListener('abort', cancel, { once: true });
+		client.keepDisposable({
+			dispose: () => options.signal?.removeEventListener('abort', cancel),
+		});
 		try {
 			if (options.signal?.aborted)
 				throw new Error('LSP connection cancelled.');
-			await client.request('initialize', {
-				processId: null,
-				rootUri: null,
-				capabilities: {
-					general: { positionEncodings: ['utf-16'] },
-					textDocument: {
-						completion: {
-							completionItem: { snippetSupport: true },
+			const initialization = await client.request<LspInitializeResult>(
+				'initialize',
+				{
+					processId: null,
+					rootUri: null,
+					capabilities: {
+						general: { positionEncodings: ['utf-16'] },
+						textDocument: {
+							completion: {
+								completionItem: { snippetSupport: true },
+							},
+							hover: { contentFormat: ['markdown', 'plaintext'] },
+							onTypeFormatting: { dynamicRegistration: false },
 						},
-						hover: { contentFormat: ['markdown', 'plaintext'] },
 					},
-				},
-				initializationOptions: { phpVersion: options.phpVersion },
-			});
+					initializationOptions: { phpVersion: options.phpVersion },
+				}
+			);
 			client.assertConnectionActive();
 			client.notify('initialized', {});
 			client.assertConnectionActive();
 			client.openDocument();
 			client.registerProviders();
+			client.registerOnTypeFormatting(
+				initialization.capabilities?.documentOnTypeFormattingProvider
+			);
 			client.assertConnectionActive();
 			options.onStatus('ready');
 			client.assertConnectionActive();
@@ -212,9 +231,93 @@ export class LspClient {
 		} catch (error) {
 			client.dispose();
 			throw error;
-		} finally {
-			options.signal?.removeEventListener('abort', cancel);
 		}
+	}
+
+	private registerOnTypeFormatting(
+		capability: LspOnTypeFormattingProvider | undefined
+	): void {
+		if (
+			typeof capability?.firstTriggerCharacter !== 'string' ||
+			!capability.firstTriggerCharacter ||
+			!(
+				capability.firstTriggerCharacter === '\n' ||
+				(Array.isArray(capability.moreTriggerCharacter) &&
+					capability.moreTriggerCharacter.includes('\n'))
+			)
+		)
+			return;
+
+		const { model, monaco } = this.options;
+		const isCurrent = (requestedModel: Monaco.editor.ITextModel) =>
+			!this.disposed &&
+			!this.options.signal?.aborted &&
+			requestedModel === model &&
+			!model.isDisposed() &&
+			model.uri.toString() === this.uri &&
+			model.getLanguageId() === 'php';
+
+		this.keepDisposable(model.onWillDispose(() => this.dispose()));
+		this.keepDisposable(
+			monaco.languages.registerOnTypeFormattingEditProvider(
+				{
+					language: 'php',
+					scheme: model.uri.scheme,
+					pattern: model.uri.path,
+				},
+				{
+					autoFormatTriggerCharacters: ['\n'],
+					provideOnTypeFormattingEdits: async (
+						requestedModel,
+						position,
+						ch,
+						options,
+						token
+					) => {
+						if (
+							ch !== '\n' ||
+							token.isCancellationRequested ||
+							!isCurrent(requestedModel)
+						)
+							return [];
+						const version = requestedModel.getVersionId();
+						try {
+							const result = await raceCancellation(
+								this.request<Array<{
+									range: LspRange;
+									newText: string;
+								}> | null>('textDocument/onTypeFormatting', {
+									textDocument: { uri: this.uri },
+									position: {
+										line: position.lineNumber - 1,
+										character: position.column - 1,
+									},
+									ch,
+									options: {
+										tabSize: options.tabSize,
+										insertSpaces: options.insertSpaces,
+									},
+								}),
+								token
+							);
+							if (
+								!isCurrent(requestedModel) ||
+								token.isCancellationRequested ||
+								requestedModel.getVersionId() !== version ||
+								!Array.isArray(result)
+							)
+								return [];
+							return result.map((edit) => ({
+								range: lspRangeToMonaco(edit.range),
+								text: edit.newText,
+							}));
+						} catch {
+							return [];
+						}
+					},
+				}
+			)
+		);
 	}
 
 	private assertConnectionActive(): void {
