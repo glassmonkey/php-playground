@@ -1,0 +1,36 @@
+LF-html-no-tag	<div>\n/**\n\nfunction greet($name) {}\n</div>	2	0	5	6	\n	4	true
+LF-html-after-close	<?php ?>\n/**\n\nfunction greet($name) {}	2	0	5	6	\n	4	true
+LF-single-string	<?php\n$x='/**\n\nfunction greet($name) {}';\necho 7;	2	0	5	6	\n	4	true
+LF-double-string	<?php\n$x="/**\n\nfunction greet(\\$name) {}";\necho 7;	2	0	5	6	\n	4	true
+LF-backtick	<?php\nif(false){$x=`/**\n\nfunction greet($name) {}`;}\necho 7;	2	0	5	6	\n	4	true
+LF-nowdoc	<?php\n$x=<<<'TXT'\n/**\n\nfunction greet($name) {}\nTXT;\necho 7;	3	0	5	6	\n	4	true
+LF-heredoc	<?php\n$x=<<<TXT\n/**\n\nfunction greet(\\$name) {}\nTXT;\necho 7;	3	0	5	6	\n	4	true
+LF-attribute-arg	<?php\n#[A('/**\n\nfunction greet($name) {}')]\nfunction actual(){}\necho 7;	2	0	8	0	\n	4	true
+LF-documented	<?php\n/**\n * retained documentation\n\nfunction greet($name) {}	3	0	5	6	\n	4	true
+LF-no-declaration	<?php\n/**\n\n	2	0	5	6	\n	4	true
+LF-unrelated-code	<?php\n/**\n\n$var=7;	2	0	5	6	\n	4	true
+LF-other-trigger	<?php\n/**\n\nfunction greet($name){}	2	0	5	6	*	4	true
+CRLF-html-no-tag	<div>\r\n/**\r\n\r\nfunction greet($name) {}\r\n</div>	2	0	5	6	\n	4	true
+CRLF-html-after-close	<?php ?>\r\n/**\r\n\r\nfunction greet($name) {}	2	0	5	6	\n	4	true
+CRLF-single-string	<?php\r\n$x='/**\r\n\r\nfunction greet($name) {}';\r\necho 7;	2	0	5	6	\n	4	true
+CRLF-double-string	<?php\r\n$x="/**\r\n\r\nfunction greet(\\$name) {}";\r\necho 7;	2	0	5	6	\n	4	true
+CRLF-backtick	<?php\r\nif(false){$x=`/**\r\n\r\nfunction greet($name) {}`;}\r\necho 7;	2	0	5	6	\n	4	true
+CRLF-nowdoc	<?php\r\n$x=<<<'TXT'\r\n/**\r\n\r\nfunction greet($name) {}\r\nTXT;\r\necho 7;	3	0	5	6	\n	4	true
+CRLF-heredoc	<?php\r\n$x=<<<TXT\r\n/**\r\n\r\nfunction greet(\\$name) {}\r\nTXT;\r\necho 7;	3	0	5	6	\n	4	true
+CRLF-attribute-arg	<?php\r\n#[A('/**\r\n\r\nfunction greet($name) {}')]\r\nfunction actual(){}\r\necho 7;	2	0	8	0	\n	4	true
+CRLF-documented	<?php\r\n/**\r\n * retained documentation\r\n\r\nfunction greet($name) {}	3	0	5	6	\n	4	true
+CRLF-no-declaration	<?php\r\n/**\r\n\r\n	2	0	5	6	\n	4	true
+CRLF-unrelated-code	<?php\r\n/**\r\n\r\n$var=7;	2	0	5	6	\n	4	true
+CRLF-other-trigger	<?php\r\n/**\r\n\r\nfunction greet($name){}	2	0	5	6	*	4	true
+CR-html-no-tag	<div>\r/**\r\rfunction greet($name) {}\r</div>	2	0	5	6	\n	4	true
+CR-html-after-close	<?php ?>\r/**\r\rfunction greet($name) {}	2	0	5	6	\n	4	true
+CR-single-string	<?php\r$x='/**\r\rfunction greet($name) {}';\recho 7;	2	0	5	6	\n	4	true
+CR-double-string	<?php\r$x="/**\r\rfunction greet(\\$name) {}";\recho 7;	2	0	5	6	\n	4	true
+CR-backtick	<?php\rif(false){$x=`/**\r\rfunction greet($name) {}`;}\recho 7;	2	0	5	6	\n	4	true
+CR-nowdoc	<?php\r$x=<<<'TXT'\r/**\r\rfunction greet($name) {}\rTXT;\recho 7;	3	0	5	6	\n	4	true
+CR-heredoc	<?php\r$x=<<<TXT\r/**\r\rfunction greet(\\$name) {}\rTXT;\recho 7;	3	0	5	6	\n	4	true
+CR-attribute-arg	<?php\r#[A('/**\r\rfunction greet($name) {}')]\rfunction actual(){}\recho 7;	2	0	8	0	\n	4	true
+CR-documented	<?php\r/**\r * retained documentation\r\rfunction greet($name) {}	3	0	5	6	\n	4	true
+CR-no-declaration	<?php\r/**\r\r	2	0	5	6	\n	4	true
+CR-unrelated-code	<?php\r/**\r\r$var=7;	2	0	5	6	\n	4	true
+CR-other-trigger	<?php\r/**\r\rfunction greet($name){}	2	0	5	6	*	4	true

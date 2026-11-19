@@ -1,4 +1,4 @@
-import {validateVariableAliasPair, validateSelectedCompletionPair, validateOutsidePhpCompletion, decodePositionFixtureRows} from './completion-contract.mjs';
+import {validateOnTypeFormattingEdits, validateVariableAliasPair, validateSelectedCompletionPair, validateOutsidePhpCompletion, decodePositionFixtureRows} from './completion-contract.mjs';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
@@ -18,10 +18,10 @@ const reviewedDiff = manifest.source?.reviewedPhaseBDiffSha256
 assert.equal(reviewedDiff,
 	'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d');
 assert.equal(manifest.source?.appliedPhaseBPatchSha256,
-    'e44190eb41ebfc71aab69d509c7d6054358a479dce931989fef2d124af089e22',
+    '29101be636e0863b52cb16216a53a40ff96c57aabc76fcea9231a1fad7e2626d',
     'current applied PHPantom patch is required before WASM instantiation');
 assert.equal(manifest.source?.appliedFileManifestSha256,
-    'f6c0a267ab6162c3040c670f6232140b84fc67caa822d10e9f2b41d1d1acba89',
+    'b69e8181734cbe30c948e9ef579b96f582478152636ce055cc913dce4c1472c4',
     'current applied file manifest is required before WASM instantiation');
 assert.equal(manifest.stubs?.commit, '2049ca3cfa1feabf52db074108fe776a5713cf02');
 if (manifest.stubs?.resolvedCommitMarker) {
@@ -105,6 +105,7 @@ function initialize() {
 		initializationOptions: { phpVersion: target },
 	});
 	assert.equal(response.result?.serverInfo?.version, buildIdentity);
+    assert.deepEqual(response.result?.capabilities?.documentOnTypeFormattingProvider,{firstTriggerCharacter:'\n'});
 	check(`${target} initialize reports build identity`, true, response.result.serverInfo);
 	notify('initialized', {});
 }
@@ -899,6 +900,38 @@ async function releaseUnquotedKeyOracle(){
     const rows=decodePositionFixtureRows(await readFile(new URL('./native-probe/tests/fixtures/unquoted-key-expanded.tsv',import.meta.url),'utf8'),249,15);const f=rows.find(f=>f[0]==='LF-unicode-step1');assert.ok(f);await freshEngine();const uri='file:///release/array-invalid-position.php';open(uri,f[1]);for(const position of[{line:Number(f[7]),character:Number(f[8])-2},{line:99,character:0},{line:0,character:999}]){const items=completionItems(request('textDocument/completion',{textDocument:{uri},position}));assert.ok(!items.some(i=>i.label===f[4]&&i.kind===5),'invalid original position not an array key');}
 }
 
+
+async function releaseOnTypeFormattingOracle(){
+    const positives=JSON.parse(await readFile(new URL('./native-probe/tests/fixtures/on-type-positive-cases.json',import.meta.url),'utf8'));
+    const negatives=JSON.parse(await readFile(new URL('./native-probe/tests/fixtures/on-type-negative-cases.json',import.meta.url),'utf8'));
+    const supplementary=JSON.parse(await readFile(new URL('./native-probe/tests/fixtures/on-type-supplementary-cases.json',import.meta.url),'utf8'));
+    assert.equal(positives.length,52);assert.equal(negatives.length,36);assert.equal(supplementary.length,13);
+    const throwsCases=JSON.parse(await readFile(new URL('./native-probe/tests/fixtures/on-type-throws-cases.json',import.meta.url),'utf8'));assert.equal(throwsCases.length,6);
+    const applicable=positives.filter(c=>targetAtLeast(...c.minimumTarget));
+    assert.equal(applicable.length,target==='5.6'?40:targetAtLeast(8,0)?52:48);
+    const warmSibling=()=>{const uri='file:///release/on-type-warm.php';open(uri,'<?php abs');const all=completionItems(request('textDocument/completion',{textDocument:{uri},position:{line:0,character:9}}));const selected=all.find(i=>i.kind===3&&i.data?.m==='abs');assert.ok(selected);assert.equal(request('completionItem/resolve',selected).result.data?.m,'abs');};
+    for(const c of [...applicable,...negatives.filter(c=>targetAtLeast(...c.minimumTarget)),...supplementary.filter(c=>targetAtLeast(...c.minimumTarget)),...throwsCases.filter(c=>targetAtLeast(...c.minimumTarget))]){
+        await freshEngine();const uri='file:///release/on-type.php';open(uri,c.source);
+        for(const warm of [false,true]){
+            if(warm)warmSibling();
+            const params={textDocument:{uri},position:c.position,ch:c.ch,options:c.options};const response=request('textDocument/onTypeFormatting',params);
+            assert.equal(response.error,undefined);assert.ok(Object.hasOwn(response,'result'));
+            const document=validateOnTypeFormattingEdits(c.source,response.result,c.expectedEdits,c.expectedDocument);
+            check(`${target} onType ${c.name} ${warm}`,document===c.expectedDocument);
+            console.log(`ON_TYPE_RESPONSE ${JSON.stringify({target,name:c.name,warm,source:c.source,params,response,document})}`);
+        }
+    }
+    await freshEngine();const uri='file:///release/on-type-protocol.php';
+    const c=applicable.find(c=>c.name==='LF-natural-untyped');assert.ok(c);open(uri,c.source);
+    const params={textDocument:{uri},position:c.position,ch:c.ch,options:c.options};
+    const invalid=[null,{}, {...params,position:{line:-1,character:0}}, {...params,ch:4}, {...params,options:{tabSize:'4',insertSpaces:true}}, {...params,options:{tabSize:4}}];
+    for(const bad of invalid){const response=request('textDocument/onTypeFormatting',bad);assert.equal(response.error?.code,-32602);assert.equal(response.result,undefined);check(`${target} onType malformed params`,true);}
+    const unknown=request('textDocument/onTypeFormatting',{...params,textDocument:{uri:'untitled:on-type-unopened'}});assert.equal(unknown.error,undefined);assert.equal(unknown.result,null);
+    notify('textDocument/didChange',{textDocument:{uri,version:2},contentChanges:[{text:c.source.replaceAll('$name','$changed')}]});
+    const changed=request('textDocument/onTypeFormatting',params);assert.equal(changed.error,undefined);const edits=structuredClone(c.expectedEdits);for(const edit of edits)edit.newText=edit.newText.replaceAll('$name','$changed');
+    validateOnTypeFormattingEdits(c.source.replaceAll('$name','$changed'),changed.result,edits,c.expectedDocument.replaceAll('$name','$changed'));
+}
+
 async function releaseHtmlAdmissionOracle(){
     const positives=decodePositionFixtureRows(await readFile(new URL('./native-probe/tests/fixtures/html-php-positive.tsv',import.meta.url),'utf8'),52,15);
     for(const [file,count] of [['nested-interpolation-original.tsv',3],['nested-interpolation-expanded.tsv',204]]){
@@ -1135,6 +1168,7 @@ await releaseArrayCloserOracle();
 await releaseMultilineKeyOracle();
 await releaseUnquotedKeyOracle();
 await releaseHtmlAdmissionOracle();
+await releaseOnTypeFormattingOracle();
 await releaseBoundaryInterpolationOracle();
 console.log(JSON.stringify({
 	target,

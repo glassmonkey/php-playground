@@ -1,4 +1,4 @@
-import { validateSelectedCompletionPair, validateOutsidePhpCompletion, decodePositionFixtureRows } from './completion-contract.mjs';
+import { validateOnTypeFormattingEdits, validateSelectedCompletionPair, validateOutsidePhpCompletion, decodePositionFixtureRows } from './completion-contract.mjs';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { mkdtempSync, writeFileSync, readFileSync, mkdirSync, rmSync } from 'node:fs';
@@ -388,5 +388,53 @@ test('nested interpolation source fixtures require complete edits across origina
                 assert.throws(()=>validateSelectedCompletionPair(source,item,bad,{...item,document}),name);
             }
         }
+    }
+});
+
+test('on-type fixtures bind all original cells and plain TextEdits across canonical EOL',()=>{
+    const positives=JSON.parse(readFileSync(path.join(moduleDir,'native-probe/tests/fixtures/on-type-positive-cases.json'),'utf8'));
+    const negatives=JSON.parse(readFileSync(path.join(moduleDir,'native-probe/tests/fixtures/on-type-negative-cases.json'),'utf8'));
+    assert.equal(positives.length,52);assert.equal(negatives.length,36);
+    const rows=decodePositionFixtureRows(readFileSync(path.join(moduleDir,'native-probe/tests/fixtures/on-type-positive.tsv'),'utf8'),52,18);
+    const wanted=positives.map(c=>{const e=c.expectedEdits[0],a=e.range.start,b=e.range.end;return[c.name,c.source,c.position.line,c.position.character,...c.minimumTarget,a.line,a.character,b.line,b.character,e.newText,c.expectedDocument,c.ch,c.options.tabSize,c.options.insertSpaces,c.reflectionKind,c.reflectionSymbol,c.expectedStdout].map(String);});
+    assert.deepEqual(rows,wanted);
+    for(const c of positives){
+        assert.equal(validateOnTypeFormattingEdits(c.source,c.expectedEdits,c.expectedEdits,c.expectedDocument),c.expectedDocument);
+        for(const kind of ['range','text','additional']){
+            const bad=structuredClone(c.expectedEdits);
+            if(kind==='range')bad[0].range.end.character+=1;
+            if(kind==='text')bad[0].newText+='unexpected';
+            if(kind==='additional')bad.push({range:{start:{line:0,character:0},end:{line:0,character:0}},newText:'unexpected'});
+            assert.throws(()=>validateOnTypeFormattingEdits(c.source,bad,c.expectedEdits,c.expectedDocument));
+        }
+    }
+    for(const c of negatives)assert.equal(validateOnTypeFormattingEdits(c.source,null,null,c.source),c.source);
+    const negativeRows=decodePositionFixtureRows(readFileSync(path.join(moduleDir,'native-probe/tests/fixtures/on-type-negative.tsv'),'utf8'),36,9);
+    assert.deepEqual(negativeRows,negatives.map(c=>[c.name,c.source,c.position.line,c.position.character,...c.minimumTarget,c.ch,c.options.tabSize,c.options.insertSpaces].map(String)));
+});
+test('on-type edit oracle rejects invalid UTF16, overlap, null-array mismatch and changed plaintext',()=>{
+    const source='𐐀\r\n$x';
+    const edit={range:{start:{line:1,character:0},end:{line:1,character:2}},newText:'$name'};
+    assert.equal(validateOnTypeFormattingEdits(source,[edit],[edit],'𐐀\r\n$name'),'𐐀\r\n$name');
+    for(const range of [{start:{line:0,character:1},end:{line:0,character:2}},{start:{line:99,character:0},end:{line:99,character:0}},{start:{line:1,character:3},end:{line:1,character:3}},{start:{line:1,character:2},end:{line:1,character:1}}]){
+        const edits=[{range,newText:'x'}];assert.throws(()=>validateOnTypeFormattingEdits(source,edits,edits,'invalid'));
+    }
+    const overlap=[edit,{...edit,newText:'other'}];assert.throws(()=>validateOnTypeFormattingEdits(source,overlap,overlap,'invalid'));
+    assert.throws(()=>validateOnTypeFormattingEdits(source,[],null,source));
+    assert.throws(()=>validateOnTypeFormattingEdits(source,null,[],source));
+});
+
+test('on-type inferred and throws annotations preserve class identities without new imports',()=>{
+    const supplementary=JSON.parse(readFileSync(path.join(moduleDir,'native-probe/tests/fixtures/on-type-supplementary-cases.json'),'utf8'));
+    const throwsCases=JSON.parse(readFileSync(path.join(moduleDir,'native-probe/tests/fixtures/on-type-throws-cases.json'),'utf8'));
+    assert.equal(supplementary.length,13);assert.equal(throwsCases.length,6);
+    const inferred=supplementary.filter(c=>c.name.includes('-inferred-property-'));assert.equal(inferred.length,9);
+    const rows=decodePositionFixtureRows(readFileSync(path.join(moduleDir,'native-probe/tests/fixtures/on-type-inferred-identity.tsv'),'utf8'),9,18);
+    assert.deepEqual(rows,inferred.map(c=>{const e=c.expectedEdits[0],a=e.range.start,b=e.range.end;return[c.name,c.source,c.position.line,c.position.character,...c.minimumTarget,a.line,a.character,b.line,b.character,e.newText,c.expectedDocument,c.ch,c.options.tabSize,c.options.insertSpaces,c.reflectionKind,c.reflectionSymbol,c.expectedStdout].map(String);}));
+    for(const c of [...supplementary,...throwsCases]){
+        assert.equal(c.expectedEdits.length,1,'onType never inserts a new import');
+        assert.equal(validateOnTypeFormattingEdits(c.source,c.expectedEdits,c.expectedEdits,c.expectedDocument),c.expectedDocument);
+        const extra=[...c.expectedEdits,{range:{start:{line:0,character:0},end:{line:0,character:0}},newText:'<?php use Wrong; ?>'}];
+        assert.throws(()=>validateOnTypeFormattingEdits(c.source,extra,c.expectedEdits,c.expectedDocument));
     }
 });

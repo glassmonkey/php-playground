@@ -148,3 +148,31 @@ export function validateOutsidePhpCompletion(response) {
     assert.deepEqual(items, [], 'outside PHP has no PHP completion edits');
     return items;
 }
+
+// onTypeFormatting returns plain TextEdits, without completion snippets.
+export function validateOnTypeFormattingEdits(source, edits, expectedEdits, expectedDocument) {
+    assert.deepEqual(edits, expectedEdits, 'complete on-type TextEdits');
+    if (edits === null) {
+        assert.equal(source, expectedDocument, 'absence preserves the original document');
+        return source;
+    }
+    assert.ok(Array.isArray(edits), 'on-type TextEdits array');
+    const spans = edits.map(edit => {
+        assert.equal(typeof edit.newText, 'string', 'plain edit text');
+        return {start: offset(source, edit.range.start), end: offset(source, edit.range.end), text: edit.newText};
+    });
+    for (let a = 0; a < spans.length; a++) {
+        for (let b = a + 1; b < spans.length; b++) {
+            assert.ok(spans[a].start !== spans[b].start && !(spans[a].start < spans[b].end && spans[b].start < spans[a].end), 'nonoverlapping on-type edits');
+        }
+    }
+    spans.sort((a,b) => b.start-a.start);
+    let document = source, previous = source.length;
+    for (const edit of spans) {
+        assert.ok(edit.start <= edit.end && edit.end <= previous, 'original on-type range');
+        document = document.slice(0, edit.start) + edit.text + document.slice(edit.end);
+        previous = edit.start;
+    }
+    assert.equal(document, expectedDocument, 'independent on-type document');
+    return document;
+}

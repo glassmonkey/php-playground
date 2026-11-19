@@ -11,8 +11,8 @@ expected_stubs_sha256='3ef62542d2f77ad30c7dab7dfa726e57e86dd5e3403780294119cf4f5
 phase_a_patch_sha256='9ba5fdfbe29fcfacc974611159c6aaf6bcdc15797e0e2a2c6cbf6989ad93f3d9'
 reviewed_phase_b_diff_sha256='e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d'
 phase_b_bundle_sha256='60aad10373b97a65da73196aa28e6893a77480a21d5687ad1b140e6d74bd30a3'
-phase_b_patch_sha256='e44190eb41ebfc71aab69d509c7d6054358a479dce931989fef2d124af089e22'
-phase_b_file_manifest_sha256='f6c0a267ab6162c3040c670f6232140b84fc67caa822d10e9f2b41d1d1acba89'
+phase_b_patch_sha256='29101be636e0863b52cb16216a53a40ff96c57aabc76fcea9231a1fad7e2626d'
+phase_b_file_manifest_sha256='b69e8181734cbe30c948e9ef579b96f582478152636ce055cc913dce4c1472c4'
 patch_file='/opt/phpantom/patches/phase-b-versioned-target.patch'
 file_manifest='/opt/phpantom/patches/phase-b-versioned-target.files.json'
 target='wasm32-wasip1'
@@ -166,7 +166,12 @@ PYRESULT
 	quality_log='/output/native-release-quality.log'
 	PHPANTOM_TARGET_PHP_VERSION=7.4 cargo test --locked \
 		--manifest-path "$native_probe/Cargo.toml" \
-		--test native_release_quality --test native_language_completion --test native_stub_metadata --test native_import_completion --test native_import_edits --test native_attribute_docs --test native_attribute_opaque_docs --test native_document_string_completion --test native_variable_alias --test native_boundary_interpolation --test native_completion_edits --test native_coordinates --test native_constant_binding --test native_position_consumers --test native_array_closer --test native_multiline_key --test native_unquoted_key --test native_html_boundary -- --show-output >"$quality_log" 2>&1
+		--test native_release_quality --test native_language_completion --test native_stub_metadata --test native_import_completion --test native_import_edits --test native_attribute_docs --test native_attribute_opaque_docs --test native_document_string_completion --test native_variable_alias --test native_boundary_interpolation --test native_completion_edits --test native_coordinates --test native_constant_binding --test native_position_consumers --test native_array_closer --test native_multiline_key --test native_unquoted_key --test native_html_boundary --test native_on_type_formatting -- --show-output >"$quality_log" 2>&1
+	protocol_log='/output/native-on-type-protocol.log'
+	PHPANTOM_TARGET_PHP_VERSION=7.4 cargo test --locked \
+		--manifest-path "$source_root/Cargo.toml" --lib lsp_dispatch::on_type_contract_tests \
+		-- --show-output >"$protocol_log" 2>&1
+
 	rustc --edition=2024 --test "$source_root/build_support/stub_availability.rs" \
 		-o "$attempt_root/stub-availability-tests"
 	"$attempt_root/stub-availability-tests" > /output/stub-availability-tests.log 2>&1
@@ -234,7 +239,8 @@ summary = {
         "result": "16/16 passed",
         "log": "stub-availability-tests.log",
     },
-    "release_quality": {"command": "cargo test --locked --test native_release_quality --test native_language_completion --test native_stub_metadata --test native_import_completion --test native_import_edits --test native_attribute_docs --test native_attribute_opaque_docs --test native_document_string_completion --test native_variable_alias --test native_boundary_interpolation --test native_completion_edits --test native_coordinates --test native_constant_binding --test native_position_consumers --test native_array_closer --test native_multiline_key --test native_unquoted_key --test native_html_boundary -- --show-output", "log": "native-release-quality.log", "required": True},
+    "release_quality": {"command": "cargo test --locked --test native_release_quality --test native_language_completion --test native_stub_metadata --test native_import_completion --test native_import_edits --test native_attribute_docs --test native_attribute_opaque_docs --test native_document_string_completion --test native_variable_alias --test native_boundary_interpolation --test native_completion_edits --test native_coordinates --test native_constant_binding --test native_position_consumers --test native_array_closer --test native_multiline_key --test native_unquoted_key --test native_html_boundary --test native_on_type_formatting -- --show-output", "log": "native-release-quality.log", "required": True},
+    "on_type_protocol": {"command": "cargo test --locked --lib lsp_dispatch::on_type_contract_tests -- --show-output", "log": "native-on-type-protocol.log", "required": True},
     "native_test_profile": {"debug": 0, "jobs": 1},
     "rustc_verbose": os.environ["PHPANTOM_RUSTC_VERBOSE"],
     "cargo_version": os.environ["PHPANTOM_CARGO_VERSION"],

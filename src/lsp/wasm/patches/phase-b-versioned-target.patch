@@ -2321,21 +2321,22 @@ diff --git a/src/docblock/tags.rs b/src/docblock/tags.rs
 diff --git a/src/lib.rs b/src/lib.rs
 --- a/src/lib.rs
 +++ b/src/lib.rs
-@@ -315,6 +315,7 @@
- mod signature_help;
- mod signature_render;
- pub mod stub_map;
+@@ -281 +281 @@
+-#[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
++#[cfg(any(test, all(target_arch = "wasm32", target_os = "wasi")))]
+@@ -317,0 +318 @@
 +mod stub_metadata;
- pub mod stub_patches;
- pub mod stubs;
- mod symbol_index;
 diff --git a/src/lsp_dispatch.rs b/src/lsp_dispatch.rs
 --- a/src/lsp_dispatch.rs
 +++ b/src/lsp_dispatch.rs
-@@ -40,9 +40,12 @@
- 
- impl LspDispatcher {
-     pub fn new() -> LspDispatcher {
+@@ -14,3 +14,3 @@
+-    DidCloseTextDocumentParams, DidOpenTextDocumentParams, DocumentHighlightParams, HoverParams,
+-    Position, RenameParams, SignatureHelpParams, TextDocumentContentChangeEvent,
+-    TextDocumentPositionParams,
++    DidCloseTextDocumentParams, DidOpenTextDocumentParams, DocumentHighlightParams,
++    DocumentOnTypeFormattingParams, HoverParams, Position, RenameParams, SignatureHelpParams,
++    TextDocumentContentChangeEvent, TextDocumentPositionParams,
+@@ -43,3 +43,6 @@
 -        LspDispatcher {
 -            backend: Backend::new_headless(),
 -        }
@@ -2345,9 +2346,232 @@ diff --git a/src/lsp_dispatch.rs b/src/lsp_dispatch.rs
 +        let backend = Backend::new_headless();
 +        backend.set_php_version(version);
 +        LspDispatcher { backend }
-     }
- 
-     /// Handle one LSP JSON-RPC message. Returns a JSON-RPC response string for
+@@ -73,0 +77 @@
++            "textDocument/onTypeFormatting" => Some(self.on_type_formatting(params)),
+@@ -156,0 +161,9 @@
++    fn on_type_formatting(&self, params: Value) -> Result<Value, (i64, String)> {
++        let params: DocumentOnTypeFormattingParams =
++            serde_json::from_value(params).map_err(bad_params)?;
++        Ok(self
++            .backend
++            .handle_on_type_formatting(params)
++            .map_or(Value::Null, to_value))
++    }
++
+@@ -267,0 +281 @@
++                "documentOnTypeFormattingProvider": { "firstTriggerCharacter": "\n" },
+@@ -292,0 +307,211 @@
++
++#[cfg(test)]
++mod on_type_contract_tests {
++    use super::*;
++    fn request(sut: &LspDispatcher, method: &str, params: Value) -> Value {
++        let message = json!({"jsonrpc":"2.0","id":1,"method":method,"params":params});
++        let response: Value =
++            serde_json::from_str(&sut.handle(&message.to_string()).expect("request response"))
++                .unwrap();
++        eprintln!(
++            "ON_TYPE_RPC {}",
++            json!({"request":message,"response":response})
++        );
++        response
++    }
++    #[test]
++    fn on_type_initialize_advertises_newline() {
++        let sut = LspDispatcher::new();
++        let initialized = request(&sut, "initialize", json!({}));
++        assert_eq!(
++            initialized["result"]["capabilities"]["documentOnTypeFormattingProvider"],
++            json!({"firstTriggerCharacter":"\n"})
++        );
++    }
++    #[test]
++    fn on_type_protocol_dispatches_real_natural_enter() {
++        let sut = LspDispatcher::new();
++        let uri = "file:///natural-enter.php";
++        sut.handle(&json!({"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":uri,"languageId":"php","version":5,"text":"<?php\n/**\n\nfunction greet($name): string { return $name; }\n"}}}).to_string());
++        let response = request(
++            &sut,
++            "textDocument/onTypeFormatting",
++            json!({"textDocument":{"uri":uri},"position":{"line":2,"character":0},"ch":"\n","options":{"tabSize":4,"insertSpaces":true}}),
++        );
++        assert_eq!(
++            response,
++            json!({"jsonrpc":"2.0","id":1,"result":[{"range":{"start":{"line":1,"character":0},"end":{"line":3,"character":0}},"newText":"/**\n * @param mixed $name\n */\n"}]})
++        );
++    }
++    #[test]
++    fn on_type_protocol_rejects_malformed_params_without_hiding_errors() {
++        let sut = LspDispatcher::new();
++        let valid = json!({"textDocument":{"uri":"file:///natural-enter.php"},"position":{"line":2,"character":0},"ch":"\n","options":{"tabSize":4,"insertSpaces":true}});
++        let mut bads = vec![Value::Null, json!({})];
++        for (key, value) in [
++            ("position", json!({"line":-1,"character":0})),
++            ("ch", json!(4)),
++            ("options", json!({"tabSize":"4","insertSpaces":true})),
++            ("options", json!({"tabSize":4})),
++            ("textDocument", json!({"uri":4})),
++        ] {
++            let mut bad = valid.clone();
++            bad[key] = value;
++            bads.push(bad);
++        }
++        for bad in bads {
++            let actual = request(&sut, "textDocument/onTypeFormatting", bad);
++            assert_eq!(actual["error"]["code"], json!(-32602));
++            assert!(actual.get("result").is_none());
++        }
++        let unknown = request(&sut, "textDocument/notAnOnTypeMethod", valid);
++        assert_eq!(unknown["error"]["code"], json!(-32601));
++    }
++    #[test]
++    fn on_type_protocol_valid_positive_precedes_invalid_positions_and_unknown_uri() {
++        let sut = LspDispatcher::new();
++        let uri = "file:///on-type-utf16.php";
++        let source = "<?php\n$x='𐐀';\n/**\n\nfunction greet($name): string {return $name;}\n";
++        sut.handle(&json!({"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":uri,"languageId":"php","version":1,"text":source}}}).to_string());
++        let params = json!({"textDocument":{"uri":uri},"position":{"line":3,"character":0},"ch":"\n","options":{"tabSize":4,"insertSpaces":true}});
++        let wanted = json!([{"range":{"start":{"line":2,"character":0},"end":{"line":4,"character":0}},"newText":"/**\n * @param mixed $name\n */\n"}]);
++        assert_eq!(
++            request(&sut, "textDocument/onTypeFormatting", params.clone())["result"],
++            wanted
++        );
++        for position in [
++            json!({"line":1,"character":5}),
++            json!({"line":999,"character":0}),
++            json!({"line":3,"character":999}),
++        ] {
++            let mut bad = params.clone();
++            bad["position"] = position;
++            assert_eq!(
++                request(&sut, "textDocument/onTypeFormatting", bad),
++                json!({"jsonrpc":"2.0","id":1,"result":null})
++            );
++        }
++        for ch in ["*", "x", "\r", ""] {
++            let mut other = params.clone();
++            other["ch"] = json!(ch);
++            assert_eq!(
++                request(&sut, "textDocument/onTypeFormatting", other),
++                json!({"jsonrpc":"2.0","id":1,"result":null})
++            );
++        }
++        let mut unknown = params;
++        unknown["textDocument"]["uri"] = json!("untitled:on-type-unopened");
++        assert_eq!(
++            request(&sut, "textDocument/onTypeFormatting", unknown),
++            json!({"jsonrpc":"2.0","id":1,"result":null})
++        );
++    }
++    #[test]
++    fn on_type_protocol_did_change_and_formatting_options_preserve_declaration_indent_and_eof() {
++        let sut = LspDispatcher::new();
++        let uri = "file:///on-type-options.php";
++        let source = "<?php\n/**\n\n    function greet($name): string {return $name;}";
++        sut.handle(&json!({"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":uri,"languageId":"php","version":1,"text":source}}}).to_string());
++        let params = json!({"textDocument":{"uri":uri},"position":{"line":2,"character":0},"ch":"\n","options":{"tabSize":2,"insertSpaces":false,"insertFinalNewline":true,"trimFinalNewlines":true}});
++        let expected = "    /**\n     * @param mixed $name\n     */\n";
++        for (version, text, name) in [
++            (1, source.to_string(), "$name"),
++            (2, source.replace("$name", "$changed"), "$changed"),
++        ] {
++            if version > 1 {
++                sut.handle(&json!({"jsonrpc":"2.0","method":"textDocument/didChange","params":{"textDocument":{"uri":uri,"version":version},"contentChanges":[{"text":text}]}}).to_string());
++            }
++            assert_eq!(
++                request(&sut, "textDocument/onTypeFormatting", params.clone()),
++                json!({"jsonrpc":"2.0","id":1,"result":[{"range":{"start":{"line":1,"character":0},"end":{"line":3,"character":0}},"newText":expected.replace("$name",name)}]})
++            );
++        }
++        let html = "<div>\n/**\n\nfunction greet($name){}\n</div>";
++        sut.handle(&json!({"jsonrpc":"2.0","method":"textDocument/didChange","params":{"textDocument":{"uri":uri,"version":3},"contentChanges":[{"text":html}]}}).to_string());
++        assert_eq!(
++            request(&sut, "textDocument/onTypeFormatting", params.clone()),
++            json!({"jsonrpc":"2.0","id":1,"result":null})
++        );
++        sut.handle(&json!({"jsonrpc":"2.0","method":"textDocument/didChange","params":{"textDocument":{"uri":uri,"version":4},"contentChanges":[{"text":source}]}}).to_string());
++        assert_eq!(
++            request(&sut, "textDocument/onTypeFormatting", params)["result"][0]["newText"],
++            json!(expected)
++        );
++    }
++    #[test]
++    fn on_type_protocol_qualifies_annotation_without_rebinding_php() {
++        let sut = LspDispatcher::new();
++        let uri = "file:///on-type-throws.php";
++        let source = "<?php\nnamespace Demo;\n\n/**\n\nfunction work($name): void { throw new \\RuntimeException(); }\necho RuntimeException::class === \\RuntimeException::class ? 7 : 99;\n";
++        sut.handle(&json!({"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":uri,"languageId":"php","version":1,"text":source}}}).to_string());
++        let offset = source.find("/**").unwrap() as u32;
++        let cached = sut.backend.file_context_at(uri, offset).namespace;
++        let blank = crate::completion::source::throws_analysis::with_open_docblock_blanked(
++            source,
++            source.find("\n\nfunction").unwrap() + 1,
++        );
++        eprintln!(
++            "ON_TYPE_NAMESPACE_DIAG cached={cached:?} recovered={:?}",
++            sut.backend.parse_namespace(&blank)
++        );
++        let actual = request(
++            &sut,
++            "textDocument/onTypeFormatting",
++            json!({"textDocument":{"uri":uri},"position":{"line":4,"character":0},"ch":"\n","options":{"tabSize":4,"insertSpaces":true}}),
++        );
++        assert_eq!(
++            actual,
++            json!({"jsonrpc": "2.0", "id": 1, "result": [{"range": {"start": {"line": 3, "character": 0}, "end": {"line": 5, "character": 0}}, "newText": "/**\n * @param mixed $name\n *\n * @throws \\RuntimeException\n */\n"}]})
++        );
++    }
++    #[test]
++    fn on_type_annotation_identity_lf_throws_shadow() {
++        let sut = LspDispatcher::new();
++        let uri = "file:///annotation-identity.php";
++        let source = "<?php\nnamespace Demo;\nclass RuntimeException {}\n\n/**\n\nfunction work($name): void { throw new \\RuntimeException(); }\necho RuntimeException::class === \\Demo\\RuntimeException::class ? 99 : 7;\n";
++        sut.handle(&json!({"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":uri,"languageId":"php","version":1,"text":source}}}).to_string());
++        let actual = request(
++            &sut,
++            "textDocument/onTypeFormatting",
++            json!({"textDocument": {"uri": "file:///annotation-identity.php"}, "position": {"line": 5, "character": 0}, "ch": "\n", "options": {"tabSize": 4, "insertSpaces": true}}),
++        );
++        assert_eq!(
++            actual,
++            json!({"jsonrpc": "2.0", "id": 1, "result": [{"range": {"start": {"line": 4, "character": 0}, "end": {"line": 6, "character": 0}}, "newText": "/**\n * @param mixed $name\n *\n * @throws \\RuntimeException\n */\n"}]})
++        );
++    }
++
++    #[test]
++    fn on_type_annotation_identity_lf_throws_existing_alias() {
++        let sut = LspDispatcher::new();
++        let uri = "file:///annotation-identity.php";
++        let source = "<?php\nnamespace Demo;\nuse RuntimeException as Trouble;\nclass RuntimeException {}\n\n/**\n\nfunction work($name): void { throw new \\RuntimeException(); }\necho RuntimeException::class === \\Demo\\RuntimeException::class ? 99 : 7;\n";
++        sut.handle(&json!({"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":uri,"languageId":"php","version":1,"text":source}}}).to_string());
++        let actual = request(
++            &sut,
++            "textDocument/onTypeFormatting",
++            json!({"textDocument": {"uri": "file:///annotation-identity.php"}, "position": {"line": 6, "character": 0}, "ch": "\n", "options": {"tabSize": 4, "insertSpaces": true}}),
++        );
++        assert_eq!(
++            actual,
++            json!({"jsonrpc": "2.0", "id": 1, "result": [{"range": {"start": {"line": 5, "character": 0}, "end": {"line": 7, "character": 0}}, "newText": "/**\n * @param mixed $name\n *\n * @throws Trouble\n */\n"}]})
++        );
++    }
++
++    #[test]
++    fn on_type_annotation_identity_lf_throws_user_exception() {
++        let sut = LspDispatcher::new();
++        let uri = "file:///annotation-identity.php";
++        let source = "<?php\nnamespace Demo;\nclass RuntimeException {}\nclass LocalException extends \\Exception {}\n\n/**\n\nfunction work($name): void { throw new LocalException(); }\necho RuntimeException::class === \\Demo\\RuntimeException::class ? 99 : 7;\n";
++        sut.handle(&json!({"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":uri,"languageId":"php","version":1,"text":source}}}).to_string());
++        let actual = request(
++            &sut,
++            "textDocument/onTypeFormatting",
++            json!({"textDocument": {"uri": "file:///annotation-identity.php"}, "position": {"line": 6, "character": 0}, "ch": "\n", "options": {"tabSize": 4, "insertSpaces": true}}),
++        );
++        assert_eq!(
++            actual,
++            json!({"jsonrpc": "2.0", "id": 1, "result": [{"range": {"start": {"line": 5, "character": 0}, "end": {"line": 7, "character": 0}}, "newText": "/**\n * @param mixed $name\n *\n * @throws \\Demo\\LocalException\n */\n"}]})
++        );
++    }
++}
 diff --git a/src/parser/ast_update.rs b/src/parser/ast_update.rs
 --- a/src/parser/ast_update.rs
 +++ b/src/parser/ast_update.rs
@@ -5813,20 +6037,124 @@ diff --git a/src/completion/phpdoc/context.rs b/src/completion/phpdoc/context.rs
 diff --git a/src/completion/phpdoc/generation/build.rs b/src/completion/phpdoc/generation/build.rs
 --- a/src/completion/phpdoc/generation/build.rs
 +++ b/src/completion/phpdoc/generation/build.rs
-@@ -564,8 +564,4 @@
+@@ -191 +191,5 @@
+-    Plain { indent: &'a str },
++    Plain {
++        indent: &'a str,
++        use_map: &'a HashMap<String, String>,
++        namespace: &'a Option<String>,
++    },
+@@ -194,0 +199,50 @@
++    fn resolved_reference(&self, name: &str) -> String {
++        let DocForm::Plain { use_map, .. } = self else {
++            return name.to_owned();
++        };
++        let name = name.trim_start_matches('\\');
++        use_map
++            .iter()
++            .filter_map(|(alias, imported)| {
++                let imported = imported.trim_start_matches('\\');
++                if name.eq_ignore_ascii_case(imported) {
++                    Some(alias.clone())
++                } else if name
++                    .get(..imported.len())
++                    .is_some_and(|prefix| prefix.eq_ignore_ascii_case(imported))
++                    && name.as_bytes().get(imported.len()) == Some(&b'\\')
++                {
++                    Some(format!("{alias}{}", &name[imported.len()..]))
++                } else {
++                    None
++                }
++            })
++            .min_by(|a, b| a.len().cmp(&b.len()).then(a.cmp(b)))
++            .unwrap_or_else(|| format!("\\{name}"))
++    }
++    fn source_type(&self, ty: &PhpType) -> PhpType {
++        if let DocForm::Plain {
++            use_map, namespace, ..
++        } = self
++        {
++            ty.resolve_names(&|name| {
++                format!(
++                    "\\{}",
++                    crate::names::resolve_to_fqn(name, use_map, namespace)
++                )
++            })
++        } else {
++            ty.clone()
++        }
++    }
++    fn resolved_type(&self, ty: &PhpType) -> PhpType {
++        if matches!(self, DocForm::Plain { .. }) {
++            ty.resolve_names(&|name| self.resolved_reference(name))
++        } else {
++            ty.clone()
++        }
++    }
++    fn written_reference(&self, name: &str) -> String {
++        self.resolved_type(&self.source_type(&PhpType::named(crate::atom::atom(name))))
++            .to_string()
++    }
+@@ -233,0 +288,7 @@
++        let plain = matches!(self, DocForm::Plain { .. });
++        let resolved = if plain {
++            type_hint.map(|ty| self.source_type(ty))
++        } else {
++            None
++        };
++        let hint = if plain { resolved.as_ref() } else { type_hint };
+@@ -235 +296 @@
+-            type_hint,
++            hint,
+@@ -237 +298,7 @@
+-            &|name| crate::names::shorten_from_fqn(name, use_map, file_namespace),
++            &|name| {
++                if plain {
++                    name.to_owned()
++                } else {
++                    crate::names::shorten_from_fqn(name, use_map, file_namespace)
++                }
++            },
+@@ -240 +307 @@
+-        Some(enrichment_type_to_plain(&enriched))
++        Some(enrichment_type_to_plain(&self.resolved_type(&enriched)))
+@@ -269 +336 @@
+-            DocForm::Plain { indent } => lines
++            DocForm::Plain { indent, .. } => lines
+@@ -398,0 +466,3 @@
++            Some(t) if matches!(form, DocForm::Plain { .. }) => {
++                Some(form.resolved_type(&t).to_string())
++            }
+@@ -444 +514,6 @@
+-            lines.push(format!(" * @throws {}", crate::util::short_name(&exc_str)));
++            let name = if matches!(form, DocForm::Plain { .. }) {
++                form.resolved_reference(&exc_str)
++            } else {
++                crate::util::short_name(&exc_str).to_owned()
++            };
++            lines.push(format!(" * @throws {name}"));
+@@ -484 +559,5 @@
+-                lines.push(format!(" * {tag} {name}<{}>", args.join(", ")));
++                lines.push(format!(
++                    " * {tag} {}<{}>",
++                    form.written_reference(name),
++                    args.join(", ")
++                ));
+@@ -564,4 +643,4 @@
 -    // Walk backwards from the trigger to find the start of `/**`.
 -    let before = &content[..trigger_offset];
 -    let line_start = before.rfind('\n').map(|i| i + 1).unwrap_or(0);
 -    let trigger_line = &content[line_start..];
--
--    // Find the `/**` on this line.
--    let doc_start_in_line = trigger_line.find("/**")?;
--    let abs_doc_start = line_start + doc_start_in_line;
 +    // Reuse the lexical opener, not a line search that could pick a
 +    // different comment or a comment-looking string earlier on the line.
 +    let abs_doc_start =
 +        crate::completion::source::comment_position::docblock_start_at(content, trigger_offset)?;
-@@ -579,5 +575,2 @@
+@@ -569,4 +647,0 @@
+-    // Find the `/**` on this line.
+-    let doc_start_in_line = trigger_line.find("/**")?;
+-    let abs_doc_start = line_start + doc_start_in_line;
+-
+@@ -579,5 +654,2 @@
 -        // Unclosed — blank out to end of the line containing `/**`.
 -        content[abs_doc_start..]
 -            .find('\n')
@@ -5834,7 +6162,7 @@ diff --git a/src/completion/phpdoc/generation/build.rs b/src/completion/phpdoc/g
 -            .unwrap_or(content.len())
 +        // Preserve the exact terminator while making the trigger parseable.
 +        crate::text_position::find_line_end(content, abs_doc_start)
-@@ -587,5 +580,13 @@
+@@ -587,5 +659,13 @@
 -    // Replace the docblock region with spaces (preserving byte offsets).
 -    patched.replace_range(
 -        abs_doc_start..abs_doc_end,
@@ -5853,6 +6181,21 @@ diff --git a/src/completion/phpdoc/generation/build.rs b/src/completion/phpdoc/g
 +        })
 +        .collect();
 +    patched.replace_range(abs_doc_start..abs_doc_end, &blank);
+@@ -611 +691,6 @@
+-            let shortened = th.shorten();
++            let source_type = form.source_type(th);
++            let shortened = if matches!(form, DocForm::Plain { .. }) {
++                form.resolved_type(&source_type)
++            } else {
++                th.shorten()
++            };
+@@ -617 +702,5 @@
+-                && let Some(cls) = class_loader(name)
++                && let Some(cls) = class_loader(if matches!(form, DocForm::Plain { .. }) {
++                    source_type.base_name().unwrap_or(name)
++                } else {
++                    name
++                })
 diff --git a/src/completion/phpdoc/generation/trigger.rs b/src/completion/phpdoc/generation/trigger.rs
 --- a/src/completion/phpdoc/generation/trigger.rs
 +++ b/src/completion/phpdoc/generation/trigger.rs
@@ -5861,16 +6204,167 @@ diff --git a/src/completion/phpdoc/generation/trigger.rs b/src/completion/phpdoc
 +    let lines: Vec<&str> = crate::text_position::lines_with_offsets(content)
 +        .map(|(_, line)| line)
 +        .collect();
-@@ -131 +133,3 @@
+@@ -131 +133,16 @@
 -    let lines: Vec<&str> = content.lines().collect();
-+    let lines: Vec<&str> = crate::text_position::lines_with_offsets(content)
-+        .map(|(_, line)| line)
-+        .collect();
-@@ -237 +241,2 @@
++    let offset = position_to_byte_offset(content, position);
++    let opener = crate::completion::source::comment_position::docblock_start_at(content, offset)
++        .or_else(|| {
++            // A cursor between `*` and `/` is still inside the closing
++            // delimiter, not after the comment. Preserve native editor shapes.
++            (offset > 0 && content.as_bytes().get(offset - 1..offset + 1) == Some(b"*/"))
++                .then(|| {
++                    crate::completion::source::comment_position::docblock_start_at(
++                        content,
++                        offset - 1,
++                    )
++                })
++                .flatten()
++        })?;
++    let lines: Vec<(usize, &str)> = crate::text_position::lines_with_offsets(content).collect();
++    let open_idx = crate::text_position::offset_to_position(content, opener).line as usize;
+@@ -133,26 +150,3 @@
+-
+-    // ── Find the `/**` opening ──────────────────────────────────────
+-    // Walk backwards from the cursor line to find a line containing `/**`.
+-    let mut open_line = None;
+-    for i in (0..=cur_line).rev() {
+-        if i >= lines.len() {
+-            continue;
+-        }
+-        let trimmed = lines[i].trim();
+-        if trimmed.contains("/**") {
+-            open_line = Some(i);
+-            break;
+-        }
+-        // Stop if we hit a non-docblock, non-empty line (e.g. code).
+-        if !trimmed.is_empty() && !trimmed.starts_with('*') && !trimmed.starts_with("*/") {
+-            return None;
+-        }
+-    }
+-    let open_idx = open_line?;
+-
+-    // ── Check this is a fresh empty docblock ────────────────────────
+-    // The opening line must be just `/**` (with optional whitespace and
+-    // optional `*/` on the same line).
+-    let open_text = lines[open_idx];
+-    let trimmed_open = open_text.trim();
+-    if !trimmed_open.starts_with("/**") {
++    let (_, open_text) = *lines.get(open_idx)?;
++    let trimmed_open = open_text.trim_start_matches([' ', '\t']);
++    if opener != lines[open_idx].0 + open_text.len() - trimmed_open.len() {
+@@ -161,12 +155,6 @@
+-
+-    let indent: String = open_text
+-        .chars()
+-        .take_while(|c| *c == ' ' || *c == '\t')
+-        .collect();
+-
+-    // ── Find the `*/` closing ───────────────────────────────────────
+-    let mut close_line = None;
+-
+-    // Single-line case: `/** */` on one line.
+-    if trimmed_open.ends_with("*/") && trimmed_open.len() <= "/** */".len() + 2 {
+-        close_line = Some(open_idx);
++    let tail = trimmed_open.strip_prefix("/**")?.trim();
++    let mut after_idx = None;
++    if tail == "*/" {
++        after_idx = Some(open_idx + 1);
++    } else if !tail.is_empty() {
++        return None;
+@@ -174,2 +162 @@
+-        // Multi-line: scan forward from the opening line.
+-        for (i, line) in lines.iter().enumerate().skip(open_idx + 1) {
++        for (i, (_, line)) in lines.iter().enumerate().skip(open_idx + 1) {
+@@ -177,2 +164,2 @@
+-            if trimmed == "*/" || trimmed.ends_with("*/") {
+-                close_line = Some(i);
++            if trimmed == "*/" {
++                after_idx = Some(i + 1);
+@@ -181,10 +168,2 @@
+-            // A line with real content (not just `*` or whitespace)
+-            // means this is an existing docblock with documentation.
+-            if let Some(after_star) = trimmed
+-                .strip_prefix("* ")
+-                .or_else(|| trimmed.strip_prefix("*\t"))
+-            {
+-                let after_star = after_star.trim();
+-                if !after_star.is_empty() {
+-                    return None;
+-                }
++            if trimmed.is_empty() || trimmed == "*" {
++                continue;
+@@ -191,0 +171,8 @@
++            // A documented comment must never be replaced. In the natural
++            // unclosed Enter shape, the first following non-comment line is
++            // the declaration; leave it and its exact indentation untouched.
++            if trimmed.starts_with('*') || i <= cur_line {
++                return None;
++            }
++            after_idx = Some(i);
++            break;
+@@ -194,13 +181,3 @@
+-    let close_idx = close_line?;
+-
+-    // Verify the docblock is "empty" — the only content between `/**`
+-    // and `*/` should be blank `*` lines.
+-    for line in lines.iter().take(close_idx).skip(open_idx + 1) {
+-        let trimmed = line.trim();
+-        // Allow: empty, bare `*`, `* ` (trailing space), or cursor line.
+-        if !trimmed.is_empty()
+-            && trimmed != "*"
+-            && !trimmed.chars().all(|c| c == '*' || c == ' ' || c == '\t')
+-        {
+-            return None;
+-        }
++    let after_idx = after_idx?;
++    if cur_line < open_idx || cur_line >= after_idx {
++        return None;
+@@ -208,5 +185,7 @@
+-
+-    // ── Build the range covering the entire block ───────────────────
+-    let start = Position {
+-        line: open_idx as u32,
+-        character: 0,
++    let after_byte = lines
++        .get(after_idx)
++        .map(|(start, _)| *start)
++        .unwrap_or(content.len());
++    let block_range = Range {
++        start: Position::new(open_idx as u32, 0),
++        end: crate::text_position::offset_to_position(content, after_byte),
+@@ -214,26 +193,5 @@
+-    // End covers through the closing `*/` line (including its newline
+-    // if there is a next line).
+-    let close_line_len = lines.get(close_idx).map(|l| l.len()).unwrap_or(0);
+-    let end = if close_idx + 1 < lines.len() {
+-        // Include the trailing newline.
+-        Position {
+-            line: (close_idx + 1) as u32,
+-            character: 0,
+-        }
+-    } else {
+-        Position {
+-            line: close_idx as u32,
+-            character: close_line_len as u32,
+-        }
+-    };
+-    let block_range = Range { start, end };
+-
+-    // ── Collect text after the block ────────────────────────────────
+-    let after_start = if close_idx + 1 < lines.len() {
+-        close_idx + 1
+-    } else {
+-        lines.len()
+-    };
 -    let after_block: String = lines[after_start..].to_vec().join("\n");
-+    let after_byte = crate::text_position::line_start_byte_offset(content, after_start);
-+    let after_block = content[after_byte..].to_owned();
-@@ -268,9 +273,3 @@
+-
+-    Some((block_range, indent, after_block))
++    let indent = open_text
++        .chars()
++        .take_while(|c| matches!(c, ' ' | '\t'))
++        .collect();
++    Some((block_range, indent, content[after_byte..].to_owned()))
+@@ -268,9 +226,3 @@
 -    let after = &content[byte_offset.min(content.len())..];
 -
 -    // Skip to the next line (the trigger line has `/**` and possibly
@@ -5925,6 +6419,9 @@ diff --git a/src/completion/phpdoc/generation/parse_decl.rs b/src/completion/php
 @@ -45 +41 @@
 -            rest = rest[attribute_end?..].trim_start();
 +            rest = line[skip_to - start..].trim_start();
+@@ -397 +393 @@
+-        sym.type_hint = Some(inferred.shorten());
++        sym.type_hint = Some(inferred.clone());
 diff --git a/src/completion/context/class_completion/attributes.rs b/src/completion/context/class_completion/attributes.rs
 --- a/src/completion/context/class_completion/attributes.rs
 +++ b/src/completion/context/class_completion/attributes.rs
@@ -6393,5 +6890,217 @@ diff --git a/src/completion/source/code_context_tests.rs b/src/completion/source
 +        let cursor = source.rfind("na").unwrap() + 2;
 +        let at = document_context_at(&source, cursor);
 +        assert!(!at.inline_html && at.code.is_some(), "depth {depth}");
++    }
++}
+diff --git a/src/server.rs b/src/server.rs
+--- a/src/server.rs
++++ b/src/server.rs
+@@ -1083 +1082,0 @@
+-        // Only handle Enter ("\n") for PHPDoc block generation.
+@@ -1087,11 +1085,0 @@
+-
+-        let uri = params.text_document.uri.to_string();
+-        let position = params.position;
+-
+-        let content = match self.get_file_content(&uri) {
+-            Some(c) => c,
+-            None => return Ok(None),
+-        };
+-
+-        // This fires on every Enter, and generating the block resolves the
+-        // documented signature's types, so it stays off the request task.
+@@ -1099 +1086,0 @@
+-        let u = uri.clone();
+@@ -1101,18 +1088 @@
+-            let offset = crate::text_position::position_to_offset(&content, position);
+-            let ctx = backend.file_context_at(&u, offset);
+-            let class_loader = backend.class_loader(&ctx);
+-            let resolved_class_loader = backend.resolved_class_loader(&ctx);
+-            let function_loader = backend.function_loader(&ctx);
+-
+-            crate::completion::phpdoc::generation::try_generate_docblock_on_enter(
+-                &content,
+-                position,
+-                &ctx.use_map,
+-                &ctx.namespace,
+-                &ctx.classes,
+-                &class_loader,
+-                &resolved_class_loader,
+-                Some(&backend),
+-                Some(&function_loader),
+-                &u,
+-            )
++            backend.handle_on_type_formatting(params)
+diff --git a/src/parser/mod.rs b/src/parser/mod.rs
+--- a/src/parser/mod.rs
++++ b/src/parser/mod.rs
+@@ -400,0 +401,51 @@
++
++impl Backend {
++    /// Context for a byte-preserving editor recovery view. Never publishes
++    /// this snapshot into the file or symbol indexes.
++    pub(crate) fn parsed_file_context_at(
++        &self,
++        uri: &str,
++        content: &str,
++        offset: u32,
++    ) -> FileContext {
++        let _guard = with_parse_cache(content);
++        let mut decls = with_parsed_program(content, "parsed_file_context", |program, content| {
++            Self::collect_file_declarations(
++                program,
++                &DocblockCtx {
++                    trivias: program.trivia.as_slice(),
++                    content,
++                    php_version: crate::stubs::is_embedded_stub_uri(uri)
++                        .then(|| self.php_version()),
++                    use_map: HashMap::new(),
++                    namespace: None,
++                },
++            )
++        });
++        Self::resolve_parent_class_names_by_block(
++            &mut decls.classes_with_ns,
++            &decls.namespace_spans,
++            &decls.use_map,
++            &decls.symbol_imports.constants,
++            &decls.namespace,
++        );
++        let classes = decls
++            .classes_with_ns
++            .into_iter()
++            .map(|(mut class, namespace, _)| {
++                class.file_namespace = namespace.as_deref().map(atom);
++                class.cache_fqn();
++                self.link_loaded_class(std::sync::Arc::new(class))
++            })
++            .collect();
++        let ctx = FileContext {
++            classes,
++            use_map: decls.use_map,
++            symbol_imports: decls.symbol_imports,
++            namespace: decls.namespace,
++            namespace_spans: (decls.namespace_spans.len() > 1).then_some(decls.namespace_spans),
++            ..FileContext::default()
++        };
++        ctx.at(offset)
++    }
++}
+diff --git a/src/completion/phpdoc/generation/mod.rs b/src/completion/phpdoc/generation/mod.rs
+--- a/src/completion/phpdoc/generation/mod.rs
++++ b/src/completion/phpdoc/generation/mod.rs
+@@ -12,4 +12,3 @@
+-//!    freshly auto-generated empty `/** … */` block (the kind VS Code
+-//!    and Zed produce when you type `/**`), replaces it with a filled
+-//!    docblock, and positions the cursor on the summary line.  Works in
+-//!    editors that *do* auto-close `/**`.
++//!    fresh empty docblock, whether preclosed by an editor or still open
++//!    after natural Enter. Replaces only that comment prefix with plain
++//!    text, preserving the following declaration.
+@@ -166,3 +165,3 @@
+-/// Most editors (VS Code, Zed, Neovim with auto-pairs) expand `/**`
+-/// into a closed block before the LSP sees anything.  The user then
+-/// presses Enter, and `onTypeFormatting` fires with `ch = "\n"`.
++/// Supports both an editor-preclosed block and natural Enter after an
++/// unclosed `/**`. Only empty comment content is replaced; the declaration
++/// and the original surrounding document are retained.
+@@ -185 +184 @@
+-    uri: &str,
++    entry: (Range, String, String),
+@@ -187,2 +186 @@
+-    let (block_range, _block_indent, after_block) =
+-        trigger::detect_empty_docblock(content, position)?;
++    let (block_range, _block_indent, after_block) = entry;
+@@ -210,0 +209,6 @@
++        if let Some(inferred) = &sym.type_hint {
++            // ClassInfo types are resolved names, unlike signature text.
++            sym.type_hint = Some(
++                inferred.resolve_names(&|name| format!("\\{}", name.trim_start_matches('\\'))),
++            );
++        }
+@@ -217 +221,5 @@
+-        &mut build::DocForm::Plain { indent: &indent },
++        &mut build::DocForm::Plain {
++            indent: &indent,
++            use_map,
++            namespace: file_namespace,
++        },
+@@ -239,19 +247,2 @@
+-    // Auto-import edits for @throws.
+-    if matches!(context, DocblockContext::FunctionOrMethod) {
+-        let throws_ctx = ThrowsContext {
+-            class_loader,
+-            resolved_class_loader,
+-            function_loader,
+-            use_map,
+-            local_classes,
+-            backend,
+-        };
+-        edits.extend(build_throws_import_edits(
+-            content,
+-            position,
+-            &throws_ctx,
+-            file_namespace,
+-            uri,
+-        ));
+-    }
+-
++    // onType only changes this docblock. New imports could rebind unrelated
++    // PHP expressions; plain annotations use existing aliases or absolute FQNs.
+@@ -303,0 +295,56 @@
++
++impl crate::Backend {
++    /// PHPDoc generation preserves the declaration's existing indentation and
++    /// document EOL. Formatting options do not reindent surrounding source.
++    pub(crate) fn handle_on_type_formatting(
++        &self,
++        params: tower_lsp_server::gen_lsp_types::DocumentOnTypeFormattingParams,
++    ) -> Option<Vec<TextEdit>> {
++        if params.ch != "\n" {
++            return None;
++        }
++        let uri = params.text_document.uri.to_string();
++        let content = self.get_file_content_arc(&uri)?;
++        let offset = crate::text_position::position_to_byte_offset(&content, params.position);
++        if crate::text_position::offset_to_position(&content, offset) != params.position {
++            return None;
++        }
++        if crate::completion::source::code_context::document_context_at(&content, offset)
++            .inline_html
++        {
++            return None;
++        }
++        let entry = trigger::detect_empty_docblock(&content, params.position)?;
++        let recovered = throws_analysis::with_open_docblock_blanked(&content, offset);
++        let _scope = self.enter_request_scope(std::sync::Arc::clone(&content));
++        crate::util::catch_panic_unwind_safe(
++            "on_type_formatting",
++            &uri,
++            Some(params.position),
++            || {
++                let mut ctx = self.file_context_at(&uri, offset as u32);
++                if matches!(&recovered, std::borrow::Cow::Owned(_)) {
++                    let pest_uses = ctx.pest_uses.take();
++                    ctx = self.parsed_file_context_at(&uri, &recovered, offset as u32);
++                    ctx.pest_uses = pest_uses;
++                }
++                let class_loader = self.class_loader(&ctx);
++                let resolved_class_loader = self.resolved_class_loader(&ctx);
++                let function_loader = self.function_loader(&ctx);
++                try_generate_docblock_on_enter(
++                    &recovered,
++                    params.position,
++                    &ctx.use_map,
++                    &ctx.namespace,
++                    &ctx.classes,
++                    &class_loader,
++                    &resolved_class_loader,
++                    Some(self),
++                    Some(&function_loader),
++                    entry,
++                )
++            },
++        )
++        .flatten()
 +    }
 +}

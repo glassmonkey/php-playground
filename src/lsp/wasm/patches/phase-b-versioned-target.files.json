@@ -1,6 +1,6 @@
 {
-  "completePatchSha256": "e44190eb41ebfc71aab69d509c7d6054358a479dce931989fef2d124af089e22",
-  "fileCount": 61,
+  "completePatchSha256": "29101be636e0863b52cb16216a53a40ff96c57aabc76fcea9231a1fad7e2626d",
+  "fileCount": 64,
   "files": [
     {
       "path": "build.rs",
@@ -112,15 +112,19 @@
     },
     {
       "path": "src/completion/phpdoc/generation/build.rs",
-      "sha256": "04275c1893754d7cc4c5f75275d492c0b4be7b968e69369f01a2d85da6d2c665"
+      "sha256": "85bf16cdc576581b1a8430570525fbdbad7f6b62374e56140c6b83b81ee2cf9f"
+    },
+    {
+      "path": "src/completion/phpdoc/generation/mod.rs",
+      "sha256": "1965147974fefae6721c2a6de6047e1faf5996087ca44669efc0ba6dff2f492a"
     },
     {
       "path": "src/completion/phpdoc/generation/parse_decl.rs",
-      "sha256": "3889d8f699bed2256fac622bb53bc3559afb3e2a1050cebc8f1e8fa4e882246d"
+      "sha256": "d308a59efc90bd9480a8d0d912074df8f22cb6db5ba95bed690f49cecc59f445"
     },
     {
       "path": "src/completion/phpdoc/generation/trigger.rs",
-      "sha256": "ad09489a4ff93b51879af875830d34a6120d2c4b0729dde3e33085bf63e60d73"
+      "sha256": "8f73deeddb66b534fa42834d3e73788cf9f1b9d7033f8b08d3163d6d3280c9e1"
     },
     {
       "path": "src/completion/resolve.rs",
@@ -160,11 +164,11 @@
     },
     {
       "path": "src/lib.rs",
-      "sha256": "32855643f2baf93e1213427517f896ecb23722c95d4201fbfe2d355d585cb002"
+      "sha256": "318537c7ddda6ec078dfc51613e14b2e150efaf3beaa44cd91e77bf250d921f3"
     },
     {
       "path": "src/lsp_dispatch.rs",
-      "sha256": "edd511bb98871cc2f9e8bb347e416e1408f327f28d7e5cb92a6929a6caaee9a5"
+      "sha256": "7333d75bc548d56df716310622e08aeb255c4a7eb89ad96c012aa5abd7fa7273"
     },
     {
       "path": "src/parser/ast_update.rs",
@@ -195,6 +199,10 @@
       "sha256": "1d9a4d654c230ab1c27b4f2e09717d6999e5f46238c27b9186d7d223b45eed19"
     },
     {
+      "path": "src/parser/mod.rs",
+      "sha256": "fe5d185c92d2577b8322850826940e221e838cfba4cc44a5f6729b95edfe05ab"
+    },
+    {
       "path": "src/parser/signature.rs",
       "sha256": "0a2fc1bc4cc2fbf85e0d919bfa6cc69cafa1187fcd979a3d0ec31538f5449a07"
     },
@@ -205,6 +213,10 @@
     {
       "path": "src/resolution/functions.rs",
       "sha256": "ed50c94431905b22058832ed223a67344f683e793bf41e11a23d29f173e49f53"
+    },
+    {
+      "path": "src/server.rs",
+      "sha256": "01aa288495e7aaa58bfbcbd85c8d52a41c572a497e7a578130c2e62d36f6ccb8"
     },
     {
       "path": "src/stub_metadata.rs",
