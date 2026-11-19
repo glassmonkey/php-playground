@@ -159,3 +159,5 @@ PHPDoc は属性の前・後・複数属性の間に置かれた場合も、宣�
 同一ファイルでも、validなheredoc/nowdocの終端label後は通常completionへ戻ります。共通の識別子境界判定を使い、`)`や`,`などのPHP式の区切りを終端後へ残し、`DOC_suffix`や`DOCé`は本文として扱います。quoted label、字下げ、CRLF、複数本文、Unicode labelを含む42文書をPHP syntax/Reflectionで確認し、公開completion/resolveの正例と本文内の負例をrequired native/WASIで検査します。
 
 座標変換は元文書のbytesを変更せず、CR・LF・CRLFを行境界として数えます。CRLFは一つの区切りで、その途中のbyte offsetは前の行末へ対応します。末尾改行後の空行はline indexに残し、行を列挙するiteratorは末尾の空recordを増やしません。内部変換でUTF-16 surrogateの途中を指定した場合は次のscalar境界へ丸め、厳密なcursor検証はcanonicalな往復位置との一致で判定します。class名抽出も同じ行の列挙を使います。既存のboundary/interpolation表は元markerのbyte位置から独立に全35件を再計算してCR-onlyの2座標を直し、旧座標が本文内として候補を抑制する負例を加えた36件です。この座標修正はparserのCR/Unicode対応全体や全LSP APIの動作を保証するものではなく、新sourceの実WASI検証と資産採用は別gateで行います。
+
+PHP block と HTML の境界判定では、二重引用符・backtick の波括弧補間内にある引用符を、外側文字列の終端と区別します。式内の文字列・コメント・heredoc/nowdocを既存の字句スキッパーで透過し、入れ子は明示的なstackで追跡します。元の文書とUTF-16座標は変更しません。走査はcursorまで前進し、未完の補間をHTMLへ遷移させません。nativeの初期項目・resolve・全編集と、WASI用の同じ独立fixtureを維持します。最新sourceの実WASIと資産採用は別gateです。

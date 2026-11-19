@@ -1,0 +1,3 @@
+double-inner-close	<?php\n$a=["?>"=>"", "xx"=>""];\n$data=["name"=>7];\n$x="{$a["?>"]}";\necho $data['na'];	4	14	name	name: 7	0000	4	12	4	16	name']	<?php\n$a=["?>"=>"", "xx"=>""];\n$data=["name"=>7];\n$x="{$a["?>"]}";\necho $data['name'];	valid	7
+single-inner-control	<?php\n$a=["?>"=>"", "xx"=>""];\n$data=["name"=>7];\n$x="{$a['?>']}";\necho $data['na'];	4	14	name	name: 7	0000	4	12	4	16	name']	<?php\n$a=["?>"=>"", "xx"=>""];\n$data=["name"=>7];\n$x="{$a['?>']}";\necho $data['name'];	valid	7
+double-no-tag-control	<?php\n$a=["?>"=>"", "xx"=>""];\n$data=["name"=>7];\n$x="{$a["xx"]}";\necho $data['na'];	4	14	name	name: 7	0000	4	12	4	16	name']	<?php\n$a=["?>"=>"", "xx"=>""];\n$data=["name"=>7];\n$x="{$a["xx"]}";\necho $data['name'];	valid	7

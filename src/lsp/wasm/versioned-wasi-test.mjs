@@ -18,10 +18,10 @@ const reviewedDiff = manifest.source?.reviewedPhaseBDiffSha256
 assert.equal(reviewedDiff,
 	'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d');
 assert.equal(manifest.source?.appliedPhaseBPatchSha256,
-    '6d66f4ff6fb92c54beebfb52e96ee56542c6b925f491996a7667b031f488269a',
+    'e44190eb41ebfc71aab69d509c7d6054358a479dce931989fef2d124af089e22',
     'current applied PHPantom patch is required before WASM instantiation');
 assert.equal(manifest.source?.appliedFileManifestSha256,
-    '66f365e15486f45bc9ebd0c4ebb4ebf8c0592b1330d4551c102c1deeae7114dc',
+    'f6c0a267ab6162c3040c670f6232140b84fc67caa822d10e9f2b41d1d1acba89',
     'current applied file manifest is required before WASM instantiation');
 assert.equal(manifest.stubs?.commit, '2049ca3cfa1feabf52db074108fe776a5713cf02');
 if (manifest.stubs?.resolvedCommitMarker) {
@@ -901,6 +901,11 @@ async function releaseUnquotedKeyOracle(){
 
 async function releaseHtmlAdmissionOracle(){
     const positives=decodePositionFixtureRows(await readFile(new URL('./native-probe/tests/fixtures/html-php-positive.tsv',import.meta.url),'utf8'),52,15);
+    for(const [file,count] of [['nested-interpolation-original.tsv',3],['nested-interpolation-expanded.tsv',204]]){
+        const rows=decodePositionFixtureRows(await readFile(new URL(`./native-probe/tests/fixtures/${file}`,import.meta.url),'utf8'),count,15);
+        assert.equal(new Set(rows.map(f=>f[0])).size,count);
+        positives.push(...rows);
+    }
     const negatives=decodePositionFixtureRows(await readFile(new URL('./native-probe/tests/fixtures/html-outside-negative.tsv',import.meta.url),'utf8'),65,5);
     const warmSibling=()=>{const uri='file:///release/html-warm-sibling.php';open(uri,'<?php abs');const all=completionItems(request('textDocument/completion',{textDocument:{uri},position:{line:0,character:9}}));const selected=all.find(i=>i.kind===3&&i.data?.m==='abs');assert.ok(selected,'real PHP sibling builtin');assert.equal(request('completionItem/resolve',selected).result.data?.m,'abs');};
     const verifyPositive=(uri,f,stage)=>{const [name,source,line,column,label,detail,sort,startLine,start,endLine,end,text,document]=f;const wanted={label,kind:5,detail,sortText:sort,filterText:label,textEdit:{range:{start:{line:Number(startLine),character:Number(start)},end:{line:Number(endLine),character:Number(end)}},newText:text}};const all=completionItems(request('textDocument/completion',{textDocument:{uri},position:{line:Number(line),character:Number(column)}}));const selected=all.filter(i=>i.label===label&&i.kind===5);assert.equal(selected.length,1,`${target} ${name} PHP positive`);const initial=selected[0],resolved=request('completionItem/resolve',initial).result;assert.deepEqual(initial,wanted);assert.deepEqual(resolved,wanted);const documents=validateSelectedCompletionPair(source,initial,resolved,{...wanted,document});check(`${target} HTML/PHP ${name} ${stage}`,documents.initial===document&&documents.resolved===document,{initial,resolved,documents});console.log(`HTML_PHP_RESPONSE ${JSON.stringify({target,name,stage,source,initial,resolved,documents})}`);};

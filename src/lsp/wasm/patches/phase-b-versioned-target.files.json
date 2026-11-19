@@ -1,5 +1,5 @@
 {
-  "completePatchSha256": "6d66f4ff6fb92c54beebfb52e96ee56542c6b925f491996a7667b031f488269a",
+  "completePatchSha256": "e44190eb41ebfc71aab69d509c7d6054358a479dce931989fef2d124af089e22",
   "fileCount": 61,
   "files": [
     {
@@ -128,11 +128,11 @@
     },
     {
       "path": "src/completion/source/code_context.rs",
-      "sha256": "5e0847041bbb5c106a6dbe5ec5bf4fb3fe1e29bebfa6133f2bf6a6db818251ce"
+      "sha256": "63d443faae96ae97f030d1493dd838623d08ddf3cb27e74a2f90cd8b16485c8b"
     },
     {
       "path": "src/completion/source/code_context_tests.rs",
-      "sha256": "9d0c84d31ab9c568e3d1865b7a52e5647b486904fd221c2ec8ae15535a35df84"
+      "sha256": "bdaa64be3e3fee20171ed94fc71dad03e22e6156b34480c31b60a40892ff8c7c"
     },
     {
       "path": "src/completion/source/comment_position.rs",
@@ -224,7 +224,7 @@
     },
     {
       "path": "src/text_scan.rs",
-      "sha256": "8e98b1b90e7446208610cb5c41a531566b3a323ebac7783d0df9d837ac22d928"
+      "sha256": "3ddde3e589f1f82a5445741659b6e3c25645092cdda22dc0e76af5d89d42640a"
     },
     {
       "path": "tests/integration/completion_basic.rs",

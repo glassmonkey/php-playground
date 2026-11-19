@@ -372,3 +372,21 @@ test('HTML reopen positives require complete initial and resolved edits and inde
     for(const f of rows){const wanted={label:f[4],kind:5,detail:f[5],sortText:f[6],filterText:f[4],textEdit:{range:{start:{line:Number(f[7]),character:Number(f[8])},end:{line:Number(f[9]),character:Number(f[10])}},newText:f[11]}};const expected={...wanted,document:f[12]};assert.deepEqual(validateSelectedCompletionPair(f[1],wanted,structuredClone(wanted),expected),{initial:f[12],resolved:f[12]});for(const stage of['initial','resolved'])for(const field of['range','text','additional']){const pair={initial:structuredClone(wanted),resolved:structuredClone(wanted)};if(field==='range')pair[stage].textEdit.range.end.character+=1;if(field==='text')pair[stage].textEdit.newText+='WRONG';if(field==='additional')pair[stage].additionalTextEdits=[{range:{start:{line:0,character:0},end:{line:0,character:0}},newText:'WRONG'}];assert.equal(pair[stage].label,wanted.label);assert.deepEqual(pair[stage].data,wanted.data);assert.throws(()=>validateSelectedCompletionPair(f[1],pair.initial,pair.resolved,expected),assert.AssertionError);}}
     const docs=decodePositionFixtureRows(readFileSync(path.join(moduleDir,'native-probe/tests/fixtures/html-phpdoc-positive.tsv'),'utf8'),6,6);for(const[name,source,line,column,document]of docs){const wanted={label:'@param int $alpha',kind:14,detail:'Document a function parameter',sortText:'0a_@param_000',filterText:'@param',insertText:'param int $alpha'};const got=validateSelectedCompletionPair(source,wanted,structuredClone(wanted),{...wanted,fallbackRange:{start:{line:Number(line),character:Number(column)-2},end:{line:Number(line),character:Number(column)}},document});assert.deepEqual(got,{initial:document,resolved:document},name);}
 });
+
+test('nested interpolation source fixtures require complete edits across original EOL bytes',()=>{
+    for(const [file,count] of [['nested-interpolation-original.tsv',3],['nested-interpolation-expanded.tsv',204]]){
+        const rows=decodePositionFixtureRows(readFileSync(path.join(moduleDir,'native-probe/tests/fixtures',file),'utf8'),count,15);
+        assert.equal(new Set(rows.map(f=>f[0])).size,count);
+        for(const [name,source,,,label,detail,sort,startLine,start,endLine,end,text,document] of rows){
+            const item={label,kind:5,detail,sortText:sort,filterText:label,textEdit:{range:{start:{line:Number(startLine),character:Number(start)},end:{line:Number(endLine),character:Number(end)}},newText:text}};
+            assert.deepEqual(validateSelectedCompletionPair(source,item,structuredClone(item),{...item,document}),{initial:document,resolved:document},name);
+            for(const change of ['range','text','additional']){
+                const bad=structuredClone(item);
+                if(change==='range')bad.textEdit.range.end.character-=1;
+                if(change==='text')bad.textEdit.newText="wrong']";
+                if(change==='additional')bad.additionalTextEdits=[{range:{start:{line:0,character:0},end:{line:0,character:0}},newText:'<?php use Wrong; ?>'}];
+                assert.throws(()=>validateSelectedCompletionPair(source,item,bad,{...item,document}),name);
+            }
+        }
+    }
+});

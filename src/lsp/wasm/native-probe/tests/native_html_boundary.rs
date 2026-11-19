@@ -515,3 +515,144 @@ fn html_fixture_transport_preserves_all_cells_and_rejects_unknown_escapes() {
         );
     }
 }
+
+#[tokio::test]
+async fn nested_interpolation_preserves_following_php_original_contract() {
+    run_cases(
+        include_str!("fixtures/nested-interpolation-original.tsv"),
+        3,
+        "NESTED_ORIGINAL",
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn nested_interpolation_preserves_following_php_expanded_contract() {
+    run_cases(
+        include_str!("fixtures/nested-interpolation-expanded.tsv"),
+        204,
+        "NESTED_EXPANDED",
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn nested_interpolation_did_change_and_resolved_edit_mutants() {
+    let originals = fixture_rows(
+        include_str!("fixtures/nested-interpolation-original.tsv"),
+        3,
+        15,
+    );
+    let expanded = fixture_rows(
+        include_str!("fixtures/nested-interpolation-expanded.tsv"),
+        204,
+        15,
+    );
+    let rows = [
+        originals[0].clone(),
+        expanded
+            .iter()
+            .find(|f| f[0] == "mixed-nested-double-step1")
+            .unwrap()
+            .clone(),
+    ];
+    let mut payloads = 0;
+    let mut mutants = 0;
+    for minor in [0, 3] {
+        for row in &rows {
+            let sut = Backend::new_headless();
+            sut.set_php_version(PhpVersion::new(8, minor));
+            let uri = Uri::parse("file:///nested-lifecycle.php").unwrap();
+            let html = format!("{} ?><div>na</div>", row[1]);
+            for (step, source) in [&row[1], &html, &row[1]].into_iter().enumerate() {
+                if step == 0 {
+                    sut.did_open(DidOpenTextDocumentParams {
+                        text_document: TextDocumentItem {
+                            uri: uri.clone(),
+                            language_id: "php".into(),
+                            version: 1,
+                            text: source.clone(),
+                        },
+                    })
+                    .await;
+                } else {
+                    sut.did_change(DidChangeTextDocumentParams {
+                        text_document: VersionedTextDocumentIdentifier {
+                            text_document_identifier: TextDocumentIdentifier { uri: uri.clone() },
+                            version: step as i32 + 1,
+                        },
+                        content_changes: vec![
+                            TextDocumentContentChangeEvent::TextDocumentContentChangeWholeDocument(
+                                TextDocumentContentChangeWholeDocument {
+                                    text: source.clone(),
+                                },
+                            ),
+                        ],
+                    })
+                    .await;
+                }
+                let position = if step == 1 {
+                    let marker = source.rfind("na</div>").unwrap();
+                    // Count original canonical EOL/UTF16 independently of the production converter.
+                    let mut line = 0;
+                    let mut column = 0;
+                    let mut chars = source[..marker + 2].chars().peekable();
+                    while let Some(ch) = chars.next() {
+                        match ch {
+                            '\r' => {
+                                if chars.peek() == Some(&'\n') {
+                                    chars.next();
+                                }
+                                line += 1;
+                                column = 0;
+                            }
+                            '\n' => {
+                                line += 1;
+                                column = 0;
+                            }
+                            _ => column += ch.len_utf16() as u32,
+                        }
+                    }
+                    Position::new(line, column)
+                } else {
+                    Position::new(row[2].parse().unwrap(), row[3].parse().unwrap())
+                };
+                let got = items(&sut, &uri, position).await;
+                if step == 1 {
+                    assert!(got.is_empty());
+                    continue;
+                }
+                let initial = got
+                    .iter()
+                    .find(|i| i.label == row[4] && i.kind == Some(CompletionItemKind::Field))
+                    .expect("positive after lifecycle");
+                let resolved = sut.completion_resolve(initial.clone()).await.unwrap();
+                let wanted = expected(row);
+                for item in [initial, &resolved] {
+                    assert!(contract(source, item, &wanted, &row[12]));
+                    payloads += 1;
+                    for kind in 0..3 {
+                        let mut changed = item.clone();
+                        if kind == 2 {
+                            changed.additional_text_edits = Some(vec![TextEdit {
+                                range: Range::new(Position::new(0, 0), Position::new(0, 0)),
+                                new_text: "<?php use Wrong; ?>".into(),
+                            }]);
+                        } else if let Some(CompletionItemTextEdit::TextEdit(edit)) =
+                            &mut changed.text_edit
+                        {
+                            if kind == 0 {
+                                edit.range.end.character -= 1;
+                            } else {
+                                edit.new_text = "wrong']".into();
+                            }
+                        }
+                        assert!(!contract(source, &changed, &wanted, &row[12]));
+                        mutants += 1;
+                    }
+                }
+            }
+        }
+    }
+    assert_eq!((payloads, mutants), (16, 48));
+}
