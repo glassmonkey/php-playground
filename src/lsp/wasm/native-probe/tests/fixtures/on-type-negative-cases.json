@@ -682,5 +682,81 @@
     ],
     "expectedEdits": null,
     "expectedDocument": "<?php\r/**\r\rfunction greet($name){}"
+  },
+  {
+    "name": "LF-attribute-opaque",
+    "source": "<?php\n/**\n\n#[A('] ?> /* fake */')]\nfunction greet($name): string { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\n/**\n\n#[A('] ?> /* fake */')]\nfunction greet($name): string { return $name; }\necho greet(7);\n"
+  },
+  {
+    "name": "CRLF-attribute-opaque",
+    "source": "<?php\r\n/**\r\n\r\n#[A('] ?> /* fake */')]\r\nfunction greet($name): string { return $name; }\r\necho greet(7);\r\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r\n/**\r\n\r\n#[A('] ?> /* fake */')]\r\nfunction greet($name): string { return $name; }\r\necho greet(7);\r\n"
+  },
+  {
+    "name": "CR-attribute-opaque",
+    "source": "<?php\r/**\r\r#[A('] ?> /* fake */')]\rfunction greet($name): string { return $name; }\recho greet(7);\r",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r/**\r\r#[A('] ?> /* fake */')]\rfunction greet($name): string { return $name; }\recho greet(7);\r"
+  },
+  {
+    "name": "mixed-attribute-opaque",
+    "source": "<?php\r\n/**\r\r#[A('] ?> /* fake */')]\nfunction greet($name): string { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r\n/**\r\r#[A('] ?> /* fake */')]\nfunction greet($name): string { return $name; }\necho greet(7);\n"
   }
 ]

@@ -1,5 +1,5 @@
 {
-  "completePatchSha256": "29101be636e0863b52cb16216a53a40ff96c57aabc76fcea9231a1fad7e2626d",
+  "completePatchSha256": "c84d503fd29f10582c49dd3d81658d35a8109cd115f5ac01a410b2e15da0b9cf",
   "fileCount": 64,
   "files": [
     {
@@ -112,7 +112,7 @@
     },
     {
       "path": "src/completion/phpdoc/generation/build.rs",
-      "sha256": "85bf16cdc576581b1a8430570525fbdbad7f6b62374e56140c6b83b81ee2cf9f"
+      "sha256": "f76a999256de72582532e259b9f8b265926d6905ba6fcccc9921bdb5227ed4ba"
     },
     {
       "path": "src/completion/phpdoc/generation/mod.rs",
@@ -124,7 +124,7 @@
     },
     {
       "path": "src/completion/phpdoc/generation/trigger.rs",
-      "sha256": "8f73deeddb66b534fa42834d3e73788cf9f1b9d7033f8b08d3163d6d3280c9e1"
+      "sha256": "92331068c86d32cdd6d25b6e2e5894f0052dcedd77800e0949bcdf00ae021fec"
     },
     {
       "path": "src/completion/resolve.rs",
@@ -168,7 +168,7 @@
     },
     {
       "path": "src/lsp_dispatch.rs",
-      "sha256": "7333d75bc548d56df716310622e08aeb255c4a7eb89ad96c012aa5abd7fa7273"
+      "sha256": "752c5a15654d26dd8d10e2e5648ca9ad5c71bdefe5e20beb6fd6404a5006eeca"
     },
     {
       "path": "src/parser/ast_update.rs",

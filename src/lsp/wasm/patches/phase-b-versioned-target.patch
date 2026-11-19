@@ -2360,7 +2360,7 @@ diff --git a/src/lsp_dispatch.rs b/src/lsp_dispatch.rs
 +
 @@ -267,0 +281 @@
 +                "documentOnTypeFormattingProvider": { "firstTriggerCharacter": "\n" },
-@@ -292,0 +307,211 @@
+@@ -292,0 +307,255 @@
 +
 +#[cfg(test)]
 +mod on_type_contract_tests {
@@ -2570,6 +2570,50 @@ diff --git a/src/lsp_dispatch.rs b/src/lsp_dispatch.rs
 +            actual,
 +            json!({"jsonrpc": "2.0", "id": 1, "result": [{"range": {"start": {"line": 5, "character": 0}, "end": {"line": 7, "character": 0}}, "newText": "/**\n * @param mixed $name\n *\n * @throws \\Demo\\LocalException\n */\n"}]})
 +        );
++    }
++    #[test]
++    fn on_type_protocol_preserves_closed_nonempty_documentation() {
++        for (source, line) in [
++            (
++                "<?php\n/**\n\nfunction example($x) {}\n*/\nfunction actual() {}\necho 99;\n",
++                2,
++            ),
++            (
++                "<?php\nclass C {\n/**\n\npublic $example;\n*/\npublic $actual;\n}\necho 99;\n",
++                3,
++            ),
++        ] {
++            let sut = LspDispatcher::new();
++            let uri = "file:///closed-comment-protocol.php";
++            sut.handle(&json!({"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":uri,"languageId":"php","version":1,"text":source}}}).to_string());
++            let actual = request(
++                &sut,
++                "textDocument/onTypeFormatting",
++                json!({"textDocument":{"uri":uri},"position":{"line":line,"character":0},"ch":"\n","options":{"tabSize":2,"insertSpaces":false}}),
++            );
++            assert_eq!(actual, json!({"jsonrpc":"2.0","id":1,"result":null}));
++        }
++    }
++
++    #[test]
++    fn on_type_protocol_namespace_relative_annotation_identity() {
++        for spelling in [r"namespace\Repository", "Repository", r"\Demo\Repository"] {
++            let sut = LspDispatcher::new();
++            let uri = "file:///namespace-relative-protocol.php";
++            let source = format!(
++                "<?php\nnamespace Demo;\nclass Repository {{}}\nclass Holder {{\n/**\n\npublic {spelling} $repository;\n}}\n"
++            );
++            sut.handle(&json!({"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":uri,"languageId":"php","version":1,"text":source}}}).to_string());
++            let actual = request(
++                &sut,
++                "textDocument/onTypeFormatting",
++                json!({"textDocument":{"uri":uri},"position":{"line":5,"character":0},"ch":"\n","options":{"tabSize":2,"insertSpaces":false}}),
++            );
++            assert_eq!(
++                actual,
++                json!({"jsonrpc":"2.0","id":1,"result":[{"range":{"start":{"line":4,"character":0},"end":{"line":6,"character":0}},"newText":"/** @var \\Demo\\Repository */\n"}]})
++            );
++        }
 +    }
 +}
 diff --git a/src/parser/ast_update.rs b/src/parser/ast_update.rs
@@ -6044,7 +6088,7 @@ diff --git a/src/completion/phpdoc/generation/build.rs b/src/completion/phpdoc/g
 +        use_map: &'a HashMap<String, String>,
 +        namespace: &'a Option<String>,
 +    },
-@@ -194,0 +199,50 @@
+@@ -194,0 +199,60 @@
 +    fn resolved_reference(&self, name: &str) -> String {
 +        let DocForm::Plain { use_map, .. } = self else {
 +            return name.to_owned();
@@ -6075,10 +6119,20 @@ diff --git a/src/completion/phpdoc/generation/build.rs b/src/completion/phpdoc/g
 +        } = self
 +        {
 +            ty.resolve_names(&|name| {
-+                format!(
-+                    "\\{}",
++                // `namespace\\Name` is explicitly relative to this namespace,
++                // never an import alias or a literal namespace segment.
++                let relative = name
++                    .split_once('\\')
++                    .filter(|(prefix, _)| prefix.eq_ignore_ascii_case("namespace"));
++                let resolved = if let Some((_, rest)) = relative {
++                    match namespace {
++                        Some(namespace) => format!("{namespace}\\{rest}"),
++                        None => rest.to_owned(),
++                    }
++                } else {
 +                    crate::names::resolve_to_fqn(name, use_map, namespace)
-+                )
++                };
++                format!("\\{resolved}")
 +            })
 +        } else {
 +            ty.clone()
@@ -6095,7 +6149,7 @@ diff --git a/src/completion/phpdoc/generation/build.rs b/src/completion/phpdoc/g
 +        self.resolved_type(&self.source_type(&PhpType::named(crate::atom::atom(name))))
 +            .to_string()
 +    }
-@@ -233,0 +288,7 @@
+@@ -233,0 +298,7 @@
 +        let plain = matches!(self, DocForm::Plain { .. });
 +        let resolved = if plain {
 +            type_hint.map(|ty| self.source_type(ty))
@@ -6103,10 +6157,10 @@ diff --git a/src/completion/phpdoc/generation/build.rs b/src/completion/phpdoc/g
 +            None
 +        };
 +        let hint = if plain { resolved.as_ref() } else { type_hint };
-@@ -235 +296 @@
+@@ -235 +306 @@
 -            type_hint,
 +            hint,
-@@ -237 +298,7 @@
+@@ -237 +308,7 @@
 -            &|name| crate::names::shorten_from_fqn(name, use_map, file_namespace),
 +            &|name| {
 +                if plain {
@@ -6115,17 +6169,17 @@ diff --git a/src/completion/phpdoc/generation/build.rs b/src/completion/phpdoc/g
 +                    crate::names::shorten_from_fqn(name, use_map, file_namespace)
 +                }
 +            },
-@@ -240 +307 @@
+@@ -240 +317 @@
 -        Some(enrichment_type_to_plain(&enriched))
 +        Some(enrichment_type_to_plain(&self.resolved_type(&enriched)))
-@@ -269 +336 @@
+@@ -269 +346 @@
 -            DocForm::Plain { indent } => lines
 +            DocForm::Plain { indent, .. } => lines
-@@ -398,0 +466,3 @@
+@@ -398,0 +476,3 @@
 +            Some(t) if matches!(form, DocForm::Plain { .. }) => {
 +                Some(form.resolved_type(&t).to_string())
 +            }
-@@ -444 +514,6 @@
+@@ -444 +524,6 @@
 -            lines.push(format!(" * @throws {}", crate::util::short_name(&exc_str)));
 +            let name = if matches!(form, DocForm::Plain { .. }) {
 +                form.resolved_reference(&exc_str)
@@ -6133,28 +6187,27 @@ diff --git a/src/completion/phpdoc/generation/build.rs b/src/completion/phpdoc/g
 +                crate::util::short_name(&exc_str).to_owned()
 +            };
 +            lines.push(format!(" * @throws {name}"));
-@@ -484 +559,5 @@
+@@ -484 +569,5 @@
 -                lines.push(format!(" * {tag} {name}<{}>", args.join(", ")));
 +                lines.push(format!(
 +                    " * {tag} {}<{}>",
 +                    form.written_reference(name),
 +                    args.join(", ")
 +                ));
-@@ -564,4 +643,4 @@
+@@ -564,8 +653,4 @@
 -    // Walk backwards from the trigger to find the start of `/**`.
 -    let before = &content[..trigger_offset];
 -    let line_start = before.rfind('\n').map(|i| i + 1).unwrap_or(0);
 -    let trigger_line = &content[line_start..];
+-
+-    // Find the `/**` on this line.
+-    let doc_start_in_line = trigger_line.find("/**")?;
+-    let abs_doc_start = line_start + doc_start_in_line;
 +    // Reuse the lexical opener, not a line search that could pick a
 +    // different comment or a comment-looking string earlier on the line.
 +    let abs_doc_start =
 +        crate::completion::source::comment_position::docblock_start_at(content, trigger_offset)?;
-@@ -569,4 +647,0 @@
--    // Find the `/**` on this line.
--    let doc_start_in_line = trigger_line.find("/**")?;
--    let abs_doc_start = line_start + doc_start_in_line;
--
-@@ -579,5 +654,2 @@
+@@ -579,5 +664,2 @@
 -        // Unclosed — blank out to end of the line containing `/**`.
 -        content[abs_doc_start..]
 -            .find('\n')
@@ -6162,7 +6215,7 @@ diff --git a/src/completion/phpdoc/generation/build.rs b/src/completion/phpdoc/g
 -            .unwrap_or(content.len())
 +        // Preserve the exact terminator while making the trigger parseable.
 +        crate::text_position::find_line_end(content, abs_doc_start)
-@@ -587,5 +659,13 @@
+@@ -587,5 +669,13 @@
 -    // Replace the docblock region with spaces (preserving byte offsets).
 -    patched.replace_range(
 -        abs_doc_start..abs_doc_end,
@@ -6181,7 +6234,7 @@ diff --git a/src/completion/phpdoc/generation/build.rs b/src/completion/phpdoc/g
 +        })
 +        .collect();
 +    patched.replace_range(abs_doc_start..abs_doc_end, &blank);
-@@ -611 +691,6 @@
+@@ -611 +701,6 @@
 -            let shortened = th.shorten();
 +            let source_type = form.source_type(th);
 +            let shortened = if matches!(form, DocForm::Plain { .. }) {
@@ -6189,7 +6242,7 @@ diff --git a/src/completion/phpdoc/generation/build.rs b/src/completion/phpdoc/g
 +            } else {
 +                th.shorten()
 +            };
-@@ -617 +702,5 @@
+@@ -617 +712,5 @@
 -                && let Some(cls) = class_loader(name)
 +                && let Some(cls) = class_loader(if matches!(form, DocForm::Plain { .. }) {
 +                    source_type.base_name().unwrap_or(name)
@@ -6204,25 +6257,9 @@ diff --git a/src/completion/phpdoc/generation/trigger.rs b/src/completion/phpdoc
 +    let lines: Vec<&str> = crate::text_position::lines_with_offsets(content)
 +        .map(|(_, line)| line)
 +        .collect();
-@@ -131 +133,16 @@
+@@ -131,17 +133,24 @@
 -    let lines: Vec<&str> = content.lines().collect();
-+    let offset = position_to_byte_offset(content, position);
-+    let opener = crate::completion::source::comment_position::docblock_start_at(content, offset)
-+        .or_else(|| {
-+            // A cursor between `*` and `/` is still inside the closing
-+            // delimiter, not after the comment. Preserve native editor shapes.
-+            (offset > 0 && content.as_bytes().get(offset - 1..offset + 1) == Some(b"*/"))
-+                .then(|| {
-+                    crate::completion::source::comment_position::docblock_start_at(
-+                        content,
-+                        offset - 1,
-+                    )
-+                })
-+                .flatten()
-+        })?;
-+    let lines: Vec<(usize, &str)> = crate::text_position::lines_with_offsets(content).collect();
-+    let open_idx = crate::text_position::offset_to_position(content, opener).line as usize;
-@@ -133,26 +150,3 @@
+-    let cur_line = position.line as usize;
 -
 -    // ── Find the `/**` opening ──────────────────────────────────────
 -    // Walk backwards from the cursor line to find a line containing `/**`.
@@ -6238,9 +6275,31 @@ diff --git a/src/completion/phpdoc/generation/trigger.rs b/src/completion/phpdoc
 -        }
 -        // Stop if we hit a non-docblock, non-empty line (e.g. code).
 -        if !trimmed.is_empty() && !trimmed.starts_with('*') && !trimmed.starts_with("*/") {
--            return None;
--        }
--    }
++    let offset = position_to_byte_offset(content, position);
++    let opener = crate::completion::source::comment_position::docblock_start_at(content, offset)
++        .or_else(|| {
++            // A cursor between `*` and `/` is still inside the closing
++            // delimiter, not after the comment. Preserve native editor shapes.
++            (offset > 0 && content.as_bytes().get(offset - 1..offset + 1) == Some(b"*/"))
++                .then(|| {
++                    crate::completion::source::comment_position::docblock_start_at(
++                        content,
++                        offset - 1,
++                    )
++                })
++                .flatten()
++        })?;
++    // A PHPDoc body is comment text, even when it resembles declarations
++    // or quoted PHP code. Its first literal terminator owns the original
++    // comment; only an actually empty closed comment may be replaced.
++    if let Some(close) = content[opener + 3..].find("*/") {
++        let body = &content[opener + 3..opener + 3 + close];
++        let empty = crate::text_position::lines_with_offsets(body).all(|(_, line)| {
++            let text = line.trim();
++            text.strip_prefix('*').unwrap_or(text).trim().is_empty()
++        });
++        if !empty {
+@@ -151,8 +160,6 @@
 -    let open_idx = open_line?;
 -
 -    // ── Check this is a fresh empty docblock ────────────────────────
@@ -6249,10 +6308,13 @@ diff --git a/src/completion/phpdoc/generation/trigger.rs b/src/completion/phpdoc
 -    let open_text = lines[open_idx];
 -    let trimmed_open = open_text.trim();
 -    if !trimmed_open.starts_with("/**") {
++    let lines: Vec<(usize, &str)> = crate::text_position::lines_with_offsets(content).collect();
++    let open_idx = crate::text_position::offset_to_position(content, opener).line as usize;
++    let cur_line = position.line as usize;
 +    let (_, open_text) = *lines.get(open_idx)?;
 +    let trimmed_open = open_text.trim_start_matches([' ', '\t']);
 +    if opener != lines[open_idx].0 + open_text.len() - trimmed_open.len() {
-@@ -161,12 +155,6 @@
+@@ -161,12 +168,6 @@
 -
 -    let indent: String = open_text
 -        .chars()
@@ -6271,16 +6333,16 @@ diff --git a/src/completion/phpdoc/generation/trigger.rs b/src/completion/phpdoc
 +        after_idx = Some(open_idx + 1);
 +    } else if !tail.is_empty() {
 +        return None;
-@@ -174,2 +162 @@
+@@ -174,2 +175 @@
 -        // Multi-line: scan forward from the opening line.
 -        for (i, line) in lines.iter().enumerate().skip(open_idx + 1) {
 +        for (i, (_, line)) in lines.iter().enumerate().skip(open_idx + 1) {
-@@ -177,2 +164,2 @@
+@@ -177,2 +177,2 @@
 -            if trimmed == "*/" || trimmed.ends_with("*/") {
 -                close_line = Some(i);
 +            if trimmed == "*/" {
 +                after_idx = Some(i + 1);
-@@ -181,10 +168,2 @@
+@@ -181,10 +181,2 @@
 -            // A line with real content (not just `*` or whitespace)
 -            // means this is an existing docblock with documentation.
 -            if let Some(after_star) = trimmed
@@ -6293,7 +6355,7 @@ diff --git a/src/completion/phpdoc/generation/trigger.rs b/src/completion/phpdoc
 -                }
 +            if trimmed.is_empty() || trimmed == "*" {
 +                continue;
-@@ -191,0 +171,8 @@
+@@ -191,0 +184,8 @@
 +            // A documented comment must never be replaced. In the natural
 +            // unclosed Enter shape, the first following non-comment line is
 +            // the declaration; leave it and its exact indentation untouched.
@@ -6302,7 +6364,7 @@ diff --git a/src/completion/phpdoc/generation/trigger.rs b/src/completion/phpdoc
 +            }
 +            after_idx = Some(i);
 +            break;
-@@ -194,13 +181,3 @@
+@@ -194,13 +194,3 @@
 -    let close_idx = close_line?;
 -
 -    // Verify the docblock is "empty" — the only content between `/**`
@@ -6319,7 +6381,7 @@ diff --git a/src/completion/phpdoc/generation/trigger.rs b/src/completion/phpdoc
 +    let after_idx = after_idx?;
 +    if cur_line < open_idx || cur_line >= after_idx {
 +        return None;
-@@ -208,5 +185,7 @@
+@@ -208,5 +198,7 @@
 -
 -    // ── Build the range covering the entire block ───────────────────
 -    let start = Position {
@@ -6332,7 +6394,7 @@ diff --git a/src/completion/phpdoc/generation/trigger.rs b/src/completion/phpdoc
 +    let block_range = Range {
 +        start: Position::new(open_idx as u32, 0),
 +        end: crate::text_position::offset_to_position(content, after_byte),
-@@ -214,26 +193,5 @@
+@@ -214,26 +206,5 @@
 -    // End covers through the closing `*/` line (including its newline
 -    // if there is a next line).
 -    let close_line_len = lines.get(close_idx).map(|l| l.len()).unwrap_or(0);
@@ -6364,7 +6426,7 @@ diff --git a/src/completion/phpdoc/generation/trigger.rs b/src/completion/phpdoc
 +        .take_while(|c| matches!(c, ' ' | '\t'))
 +        .collect();
 +    Some((block_range, indent, content[after_byte..].to_owned()))
-@@ -268,9 +226,3 @@
+@@ -268,9 +239,3 @@
 -    let after = &content[byte_offset.min(content.len())..];
 -
 -    // Skip to the next line (the trigger line has `/**` and possibly

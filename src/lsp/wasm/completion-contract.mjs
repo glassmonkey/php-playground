@@ -176,3 +176,25 @@ export function validateOnTypeFormattingEdits(source, edits, expectedEdits, expe
     assert.equal(document, expectedDocument, 'independent on-type document');
     return document;
 }
+
+export function validateJsonRpcResultResponse(response, id) {
+    assert.ok(response && typeof response === 'object' && !Array.isArray(response), 'JSON-RPC response object');
+    assert.deepEqual(Object.keys(response).sort(), ['id', 'jsonrpc', 'result'], 'result envelope only');
+    assert.equal(response.jsonrpc, '2.0');
+    assert.equal(response.id, id, 'request identity');
+    assert.notEqual(response.result, undefined, 'result is present, including explicit null');
+    return response;
+}
+
+export function validateJsonRpcErrorResponse(response, id, expectedCode) {
+    assert.ok(response && typeof response === 'object' && !Array.isArray(response), 'JSON-RPC response object');
+    assert.deepEqual(Object.keys(response).sort(), ['error', 'id', 'jsonrpc'], 'error envelope has no result');
+    assert.equal(response.jsonrpc, '2.0');
+    assert.equal(response.id, id, 'request identity');
+    assert.ok(response.error && typeof response.error === 'object' && !Array.isArray(response.error));
+    assert.deepEqual(Object.keys(response.error).sort(), ['code', 'message'], 'dispatcher error fields');
+    assert.equal(response.error.code, expectedCode, 'declared protocol error code');
+    assert.equal(typeof response.error.message, 'string');
+    assert.ok(response.error.message.length > 0, 'nonempty protocol diagnostic');
+    return response;
+}

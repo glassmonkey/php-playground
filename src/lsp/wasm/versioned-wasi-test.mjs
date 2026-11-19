@@ -1,4 +1,4 @@
-import {validateOnTypeFormattingEdits, validateVariableAliasPair, validateSelectedCompletionPair, validateOutsidePhpCompletion, decodePositionFixtureRows} from './completion-contract.mjs';
+import {validateJsonRpcResultResponse, validateJsonRpcErrorResponse, validateOnTypeFormattingEdits, validateVariableAliasPair, validateSelectedCompletionPair, validateOutsidePhpCompletion, decodePositionFixtureRows} from './completion-contract.mjs';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
@@ -18,10 +18,10 @@ const reviewedDiff = manifest.source?.reviewedPhaseBDiffSha256
 assert.equal(reviewedDiff,
 	'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d');
 assert.equal(manifest.source?.appliedPhaseBPatchSha256,
-    '29101be636e0863b52cb16216a53a40ff96c57aabc76fcea9231a1fad7e2626d',
+    'c84d503fd29f10582c49dd3d81658d35a8109cd115f5ac01a410b2e15da0b9cf',
     'current applied PHPantom patch is required before WASM instantiation');
 assert.equal(manifest.source?.appliedFileManifestSha256,
-    'b69e8181734cbe30c948e9ef579b96f582478152636ce055cc913dce4c1472c4',
+    'aca5593866c4c8f5c53a83460cf80ecc706df90fe7bc40465c0b1123327f03ee',
     'current applied file manifest is required before WASM instantiation');
 assert.equal(manifest.stubs?.commit, '2049ca3cfa1feabf52db074108fe776a5713cf02');
 if (manifest.stubs?.resolvedCommitMarker) {
@@ -89,10 +89,13 @@ function check(label, condition, actual) {
 function request(method, params) {
 	const id = nextId++;
 	const response = send({ jsonrpc: '2.0', id, method, params });
-	assert.ok(response, `${method} returns a response`);
-	assert.equal(response.id, id, `${method} preserves its request id`);
-	assert.equal(response.error, undefined, `${method} has no JSON-RPC error`);
-	return response;
+	return validateJsonRpcResultResponse(response, id);
+}
+
+function requestError(method, params, expectedCode) {
+    const id = nextId++;
+    const response = send({ jsonrpc: '2.0', id, method, params });
+    return validateJsonRpcErrorResponse(response, id, expectedCode);
 }
 
 function notify(method, params) {
@@ -905,12 +908,14 @@ async function releaseOnTypeFormattingOracle(){
     const positives=JSON.parse(await readFile(new URL('./native-probe/tests/fixtures/on-type-positive-cases.json',import.meta.url),'utf8'));
     const negatives=JSON.parse(await readFile(new URL('./native-probe/tests/fixtures/on-type-negative-cases.json',import.meta.url),'utf8'));
     const supplementary=JSON.parse(await readFile(new URL('./native-probe/tests/fixtures/on-type-supplementary-cases.json',import.meta.url),'utf8'));
-    assert.equal(positives.length,52);assert.equal(negatives.length,36);assert.equal(supplementary.length,13);
+    assert.equal(positives.length,60);assert.equal(negatives.length,40);assert.equal(supplementary.length,13);
     const throwsCases=JSON.parse(await readFile(new URL('./native-probe/tests/fixtures/on-type-throws-cases.json',import.meta.url),'utf8'));assert.equal(throwsCases.length,6);
+    const closedCases=JSON.parse(await readFile(new URL('./native-probe/tests/fixtures/on-type-closed-cases.json',import.meta.url),'utf8'));assert.equal(closedCases.length,16);
+    const namespaceCases=JSON.parse(await readFile(new URL('./native-probe/tests/fixtures/on-type-namespace-cases.json',import.meta.url),'utf8'));assert.equal(namespaceCases.length,28);
     const applicable=positives.filter(c=>targetAtLeast(...c.minimumTarget));
-    assert.equal(applicable.length,target==='5.6'?40:targetAtLeast(8,0)?52:48);
+    assert.equal(applicable.length,target==='5.6'?40:targetAtLeast(8,0)?60:48);
     const warmSibling=()=>{const uri='file:///release/on-type-warm.php';open(uri,'<?php abs');const all=completionItems(request('textDocument/completion',{textDocument:{uri},position:{line:0,character:9}}));const selected=all.find(i=>i.kind===3&&i.data?.m==='abs');assert.ok(selected);assert.equal(request('completionItem/resolve',selected).result.data?.m,'abs');};
-    for(const c of [...applicable,...negatives.filter(c=>targetAtLeast(...c.minimumTarget)),...supplementary.filter(c=>targetAtLeast(...c.minimumTarget)),...throwsCases.filter(c=>targetAtLeast(...c.minimumTarget))]){
+    for(const c of [...applicable,...negatives.filter(c=>targetAtLeast(...c.minimumTarget)),...supplementary.filter(c=>targetAtLeast(...c.minimumTarget)),...throwsCases.filter(c=>targetAtLeast(...c.minimumTarget)),...closedCases.filter(c=>targetAtLeast(...c.minimumTarget)),...namespaceCases.filter(c=>targetAtLeast(...c.minimumTarget))]){
         await freshEngine();const uri='file:///release/on-type.php';open(uri,c.source);
         for(const warm of [false,true]){
             if(warm)warmSibling();
@@ -925,7 +930,7 @@ async function releaseOnTypeFormattingOracle(){
     const c=applicable.find(c=>c.name==='LF-natural-untyped');assert.ok(c);open(uri,c.source);
     const params={textDocument:{uri},position:c.position,ch:c.ch,options:c.options};
     const invalid=[null,{}, {...params,position:{line:-1,character:0}}, {...params,ch:4}, {...params,options:{tabSize:'4',insertSpaces:true}}, {...params,options:{tabSize:4}}];
-    for(const bad of invalid){const response=request('textDocument/onTypeFormatting',bad);assert.equal(response.error?.code,-32602);assert.equal(response.result,undefined);check(`${target} onType malformed params`,true);}
+    for(const bad of invalid){const response=requestError('textDocument/onTypeFormatting',bad,-32602);assert.equal(response.error.code,-32602);assert.equal(Object.hasOwn(response,'result'),false);check(`${target} onType malformed params`,true);}
     const unknown=request('textDocument/onTypeFormatting',{...params,textDocument:{uri:'untitled:on-type-unopened'}});assert.equal(unknown.error,undefined);assert.equal(unknown.result,null);
     notify('textDocument/didChange',{textDocument:{uri,version:2},contentChanges:[{text:c.source.replaceAll('$name','$changed')}]});
     const changed=request('textDocument/onTypeFormatting',params);assert.equal(changed.error,undefined);const edits=structuredClone(c.expectedEdits);for(const edit of edits)edit.newText=edit.newText.replaceAll('$name','$changed');

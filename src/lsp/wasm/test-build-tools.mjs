@@ -1,4 +1,4 @@
-import { validateOnTypeFormattingEdits, validateSelectedCompletionPair, validateOutsidePhpCompletion, decodePositionFixtureRows } from './completion-contract.mjs';
+import {validateJsonRpcResultResponse,validateJsonRpcErrorResponse, validateOnTypeFormattingEdits, validateSelectedCompletionPair, validateOutsidePhpCompletion, decodePositionFixtureRows } from './completion-contract.mjs';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { mkdtempSync, writeFileSync, readFileSync, mkdirSync, rmSync } from 'node:fs';
@@ -394,8 +394,8 @@ test('nested interpolation source fixtures require complete edits across origina
 test('on-type fixtures bind all original cells and plain TextEdits across canonical EOL',()=>{
     const positives=JSON.parse(readFileSync(path.join(moduleDir,'native-probe/tests/fixtures/on-type-positive-cases.json'),'utf8'));
     const negatives=JSON.parse(readFileSync(path.join(moduleDir,'native-probe/tests/fixtures/on-type-negative-cases.json'),'utf8'));
-    assert.equal(positives.length,52);assert.equal(negatives.length,36);
-    const rows=decodePositionFixtureRows(readFileSync(path.join(moduleDir,'native-probe/tests/fixtures/on-type-positive.tsv'),'utf8'),52,18);
+    assert.equal(positives.length,60);assert.equal(negatives.length,40);
+    const rows=decodePositionFixtureRows(readFileSync(path.join(moduleDir,'native-probe/tests/fixtures/on-type-positive.tsv'),'utf8'),60,18);
     const wanted=positives.map(c=>{const e=c.expectedEdits[0],a=e.range.start,b=e.range.end;return[c.name,c.source,c.position.line,c.position.character,...c.minimumTarget,a.line,a.character,b.line,b.character,e.newText,c.expectedDocument,c.ch,c.options.tabSize,c.options.insertSpaces,c.reflectionKind,c.reflectionSymbol,c.expectedStdout].map(String);});
     assert.deepEqual(rows,wanted);
     for(const c of positives){
@@ -409,7 +409,7 @@ test('on-type fixtures bind all original cells and plain TextEdits across canoni
         }
     }
     for(const c of negatives)assert.equal(validateOnTypeFormattingEdits(c.source,null,null,c.source),c.source);
-    const negativeRows=decodePositionFixtureRows(readFileSync(path.join(moduleDir,'native-probe/tests/fixtures/on-type-negative.tsv'),'utf8'),36,9);
+    const negativeRows=decodePositionFixtureRows(readFileSync(path.join(moduleDir,'native-probe/tests/fixtures/on-type-negative.tsv'),'utf8'),40,9);
     assert.deepEqual(negativeRows,negatives.map(c=>[c.name,c.source,c.position.line,c.position.character,...c.minimumTarget,c.ch,c.options.tabSize,c.options.insertSpaces].map(String)));
 });
 test('on-type edit oracle rejects invalid UTF16, overlap, null-array mismatch and changed plaintext',()=>{
@@ -436,5 +436,37 @@ test('on-type inferred and throws annotations preserve class identities without 
         assert.equal(validateOnTypeFormattingEdits(c.source,c.expectedEdits,c.expectedEdits,c.expectedDocument),c.expectedDocument);
         const extra=[...c.expectedEdits,{range:{start:{line:0,character:0},end:{line:0,character:0}},newText:'<?php use Wrong; ?>'}];
         assert.throws(()=>validateOnTypeFormattingEdits(c.source,extra,c.expectedEdits,c.expectedDocument));
+    }
+});
+
+test('normal requests require exact successful envelope and reject protocol errors',()=>{
+    const expected={jsonrpc:'2.0',id:7,result:null};
+    assert.equal(validateJsonRpcResultResponse(expected,7),expected);
+    for(const wrong of [null,[],{...expected,id:8},{...expected,jsonrpc:'1.0'},{jsonrpc:'2.0',id:7},{...expected,result:undefined},{...expected,error:{code:-32602,message:'invalid'}},{jsonrpc:'2.0',id:7,error:{code:-32602,message:'invalid'}},{...expected,unexpected:true}]){
+        assert.throws(()=>validateJsonRpcResultResponse(wrong,7));
+    }
+});
+
+test('declared malformed request accepts only matching error envelope without a result',()=>{
+    const expected={jsonrpc:'2.0',id:8,error:{code:-32602,message:'invalid type: null, expected struct DocumentOnTypeFormattingParams'}};
+    assert.equal(validateJsonRpcErrorResponse(expected,8,-32602),expected);
+    for(const wrong of [null,[],{...expected,id:7},{...expected,jsonrpc:'1.0'},{...expected,error:{code:-32601,message:'Method not found'}},{...expected,result:null},{jsonrpc:'2.0',id:8,result:null},{...expected,error:null},{...expected,error:{code:-32602}},{...expected,error:{code:-32602,message:''}},{...expected,error:{code:-32602,message:4}},{...expected,error:{code:-32602,message:'invalid',data:'unexpected'}},{...expected,unexpected:true}]){
+        assert.throws(()=>validateJsonRpcErrorResponse(wrong,8,-32602));
+    }
+    assert.throws(()=>validateJsonRpcResultResponse(expected,8));
+});
+
+test('on-type closed and namespace regression rows preserve all independent cells',()=>{
+    const closed=JSON.parse(readFileSync(path.join(moduleDir,'native-probe/tests/fixtures/on-type-closed-cases.json'),'utf8'));
+    const names=JSON.parse(readFileSync(path.join(moduleDir,'native-probe/tests/fixtures/on-type-namespace-cases.json'),'utf8'));
+    assert.equal(closed.length,16);assert.equal(names.length,28);
+    const cr=decodePositionFixtureRows(readFileSync(path.join(moduleDir,'native-probe/tests/fixtures/on-type-closed.tsv'),'utf8'),16,7);
+    assert.deepEqual(cr,closed.map(c=>[c.name,c.source,c.position.line,c.position.character,c.expectedDocument,...c.minimumTarget].map(String)));
+    const nr=decodePositionFixtureRows(readFileSync(path.join(moduleDir,'native-probe/tests/fixtures/on-type-namespace-regression.tsv'),'utf8'),28,9);
+    assert.deepEqual(nr,names.map(c=>[c.name,c.source,c.position.line,c.position.character,c.expectedEdits[0].newText,c.expectedEdits[0].range.end.line,c.expectedDocument,...c.minimumTarget].map(String)));
+    for(const c of [...closed,...names])assert.equal(validateOnTypeFormattingEdits(c.source,c.expectedEdits,c.expectedEdits,c.expectedDocument),c.expectedDocument);
+    for(const [raw,count,columns] of [[cr,16,7],[nr,28,9]]){
+        assert.equal(raw.length,count);assert.ok(raw.every(row=>row.length===columns));
+        assert.throws(()=>decodePositionFixtureRows('bad\trow\n',count,columns));
     }
 });

@@ -164,6 +164,8 @@ PHP block と HTML の境界判定では、二重引用符・backtick の波括�
 
 EnterによるPHPDoc生成は、native APIとWASIの`textDocument/onTypeFormatting`で同じ同期handlerを使います。`initialize`は改行`\n`をfirstTriggerCharacterとして通知します。自然なEnterの未閉じ`/**`と、editorが閉じた空commentの両方を扱い、既存の説明文やHTML・文字列本文は置き換えません。元文書のcanonical UTF-16位置を検証し、生成対象comment以外の本文・改行・literalを保持します。
 
+閉じたPHPDocは元のコメント範囲で空かどうかを判断します。本文が宣言や引用されたPHPコードに見えても、非空コメントを生成対象として読み替えません。属性値に`*/`や`?>`がある場合は、先に空のPHPDocを閉じた入力でも属性値をそのまま保持します。`namespace\Repository`のような記述型は現在のnamespaceから解決し、解決済み推論型とは区別します。
+
 生成するのはplain TextEditです。onTypeは注釈を短くするための新規`use`を追加せず、既存import/aliasか先頭backslash付きFQNを使います。既存PHPのbindingを変更しないための方針で、補完候補を選択した場合のauto-importとは区別します。scalar/native keywordはそのままです。FormattingOptionsは型を検証して受け取り、生成行は宣言の既存indentと文書EOLに合わせます。tabSize/insertSpacesや末尾改行optionで周囲のcodeを再整形するhandlerではありません。
 
 未閉じの空commentで隠れた宣言文脈は、既存のbyte保持blankerと同じparserの宣言collector/cacheからrequest内だけで取得します。元本文やsymbol indexへこの一時viewを登録しません。native/protocolのsource検証と、review後のfresh WASI・全12版・資産採用は別gateです。

@@ -142,13 +142,13 @@ fn params(uri: &Uri, f: &[String]) -> DocumentOnTypeFormattingParams {
 }
 #[tokio::test]
 async fn versioned_on_type_full_edits_follow_independent_complete_fixture_table() {
-    let rows = fixture_rows(include_str!("fixtures/on-type-positive.tsv"), 52, 18);
+    let rows = fixture_rows(include_str!("fixtures/on-type-positive.tsv"), 60, 18);
     assert_eq!(
         rows.iter()
             .map(|f| &f[0])
             .collect::<std::collections::HashSet<_>>()
             .len(),
-        52
+        60
     );
     let mut counts = Vec::new();
     let mut responses = 0;
@@ -160,12 +160,12 @@ async fn versioned_on_type_full_edits_follow_independent_complete_fixture_table(
         (7, 2, 48),
         (7, 3, 48),
         (7, 4, 48),
-        (8, 0, 52),
-        (8, 1, 52),
-        (8, 2, 52),
-        (8, 3, 52),
-        (8, 4, 52),
-        (8, 5, 52),
+        (8, 0, 60),
+        (8, 1, 60),
+        (8, 2, 60),
+        (8, 3, 60),
+        (8, 4, 60),
+        (8, 5, 60),
     ] {
         let mut count = 0;
         for f in &rows {
@@ -242,19 +242,19 @@ async fn versioned_on_type_full_edits_follow_independent_complete_fixture_table(
         );
         counts.push(count);
     }
-    assert_eq!((counts.len(), responses, mutants), (12, 1184, 1776));
+    assert_eq!((counts.len(), responses, mutants), (12, 1280, 1920));
     eprintln!("ON_TYPE_FULL targetCounts={counts:?} responses={responses} mutants={mutants}");
 }
 
 #[tokio::test]
 async fn on_type_opaque_html_documented_and_other_trigger_are_unchanged() {
-    let rows = fixture_rows(include_str!("fixtures/on-type-negative.tsv"), 36, 9);
+    let rows = fixture_rows(include_str!("fixtures/on-type-negative.tsv"), 40, 9);
     assert_eq!(
         rows.iter()
             .map(|f| &f[0])
             .collect::<std::collections::HashSet<_>>()
             .len(),
-        36
+        40
     );
     let mut responses = 0;
     for (major, minor) in [
@@ -312,7 +312,7 @@ async fn on_type_opaque_html_documented_and_other_trigger_are_unchanged() {
             }
         }
     }
-    assert_eq!(responses, 828);
+    assert_eq!(responses, 876);
     eprintln!("ON_TYPE_NEGATIVE responses={responses}");
 }
 #[tokio::test]
@@ -583,4 +583,237 @@ async fn inferred_property_types_preserve_namespace_and_existing_import_aliases(
     }
     assert_eq!(responses, 216);
     eprintln!("INFERRED_PROPERTY_IDENTITY responses={responses}");
+}
+
+#[tokio::test]
+async fn closed_nonempty_docblock_examples_are_unchanged() {
+    for (source, position) in [
+        (
+            "<?php\n/**\n\nfunction example($x) {}\n*/\nfunction actual() {}\necho 99;\n",
+            Position::new(2, 0),
+        ),
+        (
+            "<?php\nclass C {\n/**\n\npublic $example;\n*/\npublic $actual;\n}\necho 99;\n",
+            Position::new(3, 0),
+        ),
+        (
+            "<?php\n/**\n\nThis is retained documentation.\n*/\nfunction actual() {}\necho 99;\n",
+            Position::new(2, 0),
+        ),
+    ] {
+        let sut = Backend::new_headless();
+        let uri = Uri::parse("file:///closed-doc.php").unwrap();
+        sut.did_open(DidOpenTextDocumentParams {
+            text_document: TextDocumentItem {
+                uri: uri.clone(),
+                language_id: "php".into(),
+                version: 1,
+                text: source.into(),
+            },
+        })
+        .await;
+        let actual = sut
+            .on_type_formatting(DocumentOnTypeFormattingParams {
+                text_document: TextDocumentIdentifier { uri },
+                position,
+                ch: "\n".into(),
+                options: FormattingOptions {
+                    tab_size: 2,
+                    insert_spaces: false,
+                    ..Default::default()
+                },
+            })
+            .await
+            .unwrap();
+        assert_eq!(actual, None, "closed nonempty original={source:?}");
+    }
+}
+
+#[tokio::test]
+async fn namespace_relative_property_annotation_has_native_identity() {
+    for spelling in [r"namespace\Repository", "Repository", r"\Demo\Repository"] {
+        let source = format!(
+            "<?php\nnamespace Demo;\nclass Repository {{}}\nclass Holder {{\n/**\n\npublic {spelling} $repository;\n}}\n"
+        );
+        let sut = Backend::new_headless();
+        let uri = Uri::parse("file:///namespace-doc.php").unwrap();
+        sut.did_open(DidOpenTextDocumentParams {
+            text_document: TextDocumentItem {
+                uri: uri.clone(),
+                language_id: "php".into(),
+                version: 1,
+                text: source.clone(),
+            },
+        })
+        .await;
+        let actual = sut
+            .on_type_formatting(DocumentOnTypeFormattingParams {
+                text_document: TextDocumentIdentifier { uri },
+                position: Position::new(5, 0),
+                ch: "\n".into(),
+                options: FormattingOptions {
+                    tab_size: 2,
+                    insert_spaces: false,
+                    ..Default::default()
+                },
+            })
+            .await
+            .unwrap();
+        let expected = Some(vec![TextEdit {
+            range: Range::new(Position::new(4, 0), Position::new(6, 0)),
+            new_text: "/** @var \\Demo\\Repository */\n".into(),
+        }]);
+        assert_eq!(actual, expected, "written={spelling}");
+        assert_eq!(
+            apply_edits(&source, actual.as_ref().unwrap()).unwrap(),
+            format!(
+                "<?php\nnamespace Demo;\nclass Repository {{}}\nclass Holder {{\n/** @var \\Demo\\Repository */\npublic {spelling} $repository;\n}}\n"
+            )
+        );
+    }
+}
+
+#[tokio::test]
+async fn written_namespace_relative_alias_and_eol_full_documents() {
+    let cases = fixture_rows(
+        include_str!("fixtures/on-type-namespace-regression.tsv"),
+        28,
+        9,
+    );
+    let mut responses = 0;
+    for (major, minor) in [(7, 4), (8, 0), (8, 1), (8, 2), (8, 3), (8, 4), (8, 5)] {
+        for f in &cases {
+            if (major, minor) < (f[7].parse().unwrap(), f[8].parse().unwrap()) {
+                continue;
+            }
+            let sut = Backend::new_headless();
+            sut.set_php_version(phpantom_lsp::types::PhpVersion::new(major, minor));
+            let uri = Uri::parse("file:///namespace-expanded.php").unwrap();
+            sut.did_open(DidOpenTextDocumentParams {
+                text_document: TextDocumentItem {
+                    uri: uri.clone(),
+                    language_id: "php".into(),
+                    version: 1,
+                    text: f[1].clone(),
+                },
+            })
+            .await;
+            for step in 0..2 {
+                if step == 1 {
+                    sut.did_change(DidChangeTextDocumentParams {
+                        text_document: VersionedTextDocumentIdentifier {
+                            text_document_identifier: TextDocumentIdentifier { uri: uri.clone() },
+                            version: 2,
+                        },
+                        content_changes: vec![
+                            TextDocumentContentChangeEvent::TextDocumentContentChangeWholeDocument(
+                                TextDocumentContentChangeWholeDocument { text: f[1].clone() },
+                            ),
+                        ],
+                    })
+                    .await;
+                }
+                let line = f[2].parse::<u32>().unwrap();
+                let actual = sut
+                    .on_type_formatting(DocumentOnTypeFormattingParams {
+                        text_document: TextDocumentIdentifier { uri: uri.clone() },
+                        position: Position::new(line, f[3].parse().unwrap()),
+                        ch: "\n".into(),
+                        options: FormattingOptions {
+                            tab_size: 2,
+                            insert_spaces: false,
+                            ..Default::default()
+                        },
+                    })
+                    .await
+                    .unwrap();
+                let expected = Some(vec![TextEdit {
+                    range: Range::new(
+                        Position::new(line - 1, 0),
+                        Position::new(f[5].parse().unwrap(), 0),
+                    ),
+                    new_text: f[4].clone(),
+                }]);
+                assert_eq!(
+                    actual, expected,
+                    "case={} target={major}.{minor} step={step}",
+                    f[0]
+                );
+                assert_eq!(
+                    apply_edits(&f[1], actual.as_ref().unwrap()).as_deref(),
+                    Some(f[6].as_str())
+                );
+                responses += 1;
+            }
+        }
+    }
+    assert_eq!(responses, 384);
+}
+
+#[tokio::test]
+async fn closed_nonempty_original_docs_preserve_all_canonical_eols_and_latest_text() {
+    let cases = fixture_rows(include_str!("fixtures/on-type-closed.tsv"), 16, 7);
+    let mut requests = 0;
+    for (major, minor) in [
+        (5, 6),
+        (7, 0),
+        (7, 1),
+        (7, 2),
+        (7, 3),
+        (7, 4),
+        (8, 0),
+        (8, 1),
+        (8, 2),
+        (8, 3),
+        (8, 4),
+        (8, 5),
+    ] {
+        for f in &cases {
+            let sut = Backend::new_headless();
+            sut.set_php_version(phpantom_lsp::types::PhpVersion::new(major, minor));
+            let uri = Uri::parse("file:///closed-doc-eol.php").unwrap();
+            sut.did_open(DidOpenTextDocumentParams {
+                text_document: TextDocumentItem {
+                    uri: uri.clone(),
+                    language_id: "php".into(),
+                    version: 1,
+                    text: f[1].clone(),
+                },
+            })
+            .await;
+            for step in 0..2 {
+                if step == 1 {
+                    sut.did_change(DidChangeTextDocumentParams {
+                        text_document: VersionedTextDocumentIdentifier {
+                            text_document_identifier: TextDocumentIdentifier { uri: uri.clone() },
+                            version: 2,
+                        },
+                        content_changes: vec![
+                            TextDocumentContentChangeEvent::TextDocumentContentChangeWholeDocument(
+                                TextDocumentContentChangeWholeDocument { text: f[1].clone() },
+                            ),
+                        ],
+                    })
+                    .await;
+                }
+                let actual = sut
+                    .on_type_formatting(DocumentOnTypeFormattingParams {
+                        text_document: TextDocumentIdentifier { uri: uri.clone() },
+                        position: Position::new(f[2].parse().unwrap(), f[3].parse().unwrap()),
+                        ch: "\n".into(),
+                        options: FormattingOptions {
+                            tab_size: 4,
+                            insert_spaces: true,
+                            ..Default::default()
+                        },
+                    })
+                    .await
+                    .unwrap();
+                assert_eq!(actual, None, "{} target={major}.{minor} step={step}", f[0]);
+                assert_eq!(f[1], f[4], "independent original document invariant");
+                requests += 1;
+            }
+        }
+    }
+    assert_eq!(requests, 384);
 }

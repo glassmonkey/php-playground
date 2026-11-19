@@ -1,0 +1,1010 @@
+[
+  {
+    "name": "LF-relative",
+    "source": "<?php\nnamespace Demo;\nclass Repository {}\nclass Holder {\n/**\n\npublic namespace\\Repository $repository;\n}\necho 99;\n",
+    "position": {
+      "line": 5,
+      "character": 0
+    },
+    "minimumTarget": [
+      7,
+      4
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "/** @var \\Demo\\Repository */\n"
+      }
+    ],
+    "expectedDocument": "<?php\nnamespace Demo;\nclass Repository {}\nclass Holder {\n/** @var \\Demo\\Repository */\npublic namespace\\Repository $repository;\n}\necho 99;\n",
+    "expectedReflectionType": "Demo\\Repository",
+    "expectedDoc": "/** @var \\Demo\\Repository */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "LF-relative-upper",
+    "source": "<?php\nnamespace Demo;\nclass Repository {}\nclass Holder {\n/**\n\npublic NAMESPACE\\Repository $repository;\n}\necho 99;\n",
+    "position": {
+      "line": 5,
+      "character": 0
+    },
+    "minimumTarget": [
+      7,
+      4
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "/** @var \\Demo\\Repository */\n"
+      }
+    ],
+    "expectedDocument": "<?php\nnamespace Demo;\nclass Repository {}\nclass Holder {\n/** @var \\Demo\\Repository */\npublic NAMESPACE\\Repository $repository;\n}\necho 99;\n",
+    "expectedReflectionType": "Demo\\Repository",
+    "expectedDoc": "/** @var \\Demo\\Repository */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "LF-bare",
+    "source": "<?php\nnamespace Demo;\nclass Repository {}\nclass Holder {\n/**\n\npublic Repository $repository;\n}\necho 99;\n",
+    "position": {
+      "line": 5,
+      "character": 0
+    },
+    "minimumTarget": [
+      7,
+      4
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "/** @var \\Demo\\Repository */\n"
+      }
+    ],
+    "expectedDocument": "<?php\nnamespace Demo;\nclass Repository {}\nclass Holder {\n/** @var \\Demo\\Repository */\npublic Repository $repository;\n}\necho 99;\n",
+    "expectedReflectionType": "Demo\\Repository",
+    "expectedDoc": "/** @var \\Demo\\Repository */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "LF-absolute",
+    "source": "<?php\nnamespace Demo;\nclass Repository {}\nclass Holder {\n/**\n\npublic \\Demo\\Repository $repository;\n}\necho 99;\n",
+    "position": {
+      "line": 5,
+      "character": 0
+    },
+    "minimumTarget": [
+      7,
+      4
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "/** @var \\Demo\\Repository */\n"
+      }
+    ],
+    "expectedDocument": "<?php\nnamespace Demo;\nclass Repository {}\nclass Holder {\n/** @var \\Demo\\Repository */\npublic \\Demo\\Repository $repository;\n}\necho 99;\n",
+    "expectedReflectionType": "Demo\\Repository",
+    "expectedDoc": "/** @var \\Demo\\Repository */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "LF-import-alias",
+    "source": "<?php\nnamespace Demo;\nuse Demo\\Repository as RepoAlias;\nclass Repository {}\nclass Holder {\n/**\n\npublic RepoAlias $repository;\n}\necho 99;\n",
+    "position": {
+      "line": 6,
+      "character": 0
+    },
+    "minimumTarget": [
+      7,
+      4
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 5,
+            "character": 0
+          },
+          "end": {
+            "line": 7,
+            "character": 0
+          }
+        },
+        "newText": "/** @var RepoAlias */\n"
+      }
+    ],
+    "expectedDocument": "<?php\nnamespace Demo;\nuse Demo\\Repository as RepoAlias;\nclass Repository {}\nclass Holder {\n/** @var RepoAlias */\npublic RepoAlias $repository;\n}\necho 99;\n",
+    "expectedReflectionType": "Demo\\Repository",
+    "expectedDoc": "/** @var RepoAlias */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "CRLF-relative",
+    "source": "<?php\r\nnamespace Demo;\r\nclass Repository {}\r\nclass Holder {\r\n/**\r\n\r\npublic namespace\\Repository $repository;\r\n}\r\necho 99;\r\n",
+    "position": {
+      "line": 5,
+      "character": 0
+    },
+    "minimumTarget": [
+      7,
+      4
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "/** @var \\Demo\\Repository */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\nnamespace Demo;\r\nclass Repository {}\r\nclass Holder {\r\n/** @var \\Demo\\Repository */\r\npublic namespace\\Repository $repository;\r\n}\r\necho 99;\r\n",
+    "expectedReflectionType": "Demo\\Repository",
+    "expectedDoc": "/** @var \\Demo\\Repository */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "CRLF-relative-upper",
+    "source": "<?php\r\nnamespace Demo;\r\nclass Repository {}\r\nclass Holder {\r\n/**\r\n\r\npublic NAMESPACE\\Repository $repository;\r\n}\r\necho 99;\r\n",
+    "position": {
+      "line": 5,
+      "character": 0
+    },
+    "minimumTarget": [
+      7,
+      4
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "/** @var \\Demo\\Repository */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\nnamespace Demo;\r\nclass Repository {}\r\nclass Holder {\r\n/** @var \\Demo\\Repository */\r\npublic NAMESPACE\\Repository $repository;\r\n}\r\necho 99;\r\n",
+    "expectedReflectionType": "Demo\\Repository",
+    "expectedDoc": "/** @var \\Demo\\Repository */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "CRLF-bare",
+    "source": "<?php\r\nnamespace Demo;\r\nclass Repository {}\r\nclass Holder {\r\n/**\r\n\r\npublic Repository $repository;\r\n}\r\necho 99;\r\n",
+    "position": {
+      "line": 5,
+      "character": 0
+    },
+    "minimumTarget": [
+      7,
+      4
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "/** @var \\Demo\\Repository */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\nnamespace Demo;\r\nclass Repository {}\r\nclass Holder {\r\n/** @var \\Demo\\Repository */\r\npublic Repository $repository;\r\n}\r\necho 99;\r\n",
+    "expectedReflectionType": "Demo\\Repository",
+    "expectedDoc": "/** @var \\Demo\\Repository */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "CRLF-absolute",
+    "source": "<?php\r\nnamespace Demo;\r\nclass Repository {}\r\nclass Holder {\r\n/**\r\n\r\npublic \\Demo\\Repository $repository;\r\n}\r\necho 99;\r\n",
+    "position": {
+      "line": 5,
+      "character": 0
+    },
+    "minimumTarget": [
+      7,
+      4
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "/** @var \\Demo\\Repository */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\nnamespace Demo;\r\nclass Repository {}\r\nclass Holder {\r\n/** @var \\Demo\\Repository */\r\npublic \\Demo\\Repository $repository;\r\n}\r\necho 99;\r\n",
+    "expectedReflectionType": "Demo\\Repository",
+    "expectedDoc": "/** @var \\Demo\\Repository */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "CRLF-import-alias",
+    "source": "<?php\r\nnamespace Demo;\r\nuse Demo\\Repository as RepoAlias;\r\nclass Repository {}\r\nclass Holder {\r\n/**\r\n\r\npublic RepoAlias $repository;\r\n}\r\necho 99;\r\n",
+    "position": {
+      "line": 6,
+      "character": 0
+    },
+    "minimumTarget": [
+      7,
+      4
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 5,
+            "character": 0
+          },
+          "end": {
+            "line": 7,
+            "character": 0
+          }
+        },
+        "newText": "/** @var RepoAlias */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\nnamespace Demo;\r\nuse Demo\\Repository as RepoAlias;\r\nclass Repository {}\r\nclass Holder {\r\n/** @var RepoAlias */\r\npublic RepoAlias $repository;\r\n}\r\necho 99;\r\n",
+    "expectedReflectionType": "Demo\\Repository",
+    "expectedDoc": "/** @var RepoAlias */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "CR-relative",
+    "source": "<?php\rnamespace Demo;\rclass Repository {}\rclass Holder {\r/**\r\rpublic namespace\\Repository $repository;\r}\recho 99;\r",
+    "position": {
+      "line": 5,
+      "character": 0
+    },
+    "minimumTarget": [
+      7,
+      4
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "/** @var \\Demo\\Repository */\r"
+      }
+    ],
+    "expectedDocument": "<?php\rnamespace Demo;\rclass Repository {}\rclass Holder {\r/** @var \\Demo\\Repository */\rpublic namespace\\Repository $repository;\r}\recho 99;\r",
+    "expectedReflectionType": "Demo\\Repository",
+    "expectedDoc": "/** @var \\Demo\\Repository */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "CR-relative-upper",
+    "source": "<?php\rnamespace Demo;\rclass Repository {}\rclass Holder {\r/**\r\rpublic NAMESPACE\\Repository $repository;\r}\recho 99;\r",
+    "position": {
+      "line": 5,
+      "character": 0
+    },
+    "minimumTarget": [
+      7,
+      4
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "/** @var \\Demo\\Repository */\r"
+      }
+    ],
+    "expectedDocument": "<?php\rnamespace Demo;\rclass Repository {}\rclass Holder {\r/** @var \\Demo\\Repository */\rpublic NAMESPACE\\Repository $repository;\r}\recho 99;\r",
+    "expectedReflectionType": "Demo\\Repository",
+    "expectedDoc": "/** @var \\Demo\\Repository */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "CR-bare",
+    "source": "<?php\rnamespace Demo;\rclass Repository {}\rclass Holder {\r/**\r\rpublic Repository $repository;\r}\recho 99;\r",
+    "position": {
+      "line": 5,
+      "character": 0
+    },
+    "minimumTarget": [
+      7,
+      4
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "/** @var \\Demo\\Repository */\r"
+      }
+    ],
+    "expectedDocument": "<?php\rnamespace Demo;\rclass Repository {}\rclass Holder {\r/** @var \\Demo\\Repository */\rpublic Repository $repository;\r}\recho 99;\r",
+    "expectedReflectionType": "Demo\\Repository",
+    "expectedDoc": "/** @var \\Demo\\Repository */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "CR-absolute",
+    "source": "<?php\rnamespace Demo;\rclass Repository {}\rclass Holder {\r/**\r\rpublic \\Demo\\Repository $repository;\r}\recho 99;\r",
+    "position": {
+      "line": 5,
+      "character": 0
+    },
+    "minimumTarget": [
+      7,
+      4
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "/** @var \\Demo\\Repository */\r"
+      }
+    ],
+    "expectedDocument": "<?php\rnamespace Demo;\rclass Repository {}\rclass Holder {\r/** @var \\Demo\\Repository */\rpublic \\Demo\\Repository $repository;\r}\recho 99;\r",
+    "expectedReflectionType": "Demo\\Repository",
+    "expectedDoc": "/** @var \\Demo\\Repository */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "CR-import-alias",
+    "source": "<?php\rnamespace Demo;\ruse Demo\\Repository as RepoAlias;\rclass Repository {}\rclass Holder {\r/**\r\rpublic RepoAlias $repository;\r}\recho 99;\r",
+    "position": {
+      "line": 6,
+      "character": 0
+    },
+    "minimumTarget": [
+      7,
+      4
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 5,
+            "character": 0
+          },
+          "end": {
+            "line": 7,
+            "character": 0
+          }
+        },
+        "newText": "/** @var RepoAlias */\r"
+      }
+    ],
+    "expectedDocument": "<?php\rnamespace Demo;\ruse Demo\\Repository as RepoAlias;\rclass Repository {}\rclass Holder {\r/** @var RepoAlias */\rpublic RepoAlias $repository;\r}\recho 99;\r",
+    "expectedReflectionType": "Demo\\Repository",
+    "expectedDoc": "/** @var RepoAlias */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "LF-nullable",
+    "source": "<?php\nnamespace Demo;\nclass Repository {}\nclass Holder {\n/**\n\npublic ?namespace\\Repository $repository;\n}\necho 99;\n",
+    "position": {
+      "line": 5,
+      "character": 0
+    },
+    "minimumTarget": [
+      7,
+      4
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "/** @var ?\\Demo\\Repository */\n"
+      }
+    ],
+    "expectedDocument": "<?php\nnamespace Demo;\nclass Repository {}\nclass Holder {\n/** @var ?\\Demo\\Repository */\npublic ?namespace\\Repository $repository;\n}\necho 99;\n",
+    "expectedReflectionType": "?Demo\\Repository",
+    "expectedDoc": "/** @var ?\\Demo\\Repository */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "LF-union",
+    "source": "<?php\nnamespace Demo;\nclass Repository {}\nclass Holder {\n/**\n\npublic namespace\\Repository|\\RuntimeException $repository;\n}\necho 99;\n",
+    "position": {
+      "line": 5,
+      "character": 0
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "/** @var \\Demo\\Repository|\\RuntimeException */\n"
+      }
+    ],
+    "expectedDocument": "<?php\nnamespace Demo;\nclass Repository {}\nclass Holder {\n/** @var \\Demo\\Repository|\\RuntimeException */\npublic namespace\\Repository|\\RuntimeException $repository;\n}\necho 99;\n",
+    "expectedReflectionType": "Demo\\Repository|RuntimeException",
+    "expectedDoc": "/** @var \\Demo\\Repository|\\RuntimeException */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "CRLF-nullable",
+    "source": "<?php\r\nnamespace Demo;\r\nclass Repository {}\r\nclass Holder {\r\n/**\r\n\r\npublic ?namespace\\Repository $repository;\r\n}\r\necho 99;\r\n",
+    "position": {
+      "line": 5,
+      "character": 0
+    },
+    "minimumTarget": [
+      7,
+      4
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "/** @var ?\\Demo\\Repository */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\nnamespace Demo;\r\nclass Repository {}\r\nclass Holder {\r\n/** @var ?\\Demo\\Repository */\r\npublic ?namespace\\Repository $repository;\r\n}\r\necho 99;\r\n",
+    "expectedReflectionType": "?Demo\\Repository",
+    "expectedDoc": "/** @var ?\\Demo\\Repository */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "CRLF-union",
+    "source": "<?php\r\nnamespace Demo;\r\nclass Repository {}\r\nclass Holder {\r\n/**\r\n\r\npublic namespace\\Repository|\\RuntimeException $repository;\r\n}\r\necho 99;\r\n",
+    "position": {
+      "line": 5,
+      "character": 0
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "/** @var \\Demo\\Repository|\\RuntimeException */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\nnamespace Demo;\r\nclass Repository {}\r\nclass Holder {\r\n/** @var \\Demo\\Repository|\\RuntimeException */\r\npublic namespace\\Repository|\\RuntimeException $repository;\r\n}\r\necho 99;\r\n",
+    "expectedReflectionType": "Demo\\Repository|RuntimeException",
+    "expectedDoc": "/** @var \\Demo\\Repository|\\RuntimeException */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "CR-nullable",
+    "source": "<?php\rnamespace Demo;\rclass Repository {}\rclass Holder {\r/**\r\rpublic ?namespace\\Repository $repository;\r}\recho 99;\r",
+    "position": {
+      "line": 5,
+      "character": 0
+    },
+    "minimumTarget": [
+      7,
+      4
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "/** @var ?\\Demo\\Repository */\r"
+      }
+    ],
+    "expectedDocument": "<?php\rnamespace Demo;\rclass Repository {}\rclass Holder {\r/** @var ?\\Demo\\Repository */\rpublic ?namespace\\Repository $repository;\r}\recho 99;\r",
+    "expectedReflectionType": "?Demo\\Repository",
+    "expectedDoc": "/** @var ?\\Demo\\Repository */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "CR-union",
+    "source": "<?php\rnamespace Demo;\rclass Repository {}\rclass Holder {\r/**\r\rpublic namespace\\Repository|\\RuntimeException $repository;\r}\recho 99;\r",
+    "position": {
+      "line": 5,
+      "character": 0
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "/** @var \\Demo\\Repository|\\RuntimeException */\r"
+      }
+    ],
+    "expectedDocument": "<?php\rnamespace Demo;\rclass Repository {}\rclass Holder {\r/** @var \\Demo\\Repository|\\RuntimeException */\rpublic namespace\\Repository|\\RuntimeException $repository;\r}\recho 99;\r",
+    "expectedReflectionType": "Demo\\Repository|RuntimeException",
+    "expectedDoc": "/** @var \\Demo\\Repository|\\RuntimeException */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "mixed-nullable",
+    "source": "<?php\r\nnamespace Demo;\rclass Repository {}\nclass Holder {\r\n/**\r\r\npublic ?namespace\\Repository $repository;\r\n}\recho 99;\n",
+    "position": {
+      "line": 5,
+      "character": 0
+    },
+    "minimumTarget": [
+      7,
+      4
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "/** @var ?\\Demo\\Repository */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\nnamespace Demo;\rclass Repository {}\nclass Holder {\r\n/** @var ?\\Demo\\Repository */\r\npublic ?namespace\\Repository $repository;\r\n}\recho 99;\n",
+    "expectedReflectionType": "?Demo\\Repository",
+    "expectedDoc": "/** @var ?\\Demo\\Repository */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "mixed-union",
+    "source": "<?php\r\nnamespace Demo;\rclass Repository {}\nclass Holder {\r\n/**\r\r\npublic namespace\\Repository|\\RuntimeException $repository;\r\n}\recho 99;\n",
+    "position": {
+      "line": 5,
+      "character": 0
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "/** @var \\Demo\\Repository|\\RuntimeException */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\nnamespace Demo;\rclass Repository {}\nclass Holder {\r\n/** @var \\Demo\\Repository|\\RuntimeException */\r\npublic namespace\\Repository|\\RuntimeException $repository;\r\n}\recho 99;\n",
+    "expectedReflectionType": "Demo\\Repository|RuntimeException",
+    "expectedDoc": "/** @var \\Demo\\Repository|\\RuntimeException */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "mixed-relative",
+    "source": "<?php\r\nnamespace Demo;\rclass Repository {}\nclass Holder {\r\n/**\r\r\npublic namespace\\Repository $repository;\r\n}\recho 99;\n",
+    "position": {
+      "line": 5,
+      "character": 0
+    },
+    "minimumTarget": [
+      7,
+      4
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "/** @var \\Demo\\Repository */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\nnamespace Demo;\rclass Repository {}\nclass Holder {\r\n/** @var \\Demo\\Repository */\r\npublic namespace\\Repository $repository;\r\n}\recho 99;\n",
+    "expectedReflectionType": "Demo\\Repository",
+    "expectedDoc": "/** @var \\Demo\\Repository */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "mixed-relative-upper",
+    "source": "<?php\r\nnamespace Demo;\rclass Repository {}\nclass Holder {\r\n/**\r\r\npublic NAMESPACE\\Repository $repository;\r\n}\recho 99;\n",
+    "position": {
+      "line": 5,
+      "character": 0
+    },
+    "minimumTarget": [
+      7,
+      4
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "/** @var \\Demo\\Repository */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\nnamespace Demo;\rclass Repository {}\nclass Holder {\r\n/** @var \\Demo\\Repository */\r\npublic NAMESPACE\\Repository $repository;\r\n}\recho 99;\n",
+    "expectedReflectionType": "Demo\\Repository",
+    "expectedDoc": "/** @var \\Demo\\Repository */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "mixed-bare",
+    "source": "<?php\r\nnamespace Demo;\rclass Repository {}\nclass Holder {\r\n/**\r\r\npublic Repository $repository;\r\n}\recho 99;\n",
+    "position": {
+      "line": 5,
+      "character": 0
+    },
+    "minimumTarget": [
+      7,
+      4
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "/** @var \\Demo\\Repository */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\nnamespace Demo;\rclass Repository {}\nclass Holder {\r\n/** @var \\Demo\\Repository */\r\npublic Repository $repository;\r\n}\recho 99;\n",
+    "expectedReflectionType": "Demo\\Repository",
+    "expectedDoc": "/** @var \\Demo\\Repository */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "mixed-absolute",
+    "source": "<?php\r\nnamespace Demo;\rclass Repository {}\nclass Holder {\r\n/**\r\r\npublic \\Demo\\Repository $repository;\r\n}\recho 99;\n",
+    "position": {
+      "line": 5,
+      "character": 0
+    },
+    "minimumTarget": [
+      7,
+      4
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "/** @var \\Demo\\Repository */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\nnamespace Demo;\rclass Repository {}\nclass Holder {\r\n/** @var \\Demo\\Repository */\r\npublic \\Demo\\Repository $repository;\r\n}\recho 99;\n",
+    "expectedReflectionType": "Demo\\Repository",
+    "expectedDoc": "/** @var \\Demo\\Repository */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  },
+  {
+    "name": "mixed-import-alias",
+    "source": "<?php\r\nnamespace Demo;\ruse Demo\\Repository as RepoAlias;\nclass Repository {}\r\nclass Holder {\r/**\n\r\npublic RepoAlias $repository;\r}\necho 99;\r\n",
+    "position": {
+      "line": 6,
+      "character": 0
+    },
+    "minimumTarget": [
+      7,
+      4
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 5,
+            "character": 0
+          },
+          "end": {
+            "line": 7,
+            "character": 0
+          }
+        },
+        "newText": "/** @var RepoAlias */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\nnamespace Demo;\ruse Demo\\Repository as RepoAlias;\nclass Repository {}\r\nclass Holder {\r/** @var RepoAlias */\r\npublic RepoAlias $repository;\r}\necho 99;\r\n",
+    "expectedReflectionType": "Demo\\Repository",
+    "expectedDoc": "/** @var RepoAlias */",
+    "expectedStdout": "99",
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": false
+    }
+  }
+]

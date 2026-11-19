@@ -34,3 +34,7 @@ CR-documented	<?php\r/**\r * retained documentation\r\rfunction greet($name) {}	
 CR-no-declaration	<?php\r/**\r\r	2	0	5	6	\n	4	true
 CR-unrelated-code	<?php\r/**\r\r$var=7;	2	0	5	6	\n	4	true
 CR-other-trigger	<?php\r/**\r\rfunction greet($name){}	2	0	5	6	*	4	true
+LF-attribute-opaque	<?php\n/**\n\n#[A('] ?> /* fake */')]\nfunction greet($name): string { return $name; }\necho greet(7);\n	2	0	8	0	\n	4	true
+CRLF-attribute-opaque	<?php\r\n/**\r\n\r\n#[A('] ?> /* fake */')]\r\nfunction greet($name): string { return $name; }\r\necho greet(7);\r\n	2	0	8	0	\n	4	true
+CR-attribute-opaque	<?php\r/**\r\r#[A('] ?> /* fake */')]\rfunction greet($name): string { return $name; }\recho greet(7);\r	2	0	8	0	\n	4	true
+mixed-attribute-opaque	<?php\r\n/**\r\r#[A('] ?> /* fake */')]\nfunction greet($name): string { return $name; }\necho greet(7);\n	2	0	8	0	\n	4	true
