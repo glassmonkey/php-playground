@@ -1,0 +1,492 @@
+[
+  {
+    "name": "actual-Monaco0551-natural-input",
+    "source": "<?php\n/**\n\nfunction greet($name): string { return $name; }\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      7,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\n * @param mixed $name\n */\n"
+      }
+    ],
+    "expectedDocument": "<?php\n/**\n * @param mixed $name\n */\nfunction greet($name): string { return $name; }\n",
+    "expectedStdout": "",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\n * @param mixed $name\n */"
+  },
+  {
+    "name": "constructor-property-natural",
+    "source": "<?php\nclass Repository {}\nclass Service {\n    /**\n    \n    private $repository;\n    public function __construct() { $this->repository = new Repository(); }\n}\n",
+    "position": {
+      "line": 4,
+      "character": 4
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 3,
+            "character": 0
+          },
+          "end": {
+            "line": 5,
+            "character": 0
+          }
+        },
+        "newText": "    /** @var \\Repository */\n"
+      }
+    ],
+    "expectedDocument": "<?php\nclass Repository {}\nclass Service {\n    /** @var \\Repository */\n    private $repository;\n    public function __construct() { $this->repository = new Repository(); }\n}\n",
+    "expectedStdout": "",
+    "reflectionKind": "property",
+    "reflectionSymbol": "Service::repository",
+    "expectReflection": "/** @var \\Repository */"
+  },
+  {
+    "name": "constructor-property-preclosed",
+    "source": "<?php\nclass Repository {}\nclass Service {\n    /** */\n    private $repository;\n    public function __construct() { $this->repository = new Repository(); }\n}\n",
+    "position": {
+      "line": 3,
+      "character": 9
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 3,
+            "character": 0
+          },
+          "end": {
+            "line": 4,
+            "character": 0
+          }
+        },
+        "newText": "    /** @var \\Repository */\n"
+      }
+    ],
+    "expectedDocument": "<?php\nclass Repository {}\nclass Service {\n    /** @var \\Repository */\n    private $repository;\n    public function __construct() { $this->repository = new Repository(); }\n}\n",
+    "expectedStdout": "",
+    "reflectionKind": "property",
+    "reflectionSymbol": "Service::repository",
+    "expectReflection": "/** @var \\Repository */"
+  },
+  {
+    "name": "legacy-preclosed-closing-token-interior",
+    "source": "<?php\n    /** */\n    function greet($name): string { return $name; }\n",
+    "position": {
+      "line": 1,
+      "character": 9
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      7,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 2,
+            "character": 0
+          }
+        },
+        "newText": "    /**\n     * @param mixed $name\n     */\n"
+      }
+    ],
+    "expectedDocument": "<?php\n    /**\n     * @param mixed $name\n     */\n    function greet($name): string { return $name; }\n",
+    "expectedStdout": "",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\n     * @param mixed $name\n     */"
+  },
+  {
+    "name": "LF-inferred-property-local",
+    "source": "<?php\nnamespace Demo;\nclass Repository {}\n$note=\"𐐀\";\nclass Service {\n    /**\n    \n    private $repository;\n    public function __construct() { $this->repository = new Repository(); }\n    public function repository() { return $this->repository; }\n}\necho get_class((new Service)->repository()) === Repository::class ? 99 : 7;\n",
+    "position": {
+      "line": 6,
+      "character": 4
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 5,
+            "character": 0
+          },
+          "end": {
+            "line": 7,
+            "character": 0
+          }
+        },
+        "newText": "    /** @var \\Demo\\Repository */\n"
+      }
+    ],
+    "expectedDocument": "<?php\nnamespace Demo;\nclass Repository {}\n$note=\"𐐀\";\nclass Service {\n    /** @var \\Demo\\Repository */\n    private $repository;\n    public function __construct() { $this->repository = new Repository(); }\n    public function repository() { return $this->repository; }\n}\necho get_class((new Service)->repository()) === Repository::class ? 99 : 7;\n",
+    "expectedStdout": "99",
+    "reflectionKind": "property",
+    "reflectionSymbol": "Demo\\Service::repository",
+    "expectReflection": "/** @var \\Demo\\Repository */",
+    "expectedAnnotationFQN": "Demo\\Repository"
+  },
+  {
+    "name": "LF-inferred-property-alias",
+    "source": "<?php\nnamespace Vendor { class Repository {} }\nnamespace Demo {\nuse Vendor\\Repository as StoredRepo;\n$note=\"𐐀\";\nclass Service {\n    /**\n    \n    private $repository;\n    public function __construct() { $this->repository = new StoredRepo(); }\n    public function repository() { return $this->repository; }\n}\necho get_class((new Service)->repository()) === StoredRepo::class ? 99 : 7;\n}\n",
+    "position": {
+      "line": 7,
+      "character": 4
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 6,
+            "character": 0
+          },
+          "end": {
+            "line": 8,
+            "character": 0
+          }
+        },
+        "newText": "    /** @var StoredRepo */\n"
+      }
+    ],
+    "expectedDocument": "<?php\nnamespace Vendor { class Repository {} }\nnamespace Demo {\nuse Vendor\\Repository as StoredRepo;\n$note=\"𐐀\";\nclass Service {\n    /** @var StoredRepo */\n    private $repository;\n    public function __construct() { $this->repository = new StoredRepo(); }\n    public function repository() { return $this->repository; }\n}\necho get_class((new Service)->repository()) === StoredRepo::class ? 99 : 7;\n}\n",
+    "expectedStdout": "99",
+    "reflectionKind": "property",
+    "reflectionSymbol": "Demo\\Service::repository",
+    "expectReflection": "/** @var StoredRepo */",
+    "expectedAnnotationFQN": "Vendor\\Repository"
+  },
+  {
+    "name": "LF-inferred-property-namespace-alias",
+    "source": "<?php\nnamespace Vendor { class Repository {} }\nnamespace Demo {\nuse Vendor as V;\n$note=\"𐐀\";\nclass Service {\n    /**\n    \n    private $repository;\n    public function __construct() { $this->repository = new V\\Repository(); }\n    public function repository() { return $this->repository; }\n}\necho get_class((new Service)->repository()) === V\\Repository::class ? 99 : 7;\n}\n",
+    "position": {
+      "line": 7,
+      "character": 4
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 6,
+            "character": 0
+          },
+          "end": {
+            "line": 8,
+            "character": 0
+          }
+        },
+        "newText": "    /** @var V\\Repository */\n"
+      }
+    ],
+    "expectedDocument": "<?php\nnamespace Vendor { class Repository {} }\nnamespace Demo {\nuse Vendor as V;\n$note=\"𐐀\";\nclass Service {\n    /** @var V\\Repository */\n    private $repository;\n    public function __construct() { $this->repository = new V\\Repository(); }\n    public function repository() { return $this->repository; }\n}\necho get_class((new Service)->repository()) === V\\Repository::class ? 99 : 7;\n}\n",
+    "expectedStdout": "99",
+    "reflectionKind": "property",
+    "reflectionSymbol": "Demo\\Service::repository",
+    "expectReflection": "/** @var V\\Repository */",
+    "expectedAnnotationFQN": "Vendor\\Repository"
+  },
+  {
+    "name": "CRLF-inferred-property-local",
+    "source": "<?php\r\nnamespace Demo;\r\nclass Repository {}\r\n$note=\"𐐀\";\r\nclass Service {\r\n    /**\r\n    \r\n    private $repository;\r\n    public function __construct() { $this->repository = new Repository(); }\r\n    public function repository() { return $this->repository; }\r\n}\r\necho get_class((new Service)->repository()) === Repository::class ? 99 : 7;\r\n",
+    "position": {
+      "line": 6,
+      "character": 4
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 5,
+            "character": 0
+          },
+          "end": {
+            "line": 7,
+            "character": 0
+          }
+        },
+        "newText": "    /** @var \\Demo\\Repository */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\nnamespace Demo;\r\nclass Repository {}\r\n$note=\"𐐀\";\r\nclass Service {\r\n    /** @var \\Demo\\Repository */\r\n    private $repository;\r\n    public function __construct() { $this->repository = new Repository(); }\r\n    public function repository() { return $this->repository; }\r\n}\r\necho get_class((new Service)->repository()) === Repository::class ? 99 : 7;\r\n",
+    "expectedStdout": "99",
+    "reflectionKind": "property",
+    "reflectionSymbol": "Demo\\Service::repository",
+    "expectReflection": "/** @var \\Demo\\Repository */",
+    "expectedAnnotationFQN": "Demo\\Repository"
+  },
+  {
+    "name": "CRLF-inferred-property-alias",
+    "source": "<?php\r\nnamespace Vendor { class Repository {} }\r\nnamespace Demo {\r\nuse Vendor\\Repository as StoredRepo;\r\n$note=\"𐐀\";\r\nclass Service {\r\n    /**\r\n    \r\n    private $repository;\r\n    public function __construct() { $this->repository = new StoredRepo(); }\r\n    public function repository() { return $this->repository; }\r\n}\r\necho get_class((new Service)->repository()) === StoredRepo::class ? 99 : 7;\r\n}\r\n",
+    "position": {
+      "line": 7,
+      "character": 4
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 6,
+            "character": 0
+          },
+          "end": {
+            "line": 8,
+            "character": 0
+          }
+        },
+        "newText": "    /** @var StoredRepo */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\nnamespace Vendor { class Repository {} }\r\nnamespace Demo {\r\nuse Vendor\\Repository as StoredRepo;\r\n$note=\"𐐀\";\r\nclass Service {\r\n    /** @var StoredRepo */\r\n    private $repository;\r\n    public function __construct() { $this->repository = new StoredRepo(); }\r\n    public function repository() { return $this->repository; }\r\n}\r\necho get_class((new Service)->repository()) === StoredRepo::class ? 99 : 7;\r\n}\r\n",
+    "expectedStdout": "99",
+    "reflectionKind": "property",
+    "reflectionSymbol": "Demo\\Service::repository",
+    "expectReflection": "/** @var StoredRepo */",
+    "expectedAnnotationFQN": "Vendor\\Repository"
+  },
+  {
+    "name": "CRLF-inferred-property-namespace-alias",
+    "source": "<?php\r\nnamespace Vendor { class Repository {} }\r\nnamespace Demo {\r\nuse Vendor as V;\r\n$note=\"𐐀\";\r\nclass Service {\r\n    /**\r\n    \r\n    private $repository;\r\n    public function __construct() { $this->repository = new V\\Repository(); }\r\n    public function repository() { return $this->repository; }\r\n}\r\necho get_class((new Service)->repository()) === V\\Repository::class ? 99 : 7;\r\n}\r\n",
+    "position": {
+      "line": 7,
+      "character": 4
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 6,
+            "character": 0
+          },
+          "end": {
+            "line": 8,
+            "character": 0
+          }
+        },
+        "newText": "    /** @var V\\Repository */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\nnamespace Vendor { class Repository {} }\r\nnamespace Demo {\r\nuse Vendor as V;\r\n$note=\"𐐀\";\r\nclass Service {\r\n    /** @var V\\Repository */\r\n    private $repository;\r\n    public function __construct() { $this->repository = new V\\Repository(); }\r\n    public function repository() { return $this->repository; }\r\n}\r\necho get_class((new Service)->repository()) === V\\Repository::class ? 99 : 7;\r\n}\r\n",
+    "expectedStdout": "99",
+    "reflectionKind": "property",
+    "reflectionSymbol": "Demo\\Service::repository",
+    "expectReflection": "/** @var V\\Repository */",
+    "expectedAnnotationFQN": "Vendor\\Repository"
+  },
+  {
+    "name": "CR-inferred-property-local",
+    "source": "<?php\rnamespace Demo;\rclass Repository {}\r$note=\"𐐀\";\rclass Service {\r    /**\r    \r    private $repository;\r    public function __construct() { $this->repository = new Repository(); }\r    public function repository() { return $this->repository; }\r}\recho get_class((new Service)->repository()) === Repository::class ? 99 : 7;\r",
+    "position": {
+      "line": 6,
+      "character": 4
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 5,
+            "character": 0
+          },
+          "end": {
+            "line": 7,
+            "character": 0
+          }
+        },
+        "newText": "    /** @var \\Demo\\Repository */\r"
+      }
+    ],
+    "expectedDocument": "<?php\rnamespace Demo;\rclass Repository {}\r$note=\"𐐀\";\rclass Service {\r    /** @var \\Demo\\Repository */\r    private $repository;\r    public function __construct() { $this->repository = new Repository(); }\r    public function repository() { return $this->repository; }\r}\recho get_class((new Service)->repository()) === Repository::class ? 99 : 7;\r",
+    "expectedStdout": "99",
+    "reflectionKind": "property",
+    "reflectionSymbol": "Demo\\Service::repository",
+    "expectReflection": "/** @var \\Demo\\Repository */",
+    "expectedAnnotationFQN": "Demo\\Repository"
+  },
+  {
+    "name": "CR-inferred-property-alias",
+    "source": "<?php\rnamespace Vendor { class Repository {} }\rnamespace Demo {\ruse Vendor\\Repository as StoredRepo;\r$note=\"𐐀\";\rclass Service {\r    /**\r    \r    private $repository;\r    public function __construct() { $this->repository = new StoredRepo(); }\r    public function repository() { return $this->repository; }\r}\recho get_class((new Service)->repository()) === StoredRepo::class ? 99 : 7;\r}\r",
+    "position": {
+      "line": 7,
+      "character": 4
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 6,
+            "character": 0
+          },
+          "end": {
+            "line": 8,
+            "character": 0
+          }
+        },
+        "newText": "    /** @var StoredRepo */\r"
+      }
+    ],
+    "expectedDocument": "<?php\rnamespace Vendor { class Repository {} }\rnamespace Demo {\ruse Vendor\\Repository as StoredRepo;\r$note=\"𐐀\";\rclass Service {\r    /** @var StoredRepo */\r    private $repository;\r    public function __construct() { $this->repository = new StoredRepo(); }\r    public function repository() { return $this->repository; }\r}\recho get_class((new Service)->repository()) === StoredRepo::class ? 99 : 7;\r}\r",
+    "expectedStdout": "99",
+    "reflectionKind": "property",
+    "reflectionSymbol": "Demo\\Service::repository",
+    "expectReflection": "/** @var StoredRepo */",
+    "expectedAnnotationFQN": "Vendor\\Repository"
+  },
+  {
+    "name": "CR-inferred-property-namespace-alias",
+    "source": "<?php\rnamespace Vendor { class Repository {} }\rnamespace Demo {\ruse Vendor as V;\r$note=\"𐐀\";\rclass Service {\r    /**\r    \r    private $repository;\r    public function __construct() { $this->repository = new V\\Repository(); }\r    public function repository() { return $this->repository; }\r}\recho get_class((new Service)->repository()) === V\\Repository::class ? 99 : 7;\r}\r",
+    "position": {
+      "line": 7,
+      "character": 4
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 6,
+            "character": 0
+          },
+          "end": {
+            "line": 8,
+            "character": 0
+          }
+        },
+        "newText": "    /** @var V\\Repository */\r"
+      }
+    ],
+    "expectedDocument": "<?php\rnamespace Vendor { class Repository {} }\rnamespace Demo {\ruse Vendor as V;\r$note=\"𐐀\";\rclass Service {\r    /** @var V\\Repository */\r    private $repository;\r    public function __construct() { $this->repository = new V\\Repository(); }\r    public function repository() { return $this->repository; }\r}\recho get_class((new Service)->repository()) === V\\Repository::class ? 99 : 7;\r}\r",
+    "expectedStdout": "99",
+    "reflectionKind": "property",
+    "reflectionSymbol": "Demo\\Service::repository",
+    "expectReflection": "/** @var V\\Repository */",
+    "expectedAnnotationFQN": "Vendor\\Repository"
+  }
+]

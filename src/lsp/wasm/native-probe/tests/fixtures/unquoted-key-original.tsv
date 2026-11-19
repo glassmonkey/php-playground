@@ -1,0 +1,1 @@
+original-unquoted-CRLF	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99];\r\n/* 🌟 */ echo $data[];	2	20	na\nkey	na\nkey: 7	0000	2	20	2	21	'na\nkey']	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99];\r\n/* 🌟 */ echo $data['na\nkey'];	valid	7

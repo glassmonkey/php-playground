@@ -1,0 +1,2 @@
+brace-unquoted	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99];\r\necho "{$data[na]}";	2	15	na\nkey	na\nkey: 7	0000	2	13	2	16	'na\nkey']	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99];\r\necho "{$data['na\nkey']}";	valid	7
+brace-quoted	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99];\r\necho "{$data['na']}";	2	16	na\nkey	na\nkey: 7	0000	2	14	2	18	na\nkey']	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99];\r\necho "{$data['na\nkey']}";	valid	7

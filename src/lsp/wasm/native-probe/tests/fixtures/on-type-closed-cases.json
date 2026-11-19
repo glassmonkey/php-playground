@@ -1,0 +1,338 @@
+[
+  {
+    "name": "LF-closed-doc-function",
+    "source": "<?php\n/**\n\nfunction example($x) {}\n*/\nfunction actual() {}\necho 99;\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\n/**\n\nfunction example($x) {}\n*/\nfunction actual() {}\necho 99;\n",
+    "expectedStdout": "99",
+    "validClosedControl": true
+  },
+  {
+    "name": "LF-closed-doc-property",
+    "source": "<?php\nclass C {\n    /**\n\n    public $example;\n    */\n    public $actual;\n}\necho 99;\n",
+    "position": {
+      "line": 3,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\nclass C {\n    /**\n\n    public $example;\n    */\n    public $actual;\n}\necho 99;\n",
+    "expectedStdout": "99",
+    "validClosedControl": true
+  },
+  {
+    "name": "LF-closed-doc-text",
+    "source": "<?php\n/**\n\nThis is retained documentation.\n*/\nfunction actual() {}\necho 99;\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\n/**\n\nThis is retained documentation.\n*/\nfunction actual() {}\necho 99;\n",
+    "expectedStdout": "99",
+    "validClosedControl": true
+  },
+  {
+    "name": "LF-closed-doc-starred",
+    "source": "<?php\n// preserved supplementary: 𐐀猫\n/**\n\n * @example function example($x) {}\n */\nfunction actual() {}\necho 99;\n",
+    "position": {
+      "line": 3,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\n// preserved supplementary: 𐐀猫\n/**\n\n * @example function example($x) {}\n */\nfunction actual() {}\necho 99;\n",
+    "expectedStdout": "99",
+    "validClosedControl": true
+  },
+  {
+    "name": "CRLF-closed-doc-function",
+    "source": "<?php\r\n/**\r\n\r\nfunction example($x) {}\r\n*/\r\nfunction actual() {}\r\necho 99;\r\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r\n/**\r\n\r\nfunction example($x) {}\r\n*/\r\nfunction actual() {}\r\necho 99;\r\n",
+    "expectedStdout": "99",
+    "validClosedControl": true
+  },
+  {
+    "name": "CRLF-closed-doc-property",
+    "source": "<?php\r\nclass C {\r\n    /**\r\n\r\n    public $example;\r\n    */\r\n    public $actual;\r\n}\r\necho 99;\r\n",
+    "position": {
+      "line": 3,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r\nclass C {\r\n    /**\r\n\r\n    public $example;\r\n    */\r\n    public $actual;\r\n}\r\necho 99;\r\n",
+    "expectedStdout": "99",
+    "validClosedControl": true
+  },
+  {
+    "name": "CRLF-closed-doc-text",
+    "source": "<?php\r\n/**\r\n\r\nThis is retained documentation.\r\n*/\r\nfunction actual() {}\r\necho 99;\r\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r\n/**\r\n\r\nThis is retained documentation.\r\n*/\r\nfunction actual() {}\r\necho 99;\r\n",
+    "expectedStdout": "99",
+    "validClosedControl": true
+  },
+  {
+    "name": "CRLF-closed-doc-starred",
+    "source": "<?php\r\n// preserved supplementary: 𐐀猫\r\n/**\r\n\r\n * @example function example($x) {}\r\n */\r\nfunction actual() {}\r\necho 99;\r\n",
+    "position": {
+      "line": 3,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r\n// preserved supplementary: 𐐀猫\r\n/**\r\n\r\n * @example function example($x) {}\r\n */\r\nfunction actual() {}\r\necho 99;\r\n",
+    "expectedStdout": "99",
+    "validClosedControl": true
+  },
+  {
+    "name": "CR-closed-doc-function",
+    "source": "<?php\r/**\r\rfunction example($x) {}\r*/\rfunction actual() {}\recho 99;\r",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r/**\r\rfunction example($x) {}\r*/\rfunction actual() {}\recho 99;\r",
+    "expectedStdout": "99",
+    "validClosedControl": true
+  },
+  {
+    "name": "CR-closed-doc-property",
+    "source": "<?php\rclass C {\r    /**\r\r    public $example;\r    */\r    public $actual;\r}\recho 99;\r",
+    "position": {
+      "line": 3,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\rclass C {\r    /**\r\r    public $example;\r    */\r    public $actual;\r}\recho 99;\r",
+    "expectedStdout": "99",
+    "validClosedControl": true
+  },
+  {
+    "name": "CR-closed-doc-text",
+    "source": "<?php\r/**\r\rThis is retained documentation.\r*/\rfunction actual() {}\recho 99;\r",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r/**\r\rThis is retained documentation.\r*/\rfunction actual() {}\recho 99;\r",
+    "expectedStdout": "99",
+    "validClosedControl": true
+  },
+  {
+    "name": "CR-closed-doc-starred",
+    "source": "<?php\r// preserved supplementary: 𐐀猫\r/**\r\r * @example function example($x) {}\r */\rfunction actual() {}\recho 99;\r",
+    "position": {
+      "line": 3,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r// preserved supplementary: 𐐀猫\r/**\r\r * @example function example($x) {}\r */\rfunction actual() {}\recho 99;\r",
+    "expectedStdout": "99",
+    "validClosedControl": true
+  },
+  {
+    "name": "mixed-closed-doc-function",
+    "source": "<?php\r\n/**\r\r\nfunction example($x) {}\r\n*/\rfunction actual() {}\necho 99;\r\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r\n/**\r\r\nfunction example($x) {}\r\n*/\rfunction actual() {}\necho 99;\r\n",
+    "expectedStdout": "99",
+    "validClosedControl": true
+  },
+  {
+    "name": "mixed-closed-doc-property",
+    "source": "<?php\r\nclass C {\r    /**\n\r\n    public $example;\r    */\n    public $actual;\r\n}\recho 99;\n",
+    "position": {
+      "line": 3,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r\nclass C {\r    /**\n\r\n    public $example;\r    */\n    public $actual;\r\n}\recho 99;\n",
+    "expectedStdout": "99",
+    "validClosedControl": true
+  },
+  {
+    "name": "mixed-closed-doc-text",
+    "source": "<?php\r\n/**\r\r\nThis is retained documentation.\r\n*/\rfunction actual() {}\necho 99;\r\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r\n/**\r\r\nThis is retained documentation.\r\n*/\rfunction actual() {}\necho 99;\r\n",
+    "expectedStdout": "99",
+    "validClosedControl": true
+  },
+  {
+    "name": "mixed-closed-doc-starred",
+    "source": "<?php\r\n// preserved supplementary: 𐐀猫\r/**\n\r\n * @example function example($x) {}\r */\nfunction actual() {}\r\necho 99;\r",
+    "position": {
+      "line": 3,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r\n// preserved supplementary: 𐐀猫\r/**\n\r\n * @example function example($x) {}\r */\nfunction actual() {}\r\necho 99;\r",
+    "expectedStdout": "99",
+    "validClosedControl": true
+  }
+]

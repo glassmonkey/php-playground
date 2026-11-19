@@ -1,0 +1,10 @@
+[package]
+name = "phpantom-versioned-native-probe"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+phpantom_lsp = { path = "../phpantom-source" }
+tower-lsp-server = { version = "=0.24.0-rc.1", features = ["url-url"] }
+tokio = { version = "=1.53.3", features = ["full"] }

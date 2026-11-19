@@ -1,0 +1,42 @@
+name: PHPantom runtime
+
+on:
+  push:
+    branches: [gla-115-phpantom-runtime]
+    paths:
+      - Makefile
+      - .github/workflows/phpantom-runtime.yml
+      - docs/lsp/phpantom.md
+      - src/lsp/wasm/**
+  pull_request:
+    paths:
+      - Makefile
+      - .github/workflows/phpantom-runtime.yml
+      - docs/lsp/phpantom.md
+      - src/lsp/wasm/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phpantom-runtime-${{ github.event.pull_request.head.ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  phpantom-runtime:
+    name: Pinned PHPantom native and WASI checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check native classifier and immutable candidate regressions
+        run: node --test src/lsp/wasm/test-build-tools.mjs
+      - name: Require clean native baseline and release-quality family regressions
+        run: make test-phpantom-runtime-native
+      - name: Build and test selected WASI version boundaries
+        run: |
+          for php_version in 7.4 8.0 8.3 8.4 8.5; do
+            make build-phpantom-runtime PHPANTOM_TARGET_VERSION="$php_version"
+          done

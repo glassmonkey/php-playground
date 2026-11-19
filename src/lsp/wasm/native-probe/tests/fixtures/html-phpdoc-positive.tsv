@@ -1,0 +1,6 @@
+LF-doc-reopen-0	<i>🌟</i><?php /** @pa */\nfunction f(int $alpha): int { return $alpha; } echo 7;	0	22	<i>🌟</i><?php /** @param int $alpha */\nfunction f(int $alpha): int { return $alpha; } echo 7;	<i>🌟</i>7
+LF-doc-reopen-1	<?php // ?><i>🌟</i><?php /** @pa */\nfunction f(int $alpha): int { return $alpha; } echo 7;	0	33	<?php // ?><i>🌟</i><?php /** @param int $alpha */\nfunction f(int $alpha): int { return $alpha; } echo 7;	<i>🌟</i>7
+CRLF-doc-reopen-0	<i>🌟</i><?php /** @pa */\r\nfunction f(int $alpha): int { return $alpha; } echo 7;	0	22	<i>🌟</i><?php /** @param int $alpha */\r\nfunction f(int $alpha): int { return $alpha; } echo 7;	<i>🌟</i>7
+CRLF-doc-reopen-1	<?php // ?><i>🌟</i><?php /** @pa */\r\nfunction f(int $alpha): int { return $alpha; } echo 7;	0	33	<?php // ?><i>🌟</i><?php /** @param int $alpha */\r\nfunction f(int $alpha): int { return $alpha; } echo 7;	<i>🌟</i>7
+CR-doc-reopen-0	<i>🌟</i><?php /** @pa */\rfunction f(int $alpha): int { return $alpha; } echo 7;	0	22	<i>🌟</i><?php /** @param int $alpha */\rfunction f(int $alpha): int { return $alpha; } echo 7;	<i>🌟</i>7
+CR-doc-reopen-1	<?php // ?><i>🌟</i><?php /** @pa */\rfunction f(int $alpha): int { return $alpha; } echo 7;	0	33	<?php // ?><i>🌟</i><?php /** @param int $alpha */\rfunction f(int $alpha): int { return $alpha; } echo 7;	<i>🌟</i>7

@@ -41,6 +41,7 @@
     "build/**/*",
     "build-*/**/*",
     "build-types/**/*",
-    "src/wasm/**/*"
+    "src/wasm/**/*",
+    "src/lsp/wasm/**/*"
   ]
 }

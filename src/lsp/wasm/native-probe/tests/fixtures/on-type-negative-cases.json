@@ -1,0 +1,762 @@
+[
+  {
+    "name": "LF-html-no-tag",
+    "source": "<div>\n/**\n\nfunction greet($name) {}\n</div>",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<div>\n/**\n\nfunction greet($name) {}\n</div>"
+  },
+  {
+    "name": "LF-html-after-close",
+    "source": "<?php ?>\n/**\n\nfunction greet($name) {}",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php ?>\n/**\n\nfunction greet($name) {}"
+  },
+  {
+    "name": "LF-single-string",
+    "source": "<?php\n$x='/**\n\nfunction greet($name) {}';\necho 7;",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\n$x='/**\n\nfunction greet($name) {}';\necho 7;"
+  },
+  {
+    "name": "LF-double-string",
+    "source": "<?php\n$x=\"/**\n\nfunction greet(\\$name) {}\";\necho 7;",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\n$x=\"/**\n\nfunction greet(\\$name) {}\";\necho 7;"
+  },
+  {
+    "name": "LF-backtick",
+    "source": "<?php\nif(false){$x=`/**\n\nfunction greet($name) {}`;}\necho 7;",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\nif(false){$x=`/**\n\nfunction greet($name) {}`;}\necho 7;"
+  },
+  {
+    "name": "LF-nowdoc",
+    "source": "<?php\n$x=<<<'TXT'\n/**\n\nfunction greet($name) {}\nTXT;\necho 7;",
+    "position": {
+      "line": 3,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\n$x=<<<'TXT'\n/**\n\nfunction greet($name) {}\nTXT;\necho 7;"
+  },
+  {
+    "name": "LF-heredoc",
+    "source": "<?php\n$x=<<<TXT\n/**\n\nfunction greet(\\$name) {}\nTXT;\necho 7;",
+    "position": {
+      "line": 3,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\n$x=<<<TXT\n/**\n\nfunction greet(\\$name) {}\nTXT;\necho 7;"
+  },
+  {
+    "name": "LF-attribute-arg",
+    "source": "<?php\n#[A('/**\n\nfunction greet($name) {}')]\nfunction actual(){}\necho 7;",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\n#[A('/**\n\nfunction greet($name) {}')]\nfunction actual(){}\necho 7;"
+  },
+  {
+    "name": "LF-documented",
+    "source": "<?php\n/**\n * retained documentation\n\nfunction greet($name) {}",
+    "position": {
+      "line": 3,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\n/**\n * retained documentation\n\nfunction greet($name) {}"
+  },
+  {
+    "name": "LF-no-declaration",
+    "source": "<?php\n/**\n\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\n/**\n\n"
+  },
+  {
+    "name": "LF-unrelated-code",
+    "source": "<?php\n/**\n\n$var=7;",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\n/**\n\n$var=7;"
+  },
+  {
+    "name": "LF-other-trigger",
+    "source": "<?php\n/**\n\nfunction greet($name){}",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "*",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\n/**\n\nfunction greet($name){}"
+  },
+  {
+    "name": "CRLF-html-no-tag",
+    "source": "<div>\r\n/**\r\n\r\nfunction greet($name) {}\r\n</div>",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<div>\r\n/**\r\n\r\nfunction greet($name) {}\r\n</div>"
+  },
+  {
+    "name": "CRLF-html-after-close",
+    "source": "<?php ?>\r\n/**\r\n\r\nfunction greet($name) {}",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php ?>\r\n/**\r\n\r\nfunction greet($name) {}"
+  },
+  {
+    "name": "CRLF-single-string",
+    "source": "<?php\r\n$x='/**\r\n\r\nfunction greet($name) {}';\r\necho 7;",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r\n$x='/**\r\n\r\nfunction greet($name) {}';\r\necho 7;"
+  },
+  {
+    "name": "CRLF-double-string",
+    "source": "<?php\r\n$x=\"/**\r\n\r\nfunction greet(\\$name) {}\";\r\necho 7;",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r\n$x=\"/**\r\n\r\nfunction greet(\\$name) {}\";\r\necho 7;"
+  },
+  {
+    "name": "CRLF-backtick",
+    "source": "<?php\r\nif(false){$x=`/**\r\n\r\nfunction greet($name) {}`;}\r\necho 7;",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r\nif(false){$x=`/**\r\n\r\nfunction greet($name) {}`;}\r\necho 7;"
+  },
+  {
+    "name": "CRLF-nowdoc",
+    "source": "<?php\r\n$x=<<<'TXT'\r\n/**\r\n\r\nfunction greet($name) {}\r\nTXT;\r\necho 7;",
+    "position": {
+      "line": 3,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r\n$x=<<<'TXT'\r\n/**\r\n\r\nfunction greet($name) {}\r\nTXT;\r\necho 7;"
+  },
+  {
+    "name": "CRLF-heredoc",
+    "source": "<?php\r\n$x=<<<TXT\r\n/**\r\n\r\nfunction greet(\\$name) {}\r\nTXT;\r\necho 7;",
+    "position": {
+      "line": 3,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r\n$x=<<<TXT\r\n/**\r\n\r\nfunction greet(\\$name) {}\r\nTXT;\r\necho 7;"
+  },
+  {
+    "name": "CRLF-attribute-arg",
+    "source": "<?php\r\n#[A('/**\r\n\r\nfunction greet($name) {}')]\r\nfunction actual(){}\r\necho 7;",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r\n#[A('/**\r\n\r\nfunction greet($name) {}')]\r\nfunction actual(){}\r\necho 7;"
+  },
+  {
+    "name": "CRLF-documented",
+    "source": "<?php\r\n/**\r\n * retained documentation\r\n\r\nfunction greet($name) {}",
+    "position": {
+      "line": 3,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r\n/**\r\n * retained documentation\r\n\r\nfunction greet($name) {}"
+  },
+  {
+    "name": "CRLF-no-declaration",
+    "source": "<?php\r\n/**\r\n\r\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r\n/**\r\n\r\n"
+  },
+  {
+    "name": "CRLF-unrelated-code",
+    "source": "<?php\r\n/**\r\n\r\n$var=7;",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r\n/**\r\n\r\n$var=7;"
+  },
+  {
+    "name": "CRLF-other-trigger",
+    "source": "<?php\r\n/**\r\n\r\nfunction greet($name){}",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "*",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r\n/**\r\n\r\nfunction greet($name){}"
+  },
+  {
+    "name": "CR-html-no-tag",
+    "source": "<div>\r/**\r\rfunction greet($name) {}\r</div>",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<div>\r/**\r\rfunction greet($name) {}\r</div>"
+  },
+  {
+    "name": "CR-html-after-close",
+    "source": "<?php ?>\r/**\r\rfunction greet($name) {}",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php ?>\r/**\r\rfunction greet($name) {}"
+  },
+  {
+    "name": "CR-single-string",
+    "source": "<?php\r$x='/**\r\rfunction greet($name) {}';\recho 7;",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r$x='/**\r\rfunction greet($name) {}';\recho 7;"
+  },
+  {
+    "name": "CR-double-string",
+    "source": "<?php\r$x=\"/**\r\rfunction greet(\\$name) {}\";\recho 7;",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r$x=\"/**\r\rfunction greet(\\$name) {}\";\recho 7;"
+  },
+  {
+    "name": "CR-backtick",
+    "source": "<?php\rif(false){$x=`/**\r\rfunction greet($name) {}`;}\recho 7;",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\rif(false){$x=`/**\r\rfunction greet($name) {}`;}\recho 7;"
+  },
+  {
+    "name": "CR-nowdoc",
+    "source": "<?php\r$x=<<<'TXT'\r/**\r\rfunction greet($name) {}\rTXT;\recho 7;",
+    "position": {
+      "line": 3,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r$x=<<<'TXT'\r/**\r\rfunction greet($name) {}\rTXT;\recho 7;"
+  },
+  {
+    "name": "CR-heredoc",
+    "source": "<?php\r$x=<<<TXT\r/**\r\rfunction greet(\\$name) {}\rTXT;\recho 7;",
+    "position": {
+      "line": 3,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r$x=<<<TXT\r/**\r\rfunction greet(\\$name) {}\rTXT;\recho 7;"
+  },
+  {
+    "name": "CR-attribute-arg",
+    "source": "<?php\r#[A('/**\r\rfunction greet($name) {}')]\rfunction actual(){}\recho 7;",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r#[A('/**\r\rfunction greet($name) {}')]\rfunction actual(){}\recho 7;"
+  },
+  {
+    "name": "CR-documented",
+    "source": "<?php\r/**\r * retained documentation\r\rfunction greet($name) {}",
+    "position": {
+      "line": 3,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r/**\r * retained documentation\r\rfunction greet($name) {}"
+  },
+  {
+    "name": "CR-no-declaration",
+    "source": "<?php\r/**\r\r",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r/**\r\r"
+  },
+  {
+    "name": "CR-unrelated-code",
+    "source": "<?php\r/**\r\r$var=7;",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r/**\r\r$var=7;"
+  },
+  {
+    "name": "CR-other-trigger",
+    "source": "<?php\r/**\r\rfunction greet($name){}",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "*",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r/**\r\rfunction greet($name){}"
+  },
+  {
+    "name": "LF-attribute-opaque",
+    "source": "<?php\n/**\n\n#[A('] ?> /* fake */')]\nfunction greet($name): string { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\n/**\n\n#[A('] ?> /* fake */')]\nfunction greet($name): string { return $name; }\necho greet(7);\n"
+  },
+  {
+    "name": "CRLF-attribute-opaque",
+    "source": "<?php\r\n/**\r\n\r\n#[A('] ?> /* fake */')]\r\nfunction greet($name): string { return $name; }\r\necho greet(7);\r\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r\n/**\r\n\r\n#[A('] ?> /* fake */')]\r\nfunction greet($name): string { return $name; }\r\necho greet(7);\r\n"
+  },
+  {
+    "name": "CR-attribute-opaque",
+    "source": "<?php\r/**\r\r#[A('] ?> /* fake */')]\rfunction greet($name): string { return $name; }\recho greet(7);\r",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r/**\r\r#[A('] ?> /* fake */')]\rfunction greet($name): string { return $name; }\recho greet(7);\r"
+  },
+  {
+    "name": "mixed-attribute-opaque",
+    "source": "<?php\r\n/**\r\r#[A('] ?> /* fake */')]\nfunction greet($name): string { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": null,
+    "expectedDocument": "<?php\r\n/**\r\r#[A('] ?> /* fake */')]\nfunction greet($name): string { return $name; }\necho greet(7);\n"
+  }
+]

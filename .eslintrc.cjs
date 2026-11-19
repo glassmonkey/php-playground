@@ -30,6 +30,11 @@ module.exports = {
 		"src/wasm/build-assets/*.js",
 		"src/wasm-assets/*.js"
 	],
+	// The build module has two explicit Node validation CLIs.
+	overrides: [{
+		files: ['src/lsp/wasm/smoke-test.mjs', 'src/lsp/wasm/versioned-wasi-test.mjs'],
+		env: { node: true, browser: false },
+	}],
 	plugins: ['react', '@typescript-eslint'],
 	rules: {
 		'no-inner-declarations': 0,

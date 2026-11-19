@@ -1,0 +1,22 @@
+# Independent PHP import-kind fixtures; all twelve supported versions
+const-plain	<?php\nnamespace App; use const str	STR_PAD_BOTH	21	-
+const-before-kind	<?php\nnamespace App; use /*comment*/ const str	STR_PAD_BOTH	21	-
+const-after-kind	<?php\nnamespace App; use const /*comment*/ str	STR_PAD_BOTH	21	-
+const-both	<?php\nnamespace App; use/**one*/const/**two*/str	STR_PAD_BOTH	21	-
+const-line-comment	<?php\nnamespace App; use //comment\n const str	STR_PAD_BOTH	21	-
+const-whitespace	<?php\nnamespace App; use \n const \n str	STR_PAD_BOTH	21	-
+const-uppercase	<?php\nnamespace App; UsE /*x*/ CoNsT str	STR_PAD_BOTH	21	-
+const-braced	<?php\nnamespace App { use /*comment*/ const str	STR_PAD_BOTH	21	-
+vendor-class-plain	<?php\nnamespace Vendor { class stringBox {} function stringBox() {} const stringBox=1; trait stringTrait {} class stringTangent {} } namespace App { use Vendor\stri	Vendor\stringBox	7	-
+vendor-class-comment	<?php\nnamespace Vendor { class stringBox {} function stringBox() {} const stringBox=1; trait stringTrait {} class stringTangent {} } namespace App { use /*x*/ Vendor\stri	Vendor\stringBox	7	-
+vendor-function-plain	<?php\nnamespace Vendor { class stringBox {} function stringBox() {} const stringBox=1; trait stringTrait {} class stringTangent {} } namespace App { use function Vendor\stri	Vendor\stringBox	3	-
+vendor-function-comment	<?php\nnamespace Vendor { class stringBox {} function stringBox() {} const stringBox=1; trait stringTrait {} class stringTangent {} } namespace App { use /*x*/ function Vendor\stri	Vendor\stringBox	3	-
+vendor-const-plain	<?php\nnamespace Vendor { class stringBox {} function stringBox() {} const stringBox=1; trait stringTrait {} class stringTangent {} } namespace App { use const Vendor\stri	Vendor\stringBox	21	-
+vendor-const-comment	<?php\nnamespace Vendor { class stringBox {} function stringBox() {} const stringBox=1; trait stringTrait {} class stringTangent {} } namespace App { use /*x*/ const Vendor\stri	Vendor\stringBox	21	-
+trait-comment	<?php\nnamespace Vendor { class stringBox {} function stringBox() {} const stringBox=1; trait stringTrait {} class stringTangent {} } namespace App { class C { use /*comment*/ \Vendor\stringT	Vendor\stringTrait	7	Vendor\stringTangent
+trait-plain	<?php\nnamespace Vendor { class stringBox {} function stringBox() {} const stringBox=1; trait stringTrait {} class stringTangent {} } namespace App { class C { use \Vendor\stringT	Vendor\stringTrait	7	Vendor\stringTangent
+closure-comment	<?php\n$shared=1; $f=function() use /*comment*/ ($sha	$shared	6	-
+closure-plain	<?php\n$shared=1; $f=function() use ($sha	$shared	6	-
+const-brace-trivia	<?php\nnamespace App; use /* } { */ const str	STR_PAD_BOTH	21	-
+trait-brace-trivia	<?php\nnamespace Vendor { class stringBox {} function stringBox() {} const stringBox=1; trait stringTrait {} class stringTangent {} } namespace App { class C { use /* } } */ \Vendor\stringT	Vendor\stringTrait	7	Vendor\stringTangent
+trait-line-comment	<?php\nnamespace Vendor { class stringBox {} function stringBox() {} const stringBox=1; trait stringTrait {} class stringTangent {} } namespace App { class C { use //comment\n \Vendor\stringT	Vendor\stringTrait	7	Vendor\stringTangent

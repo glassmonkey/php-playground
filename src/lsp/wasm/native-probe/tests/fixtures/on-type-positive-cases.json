@@ -1,0 +1,2222 @@
+[
+  {
+    "name": "LF-natural-untyped",
+    "source": "<?php\n/**\n\nfunction greet($name) { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\n * @param mixed $name\n *\n * @return mixed\n */\n"
+      }
+    ],
+    "expectedDocument": "<?php\n/**\n * @param mixed $name\n *\n * @return mixed\n */\nfunction greet($name) { return $name; }\necho greet(7);\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\n * @param mixed $name\n *\n * @return mixed\n */"
+  },
+  {
+    "name": "LF-natural-typed",
+    "source": "<?php\n/**\n\nfunction greet($name): string { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      7,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\n * @param mixed $name\n */\n"
+      }
+    ],
+    "expectedDocument": "<?php\n/**\n * @param mixed $name\n */\nfunction greet($name): string { return $name; }\necho greet(7);\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\n * @param mixed $name\n */"
+  },
+  {
+    "name": "LF-preclosed-single",
+    "source": "<?php\n/** */\nfunction greet($name) { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 1,
+      "character": 4
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 2,
+            "character": 0
+          }
+        },
+        "newText": "/**\n * @param mixed $name\n *\n * @return mixed\n */\n"
+      }
+    ],
+    "expectedDocument": "<?php\n/**\n * @param mixed $name\n *\n * @return mixed\n */\nfunction greet($name) { return $name; }\necho greet(7);\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\n * @param mixed $name\n *\n * @return mixed\n */"
+  },
+  {
+    "name": "LF-preclosed-multi",
+    "source": "<?php\n/**\n * \n */\nfunction greet($name) { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 2,
+      "character": 3
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 4,
+            "character": 0
+          }
+        },
+        "newText": "/**\n * @param mixed $name\n *\n * @return mixed\n */\n"
+      }
+    ],
+    "expectedDocument": "<?php\n/**\n * @param mixed $name\n *\n * @return mixed\n */\nfunction greet($name) { return $name; }\necho greet(7);\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\n * @param mixed $name\n *\n * @return mixed\n */"
+  },
+  {
+    "name": "LF-natural-star",
+    "source": "<?php\n/**\n * \nfunction greet($name) { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 2,
+      "character": 3
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\n * @param mixed $name\n *\n * @return mixed\n */\n"
+      }
+    ],
+    "expectedDocument": "<?php\n/**\n * @param mixed $name\n *\n * @return mixed\n */\nfunction greet($name) { return $name; }\necho greet(7);\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\n * @param mixed $name\n *\n * @return mixed\n */"
+  },
+  {
+    "name": "LF-spaces-indent",
+    "source": "<?php\n  /**\n  \n  function greet($name) { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 2,
+      "character": 2
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": false
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "  /**\n   * @param mixed $name\n   *\n   * @return mixed\n   */\n"
+      }
+    ],
+    "expectedDocument": "<?php\n  /**\n   * @param mixed $name\n   *\n   * @return mixed\n   */\n  function greet($name) { return $name; }\necho greet(7);\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\n   * @param mixed $name\n   *\n   * @return mixed\n   */"
+  },
+  {
+    "name": "LF-method-tabs",
+    "source": "<?php\nclass C {\n\t/**\n\t\n\tpublic function greet($name) { return $name; }\n}\necho (new C)->greet(7);\n",
+    "position": {
+      "line": 3,
+      "character": 1
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 2,
+            "character": 0
+          },
+          "end": {
+            "line": 4,
+            "character": 0
+          }
+        },
+        "newText": "\t/**\n\t * @param mixed $name\n\t *\n\t * @return mixed\n\t */\n"
+      }
+    ],
+    "expectedDocument": "<?php\nclass C {\n\t/**\n\t * @param mixed $name\n\t *\n\t * @return mixed\n\t */\n\tpublic function greet($name) { return $name; }\n}\necho (new C)->greet(7);\n",
+    "expectedStdout": "7",
+    "reflectionKind": "method",
+    "reflectionSymbol": "C::greet",
+    "expectReflection": "/**\n\t * @param mixed $name\n\t *\n\t * @return mixed\n\t */"
+  },
+  {
+    "name": "LF-property",
+    "source": "<?php\nclass C {\n/**\n\npublic $name;\n}\n$c=new C; $c->name=7; echo $c->name;\n",
+    "position": {
+      "line": 3,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 2,
+            "character": 0
+          },
+          "end": {
+            "line": 4,
+            "character": 0
+          }
+        },
+        "newText": "/** @var mixed */\n"
+      }
+    ],
+    "expectedDocument": "<?php\nclass C {\n/** @var mixed */\npublic $name;\n}\n$c=new C; $c->name=7; echo $c->name;\n",
+    "expectedStdout": "7",
+    "reflectionKind": "property",
+    "reflectionSymbol": "C::name",
+    "expectReflection": "/** @var mixed */"
+  },
+  {
+    "name": "LF-class",
+    "source": "<?php\n/**\n\nclass C {}\necho 7;\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\n * \n */\n"
+      }
+    ],
+    "expectedDocument": "<?php\n/**\n * \n */\nclass C {}\necho 7;\n",
+    "expectedStdout": "7",
+    "reflectionKind": "class",
+    "reflectionSymbol": "C",
+    "expectReflection": "/**\n * \n */"
+  },
+  {
+    "name": "LF-typed-summary",
+    "source": "<?php\n/**\n\nfunction greet(string $name): string { return $name; }\necho greet(\"7\");\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      7,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\n * \n */\n"
+      }
+    ],
+    "expectedDocument": "<?php\n/**\n * \n */\nfunction greet(string $name): string { return $name; }\necho greet(\"7\");\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\n * \n */"
+  },
+  {
+    "name": "LF-attribute-opaque-single",
+    "source": "<?php\n/** */\n#[A('] ?> /* fake */')]\nfunction greet($name): string { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 1,
+      "character": 4
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 2,
+            "character": 0
+          }
+        },
+        "newText": "/**\n * @param mixed $name\n */\n"
+      }
+    ],
+    "expectedDocument": "<?php\n/**\n * @param mixed $name\n */\n#[A('] ?> /* fake */')]\nfunction greet($name): string { return $name; }\necho greet(7);\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\n * @param mixed $name\n */"
+  },
+  {
+    "name": "LF-attribute-opaque-multi",
+    "source": "<?php\n/**\n * \n */\n#[A('] ?> /* fake */')]\nfunction greet($name): string { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 2,
+      "character": 3
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 4,
+            "character": 0
+          }
+        },
+        "newText": "/**\n * @param mixed $name\n */\n"
+      }
+    ],
+    "expectedDocument": "<?php\n/**\n * @param mixed $name\n */\n#[A('] ?> /* fake */')]\nfunction greet($name): string { return $name; }\necho greet(7);\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\n * @param mixed $name\n */"
+  },
+  {
+    "name": "LF-attribute-opaque-unclosed",
+    "source": "<?php\n/**\n\n#[A('] ?> /* fake * /')]\nfunction greet($name): string { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\n * @param mixed $name\n */\n"
+      }
+    ],
+    "expectedDocument": "<?php\n/**\n * @param mixed $name\n */\n#[A('] ?> /* fake * /')]\nfunction greet($name): string { return $name; }\necho greet(7);\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\n * @param mixed $name\n */"
+  },
+  {
+    "name": "LF-unicode-prefix",
+    "source": "<?php\nnamespace Demo;\n$猫=\"𐐀\";\n/**\n\nfunction greet($name) { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 4,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 3,
+            "character": 0
+          },
+          "end": {
+            "line": 5,
+            "character": 0
+          }
+        },
+        "newText": "/**\n * @param mixed $name\n *\n * @return mixed\n */\n"
+      }
+    ],
+    "expectedDocument": "<?php\nnamespace Demo;\n$猫=\"𐐀\";\n/**\n * @param mixed $name\n *\n * @return mixed\n */\nfunction greet($name) { return $name; }\necho greet(7);\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "Demo\\greet",
+    "expectReflection": "/**\n * @param mixed $name\n *\n * @return mixed\n */"
+  },
+  {
+    "name": "LF-reopen",
+    "source": "outside<?php\n/**\n\nfunction greet($name) { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\n * @param mixed $name\n *\n * @return mixed\n */\n"
+      }
+    ],
+    "expectedDocument": "outside<?php\n/**\n * @param mixed $name\n *\n * @return mixed\n */\nfunction greet($name) { return $name; }\necho greet(7);\n",
+    "expectedStdout": "outside7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\n * @param mixed $name\n *\n * @return mixed\n */"
+  },
+  {
+    "name": "CRLF-natural-untyped",
+    "source": "<?php\r\n/**\r\n\r\nfunction greet($name) { return $name; }\r\necho greet(7);\r\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\n/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */\r\nfunction greet($name) { return $name; }\r\necho greet(7);\r\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */"
+  },
+  {
+    "name": "CRLF-natural-typed",
+    "source": "<?php\r\n/**\r\n\r\nfunction greet($name): string { return $name; }\r\necho greet(7);\r\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      7,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\r\n * @param mixed $name\r\n */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\n/**\r\n * @param mixed $name\r\n */\r\nfunction greet($name): string { return $name; }\r\necho greet(7);\r\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r\n * @param mixed $name\r\n */"
+  },
+  {
+    "name": "CRLF-preclosed-single",
+    "source": "<?php\r\n/** */\r\nfunction greet($name) { return $name; }\r\necho greet(7);\r\n",
+    "position": {
+      "line": 1,
+      "character": 4
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 2,
+            "character": 0
+          }
+        },
+        "newText": "/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\n/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */\r\nfunction greet($name) { return $name; }\r\necho greet(7);\r\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */"
+  },
+  {
+    "name": "CRLF-preclosed-multi",
+    "source": "<?php\r\n/**\r\n * \r\n */\r\nfunction greet($name) { return $name; }\r\necho greet(7);\r\n",
+    "position": {
+      "line": 2,
+      "character": 3
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 4,
+            "character": 0
+          }
+        },
+        "newText": "/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\n/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */\r\nfunction greet($name) { return $name; }\r\necho greet(7);\r\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */"
+  },
+  {
+    "name": "CRLF-natural-star",
+    "source": "<?php\r\n/**\r\n * \r\nfunction greet($name) { return $name; }\r\necho greet(7);\r\n",
+    "position": {
+      "line": 2,
+      "character": 3
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\n/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */\r\nfunction greet($name) { return $name; }\r\necho greet(7);\r\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */"
+  },
+  {
+    "name": "CRLF-spaces-indent",
+    "source": "<?php\r\n  /**\r\n  \r\n  function greet($name) { return $name; }\r\necho greet(7);\r\n",
+    "position": {
+      "line": 2,
+      "character": 2
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": false
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "  /**\r\n   * @param mixed $name\r\n   *\r\n   * @return mixed\r\n   */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\n  /**\r\n   * @param mixed $name\r\n   *\r\n   * @return mixed\r\n   */\r\n  function greet($name) { return $name; }\r\necho greet(7);\r\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r\n   * @param mixed $name\r\n   *\r\n   * @return mixed\r\n   */"
+  },
+  {
+    "name": "CRLF-method-tabs",
+    "source": "<?php\r\nclass C {\r\n\t/**\r\n\t\r\n\tpublic function greet($name) { return $name; }\r\n}\r\necho (new C)->greet(7);\r\n",
+    "position": {
+      "line": 3,
+      "character": 1
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 2,
+            "character": 0
+          },
+          "end": {
+            "line": 4,
+            "character": 0
+          }
+        },
+        "newText": "\t/**\r\n\t * @param mixed $name\r\n\t *\r\n\t * @return mixed\r\n\t */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\nclass C {\r\n\t/**\r\n\t * @param mixed $name\r\n\t *\r\n\t * @return mixed\r\n\t */\r\n\tpublic function greet($name) { return $name; }\r\n}\r\necho (new C)->greet(7);\r\n",
+    "expectedStdout": "7",
+    "reflectionKind": "method",
+    "reflectionSymbol": "C::greet",
+    "expectReflection": "/**\r\n\t * @param mixed $name\r\n\t *\r\n\t * @return mixed\r\n\t */"
+  },
+  {
+    "name": "CRLF-property",
+    "source": "<?php\r\nclass C {\r\n/**\r\n\r\npublic $name;\r\n}\r\n$c=new C; $c->name=7; echo $c->name;\r\n",
+    "position": {
+      "line": 3,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 2,
+            "character": 0
+          },
+          "end": {
+            "line": 4,
+            "character": 0
+          }
+        },
+        "newText": "/** @var mixed */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\nclass C {\r\n/** @var mixed */\r\npublic $name;\r\n}\r\n$c=new C; $c->name=7; echo $c->name;\r\n",
+    "expectedStdout": "7",
+    "reflectionKind": "property",
+    "reflectionSymbol": "C::name",
+    "expectReflection": "/** @var mixed */"
+  },
+  {
+    "name": "CRLF-class",
+    "source": "<?php\r\n/**\r\n\r\nclass C {}\r\necho 7;\r\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\r\n * \r\n */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\n/**\r\n * \r\n */\r\nclass C {}\r\necho 7;\r\n",
+    "expectedStdout": "7",
+    "reflectionKind": "class",
+    "reflectionSymbol": "C",
+    "expectReflection": "/**\r\n * \r\n */"
+  },
+  {
+    "name": "CRLF-typed-summary",
+    "source": "<?php\r\n/**\r\n\r\nfunction greet(string $name): string { return $name; }\r\necho greet(\"7\");\r\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      7,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\r\n * \r\n */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\n/**\r\n * \r\n */\r\nfunction greet(string $name): string { return $name; }\r\necho greet(\"7\");\r\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r\n * \r\n */"
+  },
+  {
+    "name": "CRLF-attribute-opaque-single",
+    "source": "<?php\r\n/** */\r\n#[A('] ?> /* fake */')]\r\nfunction greet($name): string { return $name; }\r\necho greet(7);\r\n",
+    "position": {
+      "line": 1,
+      "character": 4
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 2,
+            "character": 0
+          }
+        },
+        "newText": "/**\r\n * @param mixed $name\r\n */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\n/**\r\n * @param mixed $name\r\n */\r\n#[A('] ?> /* fake */')]\r\nfunction greet($name): string { return $name; }\r\necho greet(7);\r\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r\n * @param mixed $name\r\n */"
+  },
+  {
+    "name": "CRLF-attribute-opaque-multi",
+    "source": "<?php\r\n/**\r\n * \r\n */\r\n#[A('] ?> /* fake */')]\r\nfunction greet($name): string { return $name; }\r\necho greet(7);\r\n",
+    "position": {
+      "line": 2,
+      "character": 3
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 4,
+            "character": 0
+          }
+        },
+        "newText": "/**\r\n * @param mixed $name\r\n */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\n/**\r\n * @param mixed $name\r\n */\r\n#[A('] ?> /* fake */')]\r\nfunction greet($name): string { return $name; }\r\necho greet(7);\r\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r\n * @param mixed $name\r\n */"
+  },
+  {
+    "name": "CRLF-attribute-opaque-unclosed",
+    "source": "<?php\r\n/**\r\n\r\n#[A('] ?> /* fake * /')]\r\nfunction greet($name): string { return $name; }\r\necho greet(7);\r\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\r\n * @param mixed $name\r\n */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\n/**\r\n * @param mixed $name\r\n */\r\n#[A('] ?> /* fake * /')]\r\nfunction greet($name): string { return $name; }\r\necho greet(7);\r\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r\n * @param mixed $name\r\n */"
+  },
+  {
+    "name": "CRLF-unicode-prefix",
+    "source": "<?php\r\nnamespace Demo;\r\n$猫=\"𐐀\";\r\n/**\r\n\r\nfunction greet($name) { return $name; }\r\necho greet(7);\r\n",
+    "position": {
+      "line": 4,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 3,
+            "character": 0
+          },
+          "end": {
+            "line": 5,
+            "character": 0
+          }
+        },
+        "newText": "/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\nnamespace Demo;\r\n$猫=\"𐐀\";\r\n/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */\r\nfunction greet($name) { return $name; }\r\necho greet(7);\r\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "Demo\\greet",
+    "expectReflection": "/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */"
+  },
+  {
+    "name": "CRLF-reopen",
+    "source": "outside<?php\r\n/**\r\n\r\nfunction greet($name) { return $name; }\r\necho greet(7);\r\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */\r\n"
+      }
+    ],
+    "expectedDocument": "outside<?php\r\n/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */\r\nfunction greet($name) { return $name; }\r\necho greet(7);\r\n",
+    "expectedStdout": "outside7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */"
+  },
+  {
+    "name": "CR-natural-untyped",
+    "source": "<?php\r/**\r\rfunction greet($name) { return $name; }\recho greet(7);\r",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\r * @param mixed $name\r *\r * @return mixed\r */\r"
+      }
+    ],
+    "expectedDocument": "<?php\r/**\r * @param mixed $name\r *\r * @return mixed\r */\rfunction greet($name) { return $name; }\recho greet(7);\r",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r * @param mixed $name\r *\r * @return mixed\r */"
+  },
+  {
+    "name": "CR-natural-typed",
+    "source": "<?php\r/**\r\rfunction greet($name): string { return $name; }\recho greet(7);\r",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      7,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\r * @param mixed $name\r */\r"
+      }
+    ],
+    "expectedDocument": "<?php\r/**\r * @param mixed $name\r */\rfunction greet($name): string { return $name; }\recho greet(7);\r",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r * @param mixed $name\r */"
+  },
+  {
+    "name": "CR-preclosed-single",
+    "source": "<?php\r/** */\rfunction greet($name) { return $name; }\recho greet(7);\r",
+    "position": {
+      "line": 1,
+      "character": 4
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 2,
+            "character": 0
+          }
+        },
+        "newText": "/**\r * @param mixed $name\r *\r * @return mixed\r */\r"
+      }
+    ],
+    "expectedDocument": "<?php\r/**\r * @param mixed $name\r *\r * @return mixed\r */\rfunction greet($name) { return $name; }\recho greet(7);\r",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r * @param mixed $name\r *\r * @return mixed\r */"
+  },
+  {
+    "name": "CR-preclosed-multi",
+    "source": "<?php\r/**\r * \r */\rfunction greet($name) { return $name; }\recho greet(7);\r",
+    "position": {
+      "line": 2,
+      "character": 3
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 4,
+            "character": 0
+          }
+        },
+        "newText": "/**\r * @param mixed $name\r *\r * @return mixed\r */\r"
+      }
+    ],
+    "expectedDocument": "<?php\r/**\r * @param mixed $name\r *\r * @return mixed\r */\rfunction greet($name) { return $name; }\recho greet(7);\r",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r * @param mixed $name\r *\r * @return mixed\r */"
+  },
+  {
+    "name": "CR-natural-star",
+    "source": "<?php\r/**\r * \rfunction greet($name) { return $name; }\recho greet(7);\r",
+    "position": {
+      "line": 2,
+      "character": 3
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\r * @param mixed $name\r *\r * @return mixed\r */\r"
+      }
+    ],
+    "expectedDocument": "<?php\r/**\r * @param mixed $name\r *\r * @return mixed\r */\rfunction greet($name) { return $name; }\recho greet(7);\r",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r * @param mixed $name\r *\r * @return mixed\r */"
+  },
+  {
+    "name": "CR-spaces-indent",
+    "source": "<?php\r  /**\r  \r  function greet($name) { return $name; }\recho greet(7);\r",
+    "position": {
+      "line": 2,
+      "character": 2
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": false
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "  /**\r   * @param mixed $name\r   *\r   * @return mixed\r   */\r"
+      }
+    ],
+    "expectedDocument": "<?php\r  /**\r   * @param mixed $name\r   *\r   * @return mixed\r   */\r  function greet($name) { return $name; }\recho greet(7);\r",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r   * @param mixed $name\r   *\r   * @return mixed\r   */"
+  },
+  {
+    "name": "CR-method-tabs",
+    "source": "<?php\rclass C {\r\t/**\r\t\r\tpublic function greet($name) { return $name; }\r}\recho (new C)->greet(7);\r",
+    "position": {
+      "line": 3,
+      "character": 1
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 2,
+            "character": 0
+          },
+          "end": {
+            "line": 4,
+            "character": 0
+          }
+        },
+        "newText": "\t/**\r\t * @param mixed $name\r\t *\r\t * @return mixed\r\t */\r"
+      }
+    ],
+    "expectedDocument": "<?php\rclass C {\r\t/**\r\t * @param mixed $name\r\t *\r\t * @return mixed\r\t */\r\tpublic function greet($name) { return $name; }\r}\recho (new C)->greet(7);\r",
+    "expectedStdout": "7",
+    "reflectionKind": "method",
+    "reflectionSymbol": "C::greet",
+    "expectReflection": "/**\r\t * @param mixed $name\r\t *\r\t * @return mixed\r\t */"
+  },
+  {
+    "name": "CR-property",
+    "source": "<?php\rclass C {\r/**\r\rpublic $name;\r}\r$c=new C; $c->name=7; echo $c->name;\r",
+    "position": {
+      "line": 3,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 2,
+            "character": 0
+          },
+          "end": {
+            "line": 4,
+            "character": 0
+          }
+        },
+        "newText": "/** @var mixed */\r"
+      }
+    ],
+    "expectedDocument": "<?php\rclass C {\r/** @var mixed */\rpublic $name;\r}\r$c=new C; $c->name=7; echo $c->name;\r",
+    "expectedStdout": "7",
+    "reflectionKind": "property",
+    "reflectionSymbol": "C::name",
+    "expectReflection": "/** @var mixed */"
+  },
+  {
+    "name": "CR-class",
+    "source": "<?php\r/**\r\rclass C {}\recho 7;\r",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\r * \r */\r"
+      }
+    ],
+    "expectedDocument": "<?php\r/**\r * \r */\rclass C {}\recho 7;\r",
+    "expectedStdout": "7",
+    "reflectionKind": "class",
+    "reflectionSymbol": "C",
+    "expectReflection": "/**\r * \r */"
+  },
+  {
+    "name": "CR-typed-summary",
+    "source": "<?php\r/**\r\rfunction greet(string $name): string { return $name; }\recho greet(\"7\");\r",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      7,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\r * \r */\r"
+      }
+    ],
+    "expectedDocument": "<?php\r/**\r * \r */\rfunction greet(string $name): string { return $name; }\recho greet(\"7\");\r",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r * \r */"
+  },
+  {
+    "name": "CR-attribute-opaque-single",
+    "source": "<?php\r/** */\r#[A('] ?> /* fake */')]\rfunction greet($name): string { return $name; }\recho greet(7);\r",
+    "position": {
+      "line": 1,
+      "character": 4
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 2,
+            "character": 0
+          }
+        },
+        "newText": "/**\r * @param mixed $name\r */\r"
+      }
+    ],
+    "expectedDocument": "<?php\r/**\r * @param mixed $name\r */\r#[A('] ?> /* fake */')]\rfunction greet($name): string { return $name; }\recho greet(7);\r",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r * @param mixed $name\r */"
+  },
+  {
+    "name": "CR-attribute-opaque-multi",
+    "source": "<?php\r/**\r * \r */\r#[A('] ?> /* fake */')]\rfunction greet($name): string { return $name; }\recho greet(7);\r",
+    "position": {
+      "line": 2,
+      "character": 3
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 4,
+            "character": 0
+          }
+        },
+        "newText": "/**\r * @param mixed $name\r */\r"
+      }
+    ],
+    "expectedDocument": "<?php\r/**\r * @param mixed $name\r */\r#[A('] ?> /* fake */')]\rfunction greet($name): string { return $name; }\recho greet(7);\r",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r * @param mixed $name\r */"
+  },
+  {
+    "name": "CR-attribute-opaque-unclosed",
+    "source": "<?php\r/**\r\r#[A('] ?> /* fake * /')]\rfunction greet($name): string { return $name; }\recho greet(7);\r",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\r * @param mixed $name\r */\r"
+      }
+    ],
+    "expectedDocument": "<?php\r/**\r * @param mixed $name\r */\r#[A('] ?> /* fake * /')]\rfunction greet($name): string { return $name; }\recho greet(7);\r",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r * @param mixed $name\r */"
+  },
+  {
+    "name": "CR-unicode-prefix",
+    "source": "<?php\rnamespace Demo;\r$猫=\"𐐀\";\r/**\r\rfunction greet($name) { return $name; }\recho greet(7);\r",
+    "position": {
+      "line": 4,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 3,
+            "character": 0
+          },
+          "end": {
+            "line": 5,
+            "character": 0
+          }
+        },
+        "newText": "/**\r * @param mixed $name\r *\r * @return mixed\r */\r"
+      }
+    ],
+    "expectedDocument": "<?php\rnamespace Demo;\r$猫=\"𐐀\";\r/**\r * @param mixed $name\r *\r * @return mixed\r */\rfunction greet($name) { return $name; }\recho greet(7);\r",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "Demo\\greet",
+    "expectReflection": "/**\r * @param mixed $name\r *\r * @return mixed\r */"
+  },
+  {
+    "name": "CR-reopen",
+    "source": "outside<?php\r/**\r\rfunction greet($name) { return $name; }\recho greet(7);\r",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\r * @param mixed $name\r *\r * @return mixed\r */\r"
+      }
+    ],
+    "expectedDocument": "outside<?php\r/**\r * @param mixed $name\r *\r * @return mixed\r */\rfunction greet($name) { return $name; }\recho greet(7);\r",
+    "expectedStdout": "outside7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r * @param mixed $name\r *\r * @return mixed\r */"
+  },
+  {
+    "name": "mixed-natural-untyped",
+    "source": "<?php\r\n/**\r\rfunction greet($name) { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\n/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */\r\nfunction greet($name) { return $name; }\necho greet(7);\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */"
+  },
+  {
+    "name": "mixed-natural-typed",
+    "source": "<?php\r\n/**\r\rfunction greet($name): string { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      7,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\r\n * @param mixed $name\r\n */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\n/**\r\n * @param mixed $name\r\n */\r\nfunction greet($name): string { return $name; }\necho greet(7);\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r\n * @param mixed $name\r\n */"
+  },
+  {
+    "name": "mixed-preclosed-single",
+    "source": "<?php\r\n/** */\rfunction greet($name) { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 1,
+      "character": 4
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 2,
+            "character": 0
+          }
+        },
+        "newText": "/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\n/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */\r\nfunction greet($name) { return $name; }\necho greet(7);\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */"
+  },
+  {
+    "name": "mixed-preclosed-multi",
+    "source": "<?php\r\n/**\r * \r */\rfunction greet($name) { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 2,
+      "character": 3
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 4,
+            "character": 0
+          }
+        },
+        "newText": "/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\n/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */\r\nfunction greet($name) { return $name; }\necho greet(7);\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */"
+  },
+  {
+    "name": "mixed-natural-star",
+    "source": "<?php\r\n/**\r * \rfunction greet($name) { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 2,
+      "character": 3
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\n/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */\r\nfunction greet($name) { return $name; }\necho greet(7);\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */"
+  },
+  {
+    "name": "mixed-spaces-indent",
+    "source": "<?php\r\n  /**\r  \r  function greet($name) { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 2,
+      "character": 2
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": false
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "  /**\r\n   * @param mixed $name\r\n   *\r\n   * @return mixed\r\n   */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\n  /**\r\n   * @param mixed $name\r\n   *\r\n   * @return mixed\r\n   */\r\n  function greet($name) { return $name; }\necho greet(7);\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r\n   * @param mixed $name\r\n   *\r\n   * @return mixed\r\n   */"
+  },
+  {
+    "name": "mixed-method-tabs",
+    "source": "<?php\r\nclass C {\r\n\t/**\r\t\r\tpublic function greet($name) { return $name; }\n}\necho (new C)->greet(7);\n",
+    "position": {
+      "line": 3,
+      "character": 1
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 2,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 2,
+            "character": 0
+          },
+          "end": {
+            "line": 4,
+            "character": 0
+          }
+        },
+        "newText": "\t/**\r\n\t * @param mixed $name\r\n\t *\r\n\t * @return mixed\r\n\t */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\nclass C {\r\n\t/**\r\n\t * @param mixed $name\r\n\t *\r\n\t * @return mixed\r\n\t */\r\n\tpublic function greet($name) { return $name; }\n}\necho (new C)->greet(7);\n",
+    "expectedStdout": "7",
+    "reflectionKind": "method",
+    "reflectionSymbol": "C::greet",
+    "expectReflection": "/**\r\n\t * @param mixed $name\r\n\t *\r\n\t * @return mixed\r\n\t */"
+  },
+  {
+    "name": "mixed-property",
+    "source": "<?php\r\nclass C {\r\n/**\r\rpublic $name;\n}\n$c=new C; $c->name=7; echo $c->name;\n",
+    "position": {
+      "line": 3,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 2,
+            "character": 0
+          },
+          "end": {
+            "line": 4,
+            "character": 0
+          }
+        },
+        "newText": "/** @var mixed */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\nclass C {\r\n/** @var mixed */\r\npublic $name;\n}\n$c=new C; $c->name=7; echo $c->name;\n",
+    "expectedStdout": "7",
+    "reflectionKind": "property",
+    "reflectionSymbol": "C::name",
+    "expectReflection": "/** @var mixed */"
+  },
+  {
+    "name": "mixed-class",
+    "source": "<?php\r\n/**\r\rclass C {}\necho 7;\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\r\n * \r\n */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\n/**\r\n * \r\n */\r\nclass C {}\necho 7;\n",
+    "expectedStdout": "7",
+    "reflectionKind": "class",
+    "reflectionSymbol": "C",
+    "expectReflection": "/**\r\n * \r\n */"
+  },
+  {
+    "name": "mixed-typed-summary",
+    "source": "<?php\r\n/**\r\rfunction greet(string $name): string { return $name; }\necho greet(\"7\");\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      7,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\r\n * \r\n */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\n/**\r\n * \r\n */\r\nfunction greet(string $name): string { return $name; }\necho greet(\"7\");\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r\n * \r\n */"
+  },
+  {
+    "name": "mixed-attribute-opaque-single",
+    "source": "<?php\r\n/** */\r\n#[A('] ?> /* fake */')]\nfunction greet($name): string { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 1,
+      "character": 4
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 2,
+            "character": 0
+          }
+        },
+        "newText": "/**\r\n * @param mixed $name\r\n */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\n/**\r\n * @param mixed $name\r\n */\r\n#[A('] ?> /* fake */')]\nfunction greet($name): string { return $name; }\necho greet(7);\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r\n * @param mixed $name\r\n */"
+  },
+  {
+    "name": "mixed-attribute-opaque-multi",
+    "source": "<?php\r\n/**\r\n * \r\n */\r\n#[A('] ?> /* fake */')]\nfunction greet($name): string { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 2,
+      "character": 3
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 4,
+            "character": 0
+          }
+        },
+        "newText": "/**\r\n * @param mixed $name\r\n */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\n/**\r\n * @param mixed $name\r\n */\r\n#[A('] ?> /* fake */')]\nfunction greet($name): string { return $name; }\necho greet(7);\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r\n * @param mixed $name\r\n */"
+  },
+  {
+    "name": "mixed-attribute-opaque-unclosed",
+    "source": "<?php\r\n/**\r\r#[A('] ?> /* fake * /')]\nfunction greet($name): string { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      8,
+      0
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\r\n * @param mixed $name\r\n */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\n/**\r\n * @param mixed $name\r\n */\r\n#[A('] ?> /* fake * /')]\nfunction greet($name): string { return $name; }\necho greet(7);\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r\n * @param mixed $name\r\n */"
+  },
+  {
+    "name": "mixed-unicode-prefix",
+    "source": "<?php\r\nnamespace Demo;\r\n$猫=\"𐐀\";\r\n/**\r\rfunction greet($name) { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 4,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 3,
+            "character": 0
+          },
+          "end": {
+            "line": 5,
+            "character": 0
+          }
+        },
+        "newText": "/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\nnamespace Demo;\r\n$猫=\"𐐀\";\r\n/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */\r\nfunction greet($name) { return $name; }\necho greet(7);\n",
+    "expectedStdout": "7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "Demo\\greet",
+    "expectReflection": "/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */"
+  },
+  {
+    "name": "mixed-reopen",
+    "source": "outside<?php\r\n/**\r\rfunction greet($name) { return $name; }\necho greet(7);\n",
+    "position": {
+      "line": 2,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      5,
+      6
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 0
+          }
+        },
+        "newText": "/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */\r\n"
+      }
+    ],
+    "expectedDocument": "outside<?php\r\n/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */\r\nfunction greet($name) { return $name; }\necho greet(7);\n",
+    "expectedStdout": "outside7",
+    "reflectionKind": "function",
+    "reflectionSymbol": "greet",
+    "expectReflection": "/**\r\n * @param mixed $name\r\n *\r\n * @return mixed\r\n */"
+  }
+]

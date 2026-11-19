@@ -1,0 +1,36 @@
+line-comment-LF	<?php\n$box=new \\Box();\n// $box->\n	2	9	empty	9	9
+line-comment-CRLF	<?php\r\n$box=new \\Box();\r\n// $box->\r\n	2	9	empty	9	9
+line-comment-CR	<?php\r$box=new \\Box();\r// $box->\r	2	9	empty	9	9
+line-comment-mixed	<?php\r$box=new \\Box();\r\n// $box->\n	2	9	empty	9	9
+block-comment-LF	<?php\n$box=new \\Box();\n/* $box-> */\n	2	9	empty	9	9
+block-comment-CRLF	<?php\r\n$box=new \\Box();\r\n/* $box-> */\r\n	2	9	empty	9	9
+block-comment-CR	<?php\r$box=new \\Box();\r/* $box-> */\r	2	9	empty	9	9
+block-comment-mixed	<?php\r$box=new \\Box();\r\n/* $box-> */\n	2	9	empty	9	9
+single-string-LF	<?php\n$box=new \\Box();\n$text='$box->';\n	2	13	empty	13	13
+single-string-CRLF	<?php\r\n$box=new \\Box();\r\n$text='$box->';\r\n	2	13	empty	13	13
+single-string-CR	<?php\r$box=new \\Box();\r$text='$box->';\r	2	13	empty	13	13
+single-string-mixed	<?php\r$box=new \\Box();\r\n$text='$box->';\n	2	13	empty	13	13
+nowdoc-literal-LF	<?php\n$box=new \\Box();\n$text=<<<'RAW'\n$box->\nRAW;\n	3	6	empty	6	6
+nowdoc-literal-CRLF	<?php\r\n$box=new \\Box();\r\n$text=<<<'RAW'\r\n$box->\r\nRAW;\r\n	3	6	empty	6	6
+nowdoc-literal-CR	<?php\r$box=new \\Box();\r$text=<<<'RAW'\r$box->\rRAW;\r	3	6	empty	6	6
+nowdoc-literal-mixed	<?php\r$box=new \\Box();\r\n$text=<<<'RAW'\n$box->\rRAW;\r\n	3	6	empty	6	6
+double-plain-LF	<?php\n$box=new \\Box();\n$text="Fixture";\n	2	14	empty	14	14
+double-plain-CRLF	<?php\r\n$box=new \\Box();\r\n$text="Fixture";\r\n	2	14	empty	14	14
+double-plain-CR	<?php\r$box=new \\Box();\r$text="Fixture";\r	2	14	empty	14	14
+double-plain-mixed	<?php\r$box=new \\Box();\r\n$text="Fixture";\n	2	14	empty	14	14
+heredoc-plain-LF	<?php\n$box=new \\Box();\n$text=<<<RAW\nFixture\nRAW;\n	3	7	empty	7	7
+heredoc-plain-CRLF	<?php\r\n$box=new \\Box();\r\n$text=<<<RAW\r\nFixture\r\nRAW;\r\n	3	7	empty	7	7
+heredoc-plain-CR	<?php\r$box=new \\Box();\r$text=<<<RAW\rFixture\rRAW;\r	3	7	empty	7	7
+heredoc-plain-mixed	<?php\r$box=new \\Box();\r\n$text=<<<RAW\nFixture\rRAW;\r\n	3	7	empty	7	7
+doc-description-LF	<?php\n$box=new \\Box();\n/** description Fixture */\n	2	23	empty	23	23
+doc-description-CRLF	<?php\r\n$box=new \\Box();\r\n/** description Fixture */\r\n	2	23	empty	23	23
+doc-description-CR	<?php\r$box=new \\Box();\r/** description Fixture */\r	2	23	empty	23	23
+doc-description-mixed	<?php\r$box=new \\Box();\r\n/** description Fixture */\n	2	23	empty	23	23
+double-interpolation-LF	<?php\n$box=new \\Box();\n$text="$box->property";\n	2	16	property	13	21
+double-interpolation-CRLF	<?php\r\n$box=new \\Box();\r\n$text="$box->property";\r\n	2	16	property	13	21
+double-interpolation-CR	<?php\r$box=new \\Box();\r$text="$box->property";\r	2	16	property	13	21
+double-interpolation-mixed	<?php\r$box=new \\Box();\r\n$text="$box->property";\n	2	16	property	13	21
+heredoc-interpolation-LF	<?php\n$box=new \\Box();\n$text=<<<RAW\n$box->property\nRAW;\n	3	9	property	6	14
+heredoc-interpolation-CRLF	<?php\r\n$box=new \\Box();\r\n$text=<<<RAW\r\n$box->property\r\nRAW;\r\n	3	9	property	6	14
+heredoc-interpolation-CR	<?php\r$box=new \\Box();\r$text=<<<RAW\r$box->property\rRAW;\r	3	9	property	6	14
+heredoc-interpolation-mixed	<?php\r$box=new \\Box();\r\n$text=<<<RAW\n$box->property\rRAW;\r\n	3	9	property	6	14

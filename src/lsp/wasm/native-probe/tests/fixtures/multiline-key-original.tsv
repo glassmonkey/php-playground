@@ -1,0 +1,6 @@
+original-LF-single	<?php\n$data=['name'=>7];\n/* 🌟 */ echo $data['na\nold'];	2	23	name	name: 7	0000	2	21	3	5	name']	<?php\n$data=['name'=>7];\n/* 🌟 */ echo $data['name'];	valid	7
+original-LF-double	<?php\n$data=['name'=>7];\n/* 🌟 */ echo $data["na\nold"];	2	23	name	name: 7	0000	2	21	3	5	name"]	<?php\n$data=['name'=>7];\n/* 🌟 */ echo $data["name"];	valid	7
+original-CRLF-single	<?php\r\n$data=['name'=>7];\r\n/* 🌟 */ echo $data['na\r\nold'];	2	23	name	name: 7	0000	2	21	3	5	name']	<?php\r\n$data=['name'=>7];\r\n/* 🌟 */ echo $data['name'];	valid	7
+original-CRLF-double	<?php\r\n$data=['name'=>7];\r\n/* 🌟 */ echo $data["na\r\nold"];	2	23	name	name: 7	0000	2	21	3	5	name"]	<?php\r\n$data=['name'=>7];\r\n/* 🌟 */ echo $data["name"];	valid	7
+original-CR-single	<?php\r$data=['name'=>7];\r/* 🌟 */ echo $data['na\rold'];	2	23	name	name: 7	0000	2	21	3	5	name']	<?php\r$data=['name'=>7];\r/* 🌟 */ echo $data['name'];	valid	7
+original-CR-double	<?php\r$data=['name'=>7];\r/* 🌟 */ echo $data["na\rold"];	2	23	name	name: 7	0000	2	21	3	5	name"]	<?php\r$data=['name'=>7];\r/* 🌟 */ echo $data["name"];	valid	7

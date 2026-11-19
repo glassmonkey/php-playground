@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "scope": "known PHPantom/stubs/Mago originals and recorded embedded header index; not complete Rust SBOM",
+  "originals": [
+    {
+      "path": "phpantom/LICENSE",
+      "bytes": 1065,
+      "sha256": "0558c8ee80c9eacd4168299a3e6479b65287353a691a107a8681575f0b038dca",
+      "sourceRepository": "https://github.com/PHPantom-dev/phpantom_lsp",
+      "sourceCommit": "49b9a7513ed19cbbfb79d5d08a3f3693ffb2b668",
+      "sourcePath": "LICENSE",
+      "sourceUrl": "https://github.com/PHPantom-dev/phpantom_lsp/blob/49b9a7513ed19cbbfb79d5d08a3f3693ffb2b668/LICENSE",
+      "role": "unmodified upstream original"
+    },
+    {
+      "path": "phpstorm-stubs/LICENSE",
+      "bytes": 11351,
+      "sha256": "0b6bf6984e35b44f04c68ec5e18950cc10fea56b04576fab95fde116d0290408",
+      "sourceRepository": "https://github.com/JetBrains/phpstorm-stubs",
+      "sourceCommit": "2049ca3cfa1feabf52db074108fe776a5713cf02",
+      "sourcePath": "LICENSE",
+      "sourceUrl": "https://github.com/JetBrains/phpstorm-stubs/blob/2049ca3cfa1feabf52db074108fe776a5713cf02/LICENSE",
+      "role": "unmodified upstream original"
+    },
+    {
+      "path": "phpstorm-stubs/README.md",
+      "bytes": 6220,
+      "sha256": "200662fbf25f488517f415d6fa26481202a08215c1102c104f5f7b973f1c802c",
+      "sourceRepository": "https://github.com/JetBrains/phpstorm-stubs",
+      "sourceCommit": "2049ca3cfa1feabf52db074108fe776a5713cf02",
+      "sourcePath": "README.md",
+      "sourceUrl": "https://github.com/JetBrains/phpstorm-stubs/blob/2049ca3cfa1feabf52db074108fe776a5713cf02/README.md",
+      "role": "unmodified upstream original"
+    },
+    {
+      "path": "mago/LICENSE-MIT",
+      "bytes": 1108,
+      "sha256": "0562f9f7aa4ee4f7d5e35460d447bd8c4594b7d73c535bffb3ab88c027af771d",
+      "sourceRepository": "https://github.com/carthage-software/mago",
+      "sourceCommit": "59c3a1b56df9916cff773f1e49d89f929ceda790",
+      "sourcePath": "LICENSE-MIT",
+      "sourceUrl": "https://github.com/carthage-software/mago/blob/59c3a1b56df9916cff773f1e49d89f929ceda790/LICENSE-MIT",
+      "role": "unmodified upstream original"
+    },
+    {
+      "path": "mago/LICENSE-APACHE",
+      "bytes": 9723,
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "sourceRepository": "https://github.com/carthage-software/mago",
+      "sourceCommit": "59c3a1b56df9916cff773f1e49d89f929ceda790",
+      "sourcePath": "LICENSE-APACHE",
+      "sourceUrl": "https://github.com/carthage-software/mago/blob/59c3a1b56df9916cff773f1e49d89f929ceda790/LICENSE-APACHE",
+      "role": "unmodified upstream original"
+    }
+  ],
+  "attributionIndex": {
+    "path": "ATTRIBUTIONS.md",
+    "sha256": "97e6c72170b4f565eee0879e11d6482ca61038af965c029b7e826da61a8fcfb6",
+    "role": "project-authored index with verbatim original header excerpts",
+    "bytes": 7741
+  },
+  "stubsAttributionUrl": "https://github.com/JetBrains/phpstorm-stubs/blob/2049ca3cfa1feabf52db074108fe776a5713cf02/README.md"
+}

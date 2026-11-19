@@ -1,0 +1,233 @@
+[
+  {
+    "name": "LF-throws-import",
+    "source": "<?php\nnamespace Demo;\n\n/**\n\nfunction work($name): void { throw new \\RuntimeException(); }\necho RuntimeException::class === \\RuntimeException::class ? 7 : 99;\n",
+    "position": {
+      "line": 4,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      7,
+      1
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 3,
+            "character": 0
+          },
+          "end": {
+            "line": 5,
+            "character": 0
+          }
+        },
+        "newText": "/**\n * @param mixed $name\n *\n * @throws \\RuntimeException\n */\n"
+      }
+    ],
+    "expectedDocument": "<?php\nnamespace Demo;\n\n/**\n * @param mixed $name\n *\n * @throws \\RuntimeException\n */\nfunction work($name): void { throw new \\RuntimeException(); }\necho RuntimeException::class === \\RuntimeException::class ? 7 : 99;\n",
+    "expectedStdout": "99",
+    "reflectionKind": "function",
+    "reflectionSymbol": "Demo\\work",
+    "expectReflection": "/**\n * @param mixed $name\n *\n * @throws \\RuntimeException\n */",
+    "expectedAnnotationFQN": "RuntimeException"
+  },
+  {
+    "name": "CRLF-throws-import",
+    "source": "<?php\r\nnamespace Demo;\r\n\r\n/**\r\n\r\nfunction work($name): void { throw new \\RuntimeException(); }\r\necho RuntimeException::class === \\RuntimeException::class ? 7 : 99;\r\n",
+    "position": {
+      "line": 4,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      7,
+      1
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 3,
+            "character": 0
+          },
+          "end": {
+            "line": 5,
+            "character": 0
+          }
+        },
+        "newText": "/**\r\n * @param mixed $name\r\n *\r\n * @throws \\RuntimeException\r\n */\r\n"
+      }
+    ],
+    "expectedDocument": "<?php\r\nnamespace Demo;\r\n\r\n/**\r\n * @param mixed $name\r\n *\r\n * @throws \\RuntimeException\r\n */\r\nfunction work($name): void { throw new \\RuntimeException(); }\r\necho RuntimeException::class === \\RuntimeException::class ? 7 : 99;\r\n",
+    "expectedStdout": "99",
+    "reflectionKind": "function",
+    "reflectionSymbol": "Demo\\work",
+    "expectReflection": "/**\r\n * @param mixed $name\r\n *\r\n * @throws \\RuntimeException\r\n */",
+    "expectedAnnotationFQN": "RuntimeException"
+  },
+  {
+    "name": "CR-throws-import",
+    "source": "<?php\rnamespace Demo;\r\r/**\r\rfunction work($name): void { throw new \\RuntimeException(); }\recho RuntimeException::class === \\RuntimeException::class ? 7 : 99;\r",
+    "position": {
+      "line": 4,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      7,
+      1
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 3,
+            "character": 0
+          },
+          "end": {
+            "line": 5,
+            "character": 0
+          }
+        },
+        "newText": "/**\r * @param mixed $name\r *\r * @throws \\RuntimeException\r */\r"
+      }
+    ],
+    "expectedDocument": "<?php\rnamespace Demo;\r\r/**\r * @param mixed $name\r *\r * @throws \\RuntimeException\r */\rfunction work($name): void { throw new \\RuntimeException(); }\recho RuntimeException::class === \\RuntimeException::class ? 7 : 99;\r",
+    "expectedStdout": "99",
+    "reflectionKind": "function",
+    "reflectionSymbol": "Demo\\work",
+    "expectReflection": "/**\r * @param mixed $name\r *\r * @throws \\RuntimeException\r */",
+    "expectedAnnotationFQN": "RuntimeException"
+  },
+  {
+    "name": "LF-throws-shadow",
+    "source": "<?php\nnamespace Demo;\nclass RuntimeException {}\n\n/**\n\nfunction work($name): void { throw new \\RuntimeException(); }\necho RuntimeException::class === \\Demo\\RuntimeException::class ? 99 : 7;\n",
+    "position": {
+      "line": 5,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      7,
+      1
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "/**\n * @param mixed $name\n *\n * @throws \\RuntimeException\n */\n"
+      }
+    ],
+    "expectedDocument": "<?php\nnamespace Demo;\nclass RuntimeException {}\n\n/**\n * @param mixed $name\n *\n * @throws \\RuntimeException\n */\nfunction work($name): void { throw new \\RuntimeException(); }\necho RuntimeException::class === \\Demo\\RuntimeException::class ? 99 : 7;\n",
+    "expectedStdout": "99",
+    "reflectionKind": "function",
+    "reflectionSymbol": "Demo\\work",
+    "expectReflection": "/**\n * @param mixed $name\n *\n * @throws \\RuntimeException\n */",
+    "expectedAnnotationFQN": "RuntimeException",
+    "phpNameContextCode": "namespace Demo; "
+  },
+  {
+    "name": "LF-throws-existing-alias",
+    "source": "<?php\nnamespace Demo;\nuse RuntimeException as Trouble;\nclass RuntimeException {}\n\n/**\n\nfunction work($name): void { throw new \\RuntimeException(); }\necho RuntimeException::class === \\Demo\\RuntimeException::class ? 99 : 7;\n",
+    "position": {
+      "line": 6,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      7,
+      1
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 5,
+            "character": 0
+          },
+          "end": {
+            "line": 7,
+            "character": 0
+          }
+        },
+        "newText": "/**\n * @param mixed $name\n *\n * @throws Trouble\n */\n"
+      }
+    ],
+    "expectedDocument": "<?php\nnamespace Demo;\nuse RuntimeException as Trouble;\nclass RuntimeException {}\n\n/**\n * @param mixed $name\n *\n * @throws Trouble\n */\nfunction work($name): void { throw new \\RuntimeException(); }\necho RuntimeException::class === \\Demo\\RuntimeException::class ? 99 : 7;\n",
+    "expectedStdout": "99",
+    "reflectionKind": "function",
+    "reflectionSymbol": "Demo\\work",
+    "expectReflection": "/**\n * @param mixed $name\n *\n * @throws Trouble\n */",
+    "expectedAnnotationFQN": "RuntimeException",
+    "phpNameContextCode": "namespace Demo; use RuntimeException as Trouble;"
+  },
+  {
+    "name": "LF-throws-user-exception",
+    "source": "<?php\nnamespace Demo;\nclass RuntimeException {}\nclass LocalException extends \\Exception {}\n\n/**\n\nfunction work($name): void { throw new LocalException(); }\necho RuntimeException::class === \\Demo\\RuntimeException::class ? 99 : 7;\n",
+    "position": {
+      "line": 6,
+      "character": 0
+    },
+    "ch": "\n",
+    "options": {
+      "tabSize": 4,
+      "insertSpaces": true
+    },
+    "minimumTarget": [
+      7,
+      1
+    ],
+    "expectedEdits": [
+      {
+        "range": {
+          "start": {
+            "line": 5,
+            "character": 0
+          },
+          "end": {
+            "line": 7,
+            "character": 0
+          }
+        },
+        "newText": "/**\n * @param mixed $name\n *\n * @throws \\Demo\\LocalException\n */\n"
+      }
+    ],
+    "expectedDocument": "<?php\nnamespace Demo;\nclass RuntimeException {}\nclass LocalException extends \\Exception {}\n\n/**\n * @param mixed $name\n *\n * @throws \\Demo\\LocalException\n */\nfunction work($name): void { throw new LocalException(); }\necho RuntimeException::class === \\Demo\\RuntimeException::class ? 99 : 7;\n",
+    "expectedStdout": "99",
+    "reflectionKind": "function",
+    "reflectionSymbol": "Demo\\work",
+    "expectReflection": "/**\n * @param mixed $name\n *\n * @throws \\Demo\\LocalException\n */",
+    "expectedAnnotationFQN": "Demo\\LocalException",
+    "phpNameContextCode": "namespace Demo; "
+  }
+]
