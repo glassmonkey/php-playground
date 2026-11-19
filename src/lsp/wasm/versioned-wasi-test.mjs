@@ -1,4 +1,4 @@
-import {validateVariableAliasPair, validateSelectedCompletionPair, decodePositionFixtureRows} from './completion-contract.mjs';
+import {validateVariableAliasPair, validateSelectedCompletionPair, validateOutsidePhpCompletion, decodePositionFixtureRows} from './completion-contract.mjs';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
@@ -18,10 +18,10 @@ const reviewedDiff = manifest.source?.reviewedPhaseBDiffSha256
 assert.equal(reviewedDiff,
 	'e12de7944592edf7f38fc8fcf4a5a6065468600329641bd24bb8ae48d4fd260d');
 assert.equal(manifest.source?.appliedPhaseBPatchSha256,
-    '3fc2cca91c31ee854e12334da45bc11f9fc79cd7d9c5bea1decbac9d25e5ade8',
+    '6d66f4ff6fb92c54beebfb52e96ee56542c6b925f491996a7667b031f488269a',
     'current applied PHPantom patch is required before WASM instantiation');
 assert.equal(manifest.source?.appliedFileManifestSha256,
-    'c6090c53545cfafaceb3e62cb9f368a67b3c2ca962c7f92ccb814bce4bb0f312',
+    '66f365e15486f45bc9ebd0c4ebb4ebf8c0592b1330d4551c102c1deeae7114dc',
     'current applied file manifest is required before WASM instantiation');
 assert.equal(manifest.stubs?.commit, '2049ca3cfa1feabf52db074108fe776a5713cf02');
 if (manifest.stubs?.resolvedCommitMarker) {
@@ -899,6 +899,20 @@ async function releaseUnquotedKeyOracle(){
     const rows=decodePositionFixtureRows(await readFile(new URL('./native-probe/tests/fixtures/unquoted-key-expanded.tsv',import.meta.url),'utf8'),249,15);const f=rows.find(f=>f[0]==='LF-unicode-step1');assert.ok(f);await freshEngine();const uri='file:///release/array-invalid-position.php';open(uri,f[1]);for(const position of[{line:Number(f[7]),character:Number(f[8])-2},{line:99,character:0},{line:0,character:999}]){const items=completionItems(request('textDocument/completion',{textDocument:{uri},position}));assert.ok(!items.some(i=>i.label===f[4]&&i.kind===5),'invalid original position not an array key');}
 }
 
+async function releaseHtmlAdmissionOracle(){
+    const positives=decodePositionFixtureRows(await readFile(new URL('./native-probe/tests/fixtures/html-php-positive.tsv',import.meta.url),'utf8'),52,15);
+    const negatives=decodePositionFixtureRows(await readFile(new URL('./native-probe/tests/fixtures/html-outside-negative.tsv',import.meta.url),'utf8'),65,5);
+    const warmSibling=()=>{const uri='file:///release/html-warm-sibling.php';open(uri,'<?php abs');const all=completionItems(request('textDocument/completion',{textDocument:{uri},position:{line:0,character:9}}));const selected=all.find(i=>i.kind===3&&i.data?.m==='abs');assert.ok(selected,'real PHP sibling builtin');assert.equal(request('completionItem/resolve',selected).result.data?.m,'abs');};
+    const verifyPositive=(uri,f,stage)=>{const [name,source,line,column,label,detail,sort,startLine,start,endLine,end,text,document]=f;const wanted={label,kind:5,detail,sortText:sort,filterText:label,textEdit:{range:{start:{line:Number(startLine),character:Number(start)},end:{line:Number(endLine),character:Number(end)}},newText:text}};const all=completionItems(request('textDocument/completion',{textDocument:{uri},position:{line:Number(line),character:Number(column)}}));const selected=all.filter(i=>i.label===label&&i.kind===5);assert.equal(selected.length,1,`${target} ${name} PHP positive`);const initial=selected[0],resolved=request('completionItem/resolve',initial).result;assert.deepEqual(initial,wanted);assert.deepEqual(resolved,wanted);const documents=validateSelectedCompletionPair(source,initial,resolved,{...wanted,document});check(`${target} HTML/PHP ${name} ${stage}`,documents.initial===document&&documents.resolved===document,{initial,resolved,documents});console.log(`HTML_PHP_RESPONSE ${JSON.stringify({target,name,stage,source,initial,resolved,documents})}`);};
+    for(const f of positives){await freshEngine();const uri='file:///release/html-boundary.php';open(uri,f[1]);verifyPositive(uri,f,'cold');warmSibling();verifyPositive(uri,f,'warm');}
+    for(const f of negatives){const[name,source,line,column]=f;await freshEngine();const uri='file:///release/html-boundary.php';open(uri,source);for(const warm of[false,true]){if(warm)warmSibling();const response=request('textDocument/completion',{textDocument:{uri},position:{line:Number(line),character:Number(column)}});validateOutsidePhpCompletion(response);check(`${target} outside PHP ${name} ${warm}`,true);console.log(`HTML_OUTSIDE_RESPONSE ${JSON.stringify({target,name,warm,source,response,document:source})}`);}}
+    if(targetAtLeast(7,0)){
+        const docs=decodePositionFixtureRows(await readFile(new URL('./native-probe/tests/fixtures/html-phpdoc-positive.tsv',import.meta.url),'utf8'),6,6);
+        for(const[name,source,line,column,document]of docs){await freshEngine();const uri='file:///release/html-docblock.php';open(uri,source);const wanted={label:'@param int $alpha',kind:14,detail:'Document a function parameter',sortText:'0a_@param_000',filterText:'@param',insertText:'param int $alpha'};for(const warm of[false,true]){if(warm)warmSibling();const all=completionItems(request('textDocument/completion',{textDocument:{uri},position:{line:Number(line),character:Number(column)}}));const selected=all.filter(i=>i.label===wanted.label);assert.equal(selected.length,1);const initial=selected[0],resolved=request('completionItem/resolve',initial).result;assert.deepEqual(initial,wanted);assert.deepEqual(resolved,wanted);const documents=validateSelectedCompletionPair(source,initial,resolved,{...wanted,fallbackRange:{start:{line:Number(line),character:Number(column)-2},end:{line:Number(line),character:Number(column)}},document});check(`${target} PHPDoc reopen ${name} ${warm}`,documents.initial===document&&documents.resolved===document);}}
+    }
+    const first=positives.find(f=>f[0]==='LF-single-code'),last=positives.find(f=>f[0]==='CR-//-same-line-reopen'),html=negatives.find(f=>f[0]==='original');assert.ok(first&&last&&html);await freshEngine();const uri='file:///release/html-change.php';open(uri,first[1]);verifyPositive(uri,first,'change0');notify('textDocument/didChange',{textDocument:{uri,version:2},contentChanges:[{text:html[1]}]});validateOutsidePhpCompletion(request('textDocument/completion',{textDocument:{uri},position:{line:Number(html[2]),character:Number(html[3])}}));notify('textDocument/didChange',{textDocument:{uri,version:3},contentChanges:[{text:last[1]}]});verifyPositive(uri,last,'change2');
+}
+
 async function releasePositionConsumerOracle() {
     if (!targetAtLeast(8,0)) return;
     const rows=decodePositionFixtureRows(await readFile(new URL('./native-probe/tests/fixtures/position-consumers-contract-v2.tsv',import.meta.url),'utf8'),111,23);
@@ -1115,6 +1129,7 @@ await releasePositionConsumerOracle();
 await releaseArrayCloserOracle();
 await releaseMultilineKeyOracle();
 await releaseUnquotedKeyOracle();
+await releaseHtmlAdmissionOracle();
 await releaseBoundaryInterpolationOracle();
 console.log(JSON.stringify({
 	target,

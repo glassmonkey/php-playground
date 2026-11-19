@@ -1,5 +1,5 @@
 {
-  "completePatchSha256": "3fc2cca91c31ee854e12334da45bc11f9fc79cd7d9c5bea1decbac9d25e5ade8",
+  "completePatchSha256": "6d66f4ff6fb92c54beebfb52e96ee56542c6b925f491996a7667b031f488269a",
   "fileCount": 61,
   "files": [
     {
@@ -84,7 +84,7 @@
     },
     {
       "path": "src/completion/handler/mod.rs",
-      "sha256": "d1a48f1d17b78bc32c98b76a74ad38baffa097095239cf6a5a68af1267add383"
+      "sha256": "79b623093fb9e541dbad22b3195676aac9b35e9e8ae804dcecedb79bfdc9dbdd"
     },
     {
       "path": "src/completion/handler/named_args.rs",
@@ -100,7 +100,7 @@
     },
     {
       "path": "src/completion/handler/string_arguments.rs",
-      "sha256": "8f272e98dfe9285e9297dfc6e76377af62d5bce4da2a85fd50831d02025afecc"
+      "sha256": "c3798c116e02145bb812b0fc4e5f3412e6953309c5eca50177a563bf6d70569d"
     },
     {
       "path": "src/completion/mod.rs",
@@ -128,15 +128,15 @@
     },
     {
       "path": "src/completion/source/code_context.rs",
-      "sha256": "34a3a8516d29120e52b073e79cae7aaf5afdf71b633d5e07a70db489da39b1c4"
+      "sha256": "5e0847041bbb5c106a6dbe5ec5bf4fb3fe1e29bebfa6133f2bf6a6db818251ce"
     },
     {
       "path": "src/completion/source/code_context_tests.rs",
-      "sha256": "13c431973f17fc46ba94bc788b4949f658970258c966aa2a6a5f85a06391f049"
+      "sha256": "9d0c84d31ab9c568e3d1865b7a52e5647b486904fd221c2ec8ae15535a35df84"
     },
     {
       "path": "src/completion/source/comment_position.rs",
-      "sha256": "4d90246cee7820f19b2a4f28ae22f8c7551621a090daaf18cad852fcbf1f4015"
+      "sha256": "bd75680b5b2db5f592913b713934defc3237ad343b7e29b7307122dcbe8bbc4a"
     },
     {
       "path": "src/completion/source/throws_analysis/uncaught.rs",

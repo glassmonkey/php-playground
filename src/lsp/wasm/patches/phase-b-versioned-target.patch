@@ -3855,14 +3855,48 @@ diff --git a/src/completion/context/class_completion/items.rs b/src/completion/c
 diff --git a/src/completion/source/comment_position.rs b/src/completion/source/comment_position.rs
 --- a/src/completion/source/comment_position.rs
 +++ b/src/completion/source/comment_position.rs
-@@ -188,23 +188,27 @@
-                 {
-                     // Possible heredoc / nowdoc
-                     i += 3;
+@@ -98 +98 @@
+-        Lexical::DoubleString | Lexical::Heredoc => {
++        Lexical::DoubleString | Lexical::BacktickString | Lexical::Heredoc => {
+@@ -113,0 +114 @@
++    Html,
+@@ -114,0 +116 @@
++    BacktickString,
+@@ -141 +143,5 @@
+-    let mut state = Lexical::Code;
++    let mut state = if memchr::memmem::find(bytes, b"<?").is_some() {
++        Lexical::Html
++    } else {
++        Lexical::Code
++    };
+@@ -155,0 +162,13 @@
++            Lexical::Html => {
++                if bytes[i..].starts_with(b"<?") {
++                    i += 2;
++                    if bytes[i..].starts_with(b"php") {
++                        i += 3;
++                    } else if bytes[i..].starts_with(b"=") {
++                        i += 1;
++                    }
++                    state = Lexical::Code;
++                } else {
++                    i += 1;
++                }
++            }
+@@ -158 +177,8 @@
+-                if bytes[i] == b'/' && i + 1 < len && bytes[i + 1] == b'/' {
++                if bytes[i..].starts_with(b"?>") {
++                    state = Lexical::Html;
++                    i += 2;
++                } else if bytes[i] == b'`' {
++                    state = Lexical::BacktickString;
++                    brace_depth = 0;
++                    i += 1;
++                } else if bytes[i] == b'/' && i + 1 < len && bytes[i + 1] == b'/' {
+@@ -191 +217 @@
 -                    while i < len && bytes[i] == b' ' {
 +                    while i < len && matches!(bytes[i], b' ' | b'\t') {
-                         i += 1;
-                     }
+@@ -194,2 +220,6 @@
 -                    let is_nowdoc = i < len && bytes[i] == b'\'';
 -                    if is_nowdoc {
 +                    let quote = bytes
@@ -3871,52 +3905,51 @@ diff --git a/src/completion/source/comment_position.rs b/src/completion/source/c
 +                        .filter(|byte| matches!(byte, b'\'' | b'"'));
 +                    let is_nowdoc = quote == Some(b'\'');
 +                    if quote.is_some() {
-                         i += 1;
-                     }
-                     heredoc_label.clear();
+@@ -199 +229 @@
 -                    while i < len && (bytes[i].is_ascii_alphanumeric() || bytes[i] == b'_') {
 +                    while i < len && crate::text_scan::is_php_identifier_byte(bytes[i]) {
-                         heredoc_label.push(bytes[i]);
-                         i += 1;
-                     }
-                     if !heredoc_label.is_empty() {
+@@ -203,0 +234,3 @@
 +                        if quote.is_some_and(|quote| bytes.get(i) == Some(&quote)) {
 +                            i += 1;
 +                        }
-                         if is_nowdoc {
+@@ -205,3 +237,0 @@
 -                            if i < len && bytes[i] == b'\'' {
 -                                i += 1;
 -                            }
-                             state = Lexical::Nowdoc;
-                         } else {
-                             state = Lexical::Heredoc;
-@@ -216,7 +220,7 @@
-                 }
-             }
-             Lexical::LineComment => {
+@@ -219 +249,6 @@
 -                if bytes[i] == b'\n' {
++                if bytes[i..].starts_with(b"?>") {
++                    state = Lexical::Html;
++                    i += 2;
++                    continue;
++                }
 +                if matches!(bytes[i], b'\r' | b'\n') {
-                     state = Lexical::Code;
-                 }
-                 i += 1;
-@@ -268,26 +272,19 @@
-                 } else if interpolates && bytes[i] == b'}' && brace_depth > 0 {
-                     brace_depth -= 1;
-                     i += 1;
+@@ -242 +277 @@
+-            Lexical::DoubleString => {
++            Lexical::DoubleString | Lexical::BacktickString => {
+@@ -245 +280,8 @@
+-                } else if bytes[i] == b'"' && brace_depth == 0 {
++                } else if bytes[i]
++                    == if state == Lexical::BacktickString {
++                        b'`'
++                    } else {
++                        b'"'
++                    }
++                    && brace_depth == 0
++                {
+@@ -271,3 +313,3 @@
 -                } else if bytes[i] == b'\n' {
 -                    // Look for the closing label at the start of a line.
 -                    i += 1;
 +                } else if matches!(bytes[i], b'\r' | b'\n') {
 +                    // Look for the closing label after one PHP line ending.
 +                    i = crate::text_scan::next_php_line_start(bytes, i).unwrap_or(len);
-                     while i < len && (bytes[i] == b' ' || bytes[i] == b'\t') {
-                         i += 1;
-                     }
+@@ -277,2 +319,2 @@
 -                    if i + heredoc_label.len() <= len
 -                        && &bytes[i..i + heredoc_label.len()] == heredoc_label.as_slice()
 +                    if let Some(after_label) =
 +                        crate::text_scan::document_label_end(bytes, i, &heredoc_label)
-                     {
+@@ -280,11 +322,4 @@
 -                        let after_label = i + heredoc_label.len();
 -                        if after_label >= len
 -                            || bytes[after_label] == b';'
@@ -3932,13 +3965,7 @@ diff --git a/src/completion/source/comment_position.rs b/src/completion/source/c
 +                        state = Lexical::Code;
 +                        brace_depth = 0;
 +                        continue;
-                     }
-                     // Not the closing label — the whitespace scanned past
-                     // above is part of the body, so no rewind is needed.
-@@ -317,35 +314,39 @@
- /// All of these are valid interpolation starts in PHP double-quoted
- /// strings, so completion should be allowed rather than suppressed.
- fn is_simple_interpolation_site(bytes: &[u8], target: usize) -> bool {
+@@ -319,0 +355,9 @@
 +    let unescaped_dollar = |at: usize| {
 +        bytes.get(at) == Some(&b'$')
 +            && bytes[..at]
@@ -3948,7 +3975,7 @@ diff --git a/src/completion/source/comment_position.rs b/src/completion/source/c
 +                .count()
 +                .is_multiple_of(2)
 +    };
-     let mut pos = target;
+@@ -321,17 +365,3 @@
 -
 -    // ── Case 1: member access `$identifier->` / `$identifier?->` ────
 -    // Check `?->` first so the longer operator is not partially matched.
@@ -3969,8 +3996,7 @@ diff --git a/src/completion/source/comment_position.rs b/src/completion/source/c
 +    // A partial property name may lie between the cursor and the arrow.
 +    // PHP identifiers may include non-ASCII bytes, just like document labels.
 +    while pos > 0 && crate::text_scan::is_php_identifier_byte(bytes[pos - 1]) {
-         pos -= 1;
-     }
+@@ -340,4 +370,10 @@
 -    let ident_len = before_ident - pos;
 -
 -    // If we consumed an arrow, the identifier must be non-empty and
@@ -3985,7 +4011,7 @@ diff --git a/src/completion/source/comment_position.rs b/src/completion/source/c
 +    } else {
 +        false
 +    };
-     if has_arrow {
+@@ -345 +381,8 @@
 -        return ident_len > 0 && pos > 0 && bytes[pos - 1] == b'$';
 +        let receiver_end = pos;
 +        while pos > 0 && crate::text_scan::is_php_identifier_byte(bytes[pos - 1]) {
@@ -3995,12 +4021,11 @@ diff --git a/src/completion/source/comment_position.rs b/src/completion/source/c
 +    } else {
 +        // A bare dollar or partial variable name is an interpolation site.
 +        property_start > 0 && unescaped_dollar(property_start - 1)
-     }
+@@ -347,4 +389,0 @@
 -
 -    // ── Case 2: bare `$` or `$partialName` (variable interpolation) ─
 -    // The identifier may be empty (just `$`) or partially typed.
 -    pos > 0 && bytes[pos - 1] == b'$'
- }
 diff --git a/src/parser/initializers.rs b/src/parser/initializers.rs
 --- a/src/parser/initializers.rs
 +++ b/src/parser/initializers.rs
@@ -4717,13 +4742,26 @@ diff --git a/src/completion/handler/mod.rs b/src/completion/handler/mod.rs
 +            match self.completion_stages(&site, params.context.as_ref(), primary) {
 @@ -310,0 +341 @@
 +        primary: &Cell<PrimaryEditSemantics>,
-@@ -327 +358 @@
+@@ -311,0 +343,10 @@
++        let document = crate::completion::source::code_context::document_context_at(
++            site.content,
++            site.cursor_offset as usize,
++        );
++        // Only the explicit outside-PHP state denies the whole pipeline.
++        // A missing code context also means docblock, heredoc, or recovery,
++        // whose specialized completion strategies must still be allowed.
++        if document.inline_html {
++            return ControlFlow::Break(None);
++        }
+@@ -327 +368,3 @@
 -        if let Some(response) = self.string_argument_completion(site, string_ctx) {
-+        if let Some(response) = self.string_argument_completion(site, string_ctx, primary) {
-@@ -485,0 +517,2 @@
++        if let Some(response) =
++            self.string_argument_completion(site, string_ctx, primary, document.code.as_ref())
++        {
+@@ -485,0 +529,2 @@
 +        code_ctx: Option<&crate::completion::source::code_context::CodeContext<'_>>,
 +        allow_unquoted_code: bool,
-@@ -487 +520,11 @@
+@@ -487 +532,11 @@
 -        let ak_ctx = crate::completion::array_shape::detect_array_key_context(content, position)?;
 +        let ak_ctx = code_ctx
 +            .and_then(|code| {
@@ -4736,7 +4774,7 @@ diff --git a/src/completion/handler/mod.rs b/src/completion/handler/mod.rs
 +                    None
 +                }
 +            })?;
-@@ -605,0 +649,58 @@
+@@ -605,0 +661,58 @@
 +        }
 +    }
 +}
@@ -4795,7 +4833,7 @@ diff --git a/src/completion/handler/mod.rs b/src/completion/handler/mod.rs
 +                    "{context_label}"
 +                );
 +            }
-@@ -608,0 +710,53 @@
+@@ -608,0 +722,53 @@
 +
 +#[cfg(test)]
 +mod unquoted_array_eol_tests {
@@ -6033,30 +6071,163 @@ diff --git a/src/completion/source/throws_analysis/uncaught.rs b/src/completion/
 diff --git a/src/completion/handler/string_arguments.rs b/src/completion/handler/string_arguments.rs
 --- a/src/completion/handler/string_arguments.rs
 +++ b/src/completion/handler/string_arguments.rs
-@@ -22,0 +23 @@
+@@ -22,0 +23,2 @@
 +        primary: &std::cell::Cell<super::PrimaryEditSemantics>,
-@@ -51 +52,8 @@
++        code_ctx: Option<&crate::completion::source::code_context::CodeContext<'_>>,
+@@ -28 +29,0 @@
+-            cursor_offset,
+@@ -29,0 +31 @@
++            ..
+@@ -33,10 +35,2 @@
+-        // ── Cursor's lexical position ───────────────────────────
+-        // Resolving it is a forward pass over the file, and every
+-        // string-argument strategy below needs the same answer (the
+-        // literal being typed in, and the brackets around it), so the
+-        // scan runs once here and is shared rather than repeated per
+-        // strategy on every keystroke.
+-        let code_ctx = crate::completion::source::code_context::code_context_at(
+-            content,
+-            *cursor_offset as usize,
+-        );
++        // The request's document-admission scan is shared with all string
++        // strategies; do not repeat it or treat a missing context as HTML.
+@@ -51 +45,8 @@
 -            && let Some(response) = self.try_array_shape_completion(content, position, ctx)
 +            && let Some(response) = self.try_array_shape_completion(
 +                content,
 +                position,
 +                ctx,
-+                code_ctx.as_ref(),
++                code_ctx,
 +                matches!(string_ctx, StringContext::BraceInterpolation)
 +                    || (matches!(string_ctx, StringContext::NotInString) && code_ctx.is_some()),
 +            )
-@@ -52,0 +61 @@
+@@ -52,0 +54 @@
 +            primary.set(super::PrimaryEditSemantics::ArrayKeyLiteral);
+@@ -65 +67 @@
+-            && let Some(code) = code_ctx.as_ref()
++            && let Some(code) = code_ctx
+@@ -94 +96 @@
+-            && let Some(code) = code_ctx.as_ref()
++            && let Some(code) = code_ctx
+@@ -106 +108 @@
+-            && let Some(code) = code_ctx.as_ref()
++            && let Some(code) = code_ctx
+@@ -120 +122 @@
+-            && let Some(code) = code_ctx.as_ref()
++            && let Some(code) = code_ctx
+@@ -135 +137 @@
+-            && let Some(code) = code_ctx.as_ref()
++            && let Some(code) = code_ctx
+@@ -148 +150 @@
+-        ) && let Some(code) = code_ctx.as_ref()
++        ) && let Some(code) = code_ctx
+@@ -166 +168 @@
+-        ) && let Some(code) = code_ctx.as_ref()
++        ) && let Some(code) = code_ctx
+@@ -192 +194 @@
+-            && let Some(code) = code_ctx.as_ref()
++            && let Some(code) = code_ctx
 diff --git a/src/completion/source/code_context.rs b/src/completion/source/code_context.rs
 --- a/src/completion/source/code_context.rs
 +++ b/src/completion/source/code_context.rs
-@@ -218 +218 @@
+@@ -27 +27 @@
+-use memchr::{memchr, memchr2, memmem};
++use memchr::{memchr2, memmem};
+@@ -144,0 +145 @@
++    BacktickString(usize),
+@@ -169,0 +171,16 @@
++    scan_context_at(content, offset, false).code
++}
++
++/// Whole PHP document admission, distinct from fragment-compatible code context.
++/// HTML is an explicit state; comments/heredoc/invalid positions may have no
++/// code context without being HTML. The completion request shares this scan.
++pub(crate) struct DocumentContext<'a> {
++    pub(crate) inline_html: bool,
++    pub(crate) code: Option<CodeContext<'a>>,
++}
++
++pub(crate) fn document_context_at(content: &str, offset: usize) -> DocumentContext<'_> {
++    scan_context_at(content, offset, true)
++}
++
++fn scan_context_at(content: &str, offset: usize, document: bool) -> DocumentContext<'_> {
+@@ -173 +190,4 @@
+-        return None;
++        return DocumentContext {
++            inline_html: false,
++            code: None,
++        };
+@@ -176 +196 @@
+-    let mut state = if memmem::find(&bytes[..end], b"<?").is_some() {
++    let mut state = if document || memmem::find(&bytes[..end], b"<?").is_some() {
+@@ -218 +238 @@
 -                let newline = memchr(b'\n', &bytes[i..end]);
 +                let newline = memchr2(b'\r', b'\n', &bytes[i..end]);
+@@ -240 +260 @@
+-            State::SingleString(_) | State::DoubleString(_) => {
++            State::SingleString(_) | State::DoubleString(_) | State::BacktickString(_) => {
+@@ -242,0 +263,2 @@
++                } else if matches!(state, State::BacktickString(_)) {
++                    b'`'
+@@ -269 +291,3 @@
+-                let Some(newline) = memchr(b'\n', &bytes[i..end]) else {
++                let Some(mut j) =
++                    crate::text_scan::next_php_line_start(bytes, i).filter(|&line| line <= end)
++                else {
+@@ -273 +296,0 @@
+-                let mut j = i + newline + 1;
+@@ -277,10 +300,7 @@
+-                if bytes[j..end].starts_with(heredoc_label) {
+-                    let after = j + heredoc_label.len();
+-                    if after >= end
+-                        || !(bytes[after].is_ascii_alphanumeric() || bytes[after] == b'_')
+-                    {
+-                        code_end = after;
+-                        i = after;
+-                        state = State::Code;
+-                        continue;
+-                    }
++                if let Some(after) = crate::text_scan::document_label_end(bytes, j, heredoc_label)
++                    .filter(|&after| after <= end)
++                {
++                    code_end = after;
++                    i = after;
++                    state = State::Code;
++                    continue;
+@@ -349,0 +370,5 @@
++                    b'`' => {
++                        state = State::BacktickString(i);
++                        i += 1;
++                        continue;
++                    }
+@@ -477 +502,7 @@
+-        State::Html | State::LineComment | State::BlockComment | State::Heredoc => return None,
++        State::BacktickString(quote) => Some((quote, '`')),
++        State::Html | State::LineComment | State::BlockComment | State::Heredoc => {
++            return DocumentContext {
++                inline_html: matches!(state, State::Html),
++                code: None,
++            };
++        }
+@@ -479,5 +510,8 @@
+-    Some(CodeContext {
+-        code_before: content.get(..code_end)?,
+-        open_brackets,
+-        open_string,
+-    })
++    DocumentContext {
++        inline_html: false,
++        code: content.get(..code_end).map(|code_before| CodeContext {
++            code_before,
++            open_brackets,
++            open_string,
++        }),
++    }
 diff --git a/src/completion/source/code_context_tests.rs b/src/completion/source/code_context_tests.rs
 --- a/src/completion/source/code_context_tests.rs
 +++ b/src/completion/source/code_context_tests.rs
-@@ -252,0 +253,16 @@
+@@ -252,0 +253,63 @@
 +}
 +
 +#[test]
@@ -6073,7 +6244,7 @@ diff --git a/src/completion/source/code_context_tests.rs b/src/completion/source
 +            assert_eq!(ctx.last_code_byte(), Some(b'['));
 +        }
 +    }
-@@ -253,0 +270,21 @@
++}
 +#[test]
 +fn comment_eof_close_tag_and_quoted_comment_text_keep_their_lexical_roles() {
 +    for prefix in ["//", "#"] {
@@ -6093,5 +6264,52 @@ diff --git a/src/completion/source/code_context_tests.rs b/src/completion/source
 +        let cursor = reopened.rfind("na'").unwrap() + 2;
 +        let ctx = code_context_at(&reopened, cursor).unwrap();
 +        assert_eq!(ctx.open_brackets[0].offset, reopened.rfind('[').unwrap());
++    }
++}
++
++#[test]
++fn document_html_admission_is_distinct_from_missing_code_context() {
++    for (marked, html, code) in [
++        ("<p>na|</p><?php echo 1;", true, false),
++        ("<p>na|</p>", true, false),
++        ("<?php // ?>\r<p>na|</p>", true, false),
++        ("<?php # ?><p>na</p><?php $data[na|];", false, true),
++        ("<?php /** @pa| */", false, false),
++        ("<?php // comment|", false, false),
++        ("<?php echo \"{$data[na|]}\";", false, true),
++    ] {
++        let offset = marked.find('|').unwrap();
++        let source = marked.replace('|', "");
++        let got = document_context_at(&source, offset);
++        assert_eq!(
++            (got.inline_html, got.code.is_some()),
++            (html, code),
++            "{marked}"
++        );
++    }
++    assert!(
++        code_context_at("$data[", 6).is_some(),
++        "existing fragment API remains code"
++    );
+@@ -253,0 +317,21 @@
++#[test]
++fn document_close_tag_lookalikes_are_opaque_across_original_line_endings() {
++    for eol in ["\n", "\r\n", "\r"] {
++        for body in [
++            "$x='?>';".to_owned(),
++            "$x=\"?>\";".to_owned(),
++            "$x=`?>`;".to_owned(),
++            "/* ?> */".to_owned(),
++            format!("$x=<<<'TXT'{eol}?>{eol}TXT;"),
++        ] {
++            let source = format!("<?php{eol}{body}{eol}$data[na];");
++            let offset = source.rfind("na]").unwrap() + 2;
++            let got = document_context_at(&source, offset);
++            assert!(!got.inline_html && got.code.is_some(), "{source:?}");
++            let source = format!("{source} ?><p>na</p>");
++            let offset = source.rfind("na</").unwrap() + 2;
++            let got = document_context_at(&source, offset);
++            assert!(got.inline_html, "{source:?}");
++        }
 +    }
 +}

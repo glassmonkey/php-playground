@@ -135,3 +135,16 @@ export function decodePositionFixtureRows(text, rowCount, fieldCount) {
         });
     });
 }
+
+// PHP outside-state contract: an RPC error/malformed response is never absence.
+export function validateOutsidePhpCompletion(response) {
+    assert.ok(response && Object.hasOwn(response, 'result'), 'completion result exists');
+    assert.equal(response.error, undefined, 'outside PHP request has no RPC error');
+    const result = response.result;
+    assert.ok(result === null || Array.isArray(result) ||
+        (result && typeof result.isIncomplete === 'boolean' && Array.isArray(result.items)),
+    'valid completion result shape');
+    const items = result === null ? [] : Array.isArray(result) ? result : result.items;
+    assert.deepEqual(items, [], 'outside PHP has no PHP completion edits');
+    return items;
+}
