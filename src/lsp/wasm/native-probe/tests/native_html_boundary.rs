@@ -1,6 +1,9 @@
 use phpantom_lsp::{Backend, types::PhpVersion};
 use tower_lsp_server::{LanguageServer, gen_lsp_types::*};
 fn decode(s: &str) -> String {
+    if s == "\\e" {
+        return String::new();
+    }
     let mut chars = s.chars();
     let mut out = String::new();
     while let Some(c) = chars.next() {
@@ -17,6 +20,23 @@ fn decode(s: &str) -> String {
         }
     }
     out
+}
+
+fn fixture_rows(raw: &str, row_count: usize, field_count: usize) -> Vec<Vec<String>> {
+    let rows = raw
+        .strip_suffix('\n')
+        .expect("fixture terminal LF")
+        .split('\n')
+        .collect::<Vec<_>>();
+    assert_eq!(rows.len(), row_count, "complete ordered rows");
+    rows.into_iter()
+        .map(|row| {
+            assert!(!row.is_empty(), "blank fixture row");
+            let fields = row.split('\t').collect::<Vec<_>>();
+            assert_eq!(fields.len(), field_count, "complete fixture fields");
+            fields.into_iter().map(decode).collect()
+        })
+        .collect()
 }
 fn offset(source: &str, p: Position) -> Option<usize> {
     let bytes = source.as_bytes();
@@ -112,17 +132,10 @@ async fn items(sut: &Backend, uri: &Uri, position: Position) -> Vec<CompletionIt
     }
 }
 async fn run_cases(raw: &str, count: usize, tag: &str) {
-    let rows = raw
-        .strip_suffix('\n')
-        .unwrap()
-        .split('\n')
-        .collect::<Vec<_>>();
-    assert_eq!(rows.len(), count);
+    let rows = fixture_rows(raw, count, 15);
     let mut failures = Vec::new();
     let mut payloads = 0;
-    for row in rows {
-        let f = row.split('\t').map(decode).collect::<Vec<_>>();
-        assert_eq!(f.len(), 15);
+    for f in rows {
         for minor in [0, 3] {
             let sut = Backend::new_headless();
             sut.set_php_version(PhpVersion::new(8, minor));
@@ -221,17 +234,10 @@ async fn warm_php(sut: &Backend) {
 #[tokio::test]
 async fn html_outside_php_never_reaches_php_completion() {
     let raw = include_str!("fixtures/html-outside-negative.tsv");
-    let rows = raw
-        .strip_suffix('\n')
-        .unwrap()
-        .split('\n')
-        .collect::<Vec<_>>();
-    assert_eq!(rows.len(), 65);
+    let rows = fixture_rows(raw, 65, 5);
     let mut failures = Vec::new();
     let mut requests = 0;
-    for row in rows {
-        let f = row.split('\t').map(decode).collect::<Vec<_>>();
-        assert_eq!(f.len(), 5);
+    for f in rows {
         for minor in [0, 3] {
             let sut = Backend::new_headless();
             sut.set_php_version(PhpVersion::new(8, minor));
@@ -455,4 +461,57 @@ async fn did_change_code_html_reopen_keeps_full_edit_contract_and_rejects_mutant
         }
     }
     assert_eq!((pairs, empty, mutants), (8, 8, 6));
+}
+
+#[test]
+fn html_fixture_transport_preserves_all_cells_and_rejects_unknown_escapes() {
+    for (file, raw, rows, columns) in [
+        (
+            "html-php-positive.tsv",
+            include_str!("fixtures/html-php-positive.tsv"),
+            52,
+            15,
+        ),
+        (
+            "html-outside-negative.tsv",
+            include_str!("fixtures/html-outside-negative.tsv"),
+            65,
+            5,
+        ),
+        (
+            "html-phpdoc-positive.tsv",
+            include_str!("fixtures/html-phpdoc-positive.tsv"),
+            6,
+            6,
+        ),
+    ] {
+        let lines = fixture_rows(raw, rows, columns);
+        for (row, fields) in lines.iter().enumerate() {
+            for (column, value) in fields.iter().enumerate() {
+                let hex = value
+                    .as_bytes()
+                    .iter()
+                    .map(|b| format!("{b:02x}"))
+                    .collect::<String>();
+                eprintln!("HTML_CELL file={file} row={row} column={column} utf8hex={hex}");
+            }
+        }
+    }
+    assert_eq!(fixture_rows("\\e\n", 1, 1), vec![vec![String::new()]]);
+    assert_eq!(decode("\\\\e"), "\\e");
+    for (name, raw, rows, fields) in [
+        ("unknown", "\\q\n", 1, 1),
+        ("truncated-escape", "\\\n", 1, 1),
+        ("embedded-empty-escape", "\\eX\n", 1, 1),
+        ("missing-terminal", "a", 1, 1),
+        ("missing-column", "a\n", 1, 2),
+        ("extra-column", "a\tb\n", 1, 1),
+        ("blank-row-matching-count", "a\n\n", 2, 1),
+        ("extra-blank-row", "a\n\n", 1, 1),
+    ] {
+        assert!(
+            std::panic::catch_unwind(|| fixture_rows(raw, rows, fields)).is_err(),
+            "malformed fixture {name}"
+        );
+    }
 }

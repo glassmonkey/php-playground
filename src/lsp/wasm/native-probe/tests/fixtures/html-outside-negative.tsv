@@ -13,7 +13,7 @@ LF-docblock-then-html	<?php\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>
 LF-heredoc-then-html	<?php\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\n$x=<<<TXT\n?> <?php /* fake */\nTXT;\n?><p>na</p>	5	7	<p>na</p>
 LF-nowdoc-then-html	<?php\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\n$x=<<<'TXT'\n?> <?php /* fake */\nTXT;\n?><p>na</p>	5	7	<p>na</p>
 LF-two-segments	<?php\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\n?><b>first</b><?php $x=1;?>\n<p>na</p>	3	5	<b>first</b><p>na</p>
-LF-close-at-EOF	<?php\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\n?>	2	2	
+LF-close-at-EOF	<?php\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\n?>	2	2	\e
 LF-after-HTML-EOF	<?php\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\n?><p>na</p>	2	11	<p>na</p>
 CRLF-//-html	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\r\n// ?>\r\n<div>🌟$data[na]</div>	3	15	<div>🌟$data[na]</div>
 CRLF-#-html	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\r\n# ?>\r\n<div>🌟$data[na]</div>	3	15	<div>🌟$data[na]</div>
@@ -29,7 +29,7 @@ CRLF-docblock-then-html	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rke
 CRLF-heredoc-then-html	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\r\n$x=<<<TXT\n?> <?php /* fake */\nTXT;\r\n?><p>na</p>	5	7	<p>na</p>
 CRLF-nowdoc-then-html	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\r\n$x=<<<'TXT'\n?> <?php /* fake */\nTXT;\r\n?><p>na</p>	5	7	<p>na</p>
 CRLF-two-segments	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\r\n?><b>first</b><?php $x=1;?>\r\n<p>na</p>	3	5	<b>first</b><p>na</p>
-CRLF-close-at-EOF	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\r\n?>	2	2	
+CRLF-close-at-EOF	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\r\n?>	2	2	\e
 CRLF-after-HTML-EOF	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\r\n?><p>na</p>	2	11	<p>na</p>
 CR-//-html	<?php\r$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\r// ?>\r<div>🌟$data[na]</div>	3	15	<div>🌟$data[na]</div>
 CR-#-html	<?php\r$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\r# ?>\r<div>🌟$data[na]</div>	3	15	<div>🌟$data[na]</div>
@@ -45,7 +45,7 @@ CR-docblock-then-html	<?php\r$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>
 CR-heredoc-then-html	<?php\r$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\r$x=<<<TXT\n?> <?php /* fake */\nTXT;\r?><p>na</p>	5	7	<p>na</p>
 CR-nowdoc-then-html	<?php\r$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\r$x=<<<'TXT'\n?> <?php /* fake */\nTXT;\r?><p>na</p>	5	7	<p>na</p>
 CR-two-segments	<?php\r$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\r?><b>first</b><?php $x=1;?>\r<p>na</p>	3	5	<b>first</b><p>na</p>
-CR-close-at-EOF	<?php\r$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\r?>	2	2	
+CR-close-at-EOF	<?php\r$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\r?>	2	2	\e
 CR-after-HTML-EOF	<?php\r$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\r?><p>na</p>	2	11	<p>na</p>
 mixed-//-html	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\r\n// ?>\r<div>🌟$data[na]</div>	3	15	<div>🌟$data[na]</div>
 mixed-#-html	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\r\n# ?>\r<div>🌟$data[na]</div>	3	15	<div>🌟$data[na]</div>
@@ -61,5 +61,5 @@ mixed-docblock-then-html	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rk
 mixed-heredoc-then-html	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\r\n$x=<<<TXT\n?> <?php /* fake */\nTXT;\r?><p>na</p>	5	7	<p>na</p>
 mixed-nowdoc-then-html	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\r\n$x=<<<'TXT'\n?> <?php /* fake */\nTXT;\r?><p>na</p>	5	7	<p>na</p>
 mixed-two-segments	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\r\n?><b>first</b><?php $x=1;?>\r<p>na</p>	3	5	<b>first</b><p>na</p>
-mixed-close-at-EOF	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\r\n?>	2	2	
+mixed-close-at-EOF	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\r\n?>	2	2	\e
 mixed-after-HTML-EOF	<?php\r\n$data=["na\\nkey"=>7,"na\\r\\nkey"=>99,"na\\rkey"=>99];\r\n?><p>na</p>	2	11	<p>na</p>
