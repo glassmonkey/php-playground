@@ -14,6 +14,10 @@ import { Format } from './format';
 import debounce from 'debounce';
 import { Preview } from './preview';
 import type { PreviewTheme } from './preview-theme';
+import type * as Monaco from 'monaco-editor';
+import { LspClient } from './lsp/client';
+import { bindNaturalMiddleCompletion } from './lsp/natural-middle-completion';
+import { createWorker } from './lsp/phpantom';
 
 function LoadSpinner() {
 	return (
@@ -23,13 +27,80 @@ function LoadSpinner() {
 	);
 }
 
-function PhpEditor(params: { theme: PreviewTheme }) {
+function PhpEditor(params: {
+	theme: PreviewTheme;
+	version: Version;
+	autoComplete: boolean;
+}) {
 	const { code, updateCode } = useActiveCode();
 	const { sandpack } = useSandpack();
+	const [lspBinding, setLspBinding] = React.useState<{
+		editor: Monaco.editor.IStandaloneCodeEditor;
+		model: Monaco.editor.ITextModel;
+		monaco: typeof Monaco;
+	} | null>(null);
 
 	const onChangeCode: OnChange = debounce((value) => {
 		updateCode(value || '');
 	}, 300);
+
+	React.useEffect(() => {
+		if (!params.autoComplete || !lspBinding) return;
+
+		const controller = new AbortController();
+		let client: LspClient | undefined;
+		let middleCompletion: Monaco.IDisposable | undefined;
+		let cancelled = false;
+
+		void createWorker(params.version, { signal: controller.signal })
+			.then((worker) =>
+				LspClient.connect({
+					worker,
+					signal: controller.signal,
+					model: lspBinding.model,
+					monaco: lspBinding.monaco,
+					phpVersion: params.version,
+					onStatus: (status, message) => {
+						if (status === 'error') {
+							middleCompletion?.dispose();
+							console.error(
+								'PHPantom completion failed:',
+								message
+							);
+						}
+					},
+				})
+			)
+			.then((connectedClient) => {
+				if (cancelled) {
+					connectedClient.dispose();
+					return;
+				}
+				client = connectedClient;
+				middleCompletion = bindNaturalMiddleCompletion({
+					...lspBinding,
+					phpVersion: params.version,
+					signal: controller.signal,
+				});
+			})
+			.catch((error: unknown) => {
+				if (!cancelled) {
+					console.error(
+						'Could not start PHPantom completion:',
+						error
+					);
+				}
+			});
+
+		return () => {
+			cancelled = true;
+			middleCompletion?.dispose();
+			controller.abort();
+			void lspBinding.editor.getAction('hideSuggestWidget')?.run();
+			void lspBinding.editor.getAction('editor.action.hideHover')?.run();
+			if (client) client.dispose();
+		};
+	}, [params.autoComplete, params.version, lspBinding]);
 
 	return (
 		<MonacoEditor
@@ -40,8 +111,13 @@ function PhpEditor(params: { theme: PreviewTheme }) {
 			key={sandpack.activeFile}
 			defaultValue={code}
 			onChange={onChangeCode}
+			onMount={(editor, monaco) => {
+				const model = editor.getModel();
+				if (model) setLspBinding({ editor, model, monaco });
+			}}
 			loading={<LoadSpinner />}
 			options={{
+				formatOnType: params.autoComplete,
 				minimap: {
 					enabled: false,
 				},
@@ -73,7 +149,12 @@ function PhpCodeCallback(params: { onChangeCode: (code: string) => void }) {
 	const { sandpack } = useSandpack();
 	const { files, activeFile } = sandpack;
 	const code = files[activeFile].code;
-	params.onChangeCode(code);
+	const previousCode = React.useRef(code);
+	React.useEffect(() => {
+		if (previousCode.current === code) return;
+		previousCode.current = code;
+		params.onChangeCode(code);
+	}, [code]);
 	return <></>;
 }
 
@@ -128,6 +209,7 @@ export function Editor(params: {
 	initCode: string;
 	version: Version;
 	format: Format;
+	autoComplete: boolean;
 	theme: PreviewTheme;
 	onChangeCode: (code: string) => void;
 }) {
@@ -146,7 +228,13 @@ export function Editor(params: {
 		>
 			<EditorLayout
 				theme={params.theme}
-				Editor={<PhpEditor theme={params.theme} />}
+				Editor={
+					<PhpEditor
+						theme={params.theme}
+						version={params.version}
+						autoComplete={params.autoComplete}
+					/>
+				}
 				Preview={
 					<PhpPreview
 						version={params.version}

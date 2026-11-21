@@ -39,14 +39,15 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: 4,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
+  reporter: [['html'], ['json', { outputFile: 'playwright-report/results.json' }]],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: 'http://127.0.0.1:8888',
 
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+    /* Preserve each failed attempt, including the first; retry success does not erase it. */
+    trace: 'retain-on-failure',
+    screenshot: 'only-on-failure',
   },
   timeout: 5 * 60 * 1000,
   expect: {
@@ -78,7 +79,7 @@ export default defineConfig({
 
   /* Serve the app and source-only runtime harness through the same Vite server. */
   webServer: {
-    command: 'npm run dev -- --host 127.0.0.1 --port 8888 --strictPort',
+    command: 'npm run dev -- --config e2e/vite.config.mjs --host 127.0.0.1 --port 8888 --strictPort',
     url: 'http://127.0.0.1:8888',
     reuseExistingServer: false,
     timeout: 1000 * 60,
